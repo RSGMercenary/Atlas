@@ -26,3 +26,9 @@
 *.exe
 *.out
 *.app
+
+#C Sharp files
+*.sln
+*.config
+*.csproj
+obj/
