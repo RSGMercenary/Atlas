@@ -6,14 +6,28 @@ namespace Atlas.Entities
 {
 	sealed class EntityManager:Component
 	{
+		private static EntityManager instance;
+
 		private List<Entity> entities = new List<Entity>();
 		private Dictionary<string, Entity> uniqueNames = new Dictionary<string, Entity>();
 		private Signal<EntityManager, Entity> entityAdded = new Signal<EntityManager, Entity>();
 		private Signal<EntityManager, Entity> entityRemoved = new Signal<EntityManager, Entity>();
 
-		public EntityManager() : base(false)
+		private EntityManager() : base(false)
 		{
 
+		}
+
+		public static EntityManager Instance
+		{
+			get
+			{
+				if(instance == null)
+				{
+					instance = new EntityManager();
+				}
+				return instance;
+			}
 		}
 
 		override protected void AddingComponentManager(Entity entity)

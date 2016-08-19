@@ -8,6 +8,8 @@ namespace Atlas.Systems
 {
 	sealed class SystemManager:Component
 	{
+		private static SystemManager instance;
+
 		private List<AtlasSystem> systems = new List<AtlasSystem>();
 		private Dictionary<Type, AtlasSystem> systemTypes = new Dictionary<Type, AtlasSystem>();
 		private Signal<SystemManager, Type> systemAdded = new Signal<SystemManager, Type>();
@@ -20,17 +22,27 @@ namespace Atlas.Systems
 		private bool isUpdating = false;
 		private Signal<SystemManager, bool> isUpdatingChanged = new Signal<SystemManager, bool>();
 
-		//private var _updater:Shape = new Shape();
-
 		private int _frameRate = 60;
 		private int _maxUpdates = 5;
 		private double _timeTotal = 0; //TO-DO :: Not sure if this should be float, double, or...
 		private double _timeElapsedMax = 1;
 		private double _timePrevious;
 
-		public SystemManager() : base(false)
+		private SystemManager() : base(false)
 		{
 
+		}
+
+		public static SystemManager Instance
+		{
+			get
+			{
+				if(instance == null)
+				{
+					instance = new SystemManager();
+				}
+				return instance;
+			}
 		}
 
 		override protected void AddingComponentManager(Entity root)
