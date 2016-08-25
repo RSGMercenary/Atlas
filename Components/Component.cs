@@ -38,8 +38,8 @@ namespace Atlas.Components
 			{
 				Disposing();
 				IsDisposed = true;
+				IsDisposedWhenUnmanaged = true;
 				isDisposedChanged.Dispose();
-				isDisposedWhenUnmanaged = true;
 				componentManagerAdded.Dispose();
 				componentManagerRemoved.Dispose();
 			}
@@ -155,20 +155,20 @@ namespace Atlas.Components
 			if(index > componentManagers.Count - 1)
 				return false;
 
-			int previousIndex = componentManagers.IndexOf(entity);
+			int previous = componentManagers.IndexOf(entity);
 
-			if(previousIndex == index)
+			if(previous == index)
 				return true;
-			if(previousIndex < 0)
+			if(previous < 0)
 				return false;
 
 			//-1 is needed since technically you lost a child on the previous splice.
-			if(index > previousIndex)
+			if(index > previous)
 			{
 				--index;
 			}
 
-			componentManagers.RemoveAt(previousIndex);
+			componentManagers.RemoveAt(previous);
 			componentManagers.Insert(index, entity);
 			return true;
 		}
