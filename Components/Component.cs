@@ -17,6 +17,11 @@ namespace Atlas.Components
 		private bool isDisposed = false;
 		private Signal<Component, bool> isDisposedChanged = new Signal<Component, bool>();
 
+		public static implicit operator bool(Component component)
+		{
+			return component != null;
+		}
+
 		public Component() : this(false)
 		{
 
@@ -150,11 +155,6 @@ namespace Atlas.Components
 
 		public bool SetComponentManagerIndex(Entity entity, int index)
 		{
-			if(index < 0)
-				return false;
-			if(index > componentManagers.Count - 1)
-				return false;
-
 			int previous = componentManagers.IndexOf(entity);
 
 			if(previous == index)
@@ -162,11 +162,7 @@ namespace Atlas.Components
 			if(previous < 0)
 				return false;
 
-			//-1 is needed since technically you lost a child on the previous splice.
-			if(index > previous)
-			{
-				--index;
-			}
+			index = Math.Max(0, Math.Min(index, componentManagers.Count - 1));
 
 			componentManagers.RemoveAt(previous);
 			componentManagers.Insert(index, entity);

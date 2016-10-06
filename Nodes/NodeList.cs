@@ -28,6 +28,11 @@ namespace Atlas.Nodes
 		private Signal<NodeList, Node> nodeAdded = new Signal<NodeList, Node>();
 		private Signal<NodeList, Node> nodeRemoved = new Signal<NodeList, Node>();
 
+		public static implicit operator bool(NodeList nodeList)
+		{
+			return nodeList != null;
+		}
+
 		internal NodeList()
 		{
 

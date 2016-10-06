@@ -2,18 +2,12 @@
 
 namespace Atlas.Signals
 {
-	sealed class Slot<T1, T2> where T1 : class
+	class Slot
 	{
-		private Signal<T1, T2> signal;
-		private Action<T1, T2> listener;
+		protected Signal signal;
+		protected Delegate listener;
 		private int priority = 0;
 		private bool isOnce = false;
-		private bool isEnabled = true;
-
-		internal Slot()
-		{
-
-		}
 
 		public void Dispose()
 		{
@@ -27,11 +21,10 @@ namespace Atlas.Signals
 				listener = null;
 				priority = 0;
 				isOnce = false;
-				isEnabled = true;
 			}
 		}
 
-		public Signal<T1, T2> Signal
+		public Signal Signal
 		{
 			get
 			{
@@ -43,7 +36,7 @@ namespace Atlas.Signals
 			}
 		}
 
-		public Action<T1, T2> Listener
+		public Delegate Listener
 		{
 			get
 			{
@@ -67,18 +60,6 @@ namespace Atlas.Signals
 			}
 		}
 
-		public bool IsEnabled
-		{
-			get
-			{
-				return isEnabled;
-			}
-			set
-			{
-				isEnabled = value;
-			}
-		}
-
 		public int Priority
 		{
 			get
@@ -93,7 +74,7 @@ namespace Atlas.Signals
 					priority = value;
 					if(signal != null)
 					{
-						signal.PriorityChanged(this, previous);
+						signal.PriorityChanged(this, value, previous);
 					}
 				}
 			}

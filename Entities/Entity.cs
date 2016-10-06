@@ -1,5 +1,6 @@
 ﻿using Atlas.Components;
 using Atlas.Signals;
+using Atlas.Systems;
 using System;
 using System.Collections.Generic;
 
@@ -7,32 +8,47 @@ namespace Atlas.Entities
 {
 	sealed class Entity
 	{
+		private Atlas atlas;
+
 		private EntityManager entityManager;
 		private Signal<Entity, EntityManager> entityManagerChanged = new Signal<Entity, EntityManager>();
 
 		private string uniqueName = "";
-		private Signal<Entity, string> uniqueNameChanged = new Signal<Entity, string>();
+		private Signal<Entity, string, string> uniqueNameChanged = new Signal<Entity, string, string>();
 
 		private string name = "";
-		private Signal<Entity, string> nameChanged = new Signal<Entity, string>();
+		private Signal<Entity, string, string> nameChanged = new Signal<Entity, string, string>(false);
 
 		private List<Entity> children = new List<Entity>();
-		private Signal<Entity, Entity> childAdded = new Signal<Entity, Entity>();
-		private Signal<Entity, Entity> childRemoved = new Signal<Entity, Entity>();
+		private Signal<Entity, Entity, int> childAdded = new Signal<Entity, Entity, int>();
+		private Signal<Entity, Entity, int> childRemoved = new Signal<Entity, Entity, int>();
+		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
+		private Signal<Entity, int, int, bool> childIndicesChanged = new Signal<Entity, int, int, bool>(); //Indices of children
+
 
 		private Entity parent;
-		private Signal<Entity, Entity> parentChanged = new Signal<Entity, Entity>();
+		private Signal<Entity, Entity, Entity> parentChanged = new Signal<Entity, Entity, Entity>();
+		private Signal<Entity, int, int> parentIndexChanged = new Signal<Entity, int, int>(); //Index within parent
 
 		private Dictionary<Type, Component> components = new Dictionary<Type, Component>();
-		private Signal<Entity, Type> componentAdded = new Signal<Entity, Type>();
-		private Signal<Entity, Type> componentRemoved = new Signal<Entity, Type>();
+		private Signal<Entity, Component, Type> componentAdded = new Signal<Entity, Component, Type>();
+		private Signal<Entity, Component, Type> componentRemoved = new Signal<Entity, Component, Type>();
 
-		private int sleepCount = 0;
-		private Signal<Entity, int> sleepCountChanged = new Signal<Entity, int>();
-		private int sleepCountParentIgnored = 0;
-		private Signal<Entity, int> sleepCountParentIgnoredChanged = new Signal<Entity, int>();
+		private HashSet<Type> systemTypes = new HashSet<Type>();
+		private Signal<Entity, Type> systemTypeAdded = new Signal<Entity, Type>();
+		private Signal<Entity, Type> systemTypeRemoved = new Signal<Entity, Type>();
+
+		private int sleeping = 0;
+		private Signal<Entity, int, int> sleepingChanged = new Signal<Entity, int, int>();
+		private int sleepingParentIgnored = 0;
+		private Signal<Entity, int, int> sleepingParentIgnoredChanged = new Signal<Entity, int, int>();
 
 		private bool isDisposedWhenUnmanaged = true;
+
+		public static implicit operator bool(Entity entity)
+		{
+			return entity != null;
+		}
 
 		public Entity(string uniqueName = "", string name = "")
 		{
@@ -45,15 +61,15 @@ namespace Atlas.Entities
 			if(entityManager != null)
 			{
 				IsDisposedWhenUnmanaged = true;
-				parent = null;
+				Parent = null;
 			}
 			else
 			{
 				RemoveChildren();
 				RemoveComponents();
-				parent = null;
-				SleepCount = 0;
-				SleepCountParentIgnored = 0;
+				Parent = null;
+				Sleeping = 0;
+				SleepingParentIgnored = 0;
 				IsDisposedWhenUnmanaged = true;
 				UniqueName = "";
 				Name = "";
@@ -66,8 +82,8 @@ namespace Atlas.Entities
 				parentChanged.Dispose();
 				componentAdded.Dispose();
 				componentRemoved.Dispose();
-				sleepCountChanged.Dispose();
-				sleepCountParentIgnoredChanged.Dispose();
+				sleepingChanged.Dispose();
+				sleepingParentIgnoredChanged.Dispose();
 			}
 		}
 
@@ -88,12 +104,12 @@ namespace Atlas.Entities
 					}
 					string previous = uniqueName;
 					uniqueName = value;
-					uniqueNameChanged.Dispatch(this, previous);
+					uniqueNameChanged.Dispatch(this, value, previous);
 				}
 			}
 		}
 
-		public Signal<Entity, string> UniqueNameChanged
+		public Signal<Entity, string, string> UniqueNameChanged
 		{
 			get
 			{
@@ -113,16 +129,32 @@ namespace Atlas.Entities
 				{
 					string previous = name;
 					name = value;
-					nameChanged.Dispatch(this, previous);
+					nameChanged.Dispatch(this, value, previous);
 				}
 			}
 		}
 
-		public Signal<Entity, string> NameChanged
+		public Signal<Entity, string, string> NameChanged
 		{
 			get
 			{
 				return nameChanged;
+			}
+		}
+
+		public Atlas Atlas
+		{
+			get
+			{
+				return atlas;
+			}
+			internal set
+			{
+				if(atlas != value)
+				{
+					Atlas previous = atlas;
+					atlas = value;
+				}
 			}
 		}
 
@@ -159,7 +191,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public bool HasComponent<T>()
+		public bool HasComponent<T>() where T : Component
 		{
 			return HasComponent(typeof(T));
 		}
@@ -169,7 +201,7 @@ namespace Atlas.Entities
 			return components.ContainsKey(type);
 		}
 
-		public Component GetComponent<T>()
+		public Component GetComponent<T>() where T : Component
 		{
 			return GetComponent(typeof(T));
 		}
@@ -246,13 +278,13 @@ namespace Atlas.Entities
 					RemoveComponent(componentType);
 					components.Add(componentType, component);
 					component.AddComponentManager(this, componentType, index);
-					componentAdded.Dispatch(this, componentType);
+					componentAdded.Dispatch(this, component, componentType);
 				}
 			}
 			return component;
 		}
 
-		public Signal<Entity, Type> ComponentAdded
+		public Signal<Entity, Component, Type> ComponentAdded
 		{
 			get
 			{
@@ -266,17 +298,17 @@ namespace Atlas.Entities
 			{
 				if(components.ContainsKey(componentType))
 				{
-					componentRemoved.Dispatch(this, componentType);
 					Component component = components[componentType];
 					components.Remove(componentType);
 					component.RemoveComponentManager(this);
+					componentRemoved.Dispatch(this, component, componentType);
 					return component;
 				}
 			}
 			return null;
 		}
 
-		public Signal<Entity, Type> ComponentRemoved
+		public Signal<Entity, Component, Type> ComponentRemoved
 		{
 			get
 			{
@@ -309,7 +341,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public bool ContainsEntity(Entity entity)
+		public bool Contains(Entity entity)
 		{
 			while(entity != this && entity != null)
 			{
@@ -351,9 +383,9 @@ namespace Atlas.Entities
 						children.Insert(index, child);
 						if(IsSleeping && !child.IsSleepingParentIgnored)
 						{
-							++child.SleepCount;
+							++child.Sleeping;
 						}
-						childAdded.Dispatch(this, child);
+						childAdded.Dispatch(this, child, index);
 					}
 					else
 					{
@@ -362,7 +394,7 @@ namespace Atlas.Entities
 				}
 				else
 				{
-					if(child.ContainsEntity(this))
+					if(child.Contains(this))
 					{
 						return null;
 					}
@@ -373,7 +405,73 @@ namespace Atlas.Entities
 			return null;
 		}
 
-		public Signal<Entity, Entity> ChildAdded
+		/*
+		 * == Remove
+		 * ParentOld.ChildRemoved
+		 * ParentOld.IndicesChanged
+		 * 
+		 * SiblingsOld.IndexChanged
+		 * 
+		 * Child.ParentChanged
+		 * Child.IndexChanged
+		 * 
+		 * == Remove + Add
+		 * ParentOld.ChildRemoved
+		 * ParentOld.IndicesChanged
+		 * 
+		 * SiblingsOld.IndexChanged
+		 * 
+		 * ParentNew.ChildAdded
+		 * ParentNew.IndicesChanged
+		 * 
+		 * SiblingsNew.IndexChanged
+		 * 
+		 * Child.ParentChanged
+		 * Child.IndexChanged
+		 */
+		public Entity AddChild(Entity child, int index, bool b)
+		{
+			if(child.parent != this)
+			{
+				Entity previousParent = null;
+				int previousIndex = -1;
+				if(child.parent != null)
+				{
+					previousParent = child.parent;
+					previousIndex = RemoveAChild(child);
+				}
+
+				//Next Parent hierarchy changes
+				child.parent = this;
+				children.Insert(index, child);
+				childAdded.Dispatch(this, child, index);
+
+				int numChildren = children.Count;
+
+				//Next Parent index changes
+				childIndicesChanged.Dispatch(this, index, numChildren, true);
+
+				//sibling index changes
+				for(int i = index; i < numChildren; ++i)
+				{
+					Entity sibling = children[i];
+					sibling.parentIndexChanged.Dispatch(sibling, i + 1, i);
+				}
+
+				//Child index changes
+				if(index != previousIndex)
+				{
+					child.parentIndexChanged.Dispatch(child, index, previousIndex);
+				}
+
+				//Child hierachy changes
+				child.parentChanged.Dispatch(child, this, previousParent);
+
+			}
+			return null;
+		}
+
+		public Signal<Entity, Entity, int> ChildAdded
 		{
 			get
 			{
@@ -389,11 +487,19 @@ namespace Atlas.Entities
 				{
 					if(HasChild(child))
 					{
-						childRemoved.Dispatch(this, child);
-						children.Remove(child);
+
+						int index = children.IndexOf(child);
+						children.RemoveAt(index);
+						childRemoved.Dispatch(this, child, index);
+						childIndicesChanged.Dispatch(this, index, children.Count, true);
+						for(int i = index; i < children.Count; ++i)
+						{
+							Entity sibling = children[i];
+							sibling.parentIndexChanged.Dispatch(sibling, i, i + 1);
+						}
 						if(IsSleeping && !child.IsSleepingParentIgnored)
 						{
-							--child.SleepCount;
+							--child.Sleeping;
 						}
 						return child;
 					}
@@ -407,7 +513,89 @@ namespace Atlas.Entities
 			return null;
 		}
 
-		public Signal<Entity, Entity> ChildRemoved
+		private int RemoveAChild(Entity child)
+		{
+			int index = children.IndexOf(child);
+			//Previous Parent hierarchy changes
+			childRemoved.Dispatch(this, child, index);
+			children.Remove(child);
+			child.parent = null;
+
+			//Previous Parent index changes
+			childIndicesChanged.Dispatch(this, index, children.Count, true);
+
+			//Previous sibling index changes
+			for(int i = index; i < children.Count; ++i)
+			{
+				Entity sibling = children[i];
+				sibling.parentIndexChanged.Dispatch(sibling, i, i + 1);
+			}
+			return index;
+		}
+
+		public Entity RemoveChild(Entity child, bool b)
+		{
+			if(child.parent == this)
+			{
+				int index = RemoveAChild(child);
+
+				//Child hierarchy changes
+				child.parentChanged.Dispatch(child, null, this);
+
+				//Child index changes
+				child.parentIndexChanged.Dispatch(child, -1, index);
+
+			}
+			return null;
+		}
+
+		private void RChild(Entity child)
+		{
+			if(child.parent == this)
+			{
+				int previousIndex = children.IndexOf(child);
+				children.RemoveAt(previousIndex);
+				child.parent = null;
+
+				List<Entity> siblings = children.GetRange(previousIndex, children.Count - previousIndex);
+				int childCount = children.Count;
+
+				childRemoved.Dispatch(this, child, previousIndex);
+				childIndicesChanged.Dispatch(this, previousIndex, childCount - 1, true);
+
+				for(int si = 0; si < siblings.Count; ++si)
+				{
+					Entity sibling = siblings[si];
+					int sibIndex = previousIndex + si;
+					sibling.parentIndexChanged.Dispatch(sibling, sibIndex, sibIndex + 1);
+				}
+
+				child.parentChanged.Dispatch(child, null, this);
+				child.parentIndexChanged.Dispatch(child, -1, previousIndex);
+			}
+		}
+
+		private void AChild(Entity child, int index)
+		{
+			if(child.parent != this)
+			{
+				Entity previousParent = null;
+				int previousIndex = -1;
+
+				if(child.parent != null)
+				{
+					previousParent = child.parent;
+					previousIndex = previousParent.children.IndexOf(child);
+					previousParent.children.RemoveAt(previousIndex);
+				}
+
+				child.parent = this;
+				child.parent.children.Insert(index, child);
+
+			}
+		}
+
+		public Signal<Entity, Entity, int> ChildRemoved
 		{
 			get
 			{
@@ -432,25 +620,30 @@ namespace Atlas.Entities
 			}
 		}
 
-		private void SetParent(Entity value = null, int index = int.MaxValue)
+		private void SetParent(Entity next = null, int index = int.MaxValue)
 		{
-			if(parent != value)
+			if(parent != next)
 			{
 				Entity previous = parent;
-				parent = value;
+				parent = next;
 				if(previous != null)
 				{
 					previous.RemoveChild(this);
 				}
-				if(value != null)
+				if(next != null)
 				{
-					value.AddChild(this, index);
+					next.AddChild(this, index);
 				}
-				parentChanged.Dispatch(this, previous);
+				parentChanged.Dispatch(this, next, previous);
+
+				if(!next && isDisposedWhenUnmanaged)
+				{
+					Dispose();
+				}
 			}
 		}
 
-		public Signal<Entity, Entity> ParentChanged
+		public Signal<Entity, Entity, Entity> ParentChanged
 		{
 			get
 			{
@@ -469,7 +662,7 @@ namespace Atlas.Entities
 				{
 					if(name == "..")
 					{
-						entity = entity.Parent;
+						entity = entity.parent;
 					}
 					else
 					{
@@ -492,7 +685,7 @@ namespace Atlas.Entities
 			{
 				foreach(Entity child in children)
 				{
-					if(child.Name == name)
+					if(child.name == name)
 					{
 						return child;
 					}
@@ -517,33 +710,51 @@ namespace Atlas.Entities
 
 		public bool SetChildIndex(Entity child, int index)
 		{
-			int previousIndex = children.IndexOf(child);
+			int previous = children.IndexOf(child);
 
-			if(previousIndex < 0)
+			if(previous == index)
+				return true;
+			if(previous < 0)
 				return false;
 
-			int numChildren = children.Count;
-			if(index <= 0)
-			{
-				index = 0;
-			}
-			else if(index > numChildren - 1)
-			{
-				index = numChildren - 1;
-			}
+			index = Math.Max(0, Math.Min(index, children.Count - 1));
 
-			if(previousIndex == index)
-				return true;
+			int next = index;
 
-			//-1 is needed since technically you lost a child on the previous splice.
-			if(index > previousIndex)
+			children.RemoveAt(previous);
+			children.Insert(next, child);
+
+			child.parentIndexChanged.Dispatch(child, next, previous);
+			if(next > previous)
 			{
-				--index;
-			}
+				//Children shift down 0<-[1]
+				for(index = previous; index < next; ++index)
+				{
+					child = children[index];
+					child.parentIndexChanged.Dispatch(child, index, index + 1);
+				}
 
-			children.RemoveAt(previousIndex);
-			children.Insert(index, child);
+				childIndicesChanged.Dispatch(this, previous, next, true);
+			}
+			else
+			{
+				//Children shift up [0]->1
+				for(index = previous; index > next; --index)
+				{
+					child = children[index];
+					child.parentIndexChanged.Dispatch(child, index, index - 1);
+				}
+				childIndicesChanged.Dispatch(this, next, previous, true);
+			}
 			return true;
+		}
+
+		public Signal<Entity, int, int> ParentIndexChanged
+		{
+			get
+			{
+				return parentIndexChanged;
+			}
 		}
 
 		public bool SwapChildren(Entity child1, Entity child2)
@@ -563,14 +774,17 @@ namespace Atlas.Entities
 				return false;
 			if(index2 < 0)
 				return false;
-			int numChildren = children.Count;
-			if(index1 > numChildren - 1)
+			if(index1 > children.Count - 1)
 				return false;
-			if(index2 > numChildren - 1)
+			if(index2 > children.Count - 1)
 				return false;
-			Entity child = children[index1];
-			children[index1] = children[index2];
-			children[index2] = child;
+			Entity child1 = children[index1];
+			Entity child2 = children[index2];
+			children[index1] = child2;
+			children[index2] = child1;
+			child1.parentIndexChanged.Dispatch(child1, index2, index1);
+			child2.parentIndexChanged.Dispatch(child2, index1, index2);
+			childIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), false);
 			return true;
 		}
 
@@ -590,39 +804,46 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<Entity, int> SleepCountChanged
+		public Signal<Entity, int, int> SleepingChanged
 		{
 			get
 			{
-				return sleepCountChanged;
+				return sleepingChanged;
 			}
 		}
 
-		public int SleepCount
+		public int Sleeping
 		{
 			get
 			{
-				return sleepCount;
+				return sleeping;
 			}
 			set
 			{
-				if(sleepCount != value)
+				if(sleeping != value)
 				{
-					int previous = sleepCount;
-					sleepCount = value;
-					sleepCountChanged.Dispatch(this, previous);
+					int previous = sleeping;
+					sleeping = value;
+					sleepingChanged.Dispatch(this, value, previous);
 
-					foreach(Entity child in children)
+					if(value > 0 && previous <= 0)
 					{
-						if(!child.IsSleepingParentIgnored)
+						foreach(Entity child in children)
 						{
-							if(value > 0 && previous <= 0)
+							if(!child.IsSleepingParentIgnored)
 							{
-								++child.SleepCount;
+								++child.Sleeping;
 							}
-							else if(value <= 0 && previous > 0)
+						}
+
+					}
+					else if(value <= 0 && previous > 0)
+					{
+						foreach(Entity child in children)
+						{
+							if(!child.IsSleepingParentIgnored)
 							{
-								--child.SleepCount;
+								--child.Sleeping;
 							}
 						}
 					}
@@ -634,41 +855,41 @@ namespace Atlas.Entities
 		{
 			get
 			{
-				return sleepCount > 0;
+				return sleeping > 0;
 			}
 		}
 
-		public Signal<Entity, int> SleepCountParentIgnoredChanged
+		public Signal<Entity, int, int> SleepingParentIgnoredChanged
 		{
 			get
 			{
-				return sleepCountParentIgnoredChanged;
+				return sleepingParentIgnoredChanged;
 			}
 		}
 
-		public int SleepCountParentIgnored
+		public int SleepingParentIgnored
 		{
 			get
 			{
-				return sleepCountParentIgnored;
+				return sleepingParentIgnored;
 			}
 			set
 			{
-				if(sleepCountParentIgnored != value)
+				if(sleepingParentIgnored != value)
 				{
-					int previous = sleepCountParentIgnored;
-					sleepCountParentIgnored = value;
-					sleepCountParentIgnoredChanged.Dispatch(this, previous);
+					int previous = sleepingParentIgnored;
+					sleepingParentIgnored = value;
+					sleepingParentIgnoredChanged.Dispatch(this, value, previous);
 
 					if(parent != null && parent.IsSleeping)
 					{
 						if(value <= 0)
 						{
-							++SleepCount;
+							++Sleeping;
 						}
 						else
 						{
-							--SleepCount;
+							--Sleeping;
 						}
 					}
 				}
@@ -679,7 +900,84 @@ namespace Atlas.Entities
 		{
 			get
 			{
-				return sleepCountParentIgnored > 0;
+				return sleepingParentIgnored > 0;
+			}
+		}
+
+		public Signal<Entity, Type> SystemTypeAdded
+		{
+			get
+			{
+				return systemTypeAdded;
+			}
+		}
+
+		public Signal<Entity, Type> SystemTypeRemoved
+		{
+			get
+			{
+				return systemTypeRemoved;
+			}
+		}
+
+		public List<Type> SystemTypes
+		{
+			get
+			{
+				return new List<Type>(systemTypes);
+			}
+		}
+
+		public bool HasSystemType<T>()
+		{
+			return HasSystemType(typeof(T));
+		}
+
+		public bool HasSystemType(Type systemType)
+		{
+			return systemTypes.Contains(systemType);
+		}
+
+		public bool AddSystemType<T>() where T : AtlasSystem
+		{
+			return AddSystemType(typeof(T));
+		}
+
+		public bool AddSystemType(Type systemType)
+		{
+			if(typeof(AtlasSystem).IsAssignableFrom(systemType))
+			{
+				if(!systemTypes.Contains(systemType))
+				{
+					systemTypes.Add(systemType);
+					systemTypeAdded.Dispatch(this, systemType);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public bool RemoveSystemType<T>() where T : AtlasSystem
+		{
+			return RemoveSystemType(typeof(T));
+		}
+
+		public bool RemoveSystemType(Type systemType)
+		{
+			if(systemTypes.Contains(systemType))
+			{
+				systemTypes.Remove(systemType);
+				systemTypeRemoved.Dispatch(this, systemType);
+				return true;
+			}
+			return false;
+		}
+
+		public void RemoveSystems()
+		{
+			foreach(Type systemType in systemTypes)
+			{
+				RemoveSystemType(systemType);
 			}
 		}
 

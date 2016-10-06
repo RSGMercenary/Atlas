@@ -3,30 +3,130 @@ using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1, T2> where T1 : class
+	class Signal
 	{
-		private List<Slot<T1, T2>> slots = new List<Slot<T1, T2>>();
-		private List<Slot<T1, T2>> slotsPooled = new List<Slot<T1, T2>>();
-		private List<Slot<T1, T2>> slotsRemoved = new List<Slot<T1, T2>>();
+		private List<Slot> slots = new List<Slot>();
+		private List<Slot> slotsPooled = new List<Slot>();
+		private List<Slot> slotsRemoved = new List<Slot>();
 
+		private List<object[]> dispatchesPooled = new List<object[]>();
+		private bool hasConcurrentDispatches = true;
 		private int numDispatches = 0;
 
-		public Signal()
+		public Signal(bool hasConcurrentDispatches = true)
 		{
-
+			HasConcurrentDispatches = hasConcurrentDispatches;
 		}
 
+		public bool HasConcurrentDispatches
+		{
+			get
+			{
+				return hasConcurrentDispatches;
+			}
+			private set
+			{
+				hasConcurrentDispatches = value;
+			}
+		}
+
+		/// <summary>
+		/// Cleans up the Signal by removing and disposing all listeners,
+		/// and unpooling allocated Slots.
+		/// </summary>
 		public void Dispose()
 		{
 			RemoveAll();
 			while(slotsPooled.Count > 0)
 			{
-				Slot<T1, T2> slot = slotsPooled[slotsPooled.Count - 1];
+				Slot slot = slotsPooled[slotsPooled.Count - 1];
 				slotsPooled.RemoveAt(slotsPooled.Count - 1);
 				slot.Dispose();
 			}
 		}
 
+		/// <summary>
+		/// Calls Dispose only if there are no listeners.
+		/// </summary>
+		public bool DisposeIfEmpty()
+		{
+			if(slots.Count <= 0)
+			{
+				Dispose();
+				return true;
+			}
+			return false;
+		}
+
+		public void Dispatch(params object[] values)
+		{
+			if(slots.Count > 0)
+			{
+				if(!hasConcurrentDispatches && numDispatches > 0)
+				{
+					dispatchesPooled.Add(values);
+				}
+				else
+				{
+					++numDispatches;
+
+					foreach(Slot slot in Slots)
+					{
+						slot.Listener.DynamicInvoke(values);
+					}
+
+					--numDispatches;
+
+					if(numDispatches == 0)
+					{
+						while(slotsRemoved.Count > 0)
+						{
+							Slot slot = slotsRemoved[slotsRemoved.Count - 1];
+							slotsRemoved.RemoveAt(slotsRemoved.Count - 1);
+							DisposeSlot(slot);
+						}
+
+						if(dispatchesPooled.Count > 0)
+						{
+							values = dispatchesPooled[0];
+							dispatchesPooled.RemoveAt(0);
+							Dispatch(values);
+						}
+					}
+				}
+			}
+		}
+
+		protected bool DispatchStart()
+		{
+			if(slots.Count > 0)
+			{
+				++numDispatches;
+				return true;
+			}
+			return false;
+		}
+
+		protected bool DispatchStop()
+		{
+			--numDispatches;
+			if(numDispatches == 0)
+			{
+				while(slotsRemoved.Count > 0)
+				{
+					Slot slot = slotsRemoved[slotsRemoved.Count - 1];
+					slotsRemoved.RemoveAt(slotsRemoved.Count - 1);
+					DisposeSlot(slot);
+				}
+				return true;
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// The number of concurrent dispatches. During a dispatch, it's possible that external
+		/// code could require another dispatch on the same Signal.
+		/// </summary>
 		public int NumDispatches
 		{
 			get
@@ -35,6 +135,9 @@ namespace Atlas.Signals
 			}
 		}
 
+		/// <summary>
+		/// The number of Slots/listeners attached to this Signal.
+		/// </summary>
 		public int NumSlots
 		{
 			get
@@ -43,89 +146,41 @@ namespace Atlas.Signals
 			}
 		}
 
-		public Slot<T1, T2>[] Slots
+		/// <summary>
+		/// Returns a copy of the Slots being processed by this Signal in order of
+		/// how they're prioritized.
+		/// </summary>
+		public List<Slot> Slots
 		{
 			get
 			{
-				return slots.ToArray();
+				return new List<Slot>(slots);
 			}
 		}
 
-		public void Dispatch(T1 item1, T2 item2)
-		{
-			if(slots.Count > 0)
-			{
-				++numDispatches;
-
-				//We have to clone the slots so this dispatch() has its own unique list.
-				List<Slot<T1, T2>> slotsDispatch = new List<Slot<T1, T2>>(slots);
-
-				foreach(var slot in slotsDispatch)
-				{
-					if(slot.IsEnabled)
-					{
-						//If this listener is only being called once...
-						if(slot.IsOnce)
-						{
-							//...we need to remove it from the base slots so it won't be called again on the next dispatch.
-							Remove(slot.Listener);
-						}
-
-						//Set the passed in args...
-						/*var allArgs:Array < Dynamic > = args;
-						//...and then add the slot's personal args to it.
-						if (slot._args != null && slot._args.length > 0)
-						{
-							allArgs = allArgs.concat(slot._args);
-						}*/
-
-						try
-						{
-							slot.Listener.Invoke(item1, item2);
-						}
-						catch
-						{
-							//We remove the Slot so the Error doesn't inevitably happen again.
-							Remove(slot.Listener);
-							//Console.WriteLine(e.StackTrace);
-						}
-					}
-				}
-
-				--numDispatches;
-
-				if(numDispatches == 0)
-				{
-					while(slotsRemoved.Count > 0)
-					{
-						var slot = slotsRemoved[slotsRemoved.Count - 1];
-						slotsRemoved.RemoveAt(slotsRemoved.Count);
-						DisposeSlot(slot);
-					}
-				}
-			}
-		}
-
-		private void DisposeSlot(Slot<T1, T2> slot)
+		private void DisposeSlot(Slot slot)
 		{
 			slot.Signal = null;
 			slot.Dispose();
 			slotsPooled.Add(slot);
 		}
 
-		public Slot<T1, T2> Get(Action<T1, T2> listener)
+		public Slot Get(Delegate listener)
 		{
-			foreach(var slot in slots)
+			if(listener != null)
 			{
-				if(slot.Listener == listener)
+				foreach(Slot slot in slots)
 				{
-					return slot;
+					if(slot.Listener == listener)
+					{
+						return slot;
+					}
 				}
 			}
 			return null;
 		}
 
-		public Slot<T1, T2> GetAt(int index)
+		public Slot GetAt(int index)
 		{
 			if(index < 0)
 				return null;
@@ -134,38 +189,26 @@ namespace Atlas.Signals
 			return slots[index];
 		}
 
-		public int GetIndex(Action<T1, T2> listener)
+		public int GetIndex(Delegate listener)
 		{
-			for(int index = slots.Count - 1; index > -1; --index)
+			if(listener != null)
 			{
-				if(slots[index].Listener == listener)
+				for(int index = slots.Count - 1; index > -1; --index)
 				{
-					return index;
+					if(slots[index].Listener == listener)
+					{
+						return index;
+					}
 				}
 			}
 			return -1;
 		}
 
-		public Slot<T1, T2> Add(Action<T1, T2> listener)
-		{
-			return Add(listener, 0, false);
-		}
-
-		public Slot<T1, T2> Add(Action<T1, T2> listener, int priority = 0)
-		{
-			return Add(listener, priority, false);
-		}
-
-		public Slot<T1, T2> AddOnce(Action<T1, T2> listener, int priority = 0)
-		{
-			return Add(listener, priority, true);
-		}
-
-		public Slot<T1, T2> Add(Action<T1, T2> listener, int priority = 0, bool isOnce = false)
+		public Slot Add(Delegate listener, int priority = 0, bool isOnce = false)
 		{
 			if(listener != null)
 			{
-				Slot<T1, T2> slot = Get(listener);
+				Slot slot = Get(listener);
 				if(slot == null)
 				{
 					if(slotsPooled.Count > 0)
@@ -175,7 +218,7 @@ namespace Atlas.Signals
 					}
 					else
 					{
-						slot = new Slot<T1, T2>();
+						slot = CreateSlot();
 					}
 
 					slot.Signal = this;
@@ -183,7 +226,7 @@ namespace Atlas.Signals
 					slot.Priority = priority;
 					slot.IsOnce = isOnce;
 
-					PriorityChanged(slot, 0);
+					PriorityChanged(slot, 0, 0);
 
 					return slot;
 				}
@@ -191,7 +234,12 @@ namespace Atlas.Signals
 			return null;
 		}
 
-		internal void PriorityChanged(Slot<T1, T2> slot, int previousPriority)
+		virtual protected Slot CreateSlot()
+		{
+			return new Slot();
+		}
+
+		internal void PriorityChanged(Slot slot, int current, int previous)
 		{
 			slots.Remove(slot);
 
@@ -204,37 +252,52 @@ namespace Atlas.Signals
 				}
 			}
 
-			slots.Add(slot);
+			slots.Insert(0, slot);
 		}
 
-		public Slot<T1, T2> Remove(Action<T1, T2> listener)
+		public bool Remove(Delegate listener)
 		{
-			for(int index = slots.Count - 1; index > -1; --index)
+			if(listener != null)
 			{
-				if(slots[index].Listener == listener)
+				for(int index = slots.Count - 1; index > -1; --index)
 				{
-					return RemoveAt(index);
+					if(slots[index].Listener == listener)
+					{
+						return RemoveAt(index);
+					}
 				}
 			}
-			return null;
+			return false;
 		}
 
-		public Slot<T1, T2> RemoveAt(int index)
+		/// <summary>
+		/// Removes the Slot/listener at the given index.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		public bool RemoveAt(int index)
 		{
-			Slot<T1, T2> slot = slots[index];
-			slots.RemoveAt(index);
+			if(index > 0 && index < slots.Count)
+			{
+				Slot slot = slots[index];
+				slots.RemoveAt(index);
 
-			if(numDispatches > 0)
-			{
-				slotsRemoved.Add(slot);
+				if(numDispatches > 0)
+				{
+					slotsRemoved.Add(slot);
+				}
+				else
+				{
+					DisposeSlot(slot);
+				}
+				return true;
 			}
-			else
-			{
-				DisposeSlot(slot);
-			}
-			return slot;
+			return false;
 		}
 
+		/// <summary>
+		/// Removes all Slots/listeners.
+		/// </summary>
 		public void RemoveAll()
 		{
 			while(slots.Count > 0)

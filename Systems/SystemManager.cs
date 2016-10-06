@@ -53,7 +53,7 @@ namespace Atlas.Systems
 			root.ComponentRemoved.Add(RootComponentRemoved, int.MinValue);
 			if(root.HasComponent(typeof(EntityManager)))
 			{
-				RootComponentAdded(root, typeof(EntityManager));
+				RootComponentAdded(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
 			}
 
 			--TotalSleeping;
@@ -65,7 +65,7 @@ namespace Atlas.Systems
 			root.ComponentRemoved.Remove(RootComponentRemoved);
 			if(root.HasComponent(typeof(EntityManager)))
 			{
-				RootComponentRemoved(root, typeof(EntityManager));
+				RootComponentRemoved(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
 			}
 
 			++TotalSleeping;
@@ -73,7 +73,7 @@ namespace Atlas.Systems
 			base.RemovingComponentManager(root);
 		}
 
-		private void RootComponentAdded(Entity root, Type componentType)
+		private void RootComponentAdded(Entity root, Component component, Type componentType)
 		{
 			if(componentType == typeof(EntityManager))
 			{
@@ -87,7 +87,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		private void RootComponentRemoved(Entity root, Type componentType)
+		private void RootComponentRemoved(Entity root, Component component, Type componentType)
 		{
 			if(componentType == typeof(EntityManager))
 			{
@@ -105,9 +105,9 @@ namespace Atlas.Systems
 		{
 			entity.ComponentAdded.Add(ComponentAdded, int.MinValue);
 			entity.ComponentRemoved.Add(ComponentRemoved, int.MinValue);
-			if(entity.HasComponent(typeof(SystemTypeManager)))
+			if(entity.HasComponent<SystemTypeManager>())
 			{
-				ComponentAdded(entity, typeof(SystemTypeManager));
+				ComponentAdded(entity, entity.GetComponent<SystemTypeManager>(), typeof(SystemTypeManager));
 			}
 		}
 
@@ -115,13 +115,13 @@ namespace Atlas.Systems
 		{
 			entity.ComponentAdded.Remove(ComponentAdded);
 			entity.ComponentRemoved.Remove(ComponentRemoved);
-			if(entity.HasComponent(typeof(SystemTypeManager)))
+			if(entity.HasComponent<SystemTypeManager>())
 			{
-				ComponentRemoved(entity, typeof(SystemTypeManager));
+				ComponentRemoved(entity, entity.GetComponent<SystemTypeManager>(), typeof(SystemTypeManager));
 			}
 		}
 
-		private void ComponentAdded(Entity entity, Type componentType)
+		private void ComponentAdded(Entity entity, Component component, Type componentType)
 		{
 			if(componentType == typeof(SystemTypeManager))
 			{
@@ -135,7 +135,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		private void ComponentRemoved(Entity entity, Type componentType)
+		private void ComponentRemoved(Entity entity, Component component, Type componentType)
 		{
 			if(componentType == typeof(SystemTypeManager))
 			{
@@ -157,7 +157,7 @@ namespace Atlas.Systems
 
 				systemTypes.Add(systemType, system);
 
-				system.TotalSleepingChanged.Add(SystemTotalSleepingChanged, int.MinValue);
+				system.SleepingChanged.Add(SystemTotalSleepingChanged, int.MinValue);
 				if(!system.IsSleeping)
 				{
 					SystemTotalSleepingChanged(system, 1);
@@ -187,7 +187,7 @@ namespace Atlas.Systems
 				{
 					systemRemoved.Dispatch(this, systemType);
 
-					system.TotalSleepingChanged.Remove(SystemTotalSleepingChanged);
+					system.SleepingChanged.Remove(SystemTotalSleepingChanged);
 					if(!system.IsSleeping)
 					{
 						system.PriorityChanged.Remove(SystemPriorityChanged);
@@ -210,12 +210,12 @@ namespace Atlas.Systems
 
 		private void SystemTotalSleepingChanged(AtlasSystem system, int previousTotalSleeping)
 		{
-			if(system.TotalSleeping <= 0 && previousTotalSleeping > 0)
+			if(system.Sleeping <= 0 && previousTotalSleeping > 0)
 			{
 				system.PriorityChanged.Add(SystemPriorityChanged, int.MinValue);
 				SystemPriorityChanged(system);
 			}
-			else if(system.TotalSleeping > 0 && previousTotalSleeping <= 0)
+			else if(system.Sleeping > 0 && previousTotalSleeping <= 0)
 			{
 				system.PriorityChanged.Remove(SystemPriorityChanged);
 				systems.Remove(system);

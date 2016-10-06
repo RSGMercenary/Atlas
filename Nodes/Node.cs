@@ -9,6 +9,11 @@ namespace Atlas.Nodes
 		private Node next;
 		private Entity entity;
 
+		public static implicit operator bool(Node node)
+		{
+			return node != null;
+		}
+
 		internal Node()
 		{
 

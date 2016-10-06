@@ -1,5 +1,6 @@
 ﻿using Atlas.Components;
 using Atlas.Signals;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.Entities
@@ -96,25 +97,16 @@ namespace Atlas.Entities
 
 		public bool SetEntityIndex(Entity entity, int index)
 		{
-			if(index < 0)
-				return false;
-			if(index > entities.Count - 1)
-				return false;
+			int previous = entities.IndexOf(entity);
 
-			int previousIndex = entities.IndexOf(entity);
-
-			if(previousIndex == index)
+			if(previous == index)
 				return true;
-			if(previousIndex < 0)
+			if(previous < 0)
 				return false;
 
-			//-1 is needed since technically you lost a child on the previous splice.
-			if(index > previousIndex)
-			{
-				--index;
-			}
+			index = Math.Max(0, Math.Min(index, entities.Count - 1));
 
-			entities.RemoveAt(previousIndex);
+			entities.RemoveAt(previous);
 			entities.Insert(index, entity);
 			return true;
 		}
@@ -191,28 +183,30 @@ namespace Atlas.Entities
 			entity.EntityManager = null;
 		}
 
-		private void ChildAdded(Entity parent, Entity child)
+		private void ChildAdded(Entity parent, Entity child, int index)
 		{
 			AddEntity(child);
 		}
 
-		private void ParentChanged(Entity child, Entity previousParent)
+		private void ParentChanged(Entity child, Entity next, Entity previous)
 		{
-			if(child.Parent == null)
+			if(next == null)
 			{
 				RemoveEntity(child);
-
-				if(child.IsDisposedWhenUnmanaged)
-				{
-					child.Dispose();
-				}
 			}
 		}
 
-		private void UniqueNameChanged(Entity entity, string previousUniqueName)
+		private void UniqueNameChanged(Entity entity, string next, string previous)
 		{
-			uniqueNames.Remove(previousUniqueName);
-			uniqueNames.Add(entity.UniqueName, entity);
+			//This should account for a possible name change in the middle of a name change.
+			if(uniqueNames.ContainsKey(previous) && uniqueNames[previous] == entity)
+			{
+				uniqueNames.Remove(previous);
+			}
+			if(!uniqueNames.ContainsKey(next) && entity.UniqueName == next)
+			{
+				uniqueNames.Add(next, entity);
+			}
 		}
 	}
 }

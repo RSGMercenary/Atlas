@@ -1,4 +1,5 @@
-﻿using Atlas.Nodes;
+﻿using Atlas.Entities;
+using Atlas.Nodes;
 using Atlas.Signals;
 using System;
 using System.Collections.Generic;
@@ -7,21 +8,21 @@ namespace Atlas.Systems
 {
 	abstract class AtlasSystem
 	{
+		private Atlas atlas;
+
 		private SystemManager systemManager;
 		private Signal<AtlasSystem, SystemManager> systemManagerChanged = new Signal<AtlasSystem, SystemManager>();
 
-		internal int totalReferences = 0;
-
-		private Type systemType;
+		private List<Entity> systemManagers = new List<Entity>();
 
 		//private var _nodeAddedHandlers:ObjectMap<Dynamic, Dynamic> = new ObjectMap<Dynamic, Dynamic>();
 		//private var _nodeRemovedHandlers:ObjectMap<Dynamic, Dynamic> = new ObjectMap<Dynamic, Dynamic>();
 
-		private int totalSleeping = 0;
-		private Signal<AtlasSystem, int> totalSleepingChanged = new Signal<AtlasSystem, int>();
+		private int sleeping = 0;
+		private Signal<AtlasSystem, int, int> sleepingChanged = new Signal<AtlasSystem, int, int>();
 
 		private int priority = 0;
-		private Signal<AtlasSystem, int> priorityChanged = new Signal<AtlasSystem, int>();
+		private Signal<AtlasSystem, int, int> priorityChanged = new Signal<AtlasSystem, int, int>();
 
 		private bool isUpdating = false;
 		private Signal<AtlasSystem, bool> isUpdatingChanged = new Signal<AtlasSystem, bool>();
@@ -35,9 +36,14 @@ namespace Atlas.Systems
 
 		//public var numSystemClassManagers(get, never):UInt;
 
+		public static implicit operator bool(AtlasSystem system)
+		{
+			return system != null;
+		}
+
 		public AtlasSystem()
 		{
-			systemType = GetType();
+
 		}
 
 		internal void Dispose()
@@ -50,7 +56,7 @@ namespace Atlas.Systems
 				systemManagerChanged.Dispose();
 				isUpdatingChanged.Dispose();
 				priorityChanged.Dispose();
-				totalSleepingChanged.Dispose();
+				sleepingChanged.Dispose();
 			}
 		}
 
@@ -64,6 +70,22 @@ namespace Atlas.Systems
 			get
 			{
 				return disposed;
+			}
+		}
+
+		public Atlas Atlas
+		{
+			get
+			{
+				return atlas;
+			}
+			internal set
+			{
+				if(atlas != value)
+				{
+					Atlas previous = atlas;
+					atlas = value;
+				}
 			}
 		}
 
@@ -129,28 +151,28 @@ namespace Atlas.Systems
 			}
 		}
 
-		public int TotalSleeping
+		public int Sleeping
 		{
 			get
 			{
-				return totalSleeping;
+				return sleeping;
 			}
 			set
 			{
-				if(totalSleeping != value)
+				if(sleeping != value)
 				{
-					int previous = totalSleeping;
-					totalSleeping = value;
-					totalSleepingChanged.Dispatch(this, previous);
+					int previous = sleeping;
+					sleeping = value;
+					sleepingChanged.Dispatch(this, value, previous);
 				}
 			}
 		}
 
-		public Signal<AtlasSystem, int> TotalSleepingChanged
+		public Signal<AtlasSystem, int, int> SleepingChanged
 		{
 			get
 			{
-				return totalSleepingChanged;
+				return sleepingChanged;
 			}
 		}
 
@@ -158,7 +180,7 @@ namespace Atlas.Systems
 		{
 			get
 			{
-				return totalSleeping > 0;
+				return sleeping > 0;
 			}
 		}
 
@@ -174,12 +196,12 @@ namespace Atlas.Systems
 				{
 					int previous = priority;
 					priority = value;
-					priorityChanged.Dispatch(this, previous);
+					priorityChanged.Dispatch(this, value, previous);
 				}
 			}
 		}
 
-		public Signal<AtlasSystem, int> PriorityChanged
+		public Signal<AtlasSystem, int, int> PriorityChanged
 		{
 			get
 			{
@@ -191,7 +213,7 @@ namespace Atlas.Systems
 		{
 			get
 			{
-				return systemType;
+				return GetType();
 			}
 		}
 
@@ -333,6 +355,53 @@ namespace Atlas.Systems
 				}
 			}
 			*/
+		}
+
+		public List<Entity> SystemManagers
+		{
+			get
+			{
+				return new List<Entity>(systemManagers);
+			}
+		}
+
+		public int NumSystemManagers
+		{
+			get
+			{
+				return systemManagers.Count;
+			}
+		}
+
+		public bool HasSystemManager(Entity entity)
+		{
+			return systemManagers.Contains(entity);
+		}
+
+		public bool AddSystemManager(Entity entity)
+		{
+			if(entity.Atlas && entity.HasSystemType(GetType()))
+			{
+				if(!systemManagers.Contains(entity))
+				{
+					systemManagers.Add(entity);
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public bool RemoveSystemManager(Entity entity)
+		{
+			if(entity.Atlas && !entity.HasSystemType(GetType()))
+			{
+				if(systemManagers.Contains(entity))
+				{
+					systemManagers.Remove(entity);
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 }

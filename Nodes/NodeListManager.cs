@@ -31,11 +31,11 @@ namespace Atlas.Nodes
 			root.ComponentRemoved.Add(RootComponentRemoved, int.MinValue + 1);
 			if(root.HasComponent<EntityManager>())
 			{
-				RootComponentAdded(root, typeof(EntityManager));
+				RootComponentAdded(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
 			}
 			if(root.HasComponent<SystemManager>())
 			{
-				RootComponentAdded(root, typeof(SystemManager));
+				RootComponentAdded(root, root.GetComponent<SystemManager>(), typeof(SystemManager));
 			}
 		}
 
@@ -45,21 +45,21 @@ namespace Atlas.Nodes
 			root.ComponentRemoved.Remove(RootComponentRemoved);
 			if(root.HasComponent(typeof(EntityManager)))
 			{
-				RootComponentRemoved(root, typeof(EntityManager));
+				RootComponentRemoved(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
 			}
 			if(root.HasComponent(typeof(SystemManager)))
 			{
-				RootComponentRemoved(root, typeof(SystemManager));
+				RootComponentRemoved(root, root.GetComponent<SystemManager>(), typeof(SystemManager));
 			}
 
 			base.RemovingComponentManager(root);
 		}
 
-		private void RootComponentAdded(Entity root, Type componentType)
+		private void RootComponentAdded(Entity root, Component component, Type componentType)
 		{
 			if(componentType == typeof(EntityManager))
 			{
-				EntityManager entityManager = root.GetComponent(typeof(EntityManager)) as EntityManager;
+				EntityManager entityManager = (EntityManager)component;
 				//Priority is SystemManager->NodeListManager->NodeList.
 				entityManager.EntityAdded.Add(EntityAdded, int.MinValue + 1);
 				entityManager.EntityRemoved.Add(EntityRemoved, int.MinValue + 1);
@@ -81,11 +81,11 @@ namespace Atlas.Nodes
 			}
 		}
 
-		private void RootComponentRemoved(Entity root, Type componentType)
+		private void RootComponentRemoved(Entity root, Component component, Type componentType)
 		{
 			if(componentType == typeof(EntityManager))
 			{
-				EntityManager entityManager = root.GetComponent(typeof(EntityManager)) as EntityManager;
+				EntityManager entityManager = (EntityManager)component;
 				entityManager.EntityAdded.Remove(EntityAdded);
 				entityManager.EntityRemoved.Remove(EntityRemoved);
 				foreach(Entity entity in entityManager.Entities)
@@ -127,7 +127,7 @@ namespace Atlas.Nodes
 			}
 		}
 
-		private void ComponentAdded(Entity entity, Type componentType)
+		private void ComponentAdded(Entity entity, Component component, Type componentType)
 		{
 			for(NodeList current = first; current != null; current = current.next)
 			{
@@ -135,7 +135,7 @@ namespace Atlas.Nodes
 			}
 		}
 
-		private void ComponentRemoved(Entity entity, Type componentType)
+		private void ComponentRemoved(Entity entity, Component component, Type componentType)
 		{
 			for(NodeList current = first; current != null; current = current.next)
 			{
