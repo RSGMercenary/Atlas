@@ -145,7 +145,7 @@ namespace Atlas.Nodes
 
 		private void SystemAdded(SystemManager systemManager, Type systemType)
 		{
-			AtlasSystem system = systemManager.GetSystemByType(systemType);
+			AtlasSystem system = systemManager.GetSystem(systemType);
 			system.NodeTypeAdded.Add(NodeTypeAdded);
 			system.NodeTypeRemoved.Add(NodeTypeRemoved);
 			foreach(Type nodeType in system.NodeTypes)
@@ -156,7 +156,7 @@ namespace Atlas.Nodes
 
 		private void SystemRemoved(SystemManager systemManager, Type systemType)
 		{
-			AtlasSystem system = systemManager.GetSystemByType(systemType);
+			AtlasSystem system = systemManager.GetSystem(systemType);
 			system.NodeTypeAdded.Remove(NodeTypeAdded);
 			system.NodeTypeRemoved.Remove(NodeTypeRemoved);
 			foreach(Type nodeType in system.NodeTypes)
@@ -201,7 +201,7 @@ namespace Atlas.Nodes
 					last = nodeList;
 				}
 
-				EntityManager entityManager = ComponentManager.GetComponent(typeof(EntityManager)) as EntityManager;
+				EntityManager entityManager = Entity.GetComponent(typeof(EntityManager)) as EntityManager;
 				foreach(Entity entity in entityManager.Entities)
 				{
 					nodeList.EntityAdded(entity);

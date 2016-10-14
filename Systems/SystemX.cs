@@ -6,42 +6,37 @@ using System.Collections.Generic;
 
 namespace Atlas.Systems
 {
-	abstract class AtlasSystem
+	abstract class SystemX:ISystem
 	{
-		private Atlas atlas;
-
-		private SystemManager systemManager;
-		private Signal<AtlasSystem, SystemManager> systemManagerChanged = new Signal<AtlasSystem, SystemManager>();
+		private ISystemManager systemManager;
+		private Signal<ISystem, ISystemManager, ISystemManager> systemManagerChanged = new Signal<ISystem, ISystemManager, ISystemManager>();
 
 		private List<Entity> systemManagers = new List<Entity>();
 
-		//private var _nodeAddedHandlers:ObjectMap<Dynamic, Dynamic> = new ObjectMap<Dynamic, Dynamic>();
-		//private var _nodeRemovedHandlers:ObjectMap<Dynamic, Dynamic> = new ObjectMap<Dynamic, Dynamic>();
-
 		private int sleeping = 0;
-		private Signal<AtlasSystem, int, int> sleepingChanged = new Signal<AtlasSystem, int, int>();
+		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
 
 		private int priority = 0;
-		private Signal<AtlasSystem, int, int> priorityChanged = new Signal<AtlasSystem, int, int>();
+		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
 
 		private bool isUpdating = false;
-		private Signal<AtlasSystem, bool> isUpdatingChanged = new Signal<AtlasSystem, bool>();
+		private Signal<SystemX, bool> isUpdatingChanged = new Signal<SystemX, bool>();
 
 		private HashSet<Type> nodeTypes = new HashSet<Type>();
 		private Dictionary<Type, NodeList> nodeLists = new Dictionary<Type, NodeList>();
-		private Signal<AtlasSystem, Type> nodeTypeAdded = new Signal<AtlasSystem, Type>();
-		private Signal<AtlasSystem, Type> nodeTypeRemoved = new Signal<AtlasSystem, Type>();
+		private Signal<SystemX, Type> nodeTypeAdded = new Signal<SystemX, Type>();
+		private Signal<SystemX, Type> nodeTypeRemoved = new Signal<SystemX, Type>();
 
-		private Signal<AtlasSystem, bool> disposed = new Signal<AtlasSystem, bool>();
+		private Signal<SystemX, bool> disposed = new Signal<SystemX, bool>();
 
 		//public var numSystemClassManagers(get, never):UInt;
 
-		public static implicit operator bool(AtlasSystem system)
+		public static implicit operator bool(SystemX system)
 		{
 			return system != null;
 		}
 
-		public AtlasSystem()
+		public SystemX()
 		{
 
 		}
@@ -65,7 +60,7 @@ namespace Atlas.Systems
 
 		}
 
-		public Signal<AtlasSystem, bool> Disposed
+		public Signal<SystemX, bool> Disposed
 		{
 			get
 			{
@@ -73,40 +68,36 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Atlas Atlas
-		{
-			get
-			{
-				return atlas;
-			}
-			internal set
-			{
-				if(atlas != value)
-				{
-					Atlas previous = atlas;
-					atlas = value;
-				}
-			}
-		}
-
-		public SystemManager SystemManager
+		public ISystemManager SystemManager
 		{
 			get
 			{
 				return systemManager;
 			}
-			internal set
+			set
 			{
-				if(systemManager != value)
+				if(value != null)
 				{
-					SystemManager previous = systemManager;
-					systemManager = value;
-					systemManagerChanged.Dispatch(this, previous);
+					if(systemManager == null && value.HasSystem(this))
+					{
+						ISystemManager previous = systemManager;
+						systemManager = value;
+						systemManagerChanged.Dispatch(this, value, previous);
+					}
+				}
+				else
+				{
+					if(systemManager != null && !systemManager.HasSystem(this))
+					{
+						ISystemManager previous = systemManager;
+						systemManager = value;
+						systemManagerChanged.Dispatch(this, value, previous);
+					}
 				}
 			}
 		}
 
-		public Signal<AtlasSystem, SystemManager> SystemManagerChanged
+		public Signal<ISystem, ISystemManager, ISystemManager> SystemManagerChanged
 		{
 			get
 			{
@@ -114,11 +105,17 @@ namespace Atlas.Systems
 			}
 		}
 
-		internal void Update()
+		public void Update()
 		{
-			IsUpdating = true;
-			Updating();
-			IsUpdating = false;
+			if(systemManager != null && systemManager.IsUpdating)
+			{
+				if(!IsUpdating)
+				{
+					IsUpdating = true;
+					Updating();
+					IsUpdating = false;
+				}
+			}
 		}
 
 		protected virtual void Updating()
@@ -132,7 +129,7 @@ namespace Atlas.Systems
 			{
 				return isUpdating;
 			}
-			internal set
+			private set
 			{
 				if(isUpdating != value)
 				{
@@ -143,7 +140,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Signal<AtlasSystem, bool> IsUpdatingChanged
+		public Signal<SystemX, bool> IsUpdatingChanged
 		{
 			get
 			{
@@ -168,7 +165,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Signal<AtlasSystem, int, int> SleepingChanged
+		public Signal<ISystem, int, int> SleepingChanged
 		{
 			get
 			{
@@ -201,7 +198,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Signal<AtlasSystem, int, int> PriorityChanged
+		public Signal<ISystem, int, int> PriorityChanged
 		{
 			get
 			{
@@ -217,7 +214,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Signal<AtlasSystem, Type> NodeTypeAdded
+		public Signal<SystemX, Type> NodeTypeAdded
 		{
 			get
 			{
@@ -225,7 +222,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		public Signal<AtlasSystem, Type> NodeTypeRemoved
+		public Signal<SystemX, Type> NodeTypeRemoved
 		{
 			get
 			{
@@ -380,7 +377,7 @@ namespace Atlas.Systems
 
 		public bool AddSystemManager(Entity entity)
 		{
-			if(entity.Atlas && entity.HasSystemType(GetType()))
+			if(entity.EntityManager && entity.HasSystemType(GetType()))
 			{
 				if(!systemManagers.Contains(entity))
 				{
@@ -393,7 +390,7 @@ namespace Atlas.Systems
 
 		public bool RemoveSystemManager(Entity entity)
 		{
-			if(entity.Atlas && !entity.HasSystemType(GetType()))
+			if(entity.EntityManager && !entity.HasSystemType(GetType()))
 			{
 				if(systemManagers.Contains(entity))
 				{
@@ -403,5 +400,7 @@ namespace Atlas.Systems
 			}
 			return false;
 		}
+
+
 	}
 }

@@ -1,15 +1,15 @@
 ﻿using Atlas.Entities;
+using Atlas.LinkList;
 using Atlas.Signals;
 using System;
-using System.Collections.Generic;
 
 namespace Atlas.Components
 {
-	abstract class Component
+	abstract class Component:IComponent
 	{
-		private List<Entity> componentManagers = new List<Entity>();
-		private Signal<Component, Entity> componentManagerAdded = new Signal<Component, Entity>();
-		private Signal<Component, Entity> componentManagerRemoved = new Signal<Component, Entity>();
+		private LinkList<IEntity> entities = new LinkList<IEntity>();
+		private Signal<IComponent, IEntity, int> entityAdded = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, IEntity, int> entityRemoved = new Signal<IComponent, IEntity, int>();
 
 		private bool isShareable = false;
 
@@ -34,7 +34,7 @@ namespace Atlas.Components
 
 		public void Dispose()
 		{
-			if(componentManagers.Count > 0)
+			if(entities.Count > 0)
 			{
 				IsDisposedWhenUnmanaged = true;
 				RemoveComponentManagers();
@@ -45,8 +45,8 @@ namespace Atlas.Components
 				IsDisposed = true;
 				IsDisposedWhenUnmanaged = true;
 				isDisposedChanged.Dispose();
-				componentManagerAdded.Dispose();
-				componentManagerRemoved.Dispose();
+				entityAdded.Dispose();
+				entityRemoved.Dispose();
 			}
 		}
 
@@ -104,192 +104,156 @@ namespace Atlas.Components
 			}
 		}
 
-		public Signal<Component, Entity> ComponentManagerAdded
+		public Signal<IComponent, IEntity, int> EntityAdded
 		{
 			get
 			{
-				return componentManagerAdded;
+				return entityAdded;
 			}
 		}
 
-		public Signal<Component, Entity> ComponentManagerRemoved
+		public Signal<IComponent, IEntity, int> EntityRemoved
 		{
 			get
 			{
-				return componentManagerRemoved;
+				return entityRemoved;
 			}
 		}
 
-		public Entity ComponentManager
+		public IEntity Entity
 		{
 			get
 			{
-				if(componentManagers.Count == 1)
-				{
-					return componentManagers[0];
-				}
-				return null;
+				return entities.Count == 1 ? entities.First.Value : null;
 			}
 		}
 
-		public List<Entity> ComponentManagers
+		public IReadOnlyLinkList<IEntity> Entities
 		{
 			get
 			{
-				return new List<Entity>(componentManagers);
+				return entities;
 			}
 		}
 
-		public int NumComponentManagers
+		public int GetEntityIndex(IEntity entity)
 		{
-			get
-			{
-				return componentManagers.Count;
-			}
+			return entities.GetIndex(entity);
 		}
 
-		public int GetComponentManagerIndex(Entity entity)
+		public bool SetEntityIndex(IEntity entity, int index)
 		{
-			return componentManagers.IndexOf(entity);
+			return entities.SetIndex(entity, index);
 		}
 
-		public bool SetComponentManagerIndex(Entity entity, int index)
+		public bool SwapEntities(Entity entity1, Entity entity2)
 		{
-			int previous = componentManagers.IndexOf(entity);
-
-			if(previous == index)
-				return true;
-			if(previous < 0)
-				return false;
-
-			index = Math.Max(0, Math.Min(index, componentManagers.Count - 1));
-
-			componentManagers.RemoveAt(previous);
-			componentManagers.Insert(index, entity);
-			return true;
-		}
-
-		public bool SwapComponentManagers(Entity entity1, Entity entity2)
-		{
-			if(entity1 == null)
-				return false;
-			if(entity2 == null)
-				return false;
-			int index1 = componentManagers.IndexOf(entity1);
-			int index2 = componentManagers.IndexOf(entity2);
-			return SwapComponentManagers(index1, index2);
+			return entities.Swap(entity1, entity2);
 		}
 
 		public bool SwapComponentManagers(int index1, int index2)
 		{
-			if(index1 < 0 || index1 > componentManagers.Count - 1)
-				return false;
-			if(index2 < 0 || index2 > componentManagers.Count - 1)
-				return false;
-			Entity entity = componentManagers[index1];
-			componentManagers[index1] = componentManagers[index2];
-			componentManagers[index2] = entity;
-			return true;
+			return entities.Swap(index1, index2);
 		}
 
-		public Entity AddComponentManager(Entity entity, Type type)
+		public IEntity AddEntity(IEntity entity)
 		{
-			return AddComponentManager(entity, type, componentManagers.Count);
+			return AddEntity(entity, null);
 		}
 
-		public Entity AddComponentManager(Entity entity, int index)
+		public IEntity AddEntity(IEntity entity, Type type)
 		{
-			return AddComponentManager(entity, null, index);
+			return AddEntity(entity, type, entities.Count);
 		}
 
-		public Entity AddComponentManager(Entity entity, Type type = null, int index = int.MaxValue)
+		public IEntity AddEntity(IEntity entity, int index)
 		{
-			if(entity != null)
+			return AddEntity(entity, null, index);
+		}
+
+		public IEntity AddEntity(IEntity entity, Type type = null, int index = int.MaxValue)
+		{
+			if(entity == null)
+				return null;
+			if(!entities.Contains(entity))
 			{
-				if(!componentManagers.Contains(entity))
+				if(type == null)
 				{
-					if(type == null)
-					{
-						type = GetType();
-					}
-					else if(!type.IsInstanceOfType(this))
-					{
-						return null;
-					}
-					if(entity.GetComponent(type) == this)
-					{
-						index = Math.Max(0, Math.Min(index, componentManagers.Count));
-						componentManagers.Insert(index, entity);
-						IsDisposed = false;
-						AddingComponentManager(entity);
-						componentManagerAdded.Dispatch(this, entity);
-					}
-					else
-					{
-						entity.AddComponent(this, type, index);
-					}
-					return entity;
+					type = GetType();
+				}
+				else if(!type.IsInstanceOfType(this))
+				{
+					return null;
+				}
+				if(entity.GetComponent(type) == this)
+				{
+					index = Math.Max(0, Math.Min(index, entities.Count));
+					entities.Add(entity, index);
+					IsDisposed = false;
+					AddingComponentManager(entity);
+					entityAdded.Dispatch(this, entity, index);
+				}
+				else
+				{
+					entity.AddComponent(this, type, index);
 				}
 			}
-			return null;
-		}
-
-		protected virtual void AddingComponentManager(Entity entity)
-		{
-
-		}
-
-		public Entity RemoveComponentManager(Entity entity)
-		{
-			if(entity != null)
+			else
 			{
-				if(componentManagers.Contains(entity))
+				SetEntityIndex(entity, index);
+			}
+			return entity;
+		}
+
+		protected virtual void AddingComponentManager(IEntity entity)
+		{
+
+		}
+
+		public IEntity RemoveEntity(IEntity entity)
+		{
+			if(entity == null)
+				return null;
+			if(!entities.Contains(entity))
+				return null;
+			Type type = entity.GetComponentType(this);
+			if(type == null)
+			{
+				int index = entities.GetIndex(entity);
+				RemovingComponentManager(entity);
+				entities.Remove(index);
+				entityRemoved.Dispatch(this, entity, index);
+				if(entities.Count <= 0 && isDisposedWhenUnmanaged)
 				{
-					Type componentType = entity.GetComponentType(this);
-					if(componentType == null)
-					{
-						componentManagerRemoved.Dispatch(this, entity);
-						//It's possible that the Entity could've been removed during the Dispatch().
-						int index = componentManagers.IndexOf(entity);
-						if(index > -1)
-						{
-							RemovingComponentManager(entity);
-							componentManagers.RemoveAt(index);
-							if(componentManagers.Count == 0 && isDisposedWhenUnmanaged)
-							{
-								Dispose();
-							}
-						}
-					}
-					else
-					{
-						entity.RemoveComponent(componentType);
-					}
-					return entity;
+					Dispose();
 				}
 			}
-			return null;
+			else
+			{
+				entity.RemoveComponent(type);
+			}
+			return entity;
 		}
 
-		public Entity RemoveComponentManager(int index)
+		public IEntity RemoveEntity(int index)
 		{
 			if(index < 0)
 				return null;
-			if(index > componentManagers.Count - 1)
+			if(index > entities.Count - 1)
 				return null;
-			return RemoveComponentManager(componentManagers[index]);
+			return RemoveEntity(entities[index]);
 		}
 
-		protected virtual void RemovingComponentManager(Entity entity)
+		protected virtual void RemovingComponentManager(IEntity entity)
 		{
 
 		}
 
 		public void RemoveComponentManagers()
 		{
-			while(componentManagers.Count > 0)
+			while(entities.Count > 0)
 			{
-				RemoveComponentManager(componentManagers[componentManagers.Count - 1]);
+				RemoveEntity(entities[entities.Count - 1]);
 			}
 		}
 

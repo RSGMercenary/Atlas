@@ -2,15 +2,7 @@
 {
 	interface ISleep
 	{
-		int Sleeping
-		{
-			get;
-			set;
-		}
-
-		bool IsSleeping
-		{
-			get;
-		}
+		int Sleeping { get; set; }
+		bool IsSleeping { get; }
 	}
 }

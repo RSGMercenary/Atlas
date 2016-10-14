@@ -1,23 +1,24 @@
 ﻿using Atlas.Components;
 using Atlas.Entities;
+using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Systems
 {
-	sealed class SystemManager:Component
+	sealed class SystemManager:Component, ISystemManager
 	{
 		private static SystemManager instance;
 
-		private List<AtlasSystem> systems = new List<AtlasSystem>();
-		private Dictionary<Type, AtlasSystem> systemTypes = new Dictionary<Type, AtlasSystem>();
+		private List<ISystem> systems = new List<ISystem>();
+		private Dictionary<Type, ISystem> systemTypes = new Dictionary<Type, ISystem>();
 		private Signal<SystemManager, Type> systemAdded = new Signal<SystemManager, Type>();
 		private Signal<SystemManager, Type> systemRemoved = new Signal<SystemManager, Type>();
-		private List<AtlasSystem> systemsRemoved = new List<AtlasSystem>();
+		private List<SystemX> systemsRemoved = new List<SystemX>();
 
-		private int totalSleeping = 1;
-		private Signal<SystemManager, int> totalSleepingChanged = new Signal<SystemManager, int>();
+		private int sleeping = 1;
+		private Signal<SystemManager, int> sleepingChanged = new Signal<SystemManager, int>();
 
 		private bool isUpdating = false;
 		private Signal<SystemManager, bool> isUpdatingChanged = new Signal<SystemManager, bool>();
@@ -38,163 +39,121 @@ namespace Atlas.Systems
 			get
 			{
 				if(instance == null)
-				{
 					instance = new SystemManager();
-				}
 				return instance;
 			}
 		}
 
-		override protected void AddingComponentManager(Entity root)
+		override protected void AddingComponentManager(IEntity root)
 		{
 			base.AddingComponentManager(root);
 
 			root.ComponentAdded.Add(RootComponentAdded, int.MinValue);
 			root.ComponentRemoved.Add(RootComponentRemoved, int.MinValue);
-			if(root.HasComponent(typeof(EntityManager)))
+			if(root.HasComponent<IEntityManager>())
 			{
-				RootComponentAdded(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
+				RootComponentAdded(root, root.GetComponent<IEntityManager>(), typeof(IEntityManager));
 			}
 
-			--TotalSleeping;
+			--Sleeping;
 		}
 
-		override protected void RemovingComponentManager(Entity root)
+		override protected void RemovingComponentManager(IEntity root)
 		{
 			root.ComponentAdded.Remove(RootComponentAdded);
 			root.ComponentRemoved.Remove(RootComponentRemoved);
-			if(root.HasComponent(typeof(EntityManager)))
+			if(root.HasComponent<IEntityManager>())
 			{
-				RootComponentRemoved(root, root.GetComponent<EntityManager>(), typeof(EntityManager));
+				RootComponentRemoved(root, root.GetComponent<IEntityManager>(), typeof(IEntityManager));
 			}
 
-			++TotalSleeping;
+			++Sleeping;
 
 			base.RemovingComponentManager(root);
 		}
 
-		private void RootComponentAdded(Entity root, Component component, Type componentType)
+		private void RootComponentAdded(IEntity root, IComponent component, Type componentType)
 		{
-			if(componentType == typeof(EntityManager))
+			if(componentType == typeof(IEntityManager))
 			{
-				EntityManager entityManager = root.GetComponent(typeof(EntityManager)) as EntityManager;
-				entityManager.EntityAdded.Add(EntityAdded, int.MinValue);
-				entityManager.EntityRemoved.Add(EntityRemoved, int.MinValue);
-				foreach(Entity entity in entityManager.Entities)
+				IEntityManager entityManager = root.GetComponent<IEntityManager>();
+				entityManager.EntityAdded.Add(EntityManagerEntityAdded, int.MinValue);
+				entityManager.EntityRemoved.Add(EntityManagerEntityRemoved, int.MinValue);
+				ILinkListNode<IEntity> current = entityManager.Entities.First;
+				while(current != null)
 				{
-					EntityAdded(entityManager, entity);
+					EntityManagerEntityAdded(entityManager, current.Value);
+					current = current.Next;
 				}
 			}
 		}
 
-		private void RootComponentRemoved(Entity root, Component component, Type componentType)
+		private void RootComponentRemoved(IEntity root, IComponent component, Type componentType)
 		{
-			if(componentType == typeof(EntityManager))
+			if(componentType == typeof(IEntityManager))
 			{
-				EntityManager entityManager = root.GetComponent(typeof(EntityManager)) as EntityManager;
-				entityManager.EntityAdded.Remove(EntityAdded);
-				entityManager.EntityRemoved.Remove(EntityRemoved);
-				foreach(Entity entity in entityManager.Entities)
+				IEntityManager entityManager = root.GetComponent<IEntityManager>();
+				entityManager.EntityAdded.Remove(EntityManagerEntityAdded);
+				entityManager.EntityRemoved.Remove(EntityManagerEntityRemoved);
+				ILinkListNode<IEntity> current = entityManager.Entities.First;
+				while(current != null)
 				{
-					EntityRemoved(entityManager, entity);
+					EntityManagerEntityRemoved(entityManager, current.Value);
+					current = current.Next;
 				}
 			}
 		}
 
-		private void EntityAdded(EntityManager entityManager, Entity entity)
+		private void EntityManagerEntityAdded(IEntityManager entityManager, IEntity entity)
 		{
-			entity.ComponentAdded.Add(ComponentAdded, int.MinValue);
-			entity.ComponentRemoved.Add(ComponentRemoved, int.MinValue);
-			if(entity.HasComponent<SystemTypeManager>())
-			{
-				ComponentAdded(entity, entity.GetComponent<SystemTypeManager>(), typeof(SystemTypeManager));
-			}
+			entity.SystemTypeAdded.Add(EntitySystemTypeAdded, int.MinValue);
+			entity.SystemTypeRemoved.Add(EntitySystemTypeRemoved, int.MinValue);
 		}
 
-		private void EntityRemoved(EntityManager entityManager, Entity entity)
+		private void EntityManagerEntityRemoved(IEntityManager entityManager, IEntity entity)
 		{
-			entity.ComponentAdded.Remove(ComponentAdded);
-			entity.ComponentRemoved.Remove(ComponentRemoved);
-			if(entity.HasComponent<SystemTypeManager>())
-			{
-				ComponentRemoved(entity, entity.GetComponent<SystemTypeManager>(), typeof(SystemTypeManager));
-			}
+			entity.SystemTypeAdded.Remove(EntitySystemTypeAdded);
+			entity.SystemTypeRemoved.Remove(EntitySystemTypeRemoved);
 		}
 
-		private void ComponentAdded(Entity entity, Component component, Type componentType)
+		private void EntitySystemTypeAdded(IEntity entity, Type type)
 		{
-			if(componentType == typeof(SystemTypeManager))
+			if(!systemTypes.ContainsKey(type))
 			{
-				SystemTypeManager systemTypeManager = entity.GetComponent(typeof(SystemTypeManager)) as SystemTypeManager;
-				systemTypeManager.SystemTypeAdded.Add(SystemTypeAdded, int.MinValue);
-				systemTypeManager.SystemTypeRemoved.Add(SystemTypeRemoved, int.MinValue);
-				foreach(Type systemType in systemTypeManager.SystemTypes)
-				{
-					SystemTypeAdded(systemTypeManager, systemType);
-				}
-			}
-		}
+				ISystem system = Activator.CreateInstance(type) as ISystem;
 
-		private void ComponentRemoved(Entity entity, Component component, Type componentType)
-		{
-			if(componentType == typeof(SystemTypeManager))
-			{
-				SystemTypeManager systemTypeManager = entity.GetComponent(typeof(SystemTypeManager)) as SystemTypeManager;
-				systemTypeManager.SystemTypeAdded.Remove(SystemTypeAdded);
-				systemTypeManager.SystemTypeRemoved.Remove(SystemTypeRemoved);
-				foreach(Type systemType in systemTypeManager.SystemTypes)
-				{
-					SystemTypeRemoved(systemTypeManager, systemType);
-				}
-			}
-		}
+				systemTypes.Add(type, system);
 
-		private void SystemTypeAdded(SystemTypeManager systemTypeManager, Type systemType)
-		{
-			if(!systemTypes.ContainsKey(systemType))
-			{
-				AtlasSystem system = Activator.CreateInstance(systemType) as AtlasSystem;
-
-				systemTypes.Add(systemType, system);
-
-				system.SleepingChanged.Add(SystemTotalSleepingChanged, int.MinValue);
-				if(!system.IsSleeping)
-				{
-					SystemTotalSleepingChanged(system, 1);
-				}
+				system.PriorityChanged.Add(SystemPriorityChanged);
+				SystemPriorityChanged(system, 0, 0);
 
 				system.SystemManager = this;
 
-				++system.totalReferences;
+				system.AddSystemManager(entity);
 
-				systemAdded.Dispatch(this, systemType);
+				systemAdded.Dispatch(this, type);
 			}
 			else
 			{
-				++systemTypes[systemType].totalReferences;
+				systemTypes[type].AddSystemManager(entity);
 			}
 		}
 
-		private void SystemTypeRemoved(SystemTypeManager systemTypeManager, Type systemType)
+		private void EntitySystemTypeRemoved(IEntity entity, Type type)
 		{
-			AtlasSystem system = systemTypes[systemType];
+			ISystem system = systemTypes[type];
 
 			if(system != null)
 			{
-				--system.totalReferences;
+				system.RemoveSystemManager(entity);
 
-				if(system.totalReferences == 0)
+				if(system.NumSystemManagers == 0)
 				{
-					systemRemoved.Dispatch(this, systemType);
+					systemRemoved.Dispatch(this, type);
 
-					system.SleepingChanged.Remove(SystemTotalSleepingChanged);
-					if(!system.IsSleeping)
-					{
-						system.PriorityChanged.Remove(SystemPriorityChanged);
-						systems.Remove(system);
-					}
+					system.PriorityChanged.Remove(SystemPriorityChanged);
 
-					systemTypes.Remove(systemType);
+					systemTypes.Remove(type);
 
 					if(isUpdating)
 					{
@@ -208,21 +167,7 @@ namespace Atlas.Systems
 			}
 		}
 
-		private void SystemTotalSleepingChanged(AtlasSystem system, int previousTotalSleeping)
-		{
-			if(system.Sleeping <= 0 && previousTotalSleeping > 0)
-			{
-				system.PriorityChanged.Add(SystemPriorityChanged, int.MinValue);
-				SystemPriorityChanged(system);
-			}
-			else if(system.Sleeping > 0 && previousTotalSleeping <= 0)
-			{
-				system.PriorityChanged.Remove(SystemPriorityChanged);
-				systems.Remove(system);
-			}
-		}
-
-		private void SystemPriorityChanged(AtlasSystem system, int previousPriority = 0)
+		private void SystemPriorityChanged(ISystem system, int current, int previous)
 		{
 			systems.Remove(system);
 
@@ -235,7 +180,7 @@ namespace Atlas.Systems
 				}
 			}
 
-			systems.Add(system);
+			systems.Insert(0, system);
 		}
 
 		public Signal<SystemManager, Type> SystemAdded
@@ -254,17 +199,27 @@ namespace Atlas.Systems
 			}
 		}
 
+		public bool HasSystem(ISystem system)
+		{
+			return systemTypes.ContainsKey(system.GetType()) && systemTypes[system.GetType()] == system;
+		}
+
+		public bool HasSystem<T>()
+		{
+			return HasSystem(typeof(T));
+		}
+
 		public bool HasSystem(Type systemType)
 		{
 			return systemTypes.ContainsKey(systemType);
 		}
 
-		public AtlasSystem GetSystemByType(Type systemType)
+		public SystemX GetSystem(Type type)
 		{
-			return systemTypes.ContainsKey(systemType) ? systemTypes[systemType] : null;
+			return systemTypes.ContainsKey(type) ? systemTypes[type] : null;
 		}
 
-		public AtlasSystem GetSystemAt(int index)
+		public SystemX GetSystem(int index)
 		{
 			if(index < 0)
 				return null;
@@ -273,16 +228,16 @@ namespace Atlas.Systems
 			return systems[index];
 		}
 
-		public int GetSystemIndex(AtlasSystem system)
+		public int GetSystemIndex(SystemX system)
 		{
 			return systems.IndexOf(system);
 		}
 
-		public List<AtlasSystem> Systems
+		public List<SystemX> Systems
 		{
 			get
 			{
-				return new List<AtlasSystem>(systems);
+				return new List<SystemX>(systems);
 			}
 		}
 
@@ -331,22 +286,22 @@ namespace Atlas.Systems
 		{
 			get
 			{
-				return totalSleeping > 0;
+				return sleeping > 0;
 			}
 		}
 
-		public int TotalSleeping
+		public int Sleeping
 		{
 			get
 			{
-				return totalSleeping;
+				return sleeping;
 			}
 			set
 			{
-				if(totalSleeping != value)
+				if(sleeping != value)
 				{
-					int previous = totalSleeping;
-					totalSleeping = value;
+					int previous = sleeping;
+					sleeping = value;
 
 					if(value <= 0 && previous > 0)
 					{
@@ -358,16 +313,16 @@ namespace Atlas.Systems
 						//this._updater.removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 					}
 
-					totalSleepingChanged.Dispatch(this, previous);
+					sleepingChanged.Dispatch(this, previous);
 				}
 			}
 		}
 
-		public Signal<SystemManager, int> TotalSleepingChanged
+		public Signal<SystemManager, int> SleepingChanged
 		{
 			get
 			{
-				return totalSleepingChanged;
+				return sleepingChanged;
 			}
 		}
 
@@ -400,27 +355,33 @@ namespace Atlas.Systems
 			}
 		}*/
 
-		private void Update()
+		public void Update()
 		{
-			IsUpdating = true;
-
-			if(systems.Count > 0)
+			if(!IsUpdating)
 			{
-				List<AtlasSystem> updateSystems = new List<AtlasSystem>(systems);
-				foreach(AtlasSystem system in updateSystems)
+				IsUpdating = true;
+
+				if(systems.Count > 0)
 				{
-					system.Update();
+					List<SystemX> updateSystems = new List<SystemX>(systems);
+					foreach(SystemX system in updateSystems)
+					{
+						if(!system.IsSleeping)
+						{
+							system.Update();
+						}
+					}
 				}
-			}
 
-			while(systemsRemoved.Count > 0)
-			{
-				AtlasSystem system = systemsRemoved[systemsRemoved.Count - 1];
-				systemsRemoved.RemoveAt(systemsRemoved.Count - 1);
-				system.Dispose();
-			}
+				while(systemsRemoved.Count > 0)
+				{
+					ISystem system = systemsRemoved[systemsRemoved.Count - 1];
+					systemsRemoved.RemoveAt(systemsRemoved.Count - 1);
+					system.Dispose();
+				}
 
-			IsUpdating = false;
+				IsUpdating = false;
+			}
 		}
 	}
 }

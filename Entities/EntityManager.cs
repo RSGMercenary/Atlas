@@ -1,18 +1,19 @@
 ﻿using Atlas.Components;
+using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Entities
 {
-	sealed class EntityManager:Component
+	sealed class EntityManager:Component, IEntityManager
 	{
 		private static EntityManager instance;
 
-		private List<Entity> entities = new List<Entity>();
-		private Dictionary<string, Entity> uniqueNames = new Dictionary<string, Entity>();
-		private Signal<EntityManager, Entity> entityAdded = new Signal<EntityManager, Entity>();
-		private Signal<EntityManager, Entity> entityRemoved = new Signal<EntityManager, Entity>();
+		private LinkList<IEntity> entities = new LinkList<IEntity>();
+		private Dictionary<string, IEntity> entityGlobalNames = new Dictionary<string, IEntity>();
+		private Signal<IEntityManager, IEntity> entityAdded = new Signal<IEntityManager, IEntity>();
+		private Signal<IEntityManager, IEntity> entityRemoved = new Signal<IEntityManager, IEntity>();
 
 		private EntityManager() : base(false)
 		{
@@ -24,48 +25,34 @@ namespace Atlas.Entities
 			get
 			{
 				if(instance == null)
-				{
 					instance = new EntityManager();
-				}
 				return instance;
 			}
 		}
 
-		override protected void AddingComponentManager(Entity entity)
+		override protected void AddingComponentManager(IEntity entity)
 		{
 			base.AddingComponentManager(entity);
 			AddEntity(entity);
 		}
 
-		override protected void RemovingComponentManager(Entity entity)
+		override protected void RemovingComponentManager(IEntity entity)
 		{
 			RemoveEntity(entity);
 			base.RemovingComponentManager(entity);
 		}
 
-		public bool IsUniqueName(string uniqueName)
+		public bool HasEntity(string globalName)
 		{
-			return !string.IsNullOrWhiteSpace(uniqueName) && !uniqueNames.ContainsKey(uniqueName);
+			return !string.IsNullOrWhiteSpace(globalName) && !entityGlobalNames.ContainsKey(globalName);
 		}
 
-		public bool HasEntity(Entity entity)
+		public bool HasEntity(IEntity entity)
 		{
-			return entity != null && entities.Contains(entity);
+			return entity != null && entityGlobalNames.ContainsKey(entity.GlobalName) && entityGlobalNames[entity.GlobalName] == entity;
 		}
 
-		public string GetUniqueName()
-		{
-			for(int index = 0; index < int.MaxValue; ++index)
-			{
-				if(!uniqueNames.ContainsKey("instance" + index))
-				{
-					return "instance" + index;
-				}
-			}
-			return "";
-		}
-
-		public Signal<EntityManager, Entity> EntityAdded
+		public new Signal<IEntityManager, IEntity> EntityAdded
 		{
 			get
 			{
@@ -73,7 +60,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<EntityManager, Entity> EntityRemoved
+		public new Signal<IEntityManager, IEntity> EntityRemoved
 		{
 			get
 			{
@@ -81,114 +68,75 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Entity GetEntityAt(int index)
+		public new bool SetEntityIndex(IEntity entity, int index)
 		{
-			if(index < 0)
-				return null;
-			if(index > entities.Count - 1)
-				return null;
-			return entities[index];
+			return entities.SetIndex(entity, index);
 		}
 
-		public int GetEntityIndex(Entity entity)
+		public IEntity GetEntity(string globalName)
 		{
-			return entities.IndexOf(entity);
+			return entityGlobalNames.ContainsKey(globalName) ? entityGlobalNames[globalName] : null;
 		}
 
-		public bool SetEntityIndex(Entity entity, int index)
-		{
-			int previous = entities.IndexOf(entity);
-
-			if(previous == index)
-				return true;
-			if(previous < 0)
-				return false;
-
-			index = Math.Max(0, Math.Min(index, entities.Count - 1));
-
-			entities.RemoveAt(previous);
-			entities.Insert(index, entity);
-			return true;
-		}
-
-		public int NumEntities
+		public new IReadOnlyLinkList<IEntity> Entities
 		{
 			get
 			{
-				return entities.Count;
-			}
-		}
-
-		public Entity GetEntityByUniqueName(string uniqueName)
-		{
-			return uniqueNames[uniqueName];
-		}
-
-		public List<Entity> Entities
-		{
-			get
-			{
-				return new List<Entity>(entities);
+				return entities;
 			}
 		}
 
 		private void AddEntity(Entity entity)
 		{
-			if(string.IsNullOrWhiteSpace(entity.UniqueName) || (uniqueNames.ContainsKey(entity.UniqueName) && uniqueNames[entity.UniqueName] != entity))
+			if(entityGlobalNames.ContainsKey(entity.GlobalName) && entityGlobalNames[entity.GlobalName] != entity)
 			{
-				entity.UniqueName = GetUniqueName();
+				entity.GlobalName = Guid.NewGuid().ToString("N");
 			}
-			if(!uniqueNames.ContainsKey(entity.UniqueName))
+			if(!entityGlobalNames.ContainsKey(entity.GlobalName))
 			{
-				uniqueNames.Add(entity.UniqueName, entity);
+				entityGlobalNames.Add(entity.GlobalName, entity);
 				entities.Add(entity);
 
 				entity.ChildAdded.Add(ChildAdded, int.MinValue);
 				entity.ParentChanged.Add(ParentChanged, int.MinValue);
-				entity.UniqueNameChanged.Add(UniqueNameChanged, int.MinValue);
+				entity.GlobalNameChanged.Add(UniqueNameChanged, int.MinValue);
 
 				entity.EntityManager = this;
 
 				entityAdded.Dispatch(this, entity);
 
-				if(entity.NumChildren > 0)
+				for(ILinkListNode<IEntity> current = entity.Children.First; current != null; current = current.Next)
 				{
-					foreach(Entity child in entity.Children)
-					{
-						AddEntity(child);
-					}
+					AddEntity(current.Value);
 				}
 			}
 		}
 
 		private void RemoveEntity(Entity entity)
 		{
-			if(entity.NumChildren > 0)
+			for(ILinkListNode<IEntity> current = entity.Children.First; current != null; current = current.Next)
 			{
-				foreach(Entity child in entity.Children)
-				{
-					RemoveEntity(child);
-				}
+				RemoveEntity(current.Value);
 			}
 
 			entityRemoved.Dispatch(this, entity);
 
-			uniqueNames.Remove(entity.UniqueName);
+			entityGlobalNames.Remove(entity.GlobalName);
 			entities.Remove(entity);
 
 			entity.ChildAdded.Remove(ChildAdded);
 			entity.ParentChanged.Remove(ParentChanged);
-			entity.UniqueNameChanged.Remove(UniqueNameChanged);
+			entity.GlobalNameChanged.Remove(UniqueNameChanged);
 
 			entity.EntityManager = null;
 		}
 
-		private void ChildAdded(Entity parent, Entity child, int index)
+		private void ChildAdded(IEntity parent, IEntity child, int index)
 		{
 			AddEntity(child);
 		}
 
-		private void ParentChanged(Entity child, Entity next, Entity previous)
+		private void ParentChanged(IEntity child, IEntity next, IEntity previous)
 		{
 			if(next == null)
 			{
@@ -196,17 +144,10 @@ namespace Atlas.Entities
 			}
 		}
 
-		private void UniqueNameChanged(Entity entity, string next, string previous)
+		private void UniqueNameChanged(IEntity entity, string next, string previous)
 		{
-			//This should account for a possible name change in the middle of a name change.
-			if(uniqueNames.ContainsKey(previous) && uniqueNames[previous] == entity)
-			{
-				uniqueNames.Remove(previous);
-			}
-			if(!uniqueNames.ContainsKey(next) && entity.UniqueName == next)
-			{
-				uniqueNames.Add(next, entity);
-			}
+			entityGlobalNames.Remove(previous);
+			entityGlobalNames.Add(next, entity);
 		}
 	}
 }
