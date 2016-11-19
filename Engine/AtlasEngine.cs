@@ -63,6 +63,7 @@ namespace Atlas.Engine
 
 		override protected void AddingManager(IEntity entity)
 		{
+			entity.Parent = null;
 			base.AddingManager(entity);
 			AddEntity(entity);
 		}
