@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1, T2>:SignalBase
+	sealed class Signal<T1, T2>:SignalBase, ISignal<T1, T2>
 	{
 		public Signal()
 		{
@@ -30,14 +31,22 @@ namespace Atlas.Signals
 			}
 		}
 
-		public Slot<T1, T2> Get(Action<T1, T2> listener)
+		public new List<ISlot<T1, T2>> Slots
 		{
-			return (Slot<T1, T2>)base.Get(listener);
+			get
+			{
+				return null;
+			}
 		}
 
-		public new Slot<T1, T2> GetAt(int index)
+		public ISlot<T1, T2> Get(Action<T1, T2> listener)
 		{
-			return (Slot<T1, T2>)base.GetAt(index);
+			return (ISlot<T1, T2>)base.Get(listener);
+		}
+
+		public new ISlot<T1, T2> Get(int index)
+		{
+			return (ISlot<T1, T2>)base.Get(index);
 		}
 
 		public int GetIndex(Action<T1, T2> listener)
@@ -45,14 +54,14 @@ namespace Atlas.Signals
 			return base.GetIndex(listener);
 		}
 
-		public Slot<T1, T2> Add(Action<T1, T2> listener)
+		public ISlot<T1, T2> Add(Action<T1, T2> listener)
 		{
-			return (Slot<T1, T2>)base.Add(listener);
+			return (ISlot<T1, T2>)base.Add(listener);
 		}
 
-		public Slot<T1, T2> Add(Action<T1, T2> listener, int priority = 0)
+		public ISlot<T1, T2> Add(Action<T1, T2> listener, int priority = 0)
 		{
-			return (Slot<T1, T2>)base.Add(listener, priority);
+			return (ISlot<T1, T2>)base.Add(listener, priority);
 		}
 
 		public bool Remove(Action<T1, T2> listener)

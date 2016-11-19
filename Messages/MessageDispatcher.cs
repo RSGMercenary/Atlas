@@ -6,7 +6,7 @@ namespace Atlas.Messages
 {
 	class MessageDispatcher<TSender>:IMessageDispatcher<TSender>
 	{
-		private Dictionary<MessageType, Signal<IMessage<TSender>>> signals = new Dictionary<MessageType, Signal<IMessage<TSender>>>();
+		private Dictionary<string, Signal<IMessage<TSender>>> signals = new Dictionary<string, Signal<IMessage<TSender>>>();
 		private int numDispatches = 0;
 
 		public MessageDispatcher()
@@ -14,16 +14,17 @@ namespace Atlas.Messages
 
 		}
 
-		public bool AddMessageListener(MessageType type, Action<IMessage<TSender>> listener)
+		public bool AddMessageListener(string type, Action<IMessage<TSender>> listener)
 		{
 			return AddMessageListener(type, listener, 0);
 		}
 
-		public bool AddMessageListener(MessageType type, Action<IMessage<TSender>> listener, int priority = 0)
+		public bool AddMessageListener(string type, Action<IMessage<TSender>> listener, int priority = 0)
 		{
+			if(string.IsNullOrWhiteSpace(type))
+				return false;
 			if(listener == null)
 				return false;
-
 			Signal<IMessage<TSender>> signal;
 			if(signals.ContainsKey(type))
 			{
@@ -31,10 +32,8 @@ namespace Atlas.Messages
 			}
 			else
 			{
-				signal = new Signal<IMessage<TSender>>();
-				signals.Add(type, signal);
+				signal = signals[type] = new Signal<IMessage<TSender>>();
 			}
-
 			return signal.Add(listener, priority) != null;
 		}
 
@@ -42,19 +41,19 @@ namespace Atlas.Messages
 		{
 			if(message == null)
 				return;
-			if(message.MessageType == null)
+			if(message.Type == null)
 				return;
-			if(!signals.ContainsKey(message.MessageType))
+			if(!signals.ContainsKey(message.Type))
 				return;
 			++numDispatches;
-			Signal<IMessage<TSender>> signal = signals[message.MessageType];
+			Signal<IMessage<TSender>> signal = signals[message.Type];
 			signal.Dispatch(message);
 			--numDispatches;
 		}
 
-		public bool HasMessageListener(MessageType type, Action<IMessage<TSender>> listener)
+		public bool HasMessageListener(string type, Action<IMessage<TSender>> listener)
 		{
-			if(type == null)
+			if(string.IsNullOrWhiteSpace(type))
 				return false;
 			if(listener == null)
 				return false;
@@ -64,40 +63,47 @@ namespace Atlas.Messages
 			return signal.Get(listener) != null;
 		}
 
-		public bool RemoveMessageListener(MessageType type, Action<IMessage<TSender>> listener)
+		public bool RemoveMessageListener(string type, Action<IMessage<TSender>> listener)
 		{
+			if(string.IsNullOrWhiteSpace(type))
+				return false;
 			if(listener == null)
 				return false;
 			if(!signals.ContainsKey(type))
 				return false;
 			Signal<IMessage<TSender>> signal = signals[type];
 			signal.Remove(listener);
-			if(signal.NumSlots <= 0)
+			if(!signal.HasSlots)
 			{
-				signals.Remove(type);
 				signal.Dispose();
+				signals.Remove(type);
 			}
+			return true;
+		}
+
+		public bool RemoveMessageListeners(string type)
+		{
+			if(string.IsNullOrWhiteSpace(type))
+				return false;
+			if(!signals.ContainsKey(type))
+				return false;
+			Signal<IMessage<TSender>> signal = signals[type];
+			signal.Dispose();
+			signals.Remove(type);
 			return true;
 		}
 
 		public bool RemoveMessageListeners()
 		{
 			bool removed = false;
-			foreach(MessageType type in signals.Keys)
+			foreach(string type in signals.Keys)
 			{
-				signals[type].Dispose();
+				Signal<IMessage<TSender>> signal = signals[type];
+				signal.Dispose();
 				signals.Remove(type);
 				removed = true;
 			}
 			return removed;
-		}
-
-		public bool RemoveMessageListeners(MessageType type)
-		{
-			if(!signals.ContainsKey(type))
-				return false;
-			Signal<IMessage<TSender>> signal = signals[type];
-			signal.Dispose();
 		}
 	}
 }

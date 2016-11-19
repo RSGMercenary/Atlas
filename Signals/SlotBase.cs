@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	class SlotBase
+	class SlotBase:ISlotBase
 	{
 		protected SignalBase signal;
 		protected Delegate listener;
@@ -22,15 +22,15 @@ namespace Atlas.Signals
 			}
 		}
 
-		public SignalBase Signal
+		public ISignalBase Signal
 		{
 			get
 			{
 				return signal;
 			}
-			internal set
+			set
 			{
-				signal = value;
+				signal = (SignalBase)value;
 			}
 		}
 
@@ -40,7 +40,7 @@ namespace Atlas.Signals
 			{
 				return listener;
 			}
-			internal set
+			set
 			{
 				listener = value;
 			}

@@ -2,18 +2,18 @@
 
 namespace Atlas.Signals
 {
-	sealed class Slot<T1, T2, T3>:SlotBase
+	sealed class Slot<T1, T2, T3>:SlotBase, ISlot<T1, T2, T3>
 	{
 		internal Slot()
 		{
 
 		}
 
-		public new Signal<T1, T2, T3> Signal
+		public new ISignal<T1, T2, T3> Signal
 		{
 			get
 			{
-				return (Signal<T1, T2, T3>)signal;
+				return (ISignal<T1, T2, T3>)signal;
 			}
 		}
 

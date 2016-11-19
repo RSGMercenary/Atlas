@@ -4,6 +4,6 @@
 	{
 		TSender First { get; }
 		TSender Current { get; }
-		MessageType MessageType { get; }
+		string Type { get; }
 	}
 }

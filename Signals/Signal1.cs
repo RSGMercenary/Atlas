@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1>:SignalBase
+	sealed class Signal<T1>:SignalBase, ISignal<T1>
 	{
 		public Signal()
 		{
@@ -30,14 +31,22 @@ namespace Atlas.Signals
 			}
 		}
 
-		public Slot<T1> Get(Action<T1> listener)
+		public new List<ISlot<T1>> Slots
 		{
-			return (Slot<T1>)base.Get(listener);
+			get
+			{
+				return null;
+			}
 		}
 
-		public new Slot<T1> GetAt(int index)
+		public ISlot<T1> Get(Action<T1> listener)
 		{
-			return (Slot<T1>)base.GetAt(index);
+			return (ISlot<T1>)base.Get(listener);
+		}
+
+		public new ISlot<T1> Get(int index)
+		{
+			return (ISlot<T1>)base.Get(index);
 		}
 
 		public int GetIndex(Action<T1> listener)
@@ -45,12 +54,12 @@ namespace Atlas.Signals
 			return base.GetIndex(listener);
 		}
 
-		public Slot<T1> Add(Action<T1> listener)
+		public ISlot<T1> Add(Action<T1> listener)
 		{
-			return Add(listener, 0);
+			return (ISlot<T1>)base.Add(listener, 0);
 		}
 
-		public Slot<T1> Add(Action<T1> listener, int priority)
+		public ISlot<T1> Add(Action<T1> listener, int priority)
 		{
 			return (Slot<T1>)base.Add(listener, priority);
 		}

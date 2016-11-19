@@ -4,11 +4,11 @@
 	{
 		private TSender first;
 		private TSender current;
-		private MessageType type;
+		private string type = "";
 
-		public Message(MessageType type, TSender first, TSender current)
+		public Message(string type, TSender first, TSender current)
 		{
-			MessageType = type;
+			Type = type;
 			First = first;
 			Current = current;
 		}
@@ -37,7 +37,7 @@
 			}
 		}
 
-		public MessageType MessageType
+		public string Type
 		{
 			get
 			{
@@ -45,6 +45,8 @@
 			}
 			private set
 			{
+				if(string.IsNullOrWhiteSpace(value))
+					return;
 				type = value;
 			}
 		}
