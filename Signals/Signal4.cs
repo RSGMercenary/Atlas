@@ -30,20 +30,14 @@ namespace Atlas.Signals
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <inheritDoc/>
-		/// <param name="listener"></param>
-		/// <returns></returns>
-		public Slot<T1, T2, T3, T4> Get(Action<T1, T2, T3, T4> listener)
+		public ISlot<T1, T2, T3, T4> Get(Action<T1, T2, T3, T4> listener)
 		{
-			return (Slot<T1, T2, T3, T4>)base.Get(listener);
+			return (ISlot<T1, T2, T3, T4>)base.Get(listener);
 		}
 
-		public new Slot<T1, T2, T3, T4> GetAt(int index)
+		public new ISlot<T1, T2, T3, T4> Get(int index)
 		{
-			return (Slot<T1, T2, T3, T4>)base.GetAt(index);
+			return (ISlot<T1, T2, T3, T4>)base.Get(index);
 		}
 
 		public int GetIndex(Action<T1, T2, T3, T4> listener)
@@ -51,14 +45,14 @@ namespace Atlas.Signals
 			return base.GetIndex(listener);
 		}
 
-		public Slot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener)
+		public ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener)
 		{
-			return (Slot<T1, T2, T3, T4>)base.Add(listener);
+			return (ISlot<T1, T2, T3, T4>)base.Add(listener);
 		}
 
-		public Slot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0)
+		public ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0)
 		{
-			return (Slot<T1, T2, T3, T4>)base.Add(listener, priority);
+			return (ISlot<T1, T2, T3, T4>)base.Add(listener, priority);
 		}
 
 		public bool Remove(Action<T1, T2, T3, T4> listener)

@@ -61,7 +61,7 @@ namespace Atlas.Signals
 
 		public ISlot<T1> Add(Action<T1> listener, int priority)
 		{
-			return (Slot<T1>)base.Add(listener, priority);
+			return (ISlot<T1>)base.Add(listener, priority);
 		}
 
 		public bool Remove(Action<T1> listener)

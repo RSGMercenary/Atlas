@@ -6,7 +6,7 @@ using System;
 
 namespace Atlas.Components
 {
-	interface IComponent:IDispose
+	interface IComponent:IDispose, IUnmanagedDispose
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);
