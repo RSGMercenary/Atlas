@@ -1,4 +1,5 @@
 ﻿using Atlas.Components;
+using Atlas.Engine;
 using Atlas.Interfaces;
 using Atlas.LinkList;
 using Atlas.Signals;
@@ -10,8 +11,8 @@ namespace Atlas.Entities
 {
 	interface IEntity:ISleep, IDispose
 	{
-		IEntityManager EntityManager { get; set; }
-		Signal<IEntity, IEntityManager, IEntityManager> EntityManagerChanged { get; }
+		IEngine Engine { get; set; }
+		Signal<IEntity, IEngine, IEngine> EngineChanged { get; }
 
 		string GlobalName { get; set; }
 		Signal<IEntity, string, string> GlobalNameChanged { get; }
@@ -55,27 +56,26 @@ namespace Atlas.Entities
 
 		#region Components
 
+		bool HasComponent<TType>() where TType : IComponent;
 		bool HasComponent(Type type);
-		bool HasComponent<T>() where T : IComponent;
 
+		TComponent GetComponent<TComponent, TType>() where TComponent : IComponent, TType;
+		TType GetComponent<TType>() where TType : IComponent;
 		IComponent GetComponent(Type type);
-		T GetComponent<T>() where T : IComponent;
 
-		T AddComponent<T>() where T : IComponent, new();
-		T AddComponent<T>(T component) where T : IComponent;
-		T AddComponent<T>(T component, Type type) where T : IComponent;
-		T AddComponent<T>(T component, int index) where T : IComponent;
-		T AddComponent<T>(T component, Type type, int index) where T : IComponent;
-
-		IComponent AddComponent(IComponent component);
-		IComponent AddComponent(IComponent component, Type type);
-		IComponent AddComponent(IComponent component, int index);
+		TComponent AddComponent<TComponent, TType>() where TComponent : IComponent, TType, new();
+		TComponent AddComponent<TComponent, TType>(TComponent Component) where TComponent : IComponent, TType;
+		TComponent AddComponent<TComponent, TType>(TComponent Component, int index) where TComponent : IComponent, TType;
+		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
+		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
+		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
 		IComponent AddComponent(IComponent component, Type type, int index);
 		Signal<IEntity, IComponent, Type> ComponentAdded { get; }
 
 		IComponent RemoveComponent(IComponent component);
+		TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType;
+		TType RemoveComponent<TType>() where TType : IComponent;
 		IComponent RemoveComponent(Type type);
-		T RemoveComponent<T>() where T : IComponent;
 		Signal<IEntity, IComponent, Type> ComponentRemoved { get; }
 
 		Type GetComponentType(IComponent component);
@@ -85,17 +85,19 @@ namespace Atlas.Entities
 
 		#region Systems
 
-		bool HasSystemType(Type type);
-		bool HasSystemType<T>() where T : ISystem;
+		bool HasSystem(Type type);
+		bool HasSystem<T>() where T : ISystem;
 
-		bool AddSystemType(Type type);
-		bool AddSystemType<T>() where T : ISystem;
+		bool AddSystem(Type type);
+		bool AddSystem<T>() where T : ISystem;
 
-		bool RemoveSystemType(Type type);
-		bool RemoveSystemType<T>() where T : ISystem;
+		bool RemoveSystem(Type type);
+		bool RemoveSystem<T>() where T : ISystem;
 
-		Signal<IEntity, Type> SystemTypeAdded { get; }
-		Signal<IEntity, Type> SystemTypeRemoved { get; }
+		IReadOnlyCollection<Type> Systems { get; }
+
+		Signal<IEntity, Type> SystemAdded { get; }
+		Signal<IEntity, Type> SystemRemoved { get; }
 
 		#endregion
 

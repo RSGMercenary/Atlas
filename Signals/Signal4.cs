@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1, T2, T3, T4>:Signal
+	sealed class Signal<T1, T2, T3, T4>:SignalBase
 	{
 		public Signal()
 		{
@@ -15,11 +15,6 @@ namespace Atlas.Signals
 			{
 				foreach(Slot<T1, T2, T3, T4> slot in Slots)
 				{
-					if(slot.IsOnce)
-					{
-						Remove(slot.Listener);
-					}
-
 					try
 					{
 						slot.Listener.Invoke(item1, item2, item3, item4);
@@ -58,22 +53,12 @@ namespace Atlas.Signals
 
 		public Slot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener)
 		{
-			return Add(listener, 0, false);
+			return (Slot<T1, T2, T3, T4>)base.Add(listener);
 		}
 
 		public Slot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0)
 		{
-			return Add(listener, priority, false);
-		}
-
-		public Slot<T1, T2, T3, T4> AddOnce(Action<T1, T2, T3, T4> listener, int priority = 0)
-		{
-			return Add(listener, priority, true);
-		}
-
-		public Slot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0, bool isOnce = false)
-		{
-			return (Slot<T1, T2, T3, T4>)base.Add(listener, priority, isOnce);
+			return (Slot<T1, T2, T3, T4>)base.Add(listener, priority);
 		}
 
 		public bool Remove(Action<T1, T2, T3, T4> listener)
@@ -81,7 +66,7 @@ namespace Atlas.Signals
 			return base.Remove(listener);
 		}
 
-		override protected Slot CreateSlot()
+		override protected SlotBase CreateSlot()
 		{
 			return new Slot<T1, T2, T3, T4>();
 		}

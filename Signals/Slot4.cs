@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	sealed class Slot<T1, T2, T3, T4>:Slot
+	sealed class Slot<T1, T2, T3, T4>:SlotBase
 	{
 		internal Slot()
 		{

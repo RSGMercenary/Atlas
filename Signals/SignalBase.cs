@@ -3,31 +3,18 @@ using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	class Signal
+	class SignalBase
 	{
-		private List<Slot> slots = new List<Slot>();
-		private List<Slot> slotsPooled = new List<Slot>();
-		private List<Slot> slotsRemoved = new List<Slot>();
-
-		private List<object[]> dispatchesPooled = new List<object[]>();
-		private bool hasConcurrentDispatches = true;
+		private List<SlotBase> slots = new List<SlotBase>();
+		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
+		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 		private int numDispatches = 0;
 
-		public Signal(bool hasConcurrentDispatches = true)
-		{
-			HasConcurrentDispatches = hasConcurrentDispatches;
-		}
+		private bool isDisposed = false;
 
-		public bool HasConcurrentDispatches
+		public SignalBase()
 		{
-			get
-			{
-				return hasConcurrentDispatches;
-			}
-			private set
-			{
-				hasConcurrentDispatches = value;
-			}
+
 		}
 
 		/// <summary>
@@ -36,12 +23,11 @@ namespace Atlas.Signals
 		/// </summary>
 		public void Dispose()
 		{
+			isDisposed = true;
 			RemoveAll();
 			while(slotsPooled.Count > 0)
 			{
-				Slot slot = slotsPooled[slotsPooled.Count - 1];
-				slotsPooled.RemoveAt(slotsPooled.Count - 1);
-				slot.Dispose();
+				slotsPooled.Pop().Dispose();
 			}
 		}
 
@@ -58,42 +44,23 @@ namespace Atlas.Signals
 			return false;
 		}
 
-		public void Dispatch(params object[] values)
+		public void Dispatch(params object[] items)
 		{
-			if(slots.Count > 0)
+			if(DispatchStart())
 			{
-				if(!hasConcurrentDispatches && numDispatches > 0)
+				foreach(SlotBase slot in Slots)
 				{
-					dispatchesPooled.Add(values);
-				}
-				else
-				{
-					++numDispatches;
-
-					foreach(Slot slot in Slots)
+					try
 					{
-						slot.Listener.DynamicInvoke(values);
+						slot.Listener.DynamicInvoke(items);
 					}
-
-					--numDispatches;
-
-					if(numDispatches == 0)
+					catch
 					{
-						while(slotsRemoved.Count > 0)
-						{
-							Slot slot = slotsRemoved[slotsRemoved.Count - 1];
-							slotsRemoved.RemoveAt(slotsRemoved.Count - 1);
-							DisposeSlot(slot);
-						}
-
-						if(dispatchesPooled.Count > 0)
-						{
-							values = dispatchesPooled[0];
-							dispatchesPooled.RemoveAt(0);
-							Dispatch(values);
-						}
+						//We remove the Slot so the Error doesn't inevitably happen again.
+						Remove(slot.Listener);
 					}
 				}
+				DispatchStop();
 			}
 		}
 
@@ -114,9 +81,7 @@ namespace Atlas.Signals
 			{
 				while(slotsRemoved.Count > 0)
 				{
-					Slot slot = slotsRemoved[slotsRemoved.Count - 1];
-					slotsRemoved.RemoveAt(slotsRemoved.Count - 1);
-					DisposeSlot(slot);
+					DisposeSlot(slotsRemoved.Pop());
 				}
 				return true;
 			}
@@ -150,26 +115,27 @@ namespace Atlas.Signals
 		/// Returns a copy of the Slots being processed by this Signal in order of
 		/// how they're prioritized.
 		/// </summary>
-		public List<Slot> Slots
+		public List<SlotBase> Slots
 		{
 			get
 			{
-				return new List<Slot>(slots);
+				return new List<SlotBase>(slots);
 			}
 		}
 
-		private void DisposeSlot(Slot slot)
+		private void DisposeSlot(SlotBase slot)
 		{
 			slot.Signal = null;
 			slot.Dispose();
-			slotsPooled.Add(slot);
+			if(!isDisposed)
+				slotsPooled.Push(slot);
 		}
 
-		public Slot Get(Delegate listener)
+		public SlotBase Get(Delegate listener)
 		{
 			if(listener != null)
 			{
-				foreach(Slot slot in slots)
+				foreach(SlotBase slot in slots)
 				{
 					if(slot.Listener == listener)
 					{
@@ -180,7 +146,7 @@ namespace Atlas.Signals
 			return null;
 		}
 
-		public Slot GetAt(int index)
+		public SlotBase GetAt(int index)
 		{
 			if(index < 0)
 				return null;
@@ -204,17 +170,16 @@ namespace Atlas.Signals
 			return -1;
 		}
 
-		public Slot Add(Delegate listener, int priority = 0, bool isOnce = false)
+		public SlotBase Add(Delegate listener, int priority = 0)
 		{
 			if(listener != null)
 			{
-				Slot slot = Get(listener);
+				SlotBase slot = Get(listener);
 				if(slot == null)
 				{
 					if(slotsPooled.Count > 0)
 					{
-						slot = slots[slotsPooled.Count - 1];
-						slotsPooled.RemoveAt(slotsPooled.Count - 1);
+						slot = slotsPooled.Pop();
 					}
 					else
 					{
@@ -224,7 +189,6 @@ namespace Atlas.Signals
 					slot.Signal = this;
 					slot.Listener = listener;
 					slot.Priority = priority;
-					slot.IsOnce = isOnce;
 
 					PriorityChanged(slot, 0, 0);
 
@@ -234,12 +198,12 @@ namespace Atlas.Signals
 			return null;
 		}
 
-		virtual protected Slot CreateSlot()
+		virtual protected SlotBase CreateSlot()
 		{
-			return new Slot();
+			return new SlotBase();
 		}
 
-		internal void PriorityChanged(Slot slot, int current, int previous)
+		internal void PriorityChanged(SlotBase slot, int current, int previous)
 		{
 			slots.Remove(slot);
 
@@ -279,12 +243,12 @@ namespace Atlas.Signals
 		{
 			if(index > 0 && index < slots.Count)
 			{
-				Slot slot = slots[index];
+				SlotBase slot = slots[index];
 				slots.RemoveAt(index);
 
 				if(numDispatches > 0)
 				{
-					slotsRemoved.Add(slot);
+					slotsRemoved.Push(slot);
 				}
 				else
 				{

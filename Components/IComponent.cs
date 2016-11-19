@@ -8,22 +8,23 @@ namespace Atlas.Components
 {
 	interface IComponent:IDispose
 	{
-		int GetEntityIndex(IEntity entity);
-		bool SetEntityIndex(IEntity entity, int index);
+		int GetManagerIndex(IEntity entity);
+		bool SetManagerIndex(IEntity entity, int index);
 
-		IEntity AddEntity(IEntity entity);
-		IEntity AddEntity(IEntity entity, Type type);
-		IEntity AddEntity(IEntity entity, int index);
-		IEntity AddEntity(IEntity entity, Type type, int index);
-		Signal<IComponent, IEntity, int> EntityAdded { get; }
+		IEntity AddManager(IEntity entity);
+		IEntity AddManager(IEntity entity, Type type);
+		IEntity AddManager(IEntity entity, int index);
+		IEntity AddManager(IEntity entity, Type type = null, int index = int.MaxValue);
 
-		IEntity RemoveEntity(IEntity entity);
-		IEntity RemoveEntity(int index);
-		void RemoveComponentManagers();
-		Signal<IComponent, IEntity, int> EntityRemoved { get; }
+		IEntity RemoveManager(IEntity entity);
+		IEntity RemoveManager(int index);
+		bool RemoveManagers();
 
-		IEntity Entity { get; }
-		IReadOnlyLinkList<IEntity> Entities { get; }
+		Signal<IComponent, IEntity, int> ManagerAdded { get; }
+		Signal<IComponent, IEntity, int> ManagerRemoved { get; }
+
+		IEntity Manager { get; }
+		IReadOnlyLinkList<IEntity> Managers { get; }
 
 		bool IsShareable { get; }
 	}

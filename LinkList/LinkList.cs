@@ -4,10 +4,16 @@ namespace Atlas.LinkList
 {
 	class LinkList<T>:ILinkList<T>
 	{
-		private Stack<LinkListNode<T>> pool = new Stack<LinkListNode<T>>();
+		private Stack<LinkListNode<T>> nodesPooled = new Stack<LinkListNode<T>>();
+		private Stack<LinkListNode<T>> nodesRemoved = new Stack<LinkListNode<T>>();
 		private LinkListNode<T> first;
 		private LinkListNode<T> last;
 		private int count = 0;
+
+		public LinkList()
+		{
+
+		}
 
 		public T this[int i]
 		{
@@ -40,11 +46,6 @@ namespace Atlas.LinkList
 			{
 				return count;
 			}
-		}
-
-		protected LinkListNode<T> CreateNode()
-		{
-			return new LinkListNode<T>();
 		}
 
 		public bool Contains(T data)
@@ -99,25 +100,23 @@ namespace Atlas.LinkList
 
 		public T Add(T data, int index)
 		{
-			if(!Contains(data))
+			if(data == null)
+				return default(T);
+			LinkListNode<T> node;
+			if(nodesPooled.Count > 0)
 			{
-				LinkListNode<T> node;
-				if(pool.Count > 0)
-				{
-					node = pool.Pop();
-				}
-				else
-				{
-					node = CreateNode();
-				}
-				node.nodelist = this;
-				node.value = data;
-
-				TempAdd(node, index);
-
-				return data;
+				node = nodesPooled.Pop();
 			}
-			return default(T);
+			else
+			{
+				node = new LinkListNode<T>();
+			}
+			node.linklist = this;
+			node.value = data;
+
+			TempAdd(node, index);
+
+			return data;
 		}
 
 		public T Remove(T data)
@@ -144,74 +143,74 @@ namespace Atlas.LinkList
 			return Swap(node1, node2);
 		}
 
-		public bool Swap(ILinkListNode<T> nodeA, ILinkListNode<T> nodeB)
+		public bool Swap(ILinkListNode<T> node1, ILinkListNode<T> node2)
 		{
-			if(nodeA == null)
+			if(node1 == null)
 				return false;
-			if(nodeB == null)
+			if(node2 == null)
 				return false;
-			if(nodeA.NodeList != this)
+			if(node1.NodeList != this)
 				return false;
-			if(nodeB.NodeList != this)
+			if(node2.NodeList != this)
 				return false;
 
-			LinkListNode<T> node1 = (LinkListNode<T>)nodeA;
-			LinkListNode<T> node2 = (LinkListNode<T>)nodeB;
+			LinkListNode<T> node01 = (LinkListNode<T>)node1;
+			LinkListNode<T> node02 = (LinkListNode<T>)node2;
 
-			if(node1.previous == node2)
+			if(node01.previous == node02)
 			{
-				node1.previous = node2.previous;
-				node2.previous = node1;
-				node2.next = node1.next;
-				node1.next = node2;
+				node01.previous = node02.previous;
+				node02.previous = node01;
+				node02.next = node01.next;
+				node01.next = node02;
 			}
-			else if(node2.previous == node1)
+			else if(node02.previous == node01)
 			{
-				node2.previous = node1.previous;
-				node1.previous = node2;
-				node1.next = node2.next;
-				node2.next = node1;
+				node02.previous = node01.previous;
+				node01.previous = node02;
+				node01.next = node02.next;
+				node02.next = node01;
 			}
 			else
 			{
-				LinkListNode<T> temp = node1.previous;
-				node1.previous = node2.previous;
-				node2.previous = temp;
-				temp = node1.next;
-				node1.next = node2.next;
-				node2.next = temp;
+				LinkListNode<T> temp = node01.previous;
+				node01.previous = node02.previous;
+				node02.previous = temp;
+				temp = node01.next;
+				node01.next = node02.next;
+				node02.next = temp;
 			}
-			if(first == node1)
+			if(first == node01)
 			{
-				first = node2;
+				first = node02;
 			}
-			else if(first == node2)
+			else if(first == node02)
 			{
-				first = node1;
+				first = node01;
 			}
-			if(last == node1)
+			if(last == node01)
 			{
-				last = node2;
+				last = node02;
 			}
-			else if(last == node2)
+			else if(last == node02)
 			{
-				last = node1;
+				last = node01;
 			}
-			if(node1.previous != null)
+			if(node01.previous != null)
 			{
-				node1.previous.next = node1;
+				node01.previous.next = node01;
 			}
-			if(node2.previous != null)
+			if(node02.previous != null)
 			{
-				node2.previous.next = node2;
+				node02.previous.next = node02;
 			}
-			if(node1.next != null)
+			if(node01.next != null)
 			{
-				node1.next.previous = node1;
+				node01.next.previous = node01;
 			}
-			if(node2.next != null)
+			if(node02.next != null)
 			{
-				node2.next.previous = node2;
+				node02.next.previous = node02;
 			}
 			return true;
 		}
@@ -223,8 +222,11 @@ namespace Atlas.LinkList
 			if(index > count - 1)
 				return null;
 
+			if(index == 0)
+				return first;
+			if(index == count - 1)
+				return last;
 			LinkListNode<T> current = first;
-
 			while(index > 0)
 			{
 				current = current.next;
@@ -235,14 +237,19 @@ namespace Atlas.LinkList
 
 		private LinkListNode<T> GetNode(T data)
 		{
-			if(data != null)
+			if(count <= 0)
+				return null;
+			if(data == null)
+				return null;
+			if(first.value.Equals(data))
+				return first;
+			if(last.value.Equals(data))
+				return last;
+			for(LinkListNode<T> current = first.next; current != null && current != last; current = current.next)
 			{
-				for(LinkListNode<T> current = first; current != null; current = current.next)
+				if(current.value.Equals(data))
 				{
-					if(current.value.Equals(data))
-					{
-						return current;
-					}
+					return current;
 				}
 			}
 			return null;
@@ -250,23 +257,16 @@ namespace Atlas.LinkList
 
 		private T RemoveNode(LinkListNode<T> node)
 		{
-			if(node != null)
-			{
-				if(node.nodelist == this)
-				{
-					T data = node.value;
-
-					node.nodelist = null;
-					node.value = default(T);
-
-					TempRemove(node);
-
-					pool.Push(node);
-
-					return data;
-				}
-			}
-			return default(T);
+			if(node == null)
+				return default(T);
+			if(node.linklist != this)
+				return default(T);
+			T data = node.value;
+			node.linklist = null;
+			node.value = default(T);
+			TempRemove(node);
+			nodesPooled.Push(node);
+			return data;
 		}
 
 		private void TempRemove(LinkListNode<T> node)
@@ -317,6 +317,19 @@ namespace Atlas.LinkList
 				}
 			}
 			++count;
+		}
+
+		public void DisposeNodes()
+		{
+			while(nodesRemoved.Count > 0)
+			{
+				LinkListNode<T> node = nodesRemoved.Pop();
+				node.linklist = null;
+				node.value = default(T);
+				node.previous = null;
+				node.next = null;
+				nodesPooled.Push(node);
+			}
 		}
 
 		override public string ToString()

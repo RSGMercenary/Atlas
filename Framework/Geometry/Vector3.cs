@@ -1,15 +1,10 @@
 ﻿namespace Atlas.Framework.Geometry
 {
-	class Vector3D
+	class Vector3
 	{
 		private float x = 0;
 		private float y = 0;
 		private float z = 0;
-
-		public Vector3D()
-		{
-
-		}
 
 		public float X
 		{
@@ -19,6 +14,8 @@
 			}
 			set
 			{
+				if(float.IsNaN(value))
+					return;
 				if(x != value)
 				{
 					float previous = x;
@@ -35,6 +32,8 @@
 			}
 			set
 			{
+				if(float.IsNaN(value))
+					return;
 				if(y != value)
 				{
 					float previous = y;
@@ -51,6 +50,8 @@
 			}
 			set
 			{
+				if(float.IsNaN(value))
+					return;
 				if(z != value)
 				{
 					float previous = z;

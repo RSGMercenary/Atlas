@@ -1,121 +1,73 @@
-﻿using Atlas.Framework.Geometry;
-using System.Collections.Generic;
+﻿using Atlas.Components;
+using Atlas.LinkList;
 
 namespace Atlas.Framework.Components
 {
-	class Transform
+	class Transform:AtlasComponent, ITransform
 	{
-		private Vector3DC<Transform> position;
-		private Vector3DC<Transform> rotation;
-		private Vector3DC<Transform> scale;
+		private float positionX = 0;
+		private float positionY = 0;
+		private float positionZ = 0;
+
+		private float rotationX = 0;
+		private float rotationY = 0;
+		private float rotationZ = 0;
+
+		private float scaleX = 0;
+		private float scaleY = 0;
+		private float scaleZ = 0;
 
 		private Transform parent;
-		private List<Transform> children = new List<Transform>();
+		private LinkList<Transform> children = new LinkList<Transform>();
 
 		public Transform()
 		{
-			position = new Vector3DC<Transform>(this);
-			rotation = new Vector3DC<Transform>(this);
-			scale = new Vector3DC<Transform>(this);
+
 		}
 
-		public Vector3DC<Transform> Position
+		public float PositionX
 		{
 			get
 			{
-				return position;
-			}
-		}
-
-		public Vector3DC<Transform> Rotation
-		{
-			get
-			{
-				return rotation;
-			}
-		}
-
-		public Vector3DC<Transform> Scale
-		{
-			get
-			{
-				return scale;
-			}
-		}
-
-		public Transform Parent
-		{
-			get
-			{
-				return parent;
+				return positionX;
 			}
 			set
 			{
-				if(parent != value)
+				if(float.IsNaN(value))
+					return;
+				if(positionX == value)
+					return;
+				float previous = positionX;
+				positionX = value;
+
+				ILinkListNode<Transform> current = children.First;
+				while(current != null)
 				{
-					Transform previous = parent;
-					parent = value;
-					if(previous != null)
-					{
-						previous.RemoveChild(this);
-					}
-					if(parent != null)
-					{
-						parent.AddChild(this);
-					}
+
+					current = current.Next;
 				}
 			}
 		}
 
-		public void SetParent(Transform parent, int index)
+		public float PositionY
 		{
-			if(this.parent != parent)
+			get
 			{
-				Transform previousParent = this.parent;
-				int previousIndex = -1;
-				if(previousParent != null)
-				{
-					previousIndex = previousParent.children.IndexOf(this);
-					previousParent.children.RemoveAt(previousIndex);
-				}
-				this.parent = parent;
-				if(this.parent != null)
-				{
-					this.parent.children.Insert(index, this);
-				}
-
-
+				return positionY;
 			}
 		}
 
-		public Transform AddChild(Transform child)
+		public float PositionZ
 		{
-			return AddChild(child, children.Count);
-		}
-
-		public Transform AddChild(Transform child, int index)
-		{
-			if(child.parent != this)
+			get
 			{
-				if(child.parent != null)
-				{
-
-				}
-				child.parent = this;
-				children.Insert(index, child);
+				return positionZ;
 			}
-
-			return null;
-		}
-
-		public Transform RemoveChild(Transform child)
-		{
-			if(child.parent == this)
+			set
 			{
-				child.parent = null;
-				children.Remove(child);
+				if(float.IsNaN(value))
+					return;
 			}
-			return null;
 		}
 	}
 }

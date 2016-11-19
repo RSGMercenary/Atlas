@@ -1,13 +1,12 @@
-﻿using Atlas.Interfaces;
+﻿using Atlas.Engine;
+using Atlas.Interfaces;
 using Atlas.Signals;
 
 namespace Atlas.Systems
 {
-	interface ISystem:IPriority<ISystem>, IUpdate, ISleep, IDispose
+	interface ISystem:IPriority<ISystem>, IUpdate<ISystem>, ISleep, IDispose
 	{
-		ISystemManager SystemManager { get; set; }
-		Signal<ISystem, ISystemManager, ISystemManager> SystemManagerChanged { get; }
-
-		//new int ReferenceCount { get; set; }
+		IEngine Engine { get; set; }
+		Signal<ISystem, IEngine, IEngine> EngineChanged { get; }
 	}
 }

@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1>:Signal
+	sealed class Signal<T1>:SignalBase
 	{
 		public Signal()
 		{
@@ -15,11 +15,6 @@ namespace Atlas.Signals
 			{
 				foreach(Slot<T1> slot in Slots)
 				{
-					if(slot.IsOnce)
-					{
-						Remove(slot.Listener);
-					}
-
 					try
 					{
 						slot.Listener.Invoke(item1);
@@ -52,22 +47,12 @@ namespace Atlas.Signals
 
 		public Slot<T1> Add(Action<T1> listener)
 		{
-			return Add(listener, 0, false);
+			return Add(listener, 0);
 		}
 
 		public Slot<T1> Add(Action<T1> listener, int priority)
 		{
-			return Add(listener, priority, false);
-		}
-
-		public Slot<T1> AddOnce(Action<T1> listener, int priority)
-		{
-			return Add(listener, priority, true);
-		}
-
-		public Slot<T1> Add(Action<T1> listener, int priority, bool isOnce)
-		{
-			return (Slot<T1>)base.Add(listener, priority, isOnce);
+			return (Slot<T1>)base.Add(listener, priority);
 		}
 
 		public bool Remove(Action<T1> listener)
@@ -75,7 +60,7 @@ namespace Atlas.Signals
 			return base.Remove(listener);
 		}
 
-		override protected Slot CreateSlot()
+		override protected SlotBase CreateSlot()
 		{
 			return new Slot<T1>();
 		}

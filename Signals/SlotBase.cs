@@ -2,12 +2,11 @@
 
 namespace Atlas.Signals
 {
-	class Slot
+	class SlotBase
 	{
-		protected Signal signal;
+		protected SignalBase signal;
 		protected Delegate listener;
 		private int priority = 0;
-		private bool isOnce = false;
 
 		public void Dispose()
 		{
@@ -20,11 +19,10 @@ namespace Atlas.Signals
 				signal = null;
 				listener = null;
 				priority = 0;
-				isOnce = false;
 			}
 		}
 
-		public Signal Signal
+		public SignalBase Signal
 		{
 			get
 			{
@@ -45,18 +43,6 @@ namespace Atlas.Signals
 			internal set
 			{
 				listener = value;
-			}
-		}
-
-		public bool IsOnce
-		{
-			get
-			{
-				return isOnce;
-			}
-			set
-			{
-				isOnce = value;
 			}
 		}
 

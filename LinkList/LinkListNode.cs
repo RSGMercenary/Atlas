@@ -2,7 +2,7 @@
 {
 	class LinkListNode<T>:ILinkListNode<T>
 	{
-		public LinkList<T> nodelist;
+		public LinkList<T> linklist;
 		public LinkListNode<T> previous;
 		public LinkListNode<T> next;
 		public T value;
@@ -11,7 +11,7 @@
 		{
 			get
 			{
-				return nodelist;
+				return linklist;
 			}
 		}
 
