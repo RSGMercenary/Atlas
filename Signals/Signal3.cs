@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1, T2, T3>:SignalBase
+	sealed class Signal<T1, T2, T3>:SignalBase, ISignal<T1, T2, T3>
 	{
 		public Signal()
 		{
@@ -27,6 +28,14 @@ namespace Atlas.Signals
 				}
 
 				DispatchStop();
+			}
+		}
+
+		public new List<ISlot<T1, T2, T3>> Slots
+		{
+			get
+			{
+				throw new NotImplementedException();
 			}
 		}
 

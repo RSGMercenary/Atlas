@@ -11,41 +11,37 @@ namespace Atlas.Entities
 	sealed class AtlasEntity:IEntity
 	{
 		private IEngine engine;
-		private Signal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
-
-		private string globalName = Guid.NewGuid().ToString("N");
-		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
-
-		private string localName = Guid.NewGuid().ToString("N");
-		private Signal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
-
+		private string globalName = new Guid().ToString("N");
+		private string localName = new Guid().ToString("N");
+		private IEntity parent;
 		private LinkList<IEntity> children = new LinkList<IEntity>();
 		private Dictionary<string, IEntity> childLocalNames = new Dictionary<string, IEntity>();
-		private Signal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
-		private Signal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
-		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
-		private Signal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
-
-		private IEntity parent;
-		private Signal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
-		private Signal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
-
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
-		private Signal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
-		private Signal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
-
 		private HashSet<Type> systems;
-		private Signal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
-		private Signal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
-
 		private int sleeping = 0;
-		private Signal<AtlasEntity, int, int> sleepingChanged = new Signal<AtlasEntity, int, int>();
-
 		private int sleepingParentIgnored = 0;
-		private Signal<AtlasEntity, int, int> sleepingParentIgnoredChanged = new Signal<AtlasEntity, int, int>();
-
 		private bool isDisposed = false;
 		private bool isDisposedWhenUnmanaged = true;
+
+		private ISignal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
+		private ISignal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
+		private ISignal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
+		private ISignal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
+		private ISignal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
+		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
+		private ISignal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
+
+
+		private ISignal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
+		private ISignal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
+
+
+		private ISignal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
+		private ISignal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
+		private ISignal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
+		private ISignal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
+		private ISignal<AtlasEntity, int, int> sleepingChanged = new Signal<AtlasEntity, int, int>();
+		private ISignal<AtlasEntity, int, int> sleepingParentIgnoredChanged = new Signal<AtlasEntity, int, int>();
 
 		public static implicit operator bool(AtlasEntity entity)
 		{
@@ -90,6 +86,16 @@ namespace Atlas.Entities
 			}
 		}
 
+		public ISignal<IEntity, IEngine, IEngine> EngineChanged { get { return engineChanged; } }
+		public ISignal<IEntity, string, string> GlobalNameChanged { get { return globalNameChanged; } }
+		public ISignal<IEntity, string, string> LocalNameChanged { get { return localNameChanged; } }
+		public ISignal<IEntity, IEntity, int> ChildAdded { get { return childAdded; } }
+		public ISignal<IEntity, IEntity, int> ChildRemoved { get { return childRemoved; } }
+		public ISignal<IEntity, IComponent, Type> ComponentAdded { get { return componentAdded; } }
+		public ISignal<IEntity, IComponent, Type> ComponentRemoved { get { return componentRemoved; } }
+		public ISignal<IEntity, Type> SystemAdded { get { return systemAdded; } }
+		public ISignal<IEntity, Type> SystemRemoved { get { return systemRemoved; } }
+
 		public IEngine Engine
 		{
 			get
@@ -119,14 +125,6 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<IEntity, IEngine, IEngine> EngineChanged
-		{
-			get
-			{
-				return engineChanged;
-			}
-		}
-
 		public string GlobalName
 		{
 			get
@@ -147,14 +145,6 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<IEntity, string, string> GlobalNameChanged
-		{
-			get
-			{
-				return globalNameChanged;
-			}
-		}
-
 		public string LocalName
 		{
 			get
@@ -172,14 +162,6 @@ namespace Atlas.Entities
 				string previous = localName;
 				localName = value;
 				localNameChanged.Dispatch(this, value, previous);
-			}
-		}
-
-		public Signal<IEntity, string, string> LocalNameChanged
-		{
-			get
-			{
-				return localNameChanged;
 			}
 		}
 
@@ -294,13 +276,7 @@ namespace Atlas.Entities
 			return component;
 		}
 
-		public Signal<IEntity, IComponent, Type> ComponentAdded
-		{
-			get
-			{
-				return componentAdded;
-			}
-		}
+
 
 		public TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType
 		{
@@ -325,25 +301,20 @@ namespace Atlas.Entities
 			return component;
 		}
 
-		public Signal<IEntity, IComponent, Type> ComponentRemoved
-		{
-			get
-			{
-				return componentRemoved;
-			}
-		}
-
 		public IComponent RemoveComponent(IComponent component)
 		{
 			return RemoveComponent(GetComponentType(component));
 		}
 
-		public void RemoveComponents()
+		public bool RemoveComponents()
 		{
+			if(components.Count <= 0)
+				return false;
 			foreach(Type type in components.Keys)
 			{
 				RemoveComponent(type);
 			}
+			return true;
 		}
 
 		public IEntity Parent
@@ -418,14 +389,6 @@ namespace Atlas.Entities
 			childLocalNames.Add(next, child);
 		}
 
-		public Signal<IEntity, IEntity, int> ChildAdded
-		{
-			get
-			{
-				return childAdded;
-			}
-		}
-
 		public IEntity RemoveChild(IEntity child)
 		{
 			if(child != null)
@@ -459,14 +422,6 @@ namespace Atlas.Entities
 				}
 			}
 			return null;
-		}
-
-		public Signal<IEntity, IEntity, int> ChildRemoved
-		{
-			get
-			{
-				return childRemoved;
-			}
 		}
 
 		public IEntity RemoveChild(int index)
@@ -528,7 +483,7 @@ namespace Atlas.Entities
 			return true;
 		}
 
-		public Signal<IEntity, IEntity, IEntity> ParentChanged
+		public ISignal<IEntity, IEntity, IEntity> ParentChanged
 		{
 			get
 			{
@@ -635,7 +590,7 @@ namespace Atlas.Entities
 			return true;
 		}
 
-		public Signal<IEntity, int, int> ParentIndexChanged
+		public ISignal<IEntity, int, int> ParentIndexChanged
 		{
 			get
 			{
@@ -643,7 +598,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<IEntity, int, int, bool> ChildIndicesChanged
+		public ISignal<IEntity, int, int, bool> ChildIndicesChanged
 		{
 			get
 			{
@@ -697,7 +652,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<AtlasEntity, int, int> SleepingChanged
+		public ISignal<AtlasEntity, int, int> SleepingChanged
 		{
 			get
 			{
@@ -755,7 +710,7 @@ namespace Atlas.Entities
 			}
 		}
 
-		public Signal<AtlasEntity, int, int> SleepingParentIgnoredChanged
+		public ISignal<AtlasEntity, int, int> SleepingParentIgnoredChanged
 		{
 			get
 			{
@@ -797,22 +752,6 @@ namespace Atlas.Entities
 			get
 			{
 				return sleepingParentIgnored > 0;
-			}
-		}
-
-		public Signal<IEntity, Type> SystemAdded
-		{
-			get
-			{
-				return systemAdded;
-			}
-		}
-
-		public Signal<IEntity, Type> SystemRemoved
-		{
-			get
-			{
-				return systemRemoved;
 			}
 		}
 

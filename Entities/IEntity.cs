@@ -12,17 +12,17 @@ namespace Atlas.Entities
 	interface IEntity:ISleep, IDispose
 	{
 		IEngine Engine { get; set; }
-		Signal<IEntity, IEngine, IEngine> EngineChanged { get; }
+		ISignal<IEntity, IEngine, IEngine> EngineChanged { get; }
 
 		string GlobalName { get; set; }
-		Signal<IEntity, string, string> GlobalNameChanged { get; }
+		ISignal<IEntity, string, string> GlobalNameChanged { get; }
 
 		string LocalName { get; set; }
-		Signal<IEntity, string, string> LocalNameChanged { get; }
+		ISignal<IEntity, string, string> LocalNameChanged { get; }
 
 		IEntity Parent { get; set; }
-		Signal<IEntity, IEntity, IEntity> ParentChanged { get; }
-		Signal<IEntity, int, int> ParentIndexChanged { get; }
+		ISignal<IEntity, IEntity, IEntity> ParentChanged { get; }
+		ISignal<IEntity, int, int> ParentIndexChanged { get; }
 
 		bool SetParent(IEntity parent = null, int index = int.MaxValue);
 
@@ -31,7 +31,7 @@ namespace Atlas.Entities
 
 		int GetChildIndex(IEntity entity);
 		bool SetChildIndex(IEntity entity, int index);
-		Signal<IEntity, int, int, bool> ChildIndicesChanged { get; }
+		ISignal<IEntity, int, int, bool> ChildIndicesChanged { get; }
 
 		IEntity Root { get; }
 		IEntity GetHierarchy(string hierarchy);
@@ -44,12 +44,12 @@ namespace Atlas.Entities
 
 		IEntity AddChild(IEntity child);
 		IEntity AddChild(IEntity child, int index);
-		Signal<IEntity, IEntity, int> ChildAdded { get; }
+		ISignal<IEntity, IEntity, int> ChildAdded { get; }
 
 		IEntity RemoveChild(IEntity child);
 		IEntity RemoveChild(int index);
 		void RemoveChildren();
-		Signal<IEntity, IEntity, int> ChildRemoved { get; }
+		ISignal<IEntity, IEntity, int> ChildRemoved { get; }
 
 		int SleepingParentIgnored { get; set; }
 		bool IsSleepingParentIgnored { get; }
@@ -70,13 +70,14 @@ namespace Atlas.Entities
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
 		IComponent AddComponent(IComponent component, Type type, int index);
-		Signal<IEntity, IComponent, Type> ComponentAdded { get; }
+		ISignal<IEntity, IComponent, Type> ComponentAdded { get; }
 
 		IComponent RemoveComponent(IComponent component);
 		TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType;
 		TType RemoveComponent<TType>() where TType : IComponent;
 		IComponent RemoveComponent(Type type);
-		Signal<IEntity, IComponent, Type> ComponentRemoved { get; }
+		bool RemoveComponents();
+		ISignal<IEntity, IComponent, Type> ComponentRemoved { get; }
 
 		Type GetComponentType(IComponent component);
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
@@ -96,8 +97,8 @@ namespace Atlas.Entities
 
 		IReadOnlyCollection<Type> Systems { get; }
 
-		Signal<IEntity, Type> SystemAdded { get; }
-		Signal<IEntity, Type> SystemRemoved { get; }
+		ISignal<IEntity, Type> SystemAdded { get; }
+		ISignal<IEntity, Type> SystemRemoved { get; }
 
 		#endregion
 
