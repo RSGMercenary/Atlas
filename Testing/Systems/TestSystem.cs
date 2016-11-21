@@ -28,13 +28,13 @@ namespace Atlas.Testing.Systems
 			}
 		}
 
-		protected override void AddingEngine(IEngine engine)
+		protected override void AddingEngine(IEngineManager engine)
 		{
 			base.AddingEngine(engine);
 			tests = engine.AddFamily<TestFamily>();
 		}
 
-		protected override void RemovingEngine(IEngine engine)
+		protected override void RemovingEngine(IEngineManager engine)
 		{
 			engine.RemoveFamily<TestFamily>();
 			tests = null;

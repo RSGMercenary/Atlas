@@ -15,7 +15,7 @@ namespace Atlas
 			string name = "0-0-0";
 			IEntity entity = new AtlasEntity(name, name);
 			entity.AddSystem<TestSystem>();
-			IEngine engine = entity.AddComponent<AtlasEngine, IEngine>(AtlasEngine.Instance);
+			IEngineManager engine = entity.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
 
 			entity.AddComponent<Transform, ITransform>(new Transform());
 
@@ -34,7 +34,7 @@ namespace Atlas
 			Debug.WriteLine(entity.Dump());
 			//Debug.WriteLine(entity.EntityManager.GetEntityByUniqueName("0-3-4").Dump());
 
-			IEngine engine1 = engine;
+			IEngineManager engine1 = engine;
 			IComponent component1 = engine;
 
 

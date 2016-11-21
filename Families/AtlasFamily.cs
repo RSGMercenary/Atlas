@@ -10,16 +10,16 @@ namespace Atlas.Families
 {
 	sealed class AtlasFamily:IFamily
 	{
-		private IEngine engine;
-		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
+		private IEngineManager engine;
+		private ISignal<IFamily, IEngineManager, IEngineManager> engineChanged = new Signal<IFamily, IEngineManager, IEngineManager>();
 
 		private IFamilyType familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private HashSet<Type> componentSet = new HashSet<Type>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 
-		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
-		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
+		private ISignal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
+		private ISignal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
 		private bool isDisposed = false;
 
@@ -40,7 +40,7 @@ namespace Atlas.Families
 			FamilyType = null;
 		}
 
-		public IEngine Engine
+		public IEngineManager Engine
 		{
 			get
 			{
@@ -52,7 +52,7 @@ namespace Atlas.Families
 				{
 					if(engine == null && value.HasFamily(this))
 					{
-						IEngine previous = engine;
+						IEngineManager previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -61,7 +61,7 @@ namespace Atlas.Families
 				{
 					if(engine != null && !engine.HasFamily(this))
 					{
-						IEngine previous = engine;
+						IEngineManager previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -69,7 +69,7 @@ namespace Atlas.Families
 			}
 		}
 
-		public Signal<IFamily, IEngine, IEngine> EngineChanged
+		public ISignal<IFamily, IEngineManager, IEngineManager> EngineChanged
 		{
 			get
 			{
@@ -106,7 +106,7 @@ namespace Atlas.Families
 			}
 		}
 
-		public Signal<IFamily, IEntity> EntityAdded
+		public ISignal<IFamily, IEntity> EntityAdded
 		{
 			get
 			{
@@ -114,7 +114,7 @@ namespace Atlas.Families
 			}
 		}
 
-		public Signal<IFamily, IEntity> EntityRemoved
+		public ISignal<IFamily, IEntity> EntityRemoved
 		{
 			get
 			{

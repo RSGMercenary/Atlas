@@ -10,7 +10,7 @@ namespace Atlas.Entities
 {
 	sealed class AtlasEntity:IEntity
 	{
-		private IEngine engine;
+		private IEngineManager engine;
 		private string globalName = new Guid().ToString("N");
 		private string localName = new Guid().ToString("N");
 		private IEntity parent;
@@ -23,19 +23,14 @@ namespace Atlas.Entities
 		private bool isDisposed = false;
 		private bool isDisposedWhenUnmanaged = true;
 
-		private ISignal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
+		private ISignal<IEntity, IEngineManager, IEngineManager> engineChanged = new Signal<IEntity, IEngineManager, IEngineManager>();
 		private ISignal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
 		private ISignal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
-		private ISignal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
-		private ISignal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
-		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
-		private ISignal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
-
-
 		private ISignal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
 		private ISignal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
-
-
+		private ISignal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
+		private ISignal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
+		private ISignal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
 		private ISignal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
 		private ISignal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
 		private ISignal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
@@ -76,27 +71,36 @@ namespace Atlas.Entities
 				engineChanged.Dispose();
 				globalNameChanged.Dispose();
 				localNameChanged.Dispose();
+				parentChanged.Dispose();
+				parentIndexChanged.Dispose();
 				childAdded.Dispose();
 				childRemoved.Dispose();
-				parentChanged.Dispose();
+				childIndicesChanged.Dispose();
 				componentAdded.Dispose();
 				componentRemoved.Dispose();
+				systemAdded.Dispose();
+				systemRemoved.Dispose();
 				sleepingChanged.Dispose();
 				sleepingParentIgnoredChanged.Dispose();
 			}
 		}
 
-		public ISignal<IEntity, IEngine, IEngine> EngineChanged { get { return engineChanged; } }
+		public ISignal<IEntity, IEngineManager, IEngineManager> EngineChanged { get { return engineChanged; } }
 		public ISignal<IEntity, string, string> GlobalNameChanged { get { return globalNameChanged; } }
 		public ISignal<IEntity, string, string> LocalNameChanged { get { return localNameChanged; } }
+		public ISignal<IEntity, IEntity, IEntity> ParentChanged { get { return parentChanged; } }
+		public ISignal<IEntity, int, int> ParentIndexChanged { get { return parentIndexChanged; } }
 		public ISignal<IEntity, IEntity, int> ChildAdded { get { return childAdded; } }
 		public ISignal<IEntity, IEntity, int> ChildRemoved { get { return childRemoved; } }
+		public ISignal<IEntity, int, int, bool> ChildIndicesChanged { get { return childIndicesChanged; } }
 		public ISignal<IEntity, IComponent, Type> ComponentAdded { get { return componentAdded; } }
 		public ISignal<IEntity, IComponent, Type> ComponentRemoved { get { return componentRemoved; } }
 		public ISignal<IEntity, Type> SystemAdded { get { return systemAdded; } }
 		public ISignal<IEntity, Type> SystemRemoved { get { return systemRemoved; } }
+		public ISignal<AtlasEntity, int, int> SleepingChanged { get { return sleepingChanged; } }
+		public ISignal<AtlasEntity, int, int> SleepingParentIgnoredChanged { get { return sleepingParentIgnoredChanged; } }
 
-		public IEngine Engine
+		public IEngineManager Engine
 		{
 			get
 			{
@@ -108,7 +112,7 @@ namespace Atlas.Entities
 				{
 					if(engine == null && value.HasEntity(this))
 					{
-						IEngine previous = engine;
+						IEngineManager previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -117,7 +121,7 @@ namespace Atlas.Entities
 				{
 					if(engine != null && !engine.HasEntity(this))
 					{
-						IEngine previous = engine;
+						IEngineManager previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -433,12 +437,15 @@ namespace Atlas.Entities
 			return RemoveChild(children.Get(index));
 		}
 
-		public void RemoveChildren()
+		public bool RemoveChildren()
 		{
+			if(children.Count <= 0)
+				return false;
 			while(children.First != null)
 			{
 				children.Last.Value.Dispose();
 			}
+			return true;
 		}
 
 		public bool SetParent(IEntity parent = null, int index = int.MaxValue)
@@ -481,14 +488,6 @@ namespace Atlas.Entities
 				Dispose();
 			}
 			return true;
-		}
-
-		public ISignal<IEntity, IEntity, IEntity> ParentChanged
-		{
-			get
-			{
-				return parentChanged;
-			}
 		}
 
 		public bool HasHierarchy(IEntity entity)
@@ -590,22 +589,6 @@ namespace Atlas.Entities
 			return true;
 		}
 
-		public ISignal<IEntity, int, int> ParentIndexChanged
-		{
-			get
-			{
-				return parentIndexChanged;
-			}
-		}
-
-		public ISignal<IEntity, int, int, bool> ChildIndicesChanged
-		{
-			get
-			{
-				return childIndicesChanged;
-			}
-		}
-
 		public bool SwapChildren(AtlasEntity child1, AtlasEntity child2)
 		{
 			if(child1 == null)
@@ -649,14 +632,6 @@ namespace Atlas.Entities
 			get
 			{
 				return childLocalNames;
-			}
-		}
-
-		public ISignal<AtlasEntity, int, int> SleepingChanged
-		{
-			get
-			{
-				return sleepingChanged;
 			}
 		}
 
@@ -707,14 +682,6 @@ namespace Atlas.Entities
 			get
 			{
 				return sleeping > 0;
-			}
-		}
-
-		public ISignal<AtlasEntity, int, int> SleepingParentIgnoredChanged
-		{
-			get
-			{
-				return sleepingParentIgnoredChanged;
 			}
 		}
 

@@ -8,11 +8,8 @@ using System;
 
 namespace Atlas.Families
 {
-	interface IFamily:IDispose
+	interface IFamily:IEngine<IFamily>, IDispose
 	{
-		IEngine Engine { get; }
-		Signal<IFamily, IEngine, IEngine> EngineChanged { get; }
-
 		IFamilyType FamilyType { get; }
 
 		IReadOnlyLinkList<IEntity> Entities { get; }
@@ -23,7 +20,7 @@ namespace Atlas.Families
 		void AddEntity(IEntity entity, IComponent component, Type type);
 		void RemoveEntity(IEntity entity, IComponent component, Type type);
 
-		Signal<IFamily, IEntity> EntityAdded { get; }
-		Signal<IFamily, IEntity> EntityRemoved { get; }
+		ISignal<IFamily, IEntity> EntityAdded { get; }
+		ISignal<IFamily, IEntity> EntityRemoved { get; }
 	}
 }

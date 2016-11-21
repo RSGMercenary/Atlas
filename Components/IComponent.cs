@@ -20,8 +20,8 @@ namespace Atlas.Components
 		IEntity RemoveManager(int index);
 		bool RemoveManagers();
 
-		Signal<IComponent, IEntity, int> ManagerAdded { get; }
-		Signal<IComponent, IEntity, int> ManagerRemoved { get; }
+		ISignal<IComponent, IEntity, int> ManagerAdded { get; }
+		ISignal<IComponent, IEntity, int> ManagerRemoved { get; }
 
 		IEntity Manager { get; }
 		IReadOnlyLinkList<IEntity> Managers { get; }

@@ -9,20 +9,20 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine
 {
-	sealed class AtlasEngine:AtlasComponent, IEngine
+	sealed class AtlasEngineManager:AtlasComponent, IEngineManager
 	{
-		private static AtlasEngine instance;
+		private static AtlasEngineManager instance;
 
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private Dictionary<string, IEntity> entityGlobalNames = new Dictionary<string, IEntity>();
-		private Signal<IEngine, IEntity> entityAdded = new Signal<IEngine, IEntity>();
-		private Signal<IEngine, IEntity> entityRemoved = new Signal<IEngine, IEntity>();
+		private ISignal<IEngineManager, IEntity> entityAdded = new Signal<IEngineManager, IEntity>();
+		private ISignal<IEngineManager, IEntity> entityRemoved = new Signal<IEngineManager, IEntity>();
 
 		private LinkList<ISystem> systems = new LinkList<ISystem>();
 		private Dictionary<Type, ISystem> systemTypes = new Dictionary<Type, ISystem>();
 		private Dictionary<Type, int> systemCounts = new Dictionary<Type, int>();
-		private Signal<IEngine, Type> systemAdded = new Signal<IEngine, Type>();
-		private Signal<IEngine, Type> systemRemoved = new Signal<IEngine, Type>();
+		private ISignal<IEngineManager, Type> systemAdded = new Signal<IEngineManager, Type>();
+		private ISignal<IEngineManager, Type> systemRemoved = new Signal<IEngineManager, Type>();
 		private Stack<ISystem> systemsRemoved = new Stack<ISystem>();
 		private ISystem currentSystem;
 
@@ -31,14 +31,14 @@ namespace Atlas.Engine
 		private Dictionary<Type, int> familyCounts = new Dictionary<Type, int>();
 		private Stack<IFamily> familiesPooled = new Stack<IFamily>();
 		private Stack<IFamily> familiesRemoved = new Stack<IFamily>();
-		private Signal<IEngine, Type> familyAdded = new Signal<IEngine, Type>();
-		private Signal<IEngine, Type> familyRemoved = new Signal<IEngine, Type>();
+		private ISignal<IEngineManager, Type> familyAdded = new Signal<IEngineManager, Type>();
+		private ISignal<IEngineManager, Type> familyRemoved = new Signal<IEngineManager, Type>();
 
 		private int sleeping = 0;
-		private Signal<IEngine, int, int> sleepingChanged = new Signal<IEngine, int, int>();
+		private Signal<IEngineManager, int, int> sleepingChanged = new Signal<IEngineManager, int, int>();
 
 		private bool isUpdating = false;
-		private Signal<IEngine, bool, bool> isUpdatingChanged = new Signal<IEngine, bool, bool>();
+		private Signal<IEngineManager, bool, bool> isUpdatingChanged = new Signal<IEngineManager, bool, bool>();
 
 		//private int _frameRate = 60;
 		//private int _maxUpdates = 5;
@@ -46,17 +46,17 @@ namespace Atlas.Engine
 		//private double _timeElapsedMax = 1;
 		//private double _timePrevious;
 
-		private AtlasEngine() : base(false)
+		private AtlasEngineManager() : base(false)
 		{
 
 		}
 
-		public static AtlasEngine Instance
+		public static AtlasEngineManager Instance
 		{
 			get
 			{
 				if(instance == null)
-					instance = new AtlasEngine();
+					instance = new AtlasEngineManager();
 				return instance;
 			}
 		}
@@ -77,8 +77,8 @@ namespace Atlas.Engine
 		#region Entities
 
 		public IReadOnlyLinkList<IEntity> Entities { get { return entities; } }
-		public Signal<IEngine, IEntity> EntityAdded { get { return entityAdded; } }
-		public Signal<IEngine, IEntity> EntityRemoved { get { return entityRemoved; } }
+		public ISignal<IEngineManager, IEntity> EntityAdded { get { return entityAdded; } }
+		public ISignal<IEngineManager, IEntity> EntityRemoved { get { return entityRemoved; } }
 
 		public bool HasEntity(string globalName)
 		{
@@ -196,8 +196,8 @@ namespace Atlas.Engine
 		#region Systems
 
 		public IReadOnlyLinkList<ISystem> Systems { get { return systems; } }
-		public Signal<IEngine, Type> SystemAdded { get { return systemAdded; } }
-		public Signal<IEngine, Type> SystemRemoved { get { return systemRemoved; } }
+		public ISignal<IEngineManager, Type> SystemAdded { get { return systemAdded; } }
+		public ISignal<IEngineManager, Type> SystemRemoved { get { return systemRemoved; } }
 
 		private void EntitySystemAdded(IEntity entity, Type type)
 		{
@@ -310,7 +310,7 @@ namespace Atlas.Engine
 			}
 		}
 
-		public Signal<IEngine, bool, bool> IsUpdatingChanged
+		public Signal<IEngineManager, bool, bool> IsUpdatingChanged
 		{
 			get
 			{
@@ -384,7 +384,7 @@ namespace Atlas.Engine
 			}
 		}
 
-		public Signal<IEngine, int, int> SleepingChanged
+		public Signal<IEngineManager, int, int> SleepingChanged
 		{
 			get
 			{
@@ -544,7 +544,7 @@ namespace Atlas.Engine
 			return familyTypes.ContainsKey(type) ? familyTypes[type] : null;
 		}
 
-		public Signal<IEngine, Type> FamilyAdded
+		public ISignal<IEngineManager, Type> FamilyAdded
 		{
 			get
 			{
@@ -552,7 +552,7 @@ namespace Atlas.Engine
 			}
 		}
 
-		public Signal<IEngine, Type> FamilyRemoved
+		public ISignal<IEngineManager, Type> FamilyRemoved
 		{
 			get
 			{

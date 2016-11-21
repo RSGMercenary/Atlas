@@ -8,8 +8,8 @@ namespace Atlas.Components
 	abstract class AtlasComponent:IComponent
 	{
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
-		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
+		private ISignal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
+		private ISignal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
 
 		private readonly bool isShareable = false;
 
@@ -100,7 +100,7 @@ namespace Atlas.Components
 			}
 		}
 
-		public Signal<IComponent, IEntity, int> ManagerAdded
+		public ISignal<IComponent, IEntity, int> ManagerAdded
 		{
 			get
 			{
@@ -108,7 +108,7 @@ namespace Atlas.Components
 			}
 		}
 
-		public Signal<IComponent, IEntity, int> ManagerRemoved
+		public ISignal<IComponent, IEntity, int> ManagerRemoved
 		{
 			get
 			{

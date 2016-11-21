@@ -9,18 +9,33 @@ using System.Collections.Generic;
 
 namespace Atlas.Entities
 {
-	interface IEntity:ISleep, IDispose
+	interface IEntity:IEngine<IEntity>, ISleep, IDispose
 	{
-		IEngine Engine { get; set; }
-		ISignal<IEntity, IEngine, IEngine> EngineChanged { get; }
-
+		/// <summary>
+		/// This Entity's global name. This name is unique to its Engine.
+		/// If this Entity is added to an Engine, and this global name already
+		/// exists, then this Entity's global name will be changed.
+		/// </summary>
 		string GlobalName { get; set; }
+
+		/// <summary>
+		/// This Entity's local name. This name is unique to its Parent.
+		/// If this Entity is added to a parent, and this local name already
+		/// exists, then this Entity's local name will be changed.
+		/// </summary>
+		string LocalName { get; set; }
+
+		/// <summary>
+		/// This Entity's parent. Setting the parent to null will remove
+		/// the Entity from its Engine. If IsDisposedWhenUnmanaged is true, then
+		/// the Entity will also be disposed.
+		/// </summary>
+		IEntity Parent { get; set; }
+
 		ISignal<IEntity, string, string> GlobalNameChanged { get; }
 
-		string LocalName { get; set; }
 		ISignal<IEntity, string, string> LocalNameChanged { get; }
 
-		IEntity Parent { get; set; }
 		ISignal<IEntity, IEntity, IEntity> ParentChanged { get; }
 		ISignal<IEntity, int, int> ParentIndexChanged { get; }
 
@@ -31,6 +46,8 @@ namespace Atlas.Entities
 
 		int GetChildIndex(IEntity entity);
 		bool SetChildIndex(IEntity entity, int index);
+
+		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
 		ISignal<IEntity, int, int, bool> ChildIndicesChanged { get; }
 
 		IEntity Root { get; }
@@ -48,7 +65,7 @@ namespace Atlas.Entities
 
 		IEntity RemoveChild(IEntity child);
 		IEntity RemoveChild(int index);
-		void RemoveChildren();
+		bool RemoveChildren();
 		ISignal<IEntity, IEntity, int> ChildRemoved { get; }
 
 		int SleepingParentIgnored { get; set; }
@@ -70,17 +87,18 @@ namespace Atlas.Entities
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
 		IComponent AddComponent(IComponent component, Type type, int index);
-		ISignal<IEntity, IComponent, Type> ComponentAdded { get; }
 
 		IComponent RemoveComponent(IComponent component);
 		TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType;
 		TType RemoveComponent<TType>() where TType : IComponent;
 		IComponent RemoveComponent(Type type);
 		bool RemoveComponents();
-		ISignal<IEntity, IComponent, Type> ComponentRemoved { get; }
 
 		Type GetComponentType(IComponent component);
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
+
+		ISignal<IEntity, IComponent, Type> ComponentAdded { get; }
+		ISignal<IEntity, IComponent, Type> ComponentRemoved { get; }
 
 		#endregion
 
