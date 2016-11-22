@@ -1,13 +1,14 @@
-﻿using Atlas.Components;
-using Atlas.Entities;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Entities;
+using Atlas.Engine.Families;
+using Atlas.Engine.Systems;
 using Atlas.Families;
 using Atlas.Interfaces;
 using Atlas.LinkList;
 using Atlas.Signals;
-using Atlas.Systems;
 using System;
 
-namespace Atlas.Engine
+namespace Atlas.Engine.Engine
 {
 	interface IEngineManager:IComponent, IUpdate<IEngineManager>
 	{

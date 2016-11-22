@@ -1,12 +1,13 @@
-﻿using Atlas.Components;
-using Atlas.Engine;
-using Atlas.Entities;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
+using Atlas.Families;
 using Atlas.Interfaces;
 using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 
-namespace Atlas.Families
+namespace Atlas.Engine.Families
 {
 	interface IFamily:IEngine<IFamily>, IDispose
 	{

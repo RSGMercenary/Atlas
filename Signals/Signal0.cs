@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
@@ -28,14 +27,6 @@ namespace Atlas.Signals
 				}
 
 				DispatchStop();
-			}
-		}
-
-		public new List<ISlot> Slots
-		{
-			get
-			{
-				return null;
 			}
 		}
 

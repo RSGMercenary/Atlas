@@ -1,7 +1,7 @@
-﻿using Atlas.Engine;
+﻿using Atlas.Engine.Engine;
 using Atlas.Signals;
 
-namespace Atlas.Systems
+namespace Atlas.Engine.Systems
 {
 	abstract class AtlasSystem:ISystem
 	{

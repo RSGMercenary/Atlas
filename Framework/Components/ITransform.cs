@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Atlas.Engine.Components;
 
 namespace Atlas.Framework.Components
 {
-	interface ITransform
+	interface ITransform:IComponent<ITransform>
 	{
 	}
 }

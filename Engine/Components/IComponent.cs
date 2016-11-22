@@ -1,11 +1,17 @@
-﻿using Atlas.Entities;
+﻿using Atlas.Engine.Entities;
 using Atlas.Interfaces;
 using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 
-namespace Atlas.Components
+namespace Atlas.Engine.Components
 {
+	interface IComponent<TBase>:IComponent where TBase : IComponent
+	{
+		IEntity AddManager<TInterface>(IEntity entity) where TInterface : TBase;
+		IEntity AddManager<TInterface>(IEntity entity, int index) where TInterface : TBase;
+	}
+
 	interface IComponent:IDispose, IUnmanagedDispose
 	{
 		int GetManagerIndex(IEntity entity);
@@ -17,6 +23,7 @@ namespace Atlas.Components
 		IEntity AddManager(IEntity entity, Type type = null, int index = int.MaxValue);
 
 		IEntity RemoveManager(IEntity entity);
+		IEntity RemoveManager(IEntity entity, Type type);
 		IEntity RemoveManager(int index);
 		bool RemoveManagers();
 

@@ -1,16 +1,17 @@
-﻿using Atlas.Components;
-using Atlas.Engine;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Engine;
+using Atlas.Engine.Systems;
 using Atlas.Interfaces;
-using Atlas.LinkList;
 using Atlas.Signals;
-using Atlas.Systems;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.Entities
+namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngine<IEntity>, ISleep, IDispose
+	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleep, IDispose, IUnmanagedDispose
 	{
+		#region Entities
+
 		/// <summary>
 		/// This Entity's global name. This name is unique to its Engine.
 		/// If this Entity is added to an Engine, and this global name already
@@ -25,72 +26,44 @@ namespace Atlas.Entities
 		/// </summary>
 		string LocalName { get; set; }
 
-		/// <summary>
-		/// This Entity's parent. Setting the parent to null will remove
-		/// the Entity from its Engine. If IsDisposedWhenUnmanaged is true, then
-		/// the Entity will also be disposed.
-		/// </summary>
-		IEntity Parent { get; set; }
-
 		ISignal<IEntity, string, string> GlobalNameChanged { get; }
 
 		ISignal<IEntity, string, string> LocalNameChanged { get; }
 
-		ISignal<IEntity, IEntity, IEntity> ParentChanged { get; }
-		ISignal<IEntity, int, int> ParentIndexChanged { get; }
-
-		bool SetParent(IEntity parent = null, int index = int.MaxValue);
-
-		bool HasChild(IEntity entity);
 		bool HasChild(string localName);
 
-		int GetChildIndex(IEntity entity);
-		bool SetChildIndex(IEntity entity, int index);
-
-		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
-		ISignal<IEntity, int, int, bool> ChildIndicesChanged { get; }
-
-		IEntity Root { get; }
 		IEntity GetHierarchy(string hierarchy);
 		bool SetHierarchy(string hierarchy, int index);
-		bool HasHierarchy(IEntity entity);
 
 		IEntity GetChild(string localName);
-		IEntity GetChild(int index);
-		IReadOnlyLinkList<IEntity> Children { get; }
 
-		IEntity AddChild(IEntity child);
-		IEntity AddChild(IEntity child, int index);
-		ISignal<IEntity, IEntity, int> ChildAdded { get; }
-
-		IEntity RemoveChild(IEntity child);
-		IEntity RemoveChild(int index);
-		bool RemoveChildren();
-		ISignal<IEntity, IEntity, int> ChildRemoved { get; }
+		#endregion
 
 		int SleepingParentIgnored { get; set; }
 		bool IsSleepingParentIgnored { get; }
 
 		#region Components
 
-		bool HasComponent<TType>() where TType : IComponent;
+		bool HasComponent<TInterface>() where TInterface : IComponent;
 		bool HasComponent(Type type);
 
 		TComponent GetComponent<TComponent, TType>() where TComponent : IComponent, TType;
 		TType GetComponent<TType>() where TType : IComponent;
 		IComponent GetComponent(Type type);
 
-		TComponent AddComponent<TComponent, TType>() where TComponent : IComponent, TType, new();
-		TComponent AddComponent<TComponent, TType>(TComponent Component) where TComponent : IComponent, TType;
-		TComponent AddComponent<TComponent, TType>(TComponent Component, int index) where TComponent : IComponent, TType;
+		TComponent AddComponent<TComponent, TImplementation>() where TComponent : IComponent, TImplementation, new();
+		TComponent AddComponent<TComponent, TBase>(TComponent Component) where TComponent : IComponent, TBase;
+		TComponent AddComponent<TComponent, TBase>(TComponent Component, int index) where TComponent : IComponent, TBase;
 		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
-		IComponent AddComponent(IComponent component, Type type, int index);
+		IComponent AddComponent(IComponent component, Type type);
+		IComponent AddComponent(IComponent component, int index);
+		IComponent AddComponent(IComponent component, Type type = null, int index = int.MaxValue);
 
 		IComponent RemoveComponent(IComponent component);
-		TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType;
-		TType RemoveComponent<TType>() where TType : IComponent;
+		TComponent RemoveComponent<TComponent, TInterface>() where TComponent : IComponent, TInterface;
+		TInterface RemoveComponent<TInterface>() where TInterface : IComponent;
 		IComponent RemoveComponent(Type type);
 		bool RemoveComponents();
 
@@ -105,13 +78,13 @@ namespace Atlas.Entities
 		#region Systems
 
 		bool HasSystem(Type type);
-		bool HasSystem<T>() where T : ISystem;
+		bool HasSystem<TSystem>() where TSystem : ISystem;
 
 		bool AddSystem(Type type);
-		bool AddSystem<T>() where T : ISystem;
+		bool AddSystem<TSystem>() where TSystem : ISystem;
 
 		bool RemoveSystem(Type type);
-		bool RemoveSystem<T>() where T : ISystem;
+		bool RemoveSystem<TSystem>() where TSystem : ISystem;
 
 		IReadOnlyCollection<Type> Systems { get; }
 

@@ -1,8 +1,8 @@
-﻿using Atlas.Components;
+﻿using Atlas.Engine.Components;
 
 namespace Atlas.Testing.Components
 {
-	class TestComponent:AtlasComponent
+	class TestComponent:AtlasComponent<TestComponent>
 	{
 	}
 }

@@ -1,15 +1,16 @@
-﻿using Atlas.Components;
-using Atlas.Entities;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Entities;
+using Atlas.Engine.Families;
+using Atlas.Engine.Systems;
 using Atlas.Families;
 using Atlas.LinkList;
 using Atlas.Signals;
-using Atlas.Systems;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.Engine
+namespace Atlas.Engine.Engine
 {
-	sealed class AtlasEngineManager:AtlasComponent, IEngineManager
+	sealed class AtlasEngineManager:AtlasComponent<AtlasEngineManager>, IEngineManager
 	{
 		private static AtlasEngineManager instance;
 
@@ -46,7 +47,7 @@ namespace Atlas.Engine
 		//private double _timeElapsedMax = 1;
 		//private double _timePrevious;
 
-		private AtlasEngineManager() : base(false)
+		private AtlasEngineManager()
 		{
 
 		}
@@ -61,17 +62,18 @@ namespace Atlas.Engine
 			}
 		}
 
-		override protected void AddingManager(IEntity entity)
+		override protected void AddingManager(IEntity entity, int index)
 		{
+			entity.IsDisposedWhenUnmanaged = false;
 			entity.Parent = null;
-			base.AddingManager(entity);
+			base.AddingManager(entity, index);
 			AddEntity(entity);
 		}
 
-		override protected void RemovingManager(IEntity entity)
+		override protected void RemovingManager(IEntity entity, int index)
 		{
 			RemoveEntity(entity);
-			base.RemovingManager(entity);
+			base.RemovingManager(entity, index);
 		}
 
 		#region Entities
@@ -397,24 +399,24 @@ namespace Atlas.Engine
 			var timeCurrent:Float 	= getTimer();
 			var timeElapsed:Float 	= (timeCurrent - this._timePrevious) / 1000;
 			this._timePrevious 		= timeCurrent;
-		
+
 			if(timeElapsed > this._timeElapsedMax)
 			{
 				timeElapsed = this._timeElapsedMax;
 			}
-		
+
 			this._timeTotal += timeElapsed;
-		
+
 			var frameTime:Float = 1 / this._frameRate;
 			var numUpdates:UInt = Math.floor(this._timeTotal / frameTime);
-		
+
 			this._timeTotal -= numUpdates * frameTime;
-		
+
 			if(numUpdates > this._maxUpdates)
 			{
 				numUpdates = this._maxUpdates;
 			}
-		
+
 			for(index in 0...numUpdates - 1)
 			{
 				this.update(frameTime);

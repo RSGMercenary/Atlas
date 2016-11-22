@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
 	interface ISignal<T1>:ISignalBase
 	{
-		new List<ISlot<T1>> Slots { get; }
+		//new List<ISlot<T1>> Slots { get; }
 
 		void Dispatch(T1 item1);
 

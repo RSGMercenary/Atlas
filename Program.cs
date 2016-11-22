@@ -1,7 +1,6 @@
-﻿using Atlas.Components;
-using Atlas.Engine;
-using Atlas.Entities;
-using Atlas.Framework.Components;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
 using System.Diagnostics;
@@ -16,8 +15,6 @@ namespace Atlas
 			IEntity entity = new AtlasEntity(name, name);
 			entity.AddSystem<TestSystem>();
 			IEngineManager engine = entity.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
-
-			entity.AddComponent<Transform, ITransform>(new Transform());
 
 			for(int index1 = 1; index1 <= 10; ++index1)
 			{

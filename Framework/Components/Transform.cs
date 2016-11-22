@@ -1,9 +1,9 @@
-﻿using Atlas.Components;
+﻿using Atlas.Engine.Components;
 using Atlas.LinkList;
 
 namespace Atlas.Framework.Components
 {
-	class Transform:AtlasComponent, ITransform
+	class Transform:AtlasComponent<ITransform>, ITransform
 	{
 		private float positionX = 0;
 		private float positionY = 0;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
@@ -30,15 +29,6 @@ namespace Atlas.Signals
 				DispatchStop();
 			}
 		}
-
-		public new List<ISlot<T1, T2, T3, T4>> Slots
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
 
 		public ISlot<T1, T2, T3, T4> Get(Action<T1, T2, T3, T4> listener)
 		{

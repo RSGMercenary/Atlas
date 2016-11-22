@@ -1,20 +1,42 @@
-﻿using Atlas.Entities;
+﻿using Atlas.Engine.Entities;
 using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 
-namespace Atlas.Components
+namespace Atlas.Engine.Components
 {
+	abstract class AtlasComponent<TBaseInterface>:AtlasComponent, IComponent<TBaseInterface> where TBaseInterface : IComponent
+	{
+		public AtlasComponent() : base(false)
+		{
+
+		}
+
+		public AtlasComponent(bool isShareable = false) : base(isShareable)
+		{
+
+		}
+
+		public IEntity AddManager<TInterface>(IEntity entity) where TInterface : TBaseInterface
+		{
+			return AddManager(entity, typeof(TInterface));
+		}
+
+		public IEntity AddManager<TInterface>(IEntity entity, int index) where TInterface : TBaseInterface
+		{
+			return AddManager(entity, typeof(TInterface), index);
+		}
+	}
+
 	abstract class AtlasComponent:IComponent
 	{
+		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
+		private bool isDisposed = false;
+		private bool isDisposedWhenUnmanaged = true;
+
 		private ISignal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
 		private ISignal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
-
-		private readonly bool isShareable = false;
-
-		private bool isDisposedWhenUnmanaged = true;
-		private bool isDisposed = false;
 		private Signal<IComponent, bool, bool> isDisposedChanged = new Signal<IComponent, bool, bool>();
 
 		public static implicit operator bool(AtlasComponent component)
@@ -44,9 +66,9 @@ namespace Atlas.Components
 				Disposing();
 				IsDisposed = true;
 				IsDisposedWhenUnmanaged = true;
-				isDisposedChanged.Dispose();
 				managerAdded.Dispose();
 				managerRemoved.Dispose();
+				isDisposedChanged.Dispose();
 			}
 		}
 
@@ -88,7 +110,15 @@ namespace Atlas.Components
 			}
 			set
 			{
-				isDisposedWhenUnmanaged = value;
+				if(isDisposedWhenUnmanaged != value)
+				{
+					isDisposedWhenUnmanaged = value;
+
+					if(!isDisposed && managers.Count <= 0 && value)
+					{
+						Dispose();
+					}
+				}
 			}
 		}
 
@@ -183,10 +213,10 @@ namespace Atlas.Components
 				}
 				if(entity.GetComponent(type) == this)
 				{
+					IsDisposed = false;
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Add(entity, index);
-					IsDisposed = false;
-					AddingManager(entity);
+					AddingManager(entity, index);
 					managerAdded.Dispatch(this, entity, index);
 				}
 				else
@@ -201,7 +231,7 @@ namespace Atlas.Components
 			return entity;
 		}
 
-		protected virtual void AddingManager(IEntity entity)
+		protected virtual void AddingManager(IEntity entity, int index)
 		{
 
 		}
@@ -210,14 +240,24 @@ namespace Atlas.Components
 		{
 			if(entity == null)
 				return null;
+			return RemoveManager(entity, entity.GetComponentType(this));
+		}
+
+		public IEntity RemoveManager(IEntity entity, Type type)
+		{
+			if(entity == null)
+				return null;
 			if(!managers.Contains(entity))
 				return null;
-			Type type = entity.GetComponentType(this);
 			if(type == null)
+				type = GetType();
+			else if(!type.IsInstanceOfType(this))
+				return null;
+			if(entity.GetComponent(type) == null)
 			{
 				int index = managers.GetIndex(entity);
-				RemovingManager(entity);
 				managers.Remove(index);
+				RemovingManager(entity, index);
 				managerRemoved.Dispatch(this, entity, index);
 				if(managers.Count <= 0 && isDisposedWhenUnmanaged)
 				{
@@ -240,7 +280,7 @@ namespace Atlas.Components
 			return RemoveManager(managers[index]);
 		}
 
-		protected virtual void RemovingManager(IEntity entity)
+		protected virtual void RemovingManager(IEntity entity, int index)
 		{
 
 		}

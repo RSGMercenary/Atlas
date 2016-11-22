@@ -1,8 +1,8 @@
-﻿using Atlas.Engine;
-using Atlas.Entities;
-using Atlas.Families;
+﻿using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
+using Atlas.Engine.Families;
+using Atlas.Engine.Systems;
 using Atlas.LinkList;
-using Atlas.Systems;
 using Atlas.Testing.Components;
 using Atlas.Testing.Families;
 using System;

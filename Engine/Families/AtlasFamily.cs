@@ -1,12 +1,13 @@
-﻿using Atlas.Components;
-using Atlas.Engine;
-using Atlas.Entities;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
+using Atlas.Families;
 using Atlas.LinkList;
 using Atlas.Signals;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.Families
+namespace Atlas.Engine.Families
 {
 	sealed class AtlasFamily:IFamily
 	{

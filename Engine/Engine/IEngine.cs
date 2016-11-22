@@ -1,6 +1,6 @@
 ﻿using Atlas.Signals;
 
-namespace Atlas.Engine
+namespace Atlas.Engine.Engine
 {
 	interface IEngine<T>
 	{
