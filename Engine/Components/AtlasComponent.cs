@@ -152,7 +152,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return managers.Count == 1 ? managers.First.Value : null;
+				return (isShareable && managers.Count == 1) ? managers.First.Value : null;
 			}
 		}
 
@@ -221,6 +221,7 @@ namespace Atlas.Engine.Components
 				}
 				else
 				{
+					//TO-DO Pass back null if the AddComponent() isn't successful.
 					entity.AddComponent(this, type, index);
 				}
 			}

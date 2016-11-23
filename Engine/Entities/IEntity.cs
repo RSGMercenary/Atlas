@@ -42,16 +42,16 @@ namespace Atlas.Engine.Entities
 
 		#region Components
 
-		bool HasComponent<TInterface>() where TInterface : IComponent;
+		bool HasComponent<TAbstraction>() where TAbstraction : IComponent;
 		bool HasComponent(Type type);
 
-		TComponent GetComponent<TComponent, TType>() where TComponent : IComponent, TType;
-		TType GetComponent<TType>() where TType : IComponent;
+		TComponent GetComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction;
+		TAbstraction GetComponent<TAbstraction>() where TAbstraction : IComponent;
 		IComponent GetComponent(Type type);
 
-		TComponent AddComponent<TComponent, TImplementation>() where TComponent : IComponent, TImplementation, new();
-		TComponent AddComponent<TComponent, TBase>(TComponent Component) where TComponent : IComponent, TBase;
-		TComponent AddComponent<TComponent, TBase>(TComponent Component, int index) where TComponent : IComponent, TBase;
+		TComponent AddComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction, new();
+		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component) where TComponent : IComponent, TAbstraction;
+		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index) where TComponent : IComponent, TAbstraction;
 		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
@@ -60,8 +60,8 @@ namespace Atlas.Engine.Entities
 		IComponent AddComponent(IComponent component, Type type = null, int index = int.MaxValue);
 
 		IComponent RemoveComponent(IComponent component);
-		TComponent RemoveComponent<TComponent, TInterface>() where TComponent : IComponent, TInterface;
-		TInterface RemoveComponent<TInterface>() where TInterface : IComponent;
+		TComponent RemoveComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction;
+		TAbstraction RemoveComponent<TAbstraction>() where TAbstraction : IComponent;
 		IComponent RemoveComponent(Type type);
 		bool RemoveComponents();
 

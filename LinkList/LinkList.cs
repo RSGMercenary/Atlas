@@ -4,15 +4,42 @@ namespace Atlas.LinkList
 {
 	class LinkList<T>:ILinkList<T>
 	{
-		private Stack<LinkListNode<T>> nodesPooled = new Stack<LinkListNode<T>>();
-		private Stack<LinkListNode<T>> nodesRemoved = new Stack<LinkListNode<T>>();
+		private Stack<LinkListNode<T>> pooled = new Stack<LinkListNode<T>>();
+		private Stack<LinkListNode<T>> removed = new Stack<LinkListNode<T>>();
 		private LinkListNode<T> first;
 		private LinkListNode<T> last;
 		private int count = 0;
 
+		bool isDisposed = false;
+
 		public LinkList()
 		{
 
+		}
+
+		public void Dispose()
+		{
+			if(!isDisposed)
+			{
+				IsDisposed = true;
+				pooled.Clear();
+				DisposeNodes();
+			}
+		}
+
+		public bool IsDisposed
+		{
+			get
+			{
+				return isDisposed;
+			}
+			private set
+			{
+				if(isDisposed != value)
+				{
+					isDisposed = value;
+				}
+			}
 		}
 
 		public T this[int i]
@@ -102,10 +129,11 @@ namespace Atlas.LinkList
 		{
 			if(data == null)
 				return default(T);
+			IsDisposed = false;
 			LinkListNode<T> node;
-			if(nodesPooled.Count > 0)
+			if(pooled.Count > 0)
 			{
-				node = nodesPooled.Pop();
+				node = pooled.Pop();
 			}
 			else
 			{
@@ -265,7 +293,7 @@ namespace Atlas.LinkList
 			node.linklist = null;
 			node.value = default(T);
 			TempRemove(node);
-			nodesPooled.Push(node);
+			removed.Push(node);
 			return data;
 		}
 
@@ -321,15 +349,20 @@ namespace Atlas.LinkList
 
 		public void DisposeNodes()
 		{
-			while(nodesRemoved.Count > 0)
+			while(removed.Count > 0)
 			{
-				LinkListNode<T> node = nodesRemoved.Pop();
-				node.linklist = null;
-				node.value = default(T);
-				node.previous = null;
-				node.next = null;
-				nodesPooled.Push(node);
+				DisposeNode(removed.Pop());
 			}
+		}
+
+		private void DisposeNode(LinkListNode<T> node)
+		{
+			node.linklist = null;
+			node.value = default(T);
+			node.previous = null;
+			node.next = null;
+			if(!isDisposed)
+				pooled.Push(node);
 		}
 
 		override public string ToString()

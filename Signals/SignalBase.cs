@@ -6,8 +6,8 @@ namespace Atlas.Signals
 	class SignalBase:ISignalBase
 	{
 		protected List<SlotBase> slots = new List<SlotBase>();
-		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
-		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
+		private Stack<SlotBase> pooled = new Stack<SlotBase>();
+		private Stack<SlotBase> removed = new Stack<SlotBase>();
 		private int numDispatches = 0;
 
 		private bool isDisposed = false;
@@ -23,11 +23,11 @@ namespace Atlas.Signals
 		/// </summary>
 		public void Dispose()
 		{
-			IsDisposed = true;
-			RemoveAll();
-			while(slotsPooled.Count > 0)
+			if(!isDisposed)
 			{
-				slotsPooled.Pop().Dispose();
+				IsDisposed = true;
+				pooled.Clear();
+				RemoveAll();
 			}
 		}
 
@@ -93,9 +93,9 @@ namespace Atlas.Signals
 			--numDispatches;
 			if(numDispatches == 0)
 			{
-				while(slotsRemoved.Count > 0)
+				while(removed.Count > 0)
 				{
-					DisposeSlot(slotsRemoved.Pop());
+					DisposeSlot(removed.Pop());
 				}
 				return true;
 			}
@@ -142,7 +142,7 @@ namespace Atlas.Signals
 			slot.Signal = null;
 			slot.Dispose();
 			if(!isDisposed)
-				slotsPooled.Push(slot);
+				pooled.Push(slot);
 		}
 
 		public ISlotBase Get(Delegate listener)
@@ -196,9 +196,9 @@ namespace Atlas.Signals
 				SlotBase slot = (SlotBase)Get(listener);
 				if(slot == null)
 				{
-					if(slotsPooled.Count > 0)
+					if(pooled.Count > 0)
 					{
-						slot = slotsPooled.Pop();
+						slot = pooled.Pop();
 					}
 					else
 					{
@@ -269,7 +269,7 @@ namespace Atlas.Signals
 
 				if(numDispatches > 0)
 				{
-					slotsRemoved.Push(slot);
+					removed.Push(slot);
 				}
 				else
 				{

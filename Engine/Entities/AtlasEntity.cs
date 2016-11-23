@@ -179,9 +179,9 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public bool HasComponent<TType>() where TType : IComponent
+		public bool HasComponent<TAbstraction>() where TAbstraction : IComponent
 		{
-			return HasComponent(typeof(TType));
+			return HasComponent(typeof(TAbstraction));
 		}
 
 		public bool HasComponent(Type type)
@@ -189,14 +189,14 @@ namespace Atlas.Engine.Entities
 			return components.ContainsKey(type);
 		}
 
-		public TComponent GetComponent<TComponent, TType>() where TComponent : IComponent, TType
+		public TComponent GetComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction
 		{
-			return (TComponent)GetComponent(typeof(TType));
+			return (TComponent)GetComponent(typeof(TAbstraction));
 		}
 
-		public TType GetComponent<TType>() where TType : IComponent
+		public TAbstraction GetComponent<TAbstraction>() where TAbstraction : IComponent
 		{
-			return (TType)GetComponent(typeof(TType));
+			return (TAbstraction)GetComponent(typeof(TAbstraction));
 		}
 
 		public IComponent GetComponent(Type type)
@@ -227,21 +227,21 @@ namespace Atlas.Engine.Entities
 		}
 
 		//New component with Type
-		public TComponent AddComponent<TComponent, TType>() where TComponent : IComponent, TType, new()
+		public TComponent AddComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction, new()
 		{
-			return (TComponent)AddComponent(new TComponent(), typeof(TType), 0);
+			return (TComponent)AddComponent(new TComponent(), typeof(TAbstraction), 0);
 		}
 
 		//Component with Type
-		public TComponent AddComponent<TComponent, TType>(TComponent component) where TComponent : IComponent, TType
+		public TComponent AddComponent<TComponent, TAbstraction>(TComponent component) where TComponent : IComponent, TAbstraction
 		{
-			return (TComponent)AddComponent(component, typeof(TType), int.MaxValue);
+			return (TComponent)AddComponent(component, typeof(TAbstraction), int.MaxValue);
 		}
 
 		//Component with Type, index
-		public TComponent AddComponent<TComponent, TType>(TComponent component, int index) where TComponent : IComponent, TType
+		public TComponent AddComponent<TComponent, TAbstraction>(TComponent component, int index) where TComponent : IComponent, TAbstraction
 		{
-			return (TComponent)AddComponent(component, typeof(TType), index);
+			return (TComponent)AddComponent(component, typeof(TAbstraction), index);
 		}
 
 		//New Component
@@ -276,7 +276,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(component == null)
 				return null;
-			if(!component.IsShareable && component.Managers.Count > 0)
+			if(component.Manager != null)
 				return null;
 			if(type == null)
 				type = component.GetType();
@@ -294,14 +294,14 @@ namespace Atlas.Engine.Entities
 
 
 
-		public TComponent RemoveComponent<TComponent, TType>() where TComponent : IComponent, TType
+		public TComponent RemoveComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction
 		{
-			return (TComponent)RemoveComponent(typeof(TType));
+			return (TComponent)RemoveComponent(typeof(TAbstraction));
 		}
 
-		public TType RemoveComponent<TType>() where TType : IComponent
+		public TAbstraction RemoveComponent<TAbstraction>() where TAbstraction : IComponent
 		{
-			return (TType)RemoveComponent(typeof(TType));
+			return (TAbstraction)RemoveComponent(typeof(TAbstraction));
 		}
 
 		public IComponent RemoveComponent(Type type)
