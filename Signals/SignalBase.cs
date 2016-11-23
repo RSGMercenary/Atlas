@@ -262,22 +262,21 @@ namespace Atlas.Signals
 		/// <returns></returns>
 		public bool Remove(int index)
 		{
-			if(index > 0 && index < slots.Count)
+			if(index < 0)
+				return false;
+			if(index >= slots.Count)
+				return false;
+			SlotBase slot = slots[index];
+			slots.RemoveAt(index);
+			if(numDispatches > 0)
 			{
-				SlotBase slot = slots[index];
-				slots.RemoveAt(index);
-
-				if(numDispatches > 0)
-				{
-					removed.Push(slot);
-				}
-				else
-				{
-					DisposeSlot(slot);
-				}
-				return true;
+				removed.Push(slot);
 			}
-			return false;
+			else
+			{
+				DisposeSlot(slot);
+			}
+			return true;
 		}
 
 		/// <summary>
