@@ -19,7 +19,7 @@ namespace Atlas.Engine.Entities
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
 		private int sleeping = 0;
-		private int sleepingParentIgnored = 0;
+		private int freeSleeping = 0;
 		private bool isDisposed = false;
 		private bool isDisposedWhenUnmanaged = true;
 
@@ -36,7 +36,7 @@ namespace Atlas.Engine.Entities
 		private ISignal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
 		private ISignal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
 		private ISignal<IEntity, int, int> sleepingChanged = new Signal<IEntity, int, int>();
-		private ISignal<IEntity, int, int> sleepingParentIgnoredChanged = new Signal<IEntity, int, int>();
+		private ISignal<IEntity, int, int> freeSleepingChanged = new Signal<IEntity, int, int>();
 		private ISignal<IEntity, bool, bool> isDisposedChanged = new Signal<IEntity, bool, bool>();
 
 		public static implicit operator bool(AtlasEntity entity)
@@ -64,7 +64,7 @@ namespace Atlas.Engine.Entities
 				RemoveComponents();
 				Parent = null;
 				Sleeping = 0;
-				SleepingParentIgnored = 0;
+				FreeSleeping = 0;
 				IsDisposedWhenUnmanaged = true;
 				GlobalName = "";
 				LocalName = "";
@@ -82,7 +82,7 @@ namespace Atlas.Engine.Entities
 				systemAdded.Dispose();
 				systemRemoved.Dispose();
 				sleepingChanged.Dispose();
-				sleepingParentIgnoredChanged.Dispose();
+				freeSleepingChanged.Dispose();
 			}
 		}
 
@@ -99,7 +99,7 @@ namespace Atlas.Engine.Entities
 		public ISignal<IEntity, Type> SystemAdded { get { return systemAdded; } }
 		public ISignal<IEntity, Type> SystemRemoved { get { return systemRemoved; } }
 		public ISignal<IEntity, int, int> SleepingChanged { get { return sleepingChanged; } }
-		public ISignal<IEntity, int, int> SleepingParentIgnoredChanged { get { return sleepingParentIgnoredChanged; } }
+		public ISignal<IEntity, int, int> FreeSleepingChanged { get { return freeSleepingChanged; } }
 		public ISignal<IEntity, bool, bool> IsDisposedChanged { get { return isDisposedChanged; } }
 
 		public IEngineManager Engine
@@ -368,14 +368,14 @@ namespace Atlas.Engine.Entities
 			{
 				if(childLocalNames.ContainsKey(child.LocalName) && childLocalNames[child.LocalName] != child)
 				{
-					child.LocalName = Guid.NewGuid().ToString("N");
+					child.LocalName = new Guid().ToString("N");
 				}
 				if(!childLocalNames.ContainsKey(child.LocalName))
 				{
 					childLocalNames.Add(child.LocalName, child);
 					children.Add(child, index);
 					child.LocalNameChanged.Add(ChildLocalNameChanged);
-					if(IsSleeping && !child.IsSleepingParentIgnored)
+					if(IsSleeping && !child.IsFreeSleeping)
 					{
 						++child.Sleeping;
 					}
@@ -407,37 +407,34 @@ namespace Atlas.Engine.Entities
 
 		public IEntity RemoveChild(IEntity child)
 		{
-			if(child != null)
+			if(child == null)
+				return null;
+			if(child.Parent != this)
 			{
-				if(child.Parent != this)
+				if(!childLocalNames.ContainsKey(child.LocalName))
+					return null;
+				int index = children.GetIndex(child);
+				children.Remove(index);
+				childLocalNames.Remove(child.LocalName);
+				child.LocalNameChanged.Remove(ChildLocalNameChanged);
+				childRemoved.Dispatch(this, child, index);
+				childIndicesChanged.Dispatch(this, index, children.Count, true);
+
+				for(int i = index; i < children.Count; ++i)
 				{
-					if(childLocalNames.ContainsKey(child.LocalName))
-					{
-						int index = children.GetIndex(child);
-						children.Remove(index);
-						childLocalNames.Remove(child.LocalName);
-						child.LocalNameChanged.Remove(ChildLocalNameChanged);
-						childRemoved.Dispatch(this, child, index);
-						childIndicesChanged.Dispatch(this, index, children.Count, true);
-						for(int i = index; i < children.Count; ++i)
-						{
-							IEntity sibling = children[i];
-							sibling.ParentIndexChanged.Dispatch(sibling, i, i + 1);
-						}
-						if(IsSleeping && !child.IsSleepingParentIgnored)
-						{
-							--child.Sleeping;
-						}
-						return child;
-					}
+					IEntity sibling = children[i];
+					sibling.ParentIndexChanged.Dispatch(sibling, i, i + 1);
 				}
-				else
+				if(IsSleeping && !child.IsFreeSleeping)
 				{
-					child.SetParent(null, -1);
-					return child;
+					--child.Sleeping;
 				}
 			}
-			return null;
+			else
+			{
+				child.SetParent(null, -1);
+			}
+			return child;
 		}
 
 		public IEntity RemoveChild(int index)
@@ -666,7 +663,7 @@ namespace Atlas.Engine.Entities
 						ILinkListNode<IEntity> current = children.First;
 						while(current != null)
 						{
-							if(!current.Value.IsSleepingParentIgnored)
+							if(!current.Value.IsFreeSleeping)
 							{
 								++current.Value.Sleeping;
 							}
@@ -678,7 +675,7 @@ namespace Atlas.Engine.Entities
 						ILinkListNode<IEntity> current = children.First;
 						while(current != null)
 						{
-							if(!current.Value.IsSleepingParentIgnored)
+							if(!current.Value.IsFreeSleeping)
 							{
 								--current.Value.Sleeping;
 							}
@@ -697,19 +694,19 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public int SleepingParentIgnored
+		public int FreeSleeping
 		{
 			get
 			{
-				return sleepingParentIgnored;
+				return freeSleeping;
 			}
 			set
 			{
-				if(sleepingParentIgnored != value)
+				if(freeSleeping != value)
 				{
-					int previous = sleepingParentIgnored;
-					sleepingParentIgnored = value;
-					sleepingParentIgnoredChanged.Dispatch(this, value, previous);
+					int previous = freeSleeping;
+					freeSleeping = value;
+					freeSleepingChanged.Dispatch(this, value, previous);
 
 					if(parent != null && parent.IsSleeping)
 					{
@@ -726,11 +723,11 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public bool IsSleepingParentIgnored
+		public bool IsFreeSleeping
 		{
 			get
 			{
-				return sleepingParentIgnored > 0;
+				return freeSleeping > 0;
 			}
 		}
 
@@ -829,13 +826,16 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public string Dump(string indent = "")
+		public override string ToString()
 		{
-			int index;
+			return ToString(true, true, true);
+		}
+
+		public string ToString(bool includeChildren, bool includeComponents, bool includeSystems, string indent = "")
+		{
 			string text = indent;
 
-			index = parent != null ? parent.GetChildIndex(this) + 1 : 1;
-			text += "Child " + index;
+			text += "Child " + (parent != null ? parent.GetChildIndex(this) + 1 : 1);
 			text += "\n  " + indent;
 			text += "Global Name            = " + globalName;
 			text += "\n  " + indent;
@@ -843,49 +843,64 @@ namespace Atlas.Engine.Entities
 			text += "\n  " + indent;
 			text += "Sleeping               = " + sleeping;
 			text += "\n  " + indent;
-			text += "Ignore Parent Sleeping = " + sleepingParentIgnored;
+			text += "Ignore Parent Sleeping = " + freeSleeping;
 			text += "\n  " + indent;
 			text += "Auto-Dispose           = " + isDisposedWhenUnmanaged;
 
-			text += "\n  " + indent;
-			text += "Components";
-			index = 0;
-			foreach(Type type in components.Keys)
+			if(includeComponents && components.Count > 0)
 			{
-				IComponent component = components[type];
-				text += "\n    " + indent;
-				text += "Component " + (++index);
-				text += "\n      " + indent;
-				text += "Type					= " + type.FullName;
-				text += "\n      " + indent;
-				text += "Instance				= " + component.GetType().FullName;
-				text += "\n      " + indent;
-				text += "Shareable              = " + component.IsShareable;
-				text += "\n      " + indent;
-				text += "Managers				= " + component.Managers.Count;
-				text += "\n      " + indent;
-				text += "Auto-Dispose			= " + component.IsDisposedWhenUnmanaged;
+				text += "\n  " + indent;
+				text += "Components";
+				int index = 0;
+				foreach(Type type in components.Keys)
+				{
+					IComponent component = components[type];
+					text += "\n    " + indent;
+					text += "Component " + (++index);
+					text += "\n      " + indent;
+					text += "Type         = " + type.FullName;
+					text += "\n      " + indent;
+					text += "Instance     = " + component.GetType().FullName;
+					text += "\n      " + indent;
+					text += "Managers     = " + component.Managers.Count;
+					text += "\n      " + indent;
+					text += "Shareable    = " + component.IsShareable;
+					text += "\n      " + indent;
+					text += "Auto-Dispose = " + component.IsDisposedWhenUnmanaged;
+				}
 			}
 
-			text += "\n  " + indent;
-			text += "Systems";
-			index = 0;
-			foreach(Type type in systems)
+			if(includeSystems && systems.Count > 0)
 			{
-				text += "\n      " + indent;
-				text += "System " + (++index);
-				text += "\n      " + indent;
-				text += "Type					= " + type.FullName;
+				text += "\n  " + indent;
+				text += "Systems";
+				int index = 0;
+				foreach(Type type in systems)
+				{
+					text += "\n    " + indent;
+					text += "System " + (++index);
+					text += "\n      " + indent;
+					text += "Type					= " + type.FullName;
+				}
 			}
 
-			text += "\n  " + indent;
-			text += "Children";
-			text += "\n";
-			for(index = 0; index < children.Count; ++index)
+			if(includeChildren)
 			{
-				text += children[index].Dump(indent + "    ");
+				if(children.Count > 0)
+				{
+					text += "\n  " + indent;
+					text += "Children";
+					text += "\n";
+					for(int index = 0; index < children.Count; ++index)
+					{
+						text += children[index].ToString(includeChildren, includeComponents, includeSystems, indent + "    ");
+					}
+				}
+				else
+				{
+					text += "\n";
+				}
 			}
-
 			return text;
 		}
 	}

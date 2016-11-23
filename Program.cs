@@ -1,8 +1,6 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Testing.Components;
-using Atlas.Testing.Systems;
 using System.Diagnostics;
 
 namespace Atlas
@@ -13,14 +11,14 @@ namespace Atlas
 		{
 			string name = "0-0-0";
 			IEntity entity = new AtlasEntity(name, name);
-			entity.AddSystem<TestSystem>();
+			//entity.AddSystem<TestSystem>();
 			IEngineManager engine = entity.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
 
 			for(int index1 = 1; index1 <= 10; ++index1)
 			{
 				string name1 = "0-" + index1 + "-0";
 				IEntity child1 = entity.AddChild(new AtlasEntity(name1, name1));
-				child1.AddComponent<TestComponent>();
+				//child1.AddComponent<TestComponent>();
 				for(int index2 = 1; index2 <= 10; ++index2)
 				{
 					string name2 = "0-" + index1 + "-" + index2;
@@ -28,7 +26,7 @@ namespace Atlas
 				}
 			}
 
-			Debug.WriteLine(entity.Dump());
+			Debug.WriteLine(entity.ToString(true, true, true));
 			//Debug.WriteLine(entity.EntityManager.GetEntityByUniqueName("0-3-4").Dump());
 
 			IEngineManager engine1 = engine;

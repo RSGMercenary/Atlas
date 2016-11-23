@@ -1,4 +1,5 @@
-﻿using Atlas.Engine.Entities;
+﻿using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
 using Atlas.LinkList;
 using Atlas.Signals;
 using System;
@@ -34,6 +35,7 @@ namespace Atlas.Engine.Components
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
 		private bool isDisposed = false;
 		private bool isDisposedWhenUnmanaged = true;
+		IEngineManager engine;
 
 		private ISignal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
 		private ISignal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
@@ -204,18 +206,16 @@ namespace Atlas.Engine.Components
 			if(!managers.Contains(entity))
 			{
 				if(type == null)
-				{
 					type = GetType();
-				}
 				else if(!type.IsInstanceOfType(this))
-				{
 					return null;
-				}
 				if(entity.GetComponent(type) == this)
 				{
 					IsDisposed = false;
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Add(entity, index);
+					entity.EngineChanged.Add(EntityEngineChanged, int.MinValue);
+					EntityEngineChanged(entity);
 					AddingManager(entity, index);
 					managerAdded.Dispatch(this, entity, index);
 				}
@@ -229,6 +229,59 @@ namespace Atlas.Engine.Components
 				SetManagerIndex(entity, index);
 			}
 			return entity;
+		}
+
+		private void EntityEngineChanged(IEntity entity, IEngineManager next = null, IEngineManager previous = null)
+		{
+			if(managers.Count == 1) //One manager.
+			{
+				Engine = entity.Engine; //One engine.
+			}
+			else //Many managers.
+			{
+				if(engine != null)
+				{
+					if(engine != entity.Engine)
+						Engine = null; //Different engines.
+				}
+				else
+				{
+					if(managers.First == null)
+						return;
+					IEngineManager engine = managers.First.Value.Engine;
+					if(engine == null)
+						return;
+					for(ILinkListNode<IEntity> current = managers.First.Next; current != null;)
+					{
+						if(current.Value.Engine != engine)
+							return;
+						current = current.Next;
+					}
+					Engine = engine; //Same engines.
+				}
+			}
+		}
+
+		public IEngineManager Engine
+		{
+			get
+			{
+				return engine;
+			}
+			private set
+			{
+				if(engine != value)
+				{
+					IEngineManager previous = engine;
+					engine = value;
+					ChangingEngine(value, previous);
+				}
+			}
+		}
+
+		protected void ChangingEngine(IEngineManager current, IEngineManager previous)
+		{
+
 		}
 
 		protected virtual void AddingManager(IEntity entity, int index)
@@ -257,6 +310,9 @@ namespace Atlas.Engine.Components
 			{
 				int index = managers.GetIndex(entity);
 				managers.Remove(index);
+				entity.EngineChanged.Remove(EntityEngineChanged);
+				if(managers.IsEmpty)
+					Engine = null;
 				RemovingManager(entity, index);
 				managerRemoved.Dispatch(this, entity, index);
 				if(managers.Count <= 0 && isDisposedWhenUnmanaged)

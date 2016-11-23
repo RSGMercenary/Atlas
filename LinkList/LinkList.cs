@@ -346,5 +346,13 @@ namespace Atlas.LinkList
 			text += "]";
 			return text;
 		}
+
+		public bool IsEmpty
+		{
+			get
+			{
+				return count <= 0;
+			}
+		}
 	}
 }

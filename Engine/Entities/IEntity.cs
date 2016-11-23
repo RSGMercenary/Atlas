@@ -33,14 +33,12 @@ namespace Atlas.Engine.Entities
 		bool HasChild(string localName);
 
 		IEntity GetHierarchy(string hierarchy);
+
 		bool SetHierarchy(string hierarchy, int index);
 
 		IEntity GetChild(string localName);
 
 		#endregion
-
-		int SleepingParentIgnored { get; set; }
-		bool IsSleepingParentIgnored { get; }
 
 		#region Components
 
@@ -93,6 +91,19 @@ namespace Atlas.Engine.Entities
 
 		#endregion
 
-		string Dump(string indent = "");
+		/// <summary>
+		/// This Entity's free-sleeping count. If this Entity is free-sleeping,
+		/// its sleeping is not changed by its parent sleeping.
+		/// </summary>
+		int FreeSleeping { get; set; }
+
+		ISignal<IEntity, int, int> FreeSleepingChanged { get; }
+
+		/// <summary>
+		/// Return whether this Entity.FreeSleeping > 0;
+		/// </summary>
+		bool IsFreeSleeping { get; }
+
+		string ToString(bool includeChildren, bool includeComponents, bool includeSystems, string indent = "");
 	}
 }
