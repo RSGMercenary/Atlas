@@ -287,7 +287,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		protected void ChangingEngine(IEngineManager current, IEngineManager previous)
+		protected virtual void ChangingEngine(IEngineManager current, IEngineManager previous)
 		{
 
 		}
