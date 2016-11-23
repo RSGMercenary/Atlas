@@ -450,9 +450,9 @@ namespace Atlas.Engine.Entities
 
 		public bool RemoveChildren()
 		{
-			if(children.Count <= 0)
+			if(children.IsEmpty)
 				return false;
-			while(children.First != null)
+			while(!children.IsEmpty)
 			{
 				children.Last.Value.Dispose();
 			}
@@ -888,7 +888,7 @@ namespace Atlas.Engine.Entities
 
 			if(includeChildren)
 			{
-				if(children.Count > 0)
+				if(!children.IsEmpty)
 				{
 					text += "\n  " + indent;
 					text += "Children";

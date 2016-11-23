@@ -1,13 +1,10 @@
-﻿using Atlas.Signals;
-
-namespace Atlas.Engine.Engine
+﻿namespace Atlas.Engine.Engine
 {
-	interface IEngine<T>
+	interface IEngine<T>:IReadOnlyEngine<T>
 	{
 		/// <summary>
 		/// The Engine managing this instance.
 		/// </summary>
-		IEngineManager Engine { get; set; }
-		ISignal<T, IEngineManager, IEngineManager> EngineChanged { get; }
+		new IEngineManager Engine { get; set; }
 	}
 }

@@ -8,7 +8,7 @@ namespace Atlas.Engine.Components
 {
 	abstract class AtlasComponent<TBaseAbstraction>:AtlasComponent, IComponent<TBaseAbstraction> where TBaseAbstraction : IComponent
 	{
-		public AtlasComponent() : base(false)
+		public AtlasComponent()
 		{
 
 		}
@@ -42,6 +42,7 @@ namespace Atlas.Engine.Components
 		private bool isDisposedWhenUnmanaged = true;
 		IEngineManager engine;
 
+		private ISignal<IComponent, IEngineManager, IEngineManager> engineChanged = new Signal<IComponent, IEngineManager, IEngineManager>();
 		private ISignal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
 		private ISignal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
 		private Signal<IComponent, bool, bool> isDisposedChanged = new Signal<IComponent, bool, bool>();
@@ -51,7 +52,7 @@ namespace Atlas.Engine.Components
 			return component != null;
 		}
 
-		public AtlasComponent() : this(false)
+		public AtlasComponent()
 		{
 
 		}
@@ -63,7 +64,7 @@ namespace Atlas.Engine.Components
 
 		public void Dispose()
 		{
-			if(managers.Count > 0)
+			if(!managers.IsEmpty)
 			{
 				IsDisposedWhenUnmanaged = true;
 				RemoveManagers();
@@ -121,7 +122,7 @@ namespace Atlas.Engine.Components
 				{
 					isDisposedWhenUnmanaged = value;
 
-					if(!isDisposed && managers.Count <= 0 && value)
+					if(!isDisposed && managers.IsEmpty && value)
 					{
 						Dispose();
 					}
@@ -157,7 +158,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return (isShareable && managers.Count == 1) ? managers.First.Value : null;
+				return (isShareable && !managers.IsEmpty) ? managers.First.Value : null;
 			}
 		}
 
@@ -241,7 +242,7 @@ namespace Atlas.Engine.Components
 
 		private void EntityEngineChanged(IEntity entity, IEngineManager next = null, IEngineManager previous = null)
 		{
-			if(managers.Count == 1) //One manager.
+			if(!isShareable) //One manager.
 			{
 				Engine = entity.Engine; //One engine.
 			}
@@ -254,8 +255,6 @@ namespace Atlas.Engine.Components
 				}
 				else
 				{
-					if(managers.First == null)
-						return;
 					IEngineManager engine = managers.First.Value.Engine;
 					if(engine == null)
 						return;
@@ -284,6 +283,14 @@ namespace Atlas.Engine.Components
 					engine = value;
 					ChangingEngine(value, previous);
 				}
+			}
+		}
+
+		public ISignal<IComponent, IEngineManager, IEngineManager> EngineChanged
+		{
+			get
+			{
+				return engineChanged;
 			}
 		}
 
@@ -325,7 +332,7 @@ namespace Atlas.Engine.Components
 					Engine = null;
 				RemovingManager(entity, index);
 				managerRemoved.Dispatch(this, entity, index);
-				if(managers.Count <= 0 && isDisposedWhenUnmanaged)
+				if(managers.IsEmpty && isDisposedWhenUnmanaged)
 				{
 					Dispose();
 				}
@@ -353,9 +360,9 @@ namespace Atlas.Engine.Components
 
 		public bool RemoveManagers()
 		{
-			if(managers.Count <= 0)
+			if(managers.IsEmpty)
 				return false;
-			while(managers.Count > 0)
+			while(!managers.IsEmpty)
 				RemoveManager(managers.Last.Value);
 			return true;
 		}

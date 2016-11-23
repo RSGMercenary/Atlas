@@ -1,4 +1,5 @@
-﻿using Atlas.Engine.Entities;
+﻿using Atlas.Engine.Engine;
+using Atlas.Engine.Entities;
 using Atlas.Interfaces;
 using Atlas.LinkList;
 using Atlas.Signals;
@@ -14,7 +15,7 @@ namespace Atlas.Engine.Components
 		IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
 	}
 
-	interface IComponent:IDispose, IUnmanagedDispose
+	interface IComponent:IReadOnlyEngine<IComponent>, IDispose, IUnmanagedDispose
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);
