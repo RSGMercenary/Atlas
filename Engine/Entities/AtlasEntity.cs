@@ -280,6 +280,8 @@ namespace Atlas.Engine.Entities
 				return null;
 			if(type == null)
 				type = component.GetType();
+			else if(type == typeof(IComponent))
+				return null;
 			else if(!type.IsInstanceOfType(component))
 				return null;
 			if(!components.ContainsKey(type) || components[type] != component)

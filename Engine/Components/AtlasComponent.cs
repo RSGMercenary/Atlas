@@ -6,7 +6,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent<TBaseInterface>:AtlasComponent, IComponent<TBaseInterface> where TBaseInterface : IComponent
+	abstract class AtlasComponent<TBaseAbstraction>:AtlasComponent, IComponent<TBaseAbstraction> where TBaseAbstraction : IComponent
 	{
 		public AtlasComponent() : base(false)
 		{
@@ -18,14 +18,19 @@ namespace Atlas.Engine.Components
 
 		}
 
-		public IEntity AddManager<TInterface>(IEntity entity) where TInterface : TBaseInterface
+		public IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
 		{
-			return AddManager(entity, typeof(TInterface));
+			return AddManager(entity, typeof(TAbstraction));
 		}
 
-		public IEntity AddManager<TInterface>(IEntity entity, int index) where TInterface : TBaseInterface
+		public IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction
 		{
-			return AddManager(entity, typeof(TInterface), index);
+			return AddManager(entity, typeof(TAbstraction), index);
+		}
+
+		public IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
+		{
+			return RemoveManager(entity, typeof(TAbstraction));
 		}
 	}
 
@@ -207,6 +212,8 @@ namespace Atlas.Engine.Components
 			{
 				if(type == null)
 					type = GetType();
+				else if(type == typeof(IComponent))
+					return null;
 				else if(!type.IsInstanceOfType(this))
 					return null;
 				if(entity.GetComponent(type) == this)
@@ -305,6 +312,8 @@ namespace Atlas.Engine.Components
 				return null;
 			if(type == null)
 				type = GetType();
+			else if(type == typeof(IComponent))
+				return null;
 			else if(!type.IsInstanceOfType(this))
 				return null;
 			if(entity.GetComponent(type) == null)

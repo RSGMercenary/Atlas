@@ -6,10 +6,12 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent<TBase>:IComponent where TBase : IComponent
+	interface IComponent<TBaseAbstraction>:IComponent where TBaseAbstraction : IComponent
 	{
-		IEntity AddManager<TInterface>(IEntity entity) where TInterface : TBase;
-		IEntity AddManager<TInterface>(IEntity entity, int index) where TInterface : TBase;
+		IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
+		IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction;
+
+		IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
 	}
 
 	interface IComponent:IDispose, IUnmanagedDispose
