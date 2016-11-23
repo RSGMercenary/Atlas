@@ -64,10 +64,10 @@ namespace Atlas.Engine.Engine
 
 		override protected void AddingManager(IEntity entity, int index)
 		{
-			entity.IsDisposedWhenUnmanaged = false;
-			entity.Parent = null;
 			base.AddingManager(entity, index);
 			AddEntity(entity);
+			entity.ParentChanged.Remove(EntityParentChanged);
+			entity.Parent = null;
 		}
 
 		override protected void RemovingManager(IEntity entity, int index)
@@ -181,10 +181,9 @@ namespace Atlas.Engine.Engine
 
 		private void EntityParentChanged(IEntity child, IEntity next, IEntity previous)
 		{
-			if(next == null)
-			{
-				RemoveEntity(child);
-			}
+			if(next != null)
+				return;
+			RemoveEntity(child);
 		}
 
 		private void EntityGlobalNameChanged(IEntity entity, string next, string previous)

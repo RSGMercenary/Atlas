@@ -15,7 +15,7 @@ namespace Atlas.Engine.Components
 		IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
 	}
 
-	interface IComponent:IReadOnlyEngine<IComponent>, IDispose, IUnmanagedDispose
+	interface IComponent:IReadOnlyEngine<IComponent>, IDispose, IAutoDispose
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);

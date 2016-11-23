@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleep, IDispose, IUnmanagedDispose
+	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleep, IDispose, IAutoDispose
 	{
 		#region Entities
 
@@ -83,6 +83,7 @@ namespace Atlas.Engine.Entities
 
 		bool RemoveSystem(Type type);
 		bool RemoveSystem<TSystem>() where TSystem : ISystem;
+		bool RemoveSystems();
 
 		IReadOnlyCollection<Type> Systems { get; }
 

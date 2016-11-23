@@ -39,7 +39,7 @@ namespace Atlas.Engine.Components
 		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
 		private bool isDisposed = false;
-		private bool isDisposedWhenUnmanaged = true;
+		private bool isAutoDisposed = true;
 		IEngineManager engine;
 
 		private ISignal<IComponent, IEngineManager, IEngineManager> engineChanged = new Signal<IComponent, IEngineManager, IEngineManager>();
@@ -66,14 +66,14 @@ namespace Atlas.Engine.Components
 		{
 			if(!managers.IsEmpty)
 			{
-				IsDisposedWhenUnmanaged = true;
+				IsAutoDisposed = true;
 				RemoveManagers();
 			}
 			else
 			{
 				Disposing();
 				IsDisposed = true;
-				IsDisposedWhenUnmanaged = true;
+				IsAutoDisposed = true;
 				managerAdded.Dispose();
 				managerRemoved.Dispose();
 				isDisposedChanged.Dispose();
@@ -110,19 +110,19 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public bool IsDisposedWhenUnmanaged
+		public bool IsAutoDisposed
 		{
 			get
 			{
-				return isDisposedWhenUnmanaged;
+				return isAutoDisposed;
 			}
 			set
 			{
-				if(isDisposedWhenUnmanaged != value)
+				if(isAutoDisposed != value)
 				{
-					isDisposedWhenUnmanaged = value;
+					isAutoDisposed = value;
 
-					if(!isDisposed && managers.IsEmpty && value)
+					if(!isDisposed && managers.IsEmpty && isAutoDisposed)
 					{
 						Dispose();
 					}
@@ -332,7 +332,7 @@ namespace Atlas.Engine.Components
 					Engine = null;
 				RemovingManager(entity, index);
 				managerRemoved.Dispatch(this, entity, index);
-				if(managers.IsEmpty && isDisposedWhenUnmanaged)
+				if(managers.IsEmpty && isAutoDisposed)
 				{
 					Dispose();
 				}
@@ -367,9 +367,40 @@ namespace Atlas.Engine.Components
 			return true;
 		}
 
-		public string Dump(string indent = "")
+		public override string ToString()
 		{
-			return "";
+			string text = "";
+
+			text += "Component";
+			text += "\n  ";
+			text += "Instance     = " + GetType().FullName;
+			text += "\n  ";
+			text += "Shareable    = " + isShareable;
+			text += "\n  ";
+			text += "Disposed     = " + isDisposed;
+			text += "\n  ";
+			text += "Auto-Dispose = " + isAutoDisposed;
+
+			if(!managers.IsEmpty)
+			{
+				text += "\n  ";
+				text += "Managers";
+				int index = 0;
+				for(ILinkListNode<IEntity> current = managers.First; current != null;)
+				{
+					IEntity entity = current.Value;
+					text += "\n    ";
+					text += "Manager " + (++index);
+					text += "\n      ";
+					text += "Abstraction = " + entity.GetComponentType(this).FullName;
+					text += "\n      ";
+					text += "GlobalName  = " + entity.GlobalName;
+					text += "\n      ";
+					text += "LocalName   = " + entity.LocalName;
+					current = current.Next;
+				}
+			}
+			return text;
 		}
 	}
 }

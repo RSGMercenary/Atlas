@@ -21,7 +21,7 @@ namespace Atlas.Engine.Entities
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private bool isDisposed = false;
-		private bool isDisposedWhenUnmanaged = true;
+		private bool isAutoDisposed = true;
 
 		private ISignal<IEntity, IEngineManager, IEngineManager> engineChanged = new Signal<IEntity, IEngineManager, IEngineManager>();
 		private ISignal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
@@ -44,6 +44,11 @@ namespace Atlas.Engine.Entities
 			return entity != null;
 		}
 
+		public AtlasEntity()
+		{
+
+		}
+
 		public AtlasEntity(string globalName = "", string localName = "")
 		{
 			GlobalName = globalName;
@@ -54,7 +59,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(engine != null)
 			{
-				IsDisposedWhenUnmanaged = true;
+				IsAutoDisposed = true;
 				Parent = null;
 			}
 			else
@@ -65,7 +70,7 @@ namespace Atlas.Engine.Entities
 				Parent = null;
 				Sleeping = 0;
 				FreeSleeping = 0;
-				IsDisposedWhenUnmanaged = true;
+				IsAutoDisposed = true;
 				GlobalName = "";
 				LocalName = "";
 
@@ -462,7 +467,7 @@ namespace Atlas.Engine.Entities
 		public bool SetParent(IEntity parent = null, int index = int.MaxValue)
 		{
 			//Can't set the parent of the root.
-			if(Root == this)
+			if(parent != null && Root == this)
 				return false;
 			//Parents are the same.
 			if(this.parent == parent)
@@ -493,10 +498,14 @@ namespace Atlas.Engine.Entities
 			{
 				parentIndexChanged.Dispatch(this, index, previousIndex);
 			}
-
-			if(this.parent == null && IsDisposedWhenUnmanaged)
+			if(this.parent == null && isAutoDisposed)
 			{
-				Dispose();
+				/*
+				 * If an Entity is set as the Root, but it has a parent,
+				 * then we need to remove its parent without disposing.
+				 */
+				if(Root != this)
+					Dispose();
 			}
 			return true;
 		}
@@ -783,12 +792,15 @@ namespace Atlas.Engine.Entities
 			return false;
 		}
 
-		public void RemoveSystems()
+		public bool RemoveSystems()
 		{
+			if(systems.Count <= 0)
+				return false;
 			foreach(Type system in systems)
 			{
 				RemoveSystem(system);
 			}
+			return true;
 		}
 
 		public bool IsDisposed
@@ -808,19 +820,19 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public bool IsDisposedWhenUnmanaged
+		public bool IsAutoDisposed
 		{
 			get
 			{
-				return isDisposedWhenUnmanaged;
+				return isAutoDisposed;
 			}
 			set
 			{
-				if(isDisposedWhenUnmanaged != value)
+				if(isAutoDisposed != value)
 				{
-					isDisposedWhenUnmanaged = value;
+					isAutoDisposed = value;
 
-					if(!isDisposed && parent == null && value)
+					if(!isDisposed && parent == null && isAutoDisposed)
 					{
 						Dispose();
 					}
@@ -839,15 +851,15 @@ namespace Atlas.Engine.Entities
 
 			text += "Child " + (parent != null ? parent.GetChildIndex(this) + 1 : 1);
 			text += "\n  " + indent;
-			text += "Global Name            = " + globalName;
+			text += "Global Name   = " + globalName;
 			text += "\n  " + indent;
-			text += "Local Name             = " + localName;
+			text += "Local Name    = " + localName;
 			text += "\n  " + indent;
-			text += "Sleeping               = " + sleeping;
+			text += "Sleeping      = " + sleeping;
 			text += "\n  " + indent;
-			text += "Ignore Parent Sleeping = " + freeSleeping;
+			text += "Free-Sleeping = " + freeSleeping;
 			text += "\n  " + indent;
-			text += "Auto-Dispose           = " + isDisposedWhenUnmanaged;
+			text += "Auto-Dispose  = " + isAutoDisposed;
 
 			if(includeComponents && components.Count > 0)
 			{
@@ -860,7 +872,7 @@ namespace Atlas.Engine.Entities
 					text += "\n    " + indent;
 					text += "Component " + (++index);
 					text += "\n      " + indent;
-					text += "Type         = " + type.FullName;
+					text += "Abstraction  = " + type.FullName;
 					text += "\n      " + indent;
 					text += "Instance     = " + component.GetType().FullName;
 					text += "\n      " + indent;
@@ -868,7 +880,7 @@ namespace Atlas.Engine.Entities
 					text += "\n      " + indent;
 					text += "Shareable    = " + component.IsShareable;
 					text += "\n      " + indent;
-					text += "Auto-Dispose = " + component.IsDisposedWhenUnmanaged;
+					text += "Auto-Dispose = " + component.IsAutoDisposed;
 				}
 			}
 
@@ -882,7 +894,7 @@ namespace Atlas.Engine.Entities
 					text += "\n    " + indent;
 					text += "System " + (++index);
 					text += "\n      " + indent;
-					text += "Type					= " + type.FullName;
+					text += "Type = " + type.FullName;
 				}
 			}
 
