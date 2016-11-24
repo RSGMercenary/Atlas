@@ -1,5 +1,5 @@
 ﻿using Atlas.Engine.Engine;
-using Atlas.Signals;
+using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Systems
 {

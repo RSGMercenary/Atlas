@@ -1,8 +1,8 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Interfaces;
-using Atlas.LinkList;
-using Atlas.Signals;
+using Atlas.Engine.LinkList;
+using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Components

@@ -2,7 +2,7 @@
 using Atlas.Engine.Engine;
 using Atlas.Engine.Systems;
 using Atlas.Interfaces;
-using Atlas.Signals;
+using Atlas.Engine.Signals;
 using System;
 using System.Collections.Generic;
 

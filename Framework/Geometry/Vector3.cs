@@ -1,45 +1,17 @@
 ﻿namespace Atlas.Framework.Geometry
 {
-	class Vector3
+	class Vector3:Vector2, IVector3
 	{
-		private float x = 0;
-		private float y = 0;
 		private float z = 0;
 
-		public float X
+		public Vector3(float x = 0, float y = 0, float z = 0) : base(x, y)
 		{
-			get
-			{
-				return x;
-			}
-			set
-			{
-				if(float.IsNaN(value))
-					return;
-				if(x != value)
-				{
-					float previous = x;
-					x = value;
-				}
-			}
+			Z = z;
 		}
 
-		public float Y
+		override public string ToString()
 		{
-			get
-			{
-				return y;
-			}
-			set
-			{
-				if(float.IsNaN(value))
-					return;
-				if(y != value)
-				{
-					float previous = y;
-					y = value;
-				}
-			}
+			return "(" + X + ", " + Y + ", " + Z + ")";
 		}
 
 		public float Z

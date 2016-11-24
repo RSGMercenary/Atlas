@@ -1,8 +1,8 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Systems;
-using Atlas.LinkList;
-using Atlas.Signals;
+using Atlas.Engine.LinkList;
+using Atlas.Engine.Signals;
 using System;
 using System.Collections.Generic;
 
