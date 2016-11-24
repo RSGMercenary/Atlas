@@ -1,6 +1,6 @@
 ﻿using Atlas.Interfaces;
 
-namespace Atlas.LinkList
+namespace Atlas.Engine.LinkList
 {
 	interface ILinkList<T>:IReadOnlyLinkList<T>, IDispose
 	{
