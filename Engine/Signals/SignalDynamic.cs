@@ -7,11 +7,11 @@
 
 		}
 
-		public void Dispatch(params object[] items)
+		public bool Dispatch(params object[] items)
 		{
 			if(DispatchStart())
 			{
-				foreach(SlotBase slot in Slots)
+				foreach(SlotBase slot in SlotsCopy)
 				{
 					try
 					{
@@ -24,7 +24,9 @@
 					}
 				}
 				DispatchStop();
+				return true;
 			}
+			return false;
 		}
 	}
 }

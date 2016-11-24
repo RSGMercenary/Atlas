@@ -6,7 +6,7 @@ namespace Atlas.Engine.Systems
 	abstract class AtlasSystem:ISystem
 	{
 		private IEngineManager engine;
-		private ISignal<ISystem, IEngineManager, IEngineManager> engineChanged = new Signal<ISystem, IEngineManager, IEngineManager>();
+		private Signal<ISystem, IEngineManager, IEngineManager> engineChanged = new Signal<ISystem, IEngineManager, IEngineManager>();
 
 		private int sleeping = 0;
 		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
@@ -139,8 +139,6 @@ namespace Atlas.Engine.Systems
 			if(IsSleeping)
 				return;
 			if(engine == null)
-				return;
-			if(!engine.IsUpdating)
 				return;
 			if(engine.CurrentSystem != this)
 				return;

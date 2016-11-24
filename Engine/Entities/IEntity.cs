@@ -1,8 +1,8 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
+using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using Atlas.Interfaces;
-using Atlas.Engine.Signals;
 using System;
 using System.Collections.Generic;
 
@@ -105,6 +105,6 @@ namespace Atlas.Engine.Entities
 		/// </summary>
 		bool IsFreeSleeping { get; }
 
-		string ToString(bool includeChildren, bool includeComponents, bool includeSystems, string indent = "");
+		string ToString(bool includeChildren = true, bool includeComponents = true, bool includeSystems = true, string indent = "");
 	}
 }

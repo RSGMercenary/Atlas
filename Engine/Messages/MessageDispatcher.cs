@@ -73,7 +73,7 @@ namespace Atlas.Messages
 				return false;
 			Signal<IMessage<TSender>> signal = signals[type];
 			signal.Remove(listener);
-			if(!signal.HasSlots)
+			if(signal.IsEmpty)
 			{
 				signal.Dispose();
 				signals.Remove(type);

@@ -1,9 +1,9 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Families;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
+using Atlas.Families;
 using System;
 using System.Collections.Generic;
 
@@ -12,15 +12,15 @@ namespace Atlas.Engine.Families
 	sealed class AtlasFamily:IFamily
 	{
 		private IEngineManager engine;
-		private ISignal<IFamily, IEngineManager, IEngineManager> engineChanged = new Signal<IFamily, IEngineManager, IEngineManager>();
+		private Signal<IFamily, IEngineManager, IEngineManager> engineChanged = new Signal<IFamily, IEngineManager, IEngineManager>();
 
 		private IFamilyType familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private HashSet<Type> componentSet = new HashSet<Type>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 
-		private ISignal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
-		private ISignal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
+		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
+		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
 		private bool isDisposed = false;
 
@@ -39,6 +39,9 @@ namespace Atlas.Engine.Families
 			if(engine != null)
 				return;
 			FamilyType = null;
+			engineChanged.Dispose();
+			entityAdded.Dispose();
+			entityRemoved.Dispose();
 		}
 
 		public IEngineManager Engine

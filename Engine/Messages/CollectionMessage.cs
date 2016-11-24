@@ -4,6 +4,7 @@
 	{
 		private TKey key;
 		private TValue value;
+		private bool added = false;
 
 		public CollectionMessage()
 		{

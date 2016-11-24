@@ -1,53 +1,95 @@
 ﻿using Atlas.Messages;
-using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalMessage<TMessage, TSender>:Signal<TMessage>, ISignalMessage<TMessage, TSender> where TMessage : Message<TSender>
+	class SignalMessage<TMessage, TSender>:Signal<TMessage>, ISignalMessage<TMessage, TSender> where TMessage : Message<TSender>, new()
 	{
 		private Stack<TMessage> messagesPooled = new Stack<TMessage>();
+		private HashSet<TMessage> messagesManaged = new HashSet<TMessage>();
+		private Queue<TMessage> messagesQueued;
+		private readonly bool isMessageQueue = false;
 
-		public SignalMessage()
+		public SignalMessage() : this(false)
 		{
 
 		}
 
-		public void Dispatch(TSender sender)
+		public SignalMessage(bool isMessageQueue = false)
 		{
-			TMessage message;
+			this.isMessageQueue = isMessageQueue;
+			if(isMessageQueue)
+				messagesQueued = new Queue<TMessage>();
+		}
+
+		public bool Dispatch(string type, TSender sender)
+		{
+			if(IsEmpty)
+				return false;
+			TMessage message = CreateMessage();
+			message.Initialize(type, sender);
+			return Dispatch(message);
+		}
+
+		override public bool Dispatch(TMessage message)
+		{
+			if(isMessageQueue && IsDispatching)
+			{
+				//We could be dispatching, but all the listeners have been removed.
+				if(!IsEmpty)
+				{
+					messagesQueued.Enqueue(message);
+					return true;
+				}
+				else
+				{
+					DisposeMessage(message);
+					return false;
+				}
+			}
+			bool success = base.Dispatch(message);
+			DisposeMessage(message);
+			if(isMessageQueue)
+			{
+				if(!success)
+				{
+					//No listeners. The queue is useless.
+					while(messagesQueued.Count > 0)
+					{
+						DisposeMessage(messagesQueued.Dequeue());
+					}
+				}
+				else if(messagesQueued.Count > 0)
+				{
+					Dispatch(messagesQueued.Dequeue());
+				}
+			}
+			return success;
+		}
+
+		protected TMessage CreateMessage()
+		{
+			TMessage message = null;
 			if(messagesPooled.Count > 0)
 			{
 				message = messagesPooled.Pop();
 			}
 			else
 			{
-				message = Activator.CreateInstance<TMessage>();
+				message = new TMessage();
 			}
-			message.Initialize("", sender);
-			Dispatch(message);
-			if(!IsDisposed)
-				messagesPooled.Push(message);
+			messagesManaged.Add(message);
+			return message;
 		}
 
-		public void Dispatch(TMessage message)
+		protected void DisposeMessage(TMessage message)
 		{
-			if(DispatchStart())
+			message.Dispose();
+			if(messagesManaged.Contains(message))
 			{
-				foreach(Slot<TMessage> slot in Slots)
-				{
-					try
-					{
-						slot.Listener.Invoke(message);
-					}
-					catch
-					{
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				message.Dispose();
-				DispatchStop();
+				messagesManaged.Remove(message);
+				if(!IsDisposed)
+					messagesPooled.Push(message);
 			}
 		}
 	}

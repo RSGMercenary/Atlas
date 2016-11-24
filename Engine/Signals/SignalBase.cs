@@ -7,9 +7,10 @@ namespace Atlas.Engine.Signals
 	class SignalBase:ISignalBase, IDispose
 	{
 		protected List<SlotBase> slots = new List<SlotBase>();
+		protected int numDispatches = 0;
+
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
-		private int numDispatches = 0;
 
 		private bool isDisposed = false;
 
@@ -20,7 +21,7 @@ namespace Atlas.Engine.Signals
 
 		/// <summary>
 		/// Cleans up the Signal by removing and disposing all listeners,
-		/// and unpooling allocated Slots.
+		/// and unpooling allocated SlotsCopy.
 		/// </summary>
 		public void Dispose()
 		{
@@ -48,14 +49,19 @@ namespace Atlas.Engine.Signals
 			}
 		}
 
-		/// <summary>
-		/// Calls Dispose only if there are no listeners.
-		/// </summary>
-		public bool HasSlots
+		public bool IsEmpty
 		{
 			get
 			{
-				return slots.Count > 0;
+				return slots.Count <= 0;
+			}
+		}
+
+		public bool IsDispatching
+		{
+			get
+			{
+				return numDispatches > 0;
 			}
 		}
 
@@ -101,7 +107,7 @@ namespace Atlas.Engine.Signals
 		}
 
 		/// <summary>
-		/// The number of Slots/listeners attached to this Signal.
+		/// The number of SlotsCopy/listeners attached to this Signal.
 		/// </summary>
 		public int NumSlots
 		{
@@ -111,11 +117,19 @@ namespace Atlas.Engine.Signals
 			}
 		}
 
+		public IReadOnlyList<ISlotBase> Slots
+		{
+			get
+			{
+				return slots;
+			}
+		}
+
 		/// <summary>
 		/// Returns a copy of the Slots being processed by this Signal in order of
 		/// how they're prioritized.
 		/// </summary>
-		public List<ISlotBase> Slots
+		public List<ISlotBase> SlotsCopy
 		{
 			get
 			{
@@ -266,7 +280,7 @@ namespace Atlas.Engine.Signals
 		}
 
 		/// <summary>
-		/// Removes all Slots/listeners.
+		/// Removes all SlotsCopy/listeners.
 		/// </summary>
 		public bool RemoveAll()
 		{

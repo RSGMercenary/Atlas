@@ -9,11 +9,11 @@ namespace Atlas.Engine.Signals
 
 		}
 
-		public void Dispatch(T1 item1)
+		virtual public bool Dispatch(T1 item1)
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot<T1> slot in Slots)
+				foreach(Slot<T1> slot in SlotsCopy)
 				{
 					try
 					{
@@ -25,9 +25,10 @@ namespace Atlas.Engine.Signals
 						Remove(slot.Listener);
 					}
 				}
-
 				DispatchStop();
+				return true;
 			}
+			return false;
 		}
 
 		public ISlot<T1> Get(Action<T1> listener)
