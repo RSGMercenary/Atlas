@@ -6,34 +6,6 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent<TBaseAbstraction>:AtlasComponent, IComponent<TBaseAbstraction> where TBaseAbstraction : IComponent
-	{
-		public AtlasComponent()
-		{
-
-		}
-
-		public AtlasComponent(bool isShareable = false) : base(isShareable)
-		{
-
-		}
-
-		public IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
-		{
-			return AddManager(entity, typeof(TAbstraction));
-		}
-
-		public IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction
-		{
-			return AddManager(entity, typeof(TAbstraction), index);
-		}
-
-		public IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
-		{
-			return RemoveManager(entity, typeof(TAbstraction));
-		}
-	}
-
 	abstract class AtlasComponent:IComponent
 	{
 		private readonly bool isShareable = false;
@@ -42,9 +14,9 @@ namespace Atlas.Engine.Components
 		private bool isAutoDisposed = true;
 		IEngineManager engine;
 
-		private ISignal<IComponent, IEngineManager, IEngineManager> engineChanged = new Signal<IComponent, IEngineManager, IEngineManager>();
-		private ISignal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
-		private ISignal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, IEngineManager, IEngineManager> engineChanged = new Signal<IComponent, IEngineManager, IEngineManager>();
+		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
 		private Signal<IComponent, bool, bool> isDisposedChanged = new Signal<IComponent, bool, bool>();
 
 		public static implicit operator bool(AtlasComponent component)
@@ -401,6 +373,34 @@ namespace Atlas.Engine.Components
 				}
 			}
 			return text;
+		}
+	}
+
+	abstract class AtlasComponent<TBaseAbstraction>:AtlasComponent, IComponent<TBaseAbstraction> where TBaseAbstraction : IComponent
+	{
+		public AtlasComponent()
+		{
+
+		}
+
+		public AtlasComponent(bool isShareable = false) : base(isShareable)
+		{
+
+		}
+
+		public IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
+		{
+			return AddManager(entity, typeof(TAbstraction));
+		}
+
+		public IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction
+		{
+			return AddManager(entity, typeof(TAbstraction), index);
+		}
+
+		public IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
+		{
+			return RemoveManager(entity, typeof(TAbstraction));
 		}
 	}
 }

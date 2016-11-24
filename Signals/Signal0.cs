@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	sealed class Signal:SignalBase, ISignal
+	class Signal:SignalBase, ISignal
 	{
 		public Signal()
 		{

@@ -2,7 +2,7 @@
 
 namespace Atlas.Signals
 {
-	sealed class Signal<T1, T2, T3>:SignalBase, ISignal<T1, T2, T3>
+	class Signal<T1, T2, T3>:SignalBase, ISignal<T1, T2, T3>
 	{
 		public Signal()
 		{

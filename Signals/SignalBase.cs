@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Atlas.Interfaces;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.Signals
 {
-	class SignalBase:ISignalBase
+	class SignalBase:ISignalBase, IDispose
 	{
 		protected List<SlotBase> slots = new List<SlotBase>();
-		private Stack<SlotBase> pooled = new Stack<SlotBase>();
-		private Stack<SlotBase> removed = new Stack<SlotBase>();
+		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
+		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 		private int numDispatches = 0;
 
 		private bool isDisposed = false;
@@ -26,7 +27,7 @@ namespace Atlas.Signals
 			if(!isDisposed)
 			{
 				IsDisposed = true;
-				pooled.Clear();
+				slotsPooled.Clear();
 				RemoveAll();
 			}
 		}
@@ -58,26 +59,6 @@ namespace Atlas.Signals
 			}
 		}
 
-		public void Dispatch(params object[] items)
-		{
-			if(DispatchStart())
-			{
-				foreach(SlotBase slot in Slots)
-				{
-					try
-					{
-						slot.Listener.DynamicInvoke(items);
-					}
-					catch
-					{
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-			}
-		}
-
 		protected bool DispatchStart()
 		{
 			if(slots.Count > 0)
@@ -93,13 +74,18 @@ namespace Atlas.Signals
 			--numDispatches;
 			if(numDispatches == 0)
 			{
-				while(removed.Count > 0)
+				while(slotsRemoved.Count > 0)
 				{
-					DisposeSlot(removed.Pop());
+					DisposeSlot(slotsRemoved.Pop());
 				}
 				return true;
 			}
 			return false;
+		}
+
+		virtual protected void DispatchesStop()
+		{
+
 		}
 
 		/// <summary>
@@ -142,7 +128,7 @@ namespace Atlas.Signals
 			slot.Signal = null;
 			slot.Dispose();
 			if(!isDisposed)
-				pooled.Push(slot);
+				slotsPooled.Push(slot);
 		}
 
 		public ISlotBase Get(Delegate listener)
@@ -196,9 +182,9 @@ namespace Atlas.Signals
 				SlotBase slot = (SlotBase)Get(listener);
 				if(slot == null)
 				{
-					if(pooled.Count > 0)
+					if(slotsPooled.Count > 0)
 					{
-						slot = pooled.Pop();
+						slot = slotsPooled.Pop();
 					}
 					else
 					{
@@ -270,7 +256,7 @@ namespace Atlas.Signals
 			slots.RemoveAt(index);
 			if(numDispatches > 0)
 			{
-				removed.Push(slot);
+				slotsRemoved.Push(slot);
 			}
 			else
 			{

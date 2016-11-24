@@ -1,8 +1,9 @@
-﻿namespace Atlas.Interfaces
+﻿using System;
+
+namespace Atlas.Interfaces
 {
-	interface IDispose
+	interface IDispose:IDisposable
 	{
-		void Dispose();
 		bool IsDisposed { get; }
 		//ISignal<T, bool, bool> IsDisposedChanged { get; }
 	}

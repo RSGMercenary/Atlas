@@ -23,21 +23,21 @@ namespace Atlas.Engine.Entities
 		private bool isDisposed = false;
 		private bool isAutoDisposed = true;
 
-		private ISignal<IEntity, IEngineManager, IEngineManager> engineChanged = new Signal<IEntity, IEngineManager, IEngineManager>();
-		private ISignal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
-		private ISignal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
-		private ISignal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
-		private ISignal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
-		private ISignal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
-		private ISignal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
-		private ISignal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
-		private ISignal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
-		private ISignal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
-		private ISignal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
-		private ISignal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
-		private ISignal<IEntity, int, int> sleepingChanged = new Signal<IEntity, int, int>();
-		private ISignal<IEntity, int, int> freeSleepingChanged = new Signal<IEntity, int, int>();
-		private ISignal<IEntity, bool, bool> isDisposedChanged = new Signal<IEntity, bool, bool>();
+		private Signal<IEntity, IEngineManager, IEngineManager> engineChanged = new Signal<IEntity, IEngineManager, IEngineManager>();
+		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
+		private Signal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
+		private Signal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
+		private Signal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
+		private Signal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
+		private Signal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
+		private Signal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>(); //Indices of children
+		private Signal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
+		private Signal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
+		private Signal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
+		private Signal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
+		private Signal<IEntity, int, int> sleepingChanged = new Signal<IEntity, int, int>();
+		private Signal<IEntity, int, int> freeSleepingChanged = new Signal<IEntity, int, int>();
+		private Signal<IEntity, bool, bool> isDisposedChanged = new Signal<IEntity, bool, bool>();
 
 		public static implicit operator bool(AtlasEntity entity)
 		{
