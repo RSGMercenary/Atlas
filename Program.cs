@@ -1,6 +1,5 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Signals;
 using Atlas.Messages;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
@@ -23,27 +22,14 @@ namespace Atlas
 		static void Main(string[] args)
 		{
 			string name = "0-0-0";
-			IEntity entity = new AtlasEntity(name, name);
-			entity.AddSystem<TestSystem>();
-			IEngineManager engine = entity.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
-
-			AtlasEntity ec = new AtlasEntity();
-			IEntity ei = ec;
-
-			SignalMessage<EntityMessage, IEntity> o = new SignalMessage<EntityMessage, IEntity>();
-			ISignalMessage<EntityMessage, IEntity> m = o;
-			m.Add(AcceptMessage);
-
-			AcceptMessage(new Message<IEntity>());
-			AcceptMessage(new EntityMessage());
-			AcceptMessage(new PropertyMessage<IEntity, int>());
-			Debug.WriteLine(m);
-			Debug.WriteLine(m);
+			IEntity root = new AtlasEntity(name, name);
+			root.AddSystem<TestSystem>();
+			IEngineManager engine = root.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
 
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{
 				string name1 = "0-" + index1 + "-0";
-				IEntity child1 = entity.AddChild(new AtlasEntity(name1, name1));
+				IEntity child1 = root.AddChild(new AtlasEntity(name1, name1));
 				child1.AddComponent<TestComponent>();
 				for(int index2 = 1; index2 <= 5; ++index2)
 				{
@@ -52,8 +38,10 @@ namespace Atlas
 				}
 			}
 
-			Debug.WriteLine(entity.ToString(true, false, false));
+			//Debug.WriteLine(entity.ToString(1, true, false));
+			Debug.WriteLine(root.ToString());
 
+			return;
 			while(true)
 			{
 				engine.Update();

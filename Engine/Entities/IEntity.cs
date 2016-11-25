@@ -105,8 +105,8 @@ namespace Atlas.Engine.Entities
 
 		ISignal<IEntity, int, int> FreeSleepingChanged { get; }
 
+		string HierarchyToString();
 
-
-		string ToString(bool addChildren = true, bool addComponents = true, bool addSystems = true, string indent = "");
+		string ToString(int depth = -1, bool addComponents = true, bool addSystems = true, bool addManagers = false, string indent = "");
 	}
 }

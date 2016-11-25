@@ -852,12 +852,24 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public override string ToString()
+		public string HierarchyToString()
 		{
-			return ToString(true, true, true);
+			if(parent != null)
+			{
+				return parent.HierarchyToString() + "/" + localName;
+			}
+			else
+			{
+				return localName;
+			}
 		}
 
-		public string ToString(bool addChildren, bool addComponents, bool addSystems, string indent = "")
+		public override string ToString()
+		{
+			return ToString(-1, true, true, false);
+		}
+
+		public string ToString(int depth, bool addComponents, bool addSystems, bool addManagers = false, string indent = "")
 		{
 			string text = indent;
 
@@ -876,30 +888,20 @@ namespace Atlas.Engine.Entities
 			if(addComponents && components.Count > 0)
 			{
 				text += "\n  " + indent;
-				text += "Components";
+				text += "Components (" + components.Count + ")";
+				text += "\n";
 				int index = 0;
 				foreach(Type type in components.Keys)
 				{
 					IComponent component = components[type];
-					text += "\n    " + indent;
-					text += "Component " + (++index);
-					text += "\n      " + indent;
-					text += "Abstraction  = " + type.FullName;
-					text += "\n      " + indent;
-					text += "Instance     = " + component.GetType().FullName;
-					text += "\n      " + indent;
-					text += "Managers     = " + component.Managers.Count;
-					text += "\n      " + indent;
-					text += "Shareable    = " + component.IsShareable;
-					text += "\n      " + indent;
-					text += "Auto Dispose = " + component.IsAutoDisposed;
+					text += component.ToString(++index, addManagers, indent + "    ");
 				}
 			}
 
 			if(addSystems && systems.Count > 0)
 			{
 				text += "\n  " + indent;
-				text += "Systems";
+				text += "Systems (" + systems.Count + ")";
 				int index = 0;
 				foreach(Type type in systems)
 				{
@@ -910,17 +912,17 @@ namespace Atlas.Engine.Entities
 				}
 			}
 
-			if(addChildren)
+			if(depth != 0)
 			{
 				if(!children.IsEmpty)
 				{
 					text += "\n  " + indent;
-					text += "Children";
+					text += "Children (" + children.Count + ")";
 					text += "\n";
 					ILinkListNode<IEntity> current = children.First;
 					while(current != null)
 					{
-						text += current.Value.ToString(addChildren, addComponents, addSystems, indent + "    ");
+						text += current.Value.ToString(depth - 1, addComponents, addSystems, addManagers, indent + "    ");
 						current = current.Next;
 					}
 				}
@@ -928,6 +930,10 @@ namespace Atlas.Engine.Entities
 				{
 					text += "\n";
 				}
+			}
+			else
+			{
+				text += "\n";
 			}
 			return text;
 		}

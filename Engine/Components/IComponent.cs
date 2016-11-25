@@ -7,14 +7,6 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent<TBaseAbstraction>:IComponent where TBaseAbstraction : IComponent
-	{
-		IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
-		IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction;
-
-		IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
-	}
-
 	interface IComponent:IReadOnlyEngine<IComponent>, IDispose, IAutoDispose
 	{
 		int GetManagerIndex(IEntity entity);
@@ -37,5 +29,15 @@ namespace Atlas.Engine.Components
 		IReadOnlyLinkList<IEntity> Managers { get; }
 
 		bool IsShareable { get; }
+
+		string ToString(int index = 0, bool AddManagers = true, string indent = "");
+	}
+
+	interface IComponent<TBaseAbstraction>:IComponent where TBaseAbstraction : IComponent
+	{
+		IEntity AddManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
+		IEntity AddManager<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction;
+
+		IEntity RemoveManager<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
 	}
 }

@@ -1,15 +1,8 @@
-﻿using Atlas.Engine.Components;
-using Atlas.Engine.Entities;
-using Atlas.Engine.LinkList;
-using Atlas.Engine.Signals;
-using Atlas.Framework.Geometry;
-using System;
-
-namespace Atlas.Framework.Components.Transform
-{
+﻿namespace Atlas.Framework.Components.Transform
+{/*
 	class Transform:AtlasComponent<ITransform>, ITransform
 	{
-		/*
+		
 		private float positionX = 0;
 		private float positionY = 0;
 		private float positionZ = 0;
@@ -21,7 +14,7 @@ namespace Atlas.Framework.Components.Transform
 		private float scaleX = 0;
 		private float scaleY = 0;
 		private float scaleZ = 0;
-		*/
+		
 
 		private IChildSpace<ITransform> global;
 		private IChildSpace<ITransform> local;
@@ -319,5 +312,5 @@ namespace Atlas.Framework.Components.Transform
 			}
 			return true;
 		}
-	}
+	}*/
 }

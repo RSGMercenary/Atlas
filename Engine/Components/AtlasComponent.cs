@@ -130,7 +130,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return (isShareable && !managers.IsEmpty) ? managers.First.Value : null;
+				return (!isShareable && !managers.IsEmpty) ? managers.First.Value : null;
 			}
 		}
 
@@ -341,34 +341,46 @@ namespace Atlas.Engine.Components
 
 		public override string ToString()
 		{
-			string text = "";
+			return ToString(0, true);
+		}
+
+		public string ToString(int index = 0, bool addManagers = true, string indent = "")
+		{
+			string text = indent;
 
 			text += "Component";
-			text += "\n  ";
-			text += "Instance     = " + GetType().FullName;
-			text += "\n  ";
+			if(index > 0)
+				text += " " + index;
+			text += "\n  " + indent;
 			text += "Shareable    = " + isShareable;
-			text += "\n  ";
+			text += "\n  " + indent;
 			text += "Disposed     = " + isDisposed;
-			text += "\n  ";
-			text += "Auto-Dispose = " + isAutoDisposed;
-
-			if(!managers.IsEmpty)
+			text += "\n  " + indent;
+			text += "Auto Dispose = " + isAutoDisposed;
+			text += "\n  " + indent;
+			text += "Instance     = " + GetType().FullName;
+			if(index > 0 && Manager != null)
 			{
-				text += "\n  ";
+				text += "\n  " + indent;
+				text += "Abstraction  = " + Manager.GetComponentType(this).FullName;
+			}
+			else if(addManagers && !managers.IsEmpty)
+			{
+				text += "\n  " + indent;
 				text += "Managers";
-				int index = 0;
-				for(ILinkListNode<IEntity> current = managers.First; current != null;)
+				index = 0;
+				ILinkListNode<IEntity> current = managers.First;
+				while(current != null)
 				{
-					IEntity entity = current.Value;
-					text += "\n    ";
+					IEntity manager = current.Value;
+					text += "\n    " + indent;
 					text += "Manager " + (++index);
-					text += "\n      ";
-					text += "Abstraction = " + entity.GetComponentType(this).FullName;
-					text += "\n      ";
-					text += "GlobalName  = " + entity.GlobalName;
-					text += "\n      ";
-					text += "LocalName   = " + entity.LocalName;
+					text += "\n      " + indent;
+					text += "Abstraction = " + manager.GetComponentType(this).FullName;
+					text += "\n      " + indent;
+					text += "GlobalName  = " + manager.GlobalName;
+					text += "\n      " + indent;
+					text += "LocalName   = " + manager.LocalName;
 					current = current.Next;
 				}
 			}
