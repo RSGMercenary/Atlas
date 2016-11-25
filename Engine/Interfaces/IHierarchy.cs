@@ -1,7 +1,7 @@
 ﻿using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 
-namespace Atlas.Interfaces
+namespace Atlas.Engine.Interfaces
 {
 	interface IHierarchy<T>
 	{

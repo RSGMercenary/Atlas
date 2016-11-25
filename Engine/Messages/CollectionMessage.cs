@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Messages
 {
-	class CollectionMessage<TSender, TKey, TValue>:Message<TSender>, IMessage<TSender, TKey, TValue>
+	class CollectionMessage<TSender, TKey, TValue>:Message<TSender, TKey, TValue>
 	{
 		private TKey key;
 		private TValue value;

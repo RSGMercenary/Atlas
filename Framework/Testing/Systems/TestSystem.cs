@@ -20,11 +20,10 @@ namespace Atlas.Testing.Systems
 			for(ILinkListNode<IEntity> current = tests.Entities.First; current != null; current = current.Next)
 			{
 				Debug.WriteLine(current.Value.GlobalName);
-				if(current.Value.GlobalName == "0-6-0")
+				if(current.Value.GlobalName == "0-3-0")
 				{
 					current.Value.RemoveComponent<TestComponent>();
 				}
-
 			}
 		}
 

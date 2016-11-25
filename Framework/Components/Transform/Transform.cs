@@ -1,8 +1,8 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
-using Atlas.Framework.Geometry;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
+using Atlas.Framework.Geometry;
 using System;
 
 namespace Atlas.Framework.Components.Transform
@@ -30,11 +30,11 @@ namespace Atlas.Framework.Components.Transform
 		private LinkList<ITransform> children = new LinkList<ITransform>();
 		bool overrideManagerHierarchy = true;
 
-		private ISignal<ITransform, ITransform, ITransform> parentChanged = new Signal<ITransform, ITransform, ITransform>();
-		private ISignal<ITransform, int, int> parentIndexChanged = new Signal<ITransform, int, int>();
-		private ISignal<ITransform, ITransform, int> childAdded = new Signal<ITransform, ITransform, int>();
-		private ISignal<ITransform, ITransform, int> childRemoved = new Signal<ITransform, ITransform, int>();
-		private ISignal<ITransform, int, int, bool> childIndicesChanged = new Signal<ITransform, int, int, bool>();
+		private Signal<ITransform, ITransform, ITransform> parentChanged = new Signal<ITransform, ITransform, ITransform>();
+		private Signal<ITransform, int, int> parentIndexChanged = new Signal<ITransform, int, int>();
+		private Signal<ITransform, ITransform, int> childAdded = new Signal<ITransform, ITransform, int>();
+		private Signal<ITransform, ITransform, int> childRemoved = new Signal<ITransform, ITransform, int>();
+		private Signal<ITransform, int, int, bool> childIndicesChanged = new Signal<ITransform, int, int, bool>();
 
 		public Transform()
 		{

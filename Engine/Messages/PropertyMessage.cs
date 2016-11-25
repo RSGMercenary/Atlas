@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Messages
 {
-	class PropertyMessage<TSender, TProperty>:Message<TSender>, IMessage<TSender, TProperty, TProperty>
+	class PropertyMessage<TSender, TProperty>:Message<TSender, TProperty, TProperty>
 	{
 		private TProperty next;
 		private TProperty previous;

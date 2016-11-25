@@ -16,14 +16,14 @@ namespace Atlas.Engine.Engine
 
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private Dictionary<string, IEntity> entityGlobalNames = new Dictionary<string, IEntity>();
-		private ISignal<IEngineManager, IEntity> entityAdded = new Signal<IEngineManager, IEntity>();
-		private ISignal<IEngineManager, IEntity> entityRemoved = new Signal<IEngineManager, IEntity>();
+		private Signal<IEngineManager, IEntity> entityAdded = new Signal<IEngineManager, IEntity>();
+		private Signal<IEngineManager, IEntity> entityRemoved = new Signal<IEngineManager, IEntity>();
 
 		private LinkList<ISystem> systems = new LinkList<ISystem>();
 		private Dictionary<Type, ISystem> systemTypes = new Dictionary<Type, ISystem>();
 		private Dictionary<Type, int> systemCounts = new Dictionary<Type, int>();
-		private ISignal<IEngineManager, Type> systemAdded = new Signal<IEngineManager, Type>();
-		private ISignal<IEngineManager, Type> systemRemoved = new Signal<IEngineManager, Type>();
+		private Signal<IEngineManager, Type> systemAdded = new Signal<IEngineManager, Type>();
+		private Signal<IEngineManager, Type> systemRemoved = new Signal<IEngineManager, Type>();
 		private Stack<ISystem> systemsRemoved = new Stack<ISystem>();
 		private ISystem currentSystem;
 
@@ -32,8 +32,8 @@ namespace Atlas.Engine.Engine
 		private Dictionary<Type, int> familyCounts = new Dictionary<Type, int>();
 		private Stack<IFamily> familiesPooled = new Stack<IFamily>();
 		private Stack<IFamily> familiesRemoved = new Stack<IFamily>();
-		private ISignal<IEngineManager, Type> familyAdded = new Signal<IEngineManager, Type>();
-		private ISignal<IEngineManager, Type> familyRemoved = new Signal<IEngineManager, Type>();
+		private Signal<IEngineManager, Type> familyAdded = new Signal<IEngineManager, Type>();
+		private Signal<IEngineManager, Type> familyRemoved = new Signal<IEngineManager, Type>();
 
 		private int sleeping = 0;
 		private Signal<IEngineManager, int, int> sleepingChanged = new Signal<IEngineManager, int, int>();

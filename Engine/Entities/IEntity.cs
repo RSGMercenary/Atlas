@@ -1,14 +1,14 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
+using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
-using Atlas.Interfaces;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleep, IDispose, IAutoDispose
+	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IDispose, IAutoDispose
 	{
 		#region Entities
 
@@ -93,6 +93,11 @@ namespace Atlas.Engine.Entities
 		#endregion
 
 		/// <summary>
+		/// Return whether this Entity.FreeSleeping > 0;
+		/// </summary>
+		bool IsFreeSleeping { get; }
+
+		/// <summary>
 		/// This Entity's free-sleeping count. If this Entity is free-sleeping,
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
@@ -100,11 +105,8 @@ namespace Atlas.Engine.Entities
 
 		ISignal<IEntity, int, int> FreeSleepingChanged { get; }
 
-		/// <summary>
-		/// Return whether this Entity.FreeSleeping > 0;
-		/// </summary>
-		bool IsFreeSleeping { get; }
 
-		string ToString(bool includeChildren = true, bool includeComponents = true, bool includeSystems = true, string indent = "");
+
+		string ToString(bool addChildren = true, bool addComponents = true, bool addSystems = true, string indent = "");
 	}
 }

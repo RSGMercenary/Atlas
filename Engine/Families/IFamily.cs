@@ -2,7 +2,7 @@
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Families;
-using Atlas.Interfaces;
+using Atlas.Engine.Interfaces;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using System;

@@ -1,10 +1,23 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
+using Atlas.Engine.Signals;
+using Atlas.Messages;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
+using System.Diagnostics;
 
 namespace Atlas
 {
+	class EntityMessage:Message<IEntity>, IEntityMessage
+	{
+
+	}
+
+	interface IEntityMessage:IMessage<IEntity>
+	{
+
+	}
+
 	class Program
 	{
 		static void Main(string[] args)
@@ -13,6 +26,19 @@ namespace Atlas
 			IEntity entity = new AtlasEntity(name, name);
 			entity.AddSystem<TestSystem>();
 			IEngineManager engine = entity.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
+
+			AtlasEntity ec = new AtlasEntity();
+			IEntity ei = ec;
+
+			SignalMessage<EntityMessage, IEntity> o = new SignalMessage<EntityMessage, IEntity>();
+			ISignalMessage<EntityMessage, IEntity> m = o;
+			m.Add(AcceptMessage);
+
+			AcceptMessage(new Message<IEntity>());
+			AcceptMessage(new EntityMessage());
+			AcceptMessage(new PropertyMessage<IEntity, int>());
+			Debug.WriteLine(m);
+			Debug.WriteLine(m);
 
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{
@@ -26,10 +52,17 @@ namespace Atlas
 				}
 			}
 
+			Debug.WriteLine(entity.ToString(true, false, false));
+
 			while(true)
 			{
 				engine.Update();
 			}
+		}
+
+		private static void AcceptMessage(IMessage<IEntity> message)
+		{
+
 		}
 	}
 }

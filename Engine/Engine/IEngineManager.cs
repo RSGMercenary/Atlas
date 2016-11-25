@@ -3,7 +3,7 @@ using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Systems;
 using Atlas.Families;
-using Atlas.Interfaces;
+using Atlas.Engine.Interfaces;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using System;

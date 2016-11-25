@@ -1,4 +1,4 @@
-﻿using Atlas.Interfaces;
+﻿using Atlas.Engine.Interfaces;
 using System;
 using System.Collections.Generic;
 
@@ -7,7 +7,7 @@ namespace Atlas.Engine.Signals
 	class SignalBase:ISignalBase, IDispose
 	{
 		protected List<SlotBase> slots = new List<SlotBase>();
-		protected int numDispatches = 0;
+		protected int dispatching = 0;
 
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
@@ -61,7 +61,7 @@ namespace Atlas.Engine.Signals
 		{
 			get
 			{
-				return numDispatches > 0;
+				return dispatching > 0;
 			}
 		}
 
@@ -69,7 +69,7 @@ namespace Atlas.Engine.Signals
 		{
 			if(slots.Count > 0)
 			{
-				++numDispatches;
+				++dispatching;
 				return true;
 			}
 			return false;
@@ -77,8 +77,8 @@ namespace Atlas.Engine.Signals
 
 		protected bool DispatchStop()
 		{
-			--numDispatches;
-			if(numDispatches == 0)
+			--dispatching;
+			if(dispatching == 0)
 			{
 				while(slotsRemoved.Count > 0)
 				{
@@ -98,11 +98,11 @@ namespace Atlas.Engine.Signals
 		/// The number of concurrent dispatches. During a dispatch, it's possible that external
 		/// code could require another dispatch on the same Signal.
 		/// </summary>
-		public int NumDispatches
+		public int Dispatching
 		{
 			get
 			{
-				return numDispatches;
+				return dispatching;
 			}
 		}
 
@@ -268,7 +268,7 @@ namespace Atlas.Engine.Signals
 				return false;
 			SlotBase slot = slots[index];
 			slots.RemoveAt(index);
-			if(numDispatches > 0)
+			if(dispatching > 0)
 			{
 				slotsRemoved.Push(slot);
 			}

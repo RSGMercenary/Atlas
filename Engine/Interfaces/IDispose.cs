@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.Interfaces
+namespace Atlas.Engine.Interfaces
 {
 	interface IDispose:IDisposable
 	{

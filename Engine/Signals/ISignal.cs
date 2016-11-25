@@ -1,4 +1,4 @@
-﻿using Atlas.Interfaces;
+﻿using Atlas.Engine.Interfaces;
 using System;
 using System.Collections.Generic;
 
@@ -6,11 +6,11 @@ namespace Atlas.Engine.Signals
 {
 	interface ISignalBase
 	{
-		int NumDispatches { get; }
-		int NumSlots { get; }
-
-		bool IsEmpty { get; }
+		int Dispatching { get; }
 		bool IsDispatching { get; }
+
+		int NumSlots { get; }
+		bool IsEmpty { get; }
 
 		IReadOnlyList<ISlotBase> Slots { get; }
 		List<ISlotBase> SlotsCopy { get; }
@@ -32,7 +32,7 @@ namespace Atlas.Engine.Signals
 
 	}
 
-	interface ISignal:ISignalBase, IDispatch
+	interface ISignal:ISignalBase
 	{
 		//new List<ISlot> SlotsCopy { get; }
 
@@ -46,7 +46,7 @@ namespace Atlas.Engine.Signals
 		bool Remove(Action listener);
 	}
 
-	interface ISignal<T1>:ISignalBase, IDispatch<T1>
+	interface ISignal<T1>:ISignalBase
 	{
 		//new List<ISlot<T1>> SlotsCopy { get; }
 
@@ -60,7 +60,7 @@ namespace Atlas.Engine.Signals
 		bool Remove(Action<T1> listener);
 	}
 
-	interface ISignal<T1, T2>:ISignalBase, IDispatch<T1, T2>
+	interface ISignal<T1, T2>:ISignalBase
 	{
 		//new List<ISlot<T1, T2>> SlotsCopy { get; }
 
@@ -74,7 +74,7 @@ namespace Atlas.Engine.Signals
 		bool Remove(Action<T1, T2> listener);
 	}
 
-	interface ISignal<T1, T2, T3>:ISignalBase, IDispatch<T1, T2, T3>
+	interface ISignal<T1, T2, T3>:ISignalBase
 	{
 		//new List<ISlot<T1, T2, T3>> SlotsCopy { get; }
 
@@ -88,7 +88,7 @@ namespace Atlas.Engine.Signals
 		bool Remove(Action<T1, T2, T3> listener);
 	}
 
-	interface ISignal<T1, T2, T3, T4>:ISignalBase, IDispatch<T1, T2, T3, T4>
+	interface ISignal<T1, T2, T3, T4>:ISignalBase
 	{
 		//new List<ISlot<T1, T2, T3, T4>> SlotsCopy { get; }
 

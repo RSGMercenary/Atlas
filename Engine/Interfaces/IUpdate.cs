@@ -1,6 +1,6 @@
 ﻿using Atlas.Engine.Signals;
 
-namespace Atlas.Interfaces
+namespace Atlas.Engine.Interfaces
 {
 	interface IUpdate<T>
 	{

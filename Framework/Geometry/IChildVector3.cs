@@ -1,4 +1,4 @@
-﻿using Atlas.Interfaces;
+﻿using Atlas.Engine.Interfaces;
 
 namespace Atlas.Framework.Geometry
 {

@@ -197,7 +197,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public Signal<ISystem, int, int> SleepingChanged
+		public ISignal<ISystem, int, int> SleepingChanged
 		{
 			get
 			{

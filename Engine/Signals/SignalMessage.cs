@@ -1,25 +1,32 @@
 ﻿using Atlas.Messages;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalMessage<TMessage, TSender>:Signal<TMessage>, ISignalMessage<TMessage, TSender> where TMessage : Message<TSender>, new()
+	class SignalMessage<TMessage, TSender>:Signal<TMessage>, ISignalMessage<TMessage, TSender> where TMessage : IMessage<TSender>
 	{
 		private Stack<TMessage> messagesPooled = new Stack<TMessage>();
 		private HashSet<TMessage> messagesManaged = new HashSet<TMessage>();
 		private Queue<TMessage> messagesQueued;
-		private readonly bool isMessageQueue = false;
 
 		public SignalMessage() : this(false)
 		{
 
 		}
 
-		public SignalMessage(bool isMessageQueue = false)
+		public SignalMessage(bool isQueue = false)
 		{
-			this.isMessageQueue = isMessageQueue;
-			if(isMessageQueue)
+			if(isQueue)
 				messagesQueued = new Queue<TMessage>();
+		}
+
+		public bool IsQueue
+		{
+			get
+			{
+				return messagesQueued != null;
+			}
 		}
 
 		public bool Dispatch(string type, TSender sender)
@@ -33,7 +40,7 @@ namespace Atlas.Engine.Signals
 
 		override public bool Dispatch(TMessage message)
 		{
-			if(isMessageQueue && IsDispatching)
+			if(IsQueue && IsDispatching)
 			{
 				//We could be dispatching, but all the listeners have been removed.
 				if(!IsEmpty)
@@ -49,9 +56,9 @@ namespace Atlas.Engine.Signals
 			}
 			bool success = base.Dispatch(message);
 			DisposeMessage(message);
-			if(isMessageQueue)
+			if(IsQueue)
 			{
-				if(!success)
+				if(IsEmpty)
 				{
 					//No listeners. The queue is useless.
 					while(messagesQueued.Count > 0)
@@ -69,14 +76,14 @@ namespace Atlas.Engine.Signals
 
 		protected TMessage CreateMessage()
 		{
-			TMessage message = null;
+			TMessage message = default(TMessage);
 			if(messagesPooled.Count > 0)
 			{
 				message = messagesPooled.Pop();
 			}
 			else
 			{
-				message = new TMessage();
+				message = Activator.CreateInstance<TMessage>();
 			}
 			messagesManaged.Add(message);
 			return message;

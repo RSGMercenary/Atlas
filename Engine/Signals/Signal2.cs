@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Atlas.Engine.Interfaces;
+using System;
 
 namespace Atlas.Engine.Signals
 {
-	class Signal<T1, T2>:SignalBase, ISignal<T1, T2>
+	class Signal<T1, T2>:SignalBase, ISignal<T1, T2>, IDispatch<T1, T2>
 	{
 		public Signal()
 		{

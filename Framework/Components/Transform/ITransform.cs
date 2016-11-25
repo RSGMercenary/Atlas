@@ -1,5 +1,5 @@
 ﻿using Atlas.Engine.Components;
-using Atlas.Interfaces;
+using Atlas.Engine.Interfaces;
 
 namespace Atlas.Framework.Components.Transform
 {

@@ -1,4 +1,4 @@
-﻿namespace Atlas.Interfaces
+﻿namespace Atlas.Engine.Interfaces
 {
 	interface IChild<T>
 	{

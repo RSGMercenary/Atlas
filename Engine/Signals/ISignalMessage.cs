@@ -1,4 +1,4 @@
-﻿using Atlas.Interfaces;
+﻿using Atlas.Engine.Interfaces;
 using Atlas.Messages;
 
 namespace Atlas.Engine.Signals
@@ -8,22 +8,22 @@ namespace Atlas.Engine.Signals
 
 	}
 
-	interface ISignalMessage<TMessage, TSender, T1>:ISignal<TMessage>, IDispatch<string, TSender, T1> where TMessage : IMessage<TSender, T1>
+	interface ISignalMessage<TMessage, TSender, T1>:ISignal<TMessage>, IDispatch<string, TSender, T1> where TMessage : IMessage<TSender, T1>, new()
 	{
 
 	}
 
-	interface ISignalMessage<TMessage, TSender, T1, T2>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2> where TMessage : IMessage<TSender, T1, T2>
+	interface ISignalMessage<TMessage, TSender, T1, T2>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2> where TMessage : IMessage<TSender, T1, T2>, new()
 	{
 
 	}
 
-	interface ISignalMessage<TMessage, TSender, T1, T2, T3>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2, T3> where TMessage : IMessage<TSender, T1, T2, T3>
+	interface ISignalMessage<TMessage, TSender, T1, T2, T3>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2, T3> where TMessage : IMessage<TSender, T1, T2, T3>, new()
 	{
 
 	}
 
-	interface ISignalMessage<TMessage, TSender, T1, T2, T3, T4>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2, T3, T4> where TMessage : IMessage<TSender, T1, T2, T3, T4>
+	interface ISignalMessage<TMessage, TSender, T1, T2, T3, T4>:ISignal<TMessage>, IDispatch<string, TSender, T1, T2, T3, T4> where TMessage : IMessage<TSender, T1, T2, T3, T4>, new()
 	{
 
 	}
