@@ -35,11 +35,12 @@ namespace Atlas
 				{
 					string name2 = "0-" + index1 + "-" + index2;
 					IEntity child2 = child1.AddChild(new AtlasEntity(name2, name2));
+					child2.AddComponent<TestComponent>();
 				}
 			}
 
 			//Debug.WriteLine(entity.ToString(1, true, false));
-			Debug.WriteLine(root.ToString());
+			Debug.WriteLine(root.ToString(-1, false, false, true));
 
 			return;
 			while(true)

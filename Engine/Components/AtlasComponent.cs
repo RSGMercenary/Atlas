@@ -3,6 +3,7 @@ using Atlas.Engine.Entities;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using System;
+using System.Text;
 
 namespace Atlas.Engine.Components
 {
@@ -344,47 +345,48 @@ namespace Atlas.Engine.Components
 			return ToString(0, true);
 		}
 
+		/*
+		virtual protected void SetToStringProperties(Queue<KeyValuePair<string, string>> properties, string indent = "")
+		{
+			properties.Enqueue(new KeyValuePair<string, string>("Instance", GetType().FullName));
+			properties.Enqueue(new KeyValuePair<string, string>("Shareable", isShareable.ToString()));
+			properties.Enqueue(new KeyValuePair<string, string>("Audio Dispose", isAutoDisposed.ToString()));
+		}
+		*/
 		public string ToString(int index = 0, bool addManagers = true, string indent = "")
 		{
-			string text = indent;
+			StringBuilder text = new StringBuilder();
 
-			text += "Component";
+			text.Append(indent + "Component");
 			if(index > 0)
-				text += " " + index;
-			text += "\n  " + indent;
-			text += "Shareable    = " + isShareable;
-			text += "\n  " + indent;
-			text += "Disposed     = " + isDisposed;
-			text += "\n  " + indent;
-			text += "Auto Dispose = " + isAutoDisposed;
-			text += "\n  " + indent;
-			text += "Instance     = " + GetType().FullName;
-			if(index > 0 && Manager != null)
+				text.Append(" " + index);
+			text.AppendLine();
+			/*Queue<KeyValuePair<string, string>> properties = new Queue<KeyValuePair<string, string>>();
+			SetToStringProperties(properties, indent + "  ");
+			while(properties.Count > 0)
 			{
-				text += "\n  " + indent;
-				text += "Abstraction  = " + Manager.GetComponentType(this).FullName;
-			}
-			else if(addManagers && !managers.IsEmpty)
+				KeyValuePair<string, string> property = properties.Dequeue();
+				text.AppendLine(indent + "  " + property.Key.PadRight(20, '.') + property.Value);
+			}*/
+			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
+			text.AppendLine(indent + "  Shareable    = " + isShareable);
+			text.AppendLine(indent + "  Auto Dispose = " + isAutoDisposed);
+			text.AppendLine(indent + "  Managers (" + managers.Count + ")");
+			if(addManagers)
 			{
-				text += "\n  " + indent;
-				text += "Managers";
 				index = 0;
 				ILinkListNode<IEntity> current = managers.First;
 				while(current != null)
 				{
 					IEntity manager = current.Value;
-					text += "\n    " + indent;
-					text += "Manager " + (++index);
-					text += "\n      " + indent;
-					text += "Abstraction = " + manager.GetComponentType(this).FullName;
-					text += "\n      " + indent;
-					text += "GlobalName  = " + manager.GlobalName;
-					text += "\n      " + indent;
-					text += "LocalName   = " + manager.LocalName;
+					text.AppendLine(indent + "    Manager " + (++index));
+					text.AppendLine(indent + "      Abstraction = " + manager.GetComponentType(this).FullName);
+					text.AppendLine(indent + "      GlobalName  = " + manager.GlobalName);
+					text.AppendLine(indent + "      Hierarchy   = " + manager.HierarchyToString());
 					current = current.Next;
 				}
 			}
-			return text;
+			return text.ToString();
 		}
 	}
 

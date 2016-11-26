@@ -5,6 +5,7 @@ using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Atlas.Engine.Entities
 {
@@ -871,71 +872,52 @@ namespace Atlas.Engine.Entities
 
 		public string ToString(int depth, bool addComponents, bool addSystems, bool addManagers = false, string indent = "")
 		{
-			string text = indent;
+			StringBuilder text = new StringBuilder();
 
-			text += "Child " + (parentIndex + 1);
-			text += "\n  " + indent;
-			text += "Global Name   = " + globalName;
-			text += "\n  " + indent;
-			text += "Local Name    = " + localName;
-			text += "\n  " + indent;
-			text += "Sleeping      = " + sleeping;
-			text += "\n  " + indent;
-			text += "Free Sleeping = " + freeSleeping;
-			text += "\n  " + indent;
-			text += "Auto Dispose  = " + isAutoDisposed;
+			text.Append(indent + "Entity");
+			if(Root == this)
+				text.Append(" (Root)");
+			else if(parentIndex > -1)
+				text.Append(" " + (parentIndex + 1));
+			text.AppendLine();
+			text.AppendLine(indent + "  Global Name   = " + globalName);
+			text.AppendLine(indent + "  Local Name    = " + localName);
+			text.AppendLine(indent + "  Sleeping      = " + sleeping);
+			text.AppendLine(indent + "  Free Sleeping = " + freeSleeping);
+			text.AppendLine(indent + "  Auto Dispose  = " + isAutoDisposed);
 
-			if(addComponents && components.Count > 0)
+			text.AppendLine(indent + "  Components (" + components.Count + ")");
+			if(addComponents)
 			{
-				text += "\n  " + indent;
-				text += "Components (" + components.Count + ")";
-				text += "\n";
 				int index = 0;
 				foreach(Type type in components.Keys)
 				{
 					IComponent component = components[type];
-					text += component.ToString(++index, addManagers, indent + "    ");
+					text.Append(component.ToString(++index, addManagers, indent + "    "));
 				}
 			}
 
-			if(addSystems && systems.Count > 0)
+			text.AppendLine(indent + "  Systems    (" + systems.Count + ")");
+			if(addSystems)
 			{
-				text += "\n  " + indent;
-				text += "Systems (" + systems.Count + ")";
 				int index = 0;
 				foreach(Type type in systems)
 				{
-					text += "\n    " + indent;
-					text += "System " + (++index);
-					text += "\n      " + indent;
-					text += "Type = " + type.FullName;
+					text.AppendLine(indent + "    System " + (++index) + " " + type.FullName);
 				}
 			}
 
+			text.AppendLine(indent + "  Children   (" + children.Count + ")");
 			if(depth != 0)
 			{
-				if(!children.IsEmpty)
+				ILinkListNode<IEntity> current = children.First;
+				while(current != null)
 				{
-					text += "\n  " + indent;
-					text += "Children (" + children.Count + ")";
-					text += "\n";
-					ILinkListNode<IEntity> current = children.First;
-					while(current != null)
-					{
-						text += current.Value.ToString(depth - 1, addComponents, addSystems, addManagers, indent + "    ");
-						current = current.Next;
-					}
-				}
-				else
-				{
-					text += "\n";
+					text.Append(current.Value.ToString(depth - 1, addComponents, addSystems, addManagers, indent + "    "));
+					current = current.Next;
 				}
 			}
-			else
-			{
-				text += "\n";
-			}
-			return text;
+			return text.ToString();
 		}
 	}
 }
