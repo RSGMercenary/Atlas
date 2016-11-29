@@ -75,7 +75,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public Signal<IComponent, bool, bool> IsDisposedChanged
+		public ISignal<IComponent, bool, bool> IsDisposedChanged
 		{
 			get
 			{

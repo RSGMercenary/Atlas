@@ -137,7 +137,7 @@
 			if(this.parent == parent)
 				return false;
 			//Can't set a parent's ancestor (this) as a child.
-			if(HasHierarchy(parent))
+			if(HasDescendant(parent))
 				return false;
 			ITransform previousParent = this.parent;
 			int previousIndex = -1;
@@ -224,7 +224,7 @@
 			return true;
 		}
 
-		public bool HasHierarchy(ITransform relative)
+		public bool HasDescendant(ITransform relative)
 		{
 			while(relative != null && relative != this)
 			{

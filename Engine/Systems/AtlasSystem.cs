@@ -65,7 +65,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public Signal<ISystem, bool, bool> IsDisposedChanged
+		public ISignal<ISystem, bool, bool> IsDisposedChanged
 		{
 			get
 			{

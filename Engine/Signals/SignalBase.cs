@@ -1,10 +1,9 @@
-﻿using Atlas.Engine.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalBase:ISignalBase, IDispose
+	class SignalBase:ISignalBase, IDisposable
 	{
 		protected List<SlotBase> slots = new List<SlotBase>();
 		protected int dispatching = 0;

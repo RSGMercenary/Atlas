@@ -1,8 +1,8 @@
-﻿using Atlas.Engine.Interfaces;
+﻿using System;
 
 namespace Atlas.Engine.LinkList
 {
-	interface ILinkList<T>:IReadOnlyLinkList<T>, IDispose
+	interface ILinkList<T>:IReadOnlyLinkList<T>, IDisposable
 	{
 		T Add(T data);
 		T Add(T data, int index);

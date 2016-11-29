@@ -3,9 +3,9 @@ using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
-using Atlas.Families;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace Atlas.Engine.Families
 {
@@ -14,15 +14,17 @@ namespace Atlas.Engine.Families
 		private IEngineManager engine;
 		private Signal<IFamily, IEngineManager, IEngineManager> engineChanged = new Signal<IFamily, IEngineManager, IEngineManager>();
 
-		private IFamilyType familyType;
+		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
-		private HashSet<Type> componentSet = new HashSet<Type>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
+		private List<Type> components = new List<Type>();
+		private HashSet<Type> componentsSet = new HashSet<Type>();
 
 		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
 		private bool isDisposed = false;
+		private Signal<IFamily, bool, bool> isDisposedChanged = new Signal<IFamily, bool, bool>();
 
 		public static implicit operator bool(AtlasFamily nodelist)
 		{
@@ -81,7 +83,7 @@ namespace Atlas.Engine.Families
 			}
 		}
 
-		public IFamilyType FamilyType
+		public Type FamilyType
 		{
 			get
 			{
@@ -91,13 +93,16 @@ namespace Atlas.Engine.Families
 			{
 				if(familyType != null)
 					return;
-				if(familyType != value)
+				if(familyType == value)
+					return;
+
+				familyType = value;
+
+				foreach(FieldInfo info in familyType.GetFields())
 				{
-					familyType = value;
-					foreach(Type type in familyType.Components)
-					{
-						componentSet.Add(type);
-					}
+					Type component = info.FieldType;
+					components.Add(component);
+					componentsSet.Add(component);
 				}
 			}
 		}
@@ -138,7 +143,7 @@ namespace Atlas.Engine.Families
 
 		public void AddEntity(IEntity entity, IComponent component, Type componentType)
 		{
-			if(componentSet.Contains(componentType))
+			if(componentsSet.Contains(componentType))
 			{
 				Add(entity);
 			}
@@ -146,7 +151,7 @@ namespace Atlas.Engine.Families
 
 		public void RemoveEntity(IEntity entity, IComponent component, Type componentType)
 		{
-			if(componentSet.Contains(componentType))
+			if(componentsSet.Contains(componentType))
 			{
 				Remove(entity);
 			}
@@ -154,37 +159,26 @@ namespace Atlas.Engine.Families
 
 		private void Add(IEntity entity)
 		{
-			if(!entitySet.Contains(entity))
+			if(entitySet.Contains(entity))
+				return;
+			foreach(Type type in components)
 			{
-				if(familyType.Components.Count > 0)
-				{
-					foreach(Type componentType in familyType.Components)
-					{
-						if(!entity.HasComponent(componentType))
-						{
-							return;
-						}
-					}
-				}
-
-				entities.Add(entity);
-				entitySet.Add(entity);
-
-				entityAdded.Dispatch(this, entity);
+				if(!entity.HasComponent(type))
+					return;
 			}
+			entities.Add(entity);
+			entitySet.Add(entity);
+			entityAdded.Dispatch(this, entity);
 		}
 
 		private void Remove(IEntity entity)
 		{
-			if(entitySet.Contains(entity))
-			{
-				entityRemoved.Dispatch(this, entity);
-
-				entitySet.Remove(entity);
-				entities.Remove(entity);
-
-				//nodesRemoved.Add(node);
-			}
+			if(!entitySet.Contains(entity))
+				return;
+			entities.Remove(entity);
+			entitySet.Remove(entity);
+			entityRemoved.Dispatch(this, entity);
+			//nodesRemoved.Add(node);
 		}
 		/*
 		public void DisposeNodes()
@@ -226,7 +220,16 @@ namespace Atlas.Engine.Families
 				{
 					bool previous = isDisposed;
 					isDisposed = value;
+					isDisposedChanged.Dispatch(this, value, previous);
 				}
+			}
+		}
+
+		public ISignal<IFamily, bool, bool> IsDisposedChanged
+		{
+			get
+			{
+				return isDisposedChanged;
 			}
 		}
 

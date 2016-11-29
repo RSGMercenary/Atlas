@@ -1,7 +1,6 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Families;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
@@ -9,9 +8,9 @@ using System;
 
 namespace Atlas.Engine.Families
 {
-	interface IFamily:IEngine<IFamily>, IDispose
+	interface IFamily:IEngine<IFamily>, IDispose<IFamily>
 	{
-		IFamilyType FamilyType { get; }
+		Type FamilyType { get; set; }
 
 		IReadOnlyLinkList<IEntity> Entities { get; }
 

@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent:IReadOnlyEngine<IComponent>, IDispose, IAutoDispose
+	interface IComponent:IReadOnlyEngine<IComponent>, IDispose<IComponent>, IAutoDispose
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);

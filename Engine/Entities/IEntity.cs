@@ -8,19 +8,19 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IDispose, IAutoDispose
+	interface IEntity:IEngine<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IDispose<IEntity>, IAutoDispose
 	{
 		#region Entities
 
 		/// <summary>
-		/// This Entity's global name. This name is unique to its Engine.
+		/// This <see cref="IEntity"/>'s global name. This name is unique to its Engine.
 		/// If this Entity is added to an Engine, and this global name already
 		/// exists, then this Entity's global name will be changed.
 		/// </summary>
 		string GlobalName { get; set; }
 
 		/// <summary>
-		/// This Entity's local name. This name is unique to its Parent.
+		/// This <see cref="IEntity"/>'s local name. This name is unique to its Parent.
 		/// If this Entity is added to a parent, and this local name already
 		/// exists, then this Entity's local name will be changed.
 		/// </summary>
@@ -32,11 +32,21 @@ namespace Atlas.Engine.Entities
 
 		bool HasChild(string localName);
 
+		/// <summary>
+		/// Returns the <see cref="IEntity"/> in the given <paramref name="hierarchy"/>, starting
+		/// with this <see cref="IEntity"/> and traversing parents and/or children until the right
+		/// <see cref="IEntity"/> is found.
+		/// <para>".." is the parent, and "/" is the name separator.</para>
+		/// </summary>
+		/// <param name="hierarchy">A hierarchy string in format of "../../name1/name2/name3".</param>
+		/// <returns></returns>
 		IEntity GetHierarchy(string hierarchy);
 
 		bool SetHierarchy(string hierarchy, int index);
 
 		IEntity GetChild(string localName);
+
+		IEntity RemoveChild(string localName);
 
 		#endregion
 
@@ -51,7 +61,10 @@ namespace Atlas.Engine.Entities
 
 		TComponent AddComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction, new();
 		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component) where TComponent : IComponent, TAbstraction;
-		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index) where TComponent : IComponent, TAbstraction;
+
+		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index)
+			where TComponent : IComponent, TAbstraction;
+
 		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
@@ -107,6 +120,7 @@ namespace Atlas.Engine.Entities
 
 		string HierarchyToString();
 
-		string ToString(int depth = -1, bool addComponents = true, bool addSystems = true, bool addManagers = false, string indent = "");
+		string ToString(int depth = -1, bool addComponents = true, bool addSystems = true, bool addManagers = false,
+			string indent = "");
 	}
 }

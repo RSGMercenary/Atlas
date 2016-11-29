@@ -13,13 +13,15 @@ namespace Atlas.Engine.Interfaces
 
 		bool SetParent(T parent, int index = int.MaxValue);
 
+		bool HasDescendant(T descendant);
+
+		bool HasAncestor(T ancestor);
+
 		bool HasChild(T child);
 
 		int GetChildIndex(T child);
 
 		bool SetChildIndex(T child, int index);
-
-		bool HasHierarchy(T relative);
 
 		T GetChild(int index);
 
