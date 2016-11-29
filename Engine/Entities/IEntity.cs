@@ -30,6 +30,9 @@ namespace Atlas.Engine.Entities
 
 		ISignal<IEntity, string, string> LocalNameChanged { get; }
 
+		IEntity AddChild();
+		IEntity AddChild(int index);
+
 		bool HasChild(string localName);
 
 		/// <summary>

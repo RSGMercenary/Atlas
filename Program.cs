@@ -29,6 +29,8 @@ namespace Atlas
 				}
 			}
 
+			root.AddChild();
+
 			IEntity test = engine.GetEntity("0-2-0");
 			Debug.WriteLine(root.HasDescendant(test));
 			Debug.WriteLine(test.HasAncestor(root));
