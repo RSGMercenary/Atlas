@@ -1,7 +1,7 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
-using Atlas.Engine.LinkList;
+using Atlas.Engine.Collections.LinkList;
 using System;
 
 namespace Atlas.Engine.Systems
@@ -58,7 +58,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		override protected void AddingEngine(IEngineManager engine)
+		override protected void AddingEngine(IEngine engine)
 		{
 			base.AddingEngine(engine);
 			family = engine.AddFamily<TFamilyType>();
@@ -78,7 +78,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		override protected void RemovingEngine(IEngineManager engine)
+		override protected void RemovingEngine(IEngine engine)
 		{
 			if(entityAdded != null)
 			{

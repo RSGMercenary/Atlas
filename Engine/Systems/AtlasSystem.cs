@@ -5,8 +5,8 @@ namespace Atlas.Engine.Systems
 {
 	abstract class AtlasSystem:ISystem
 	{
-		private IEngineManager engine;
-		private Signal<ISystem, IEngineManager, IEngineManager> engineChanged = new Signal<ISystem, IEngineManager, IEngineManager>();
+		private IEngine engine;
+		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
 
 		private int sleeping = 0;
 		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
@@ -18,7 +18,7 @@ namespace Atlas.Engine.Systems
 		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
 
 		private bool isDisposed = false;
-		private Signal<ISystem, bool, bool> isDisposedChanged = new Signal<ISystem, bool, bool>();
+		private Signal<ISystem, bool> isDisposedChanged = new Signal<ISystem, bool>();
 
 		private bool isUpdatingLock = false;
 
@@ -62,12 +62,12 @@ namespace Atlas.Engine.Systems
 				{
 					bool previous = isDisposed;
 					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value, previous);
+					isDisposedChanged.Dispatch(this, value);
 				}
 			}
 		}
 
-		public ISignal<ISystem, bool, bool> IsDisposedChanged
+		public ISignal<ISystem, bool> IsDisposedChanged
 		{
 			get
 			{
@@ -87,7 +87,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public IEngineManager Engine
+		public IEngine Engine
 		{
 			get
 			{
@@ -99,7 +99,7 @@ namespace Atlas.Engine.Systems
 				{
 					if(engine == null && value.HasSystem(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						AddingEngine(value);
 						engineChanged.Dispatch(this, value, previous);
@@ -109,7 +109,7 @@ namespace Atlas.Engine.Systems
 				{
 					if(engine != null && !engine.HasSystem(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						RemovingEngine(previous);
 						engineChanged.Dispatch(this, value, previous);
@@ -118,17 +118,17 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		protected virtual void AddingEngine(IEngineManager engine)
+		protected virtual void AddingEngine(IEngine engine)
 		{
 
 		}
 
-		protected virtual void RemovingEngine(IEngineManager engine)
+		protected virtual void RemovingEngine(IEngine engine)
 		{
 
 		}
 
-		public ISignal<ISystem, IEngineManager, IEngineManager> EngineChanged
+		public ISignal<ISystem, IEngine, IEngine> EngineChanged
 		{
 			get
 			{
@@ -175,7 +175,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public Signal<ISystem, bool> IsUpdatingChanged
+		public ISignal<ISystem, bool> IsUpdatingChanged
 		{
 			get
 			{

@@ -1,4 +1,4 @@
-﻿namespace Atlas.Engine.LinkList
+﻿namespace Atlas.Engine.Collections.LinkList
 {
 	class LinkListNode<T>:ILinkListNode<T>
 	{

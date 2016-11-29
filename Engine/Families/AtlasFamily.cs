@@ -1,7 +1,7 @@
-﻿using Atlas.Engine.Components;
+﻿using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,8 @@ namespace Atlas.Engine.Families
 {
 	sealed class AtlasFamily:IFamily
 	{
-		private IEngineManager engine;
-		private Signal<IFamily, IEngineManager, IEngineManager> engineChanged = new Signal<IFamily, IEngineManager, IEngineManager>();
+		private IEngine engine;
+		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
 
 		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
@@ -24,7 +24,7 @@ namespace Atlas.Engine.Families
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
 		private bool isDisposed = false;
-		private Signal<IFamily, bool, bool> isDisposedChanged = new Signal<IFamily, bool, bool>();
+		private Signal<IFamily, bool> isDisposedChanged = new Signal<IFamily, bool>();
 
 		public static implicit operator bool(AtlasFamily nodelist)
 		{
@@ -46,7 +46,7 @@ namespace Atlas.Engine.Families
 			entityRemoved.Dispose();
 		}
 
-		public IEngineManager Engine
+		public IEngine Engine
 		{
 			get
 			{
@@ -58,7 +58,7 @@ namespace Atlas.Engine.Families
 				{
 					if(engine == null && value.HasFamily(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -67,7 +67,7 @@ namespace Atlas.Engine.Families
 				{
 					if(engine != null && !engine.HasFamily(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -75,7 +75,7 @@ namespace Atlas.Engine.Families
 			}
 		}
 
-		public ISignal<IFamily, IEngineManager, IEngineManager> EngineChanged
+		public ISignal<IFamily, IEngine, IEngine> EngineChanged
 		{
 			get
 			{
@@ -220,12 +220,12 @@ namespace Atlas.Engine.Families
 				{
 					bool previous = isDisposed;
 					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value, previous);
+					isDisposedChanged.Dispatch(this, value);
 				}
 			}
 		}
 
-		public ISignal<IFamily, bool, bool> IsDisposedChanged
+		public ISignal<IFamily, bool> IsDisposedChanged
 		{
 			get
 			{

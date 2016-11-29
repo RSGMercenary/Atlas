@@ -6,6 +6,6 @@ namespace Atlas.Engine.Interfaces
 	interface IDispose<T>:IDisposable
 	{
 		bool IsDisposed { get; }
-		ISignal<T, bool, bool> IsDisposedChanged { get; }
+		ISignal<T, bool> IsDisposedChanged { get; }
 	}
 }

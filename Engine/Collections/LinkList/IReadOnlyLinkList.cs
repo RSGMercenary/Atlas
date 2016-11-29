@@ -1,4 +1,4 @@
-﻿namespace Atlas.Engine.LinkList
+﻿namespace Atlas.Engine.Collections.LinkList
 {
 	interface IReadOnlyLinkList<T>
 	{
@@ -8,5 +8,7 @@
 		bool Contains(T data);
 		int GetIndex(T data);
 		bool IsEmpty { get; }
+
+		T this[int i] { get; }
 	}
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.Engine.LinkList
+namespace Atlas.Engine.Collections.LinkList
 {
 	interface ILinkList<T>:IReadOnlyLinkList<T>, IDisposable
 	{
@@ -9,5 +9,7 @@ namespace Atlas.Engine.LinkList
 		T Remove(T data);
 		T Remove(int index);
 		bool SetIndex(T data, int index);
+
+		new T this[int i] { get; set; }
 	}
 }

@@ -13,7 +13,7 @@ namespace Atlas
 			string name = "0-0-0";
 			IEntity root = new AtlasEntity(name, name);
 			root.AddSystem<TestSystem>();
-			IEngineManager engine = root.AddComponent<AtlasEngineManager, IEngineManager>(AtlasEngineManager.Instance);
+			IEngine engine = root.AddComponent<AtlasEngine, IEngine>(AtlasEngine.Instance);
 
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{

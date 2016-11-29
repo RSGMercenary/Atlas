@@ -8,9 +8,17 @@ namespace Atlas.Testing.Systems
 {
 	class TestSystem:AtlasFamilySystem<TestFamily>
 	{
+		private uint updateCount = 0;
+
 		public TestSystem()
 		{
 			Initialize(EntityUpdate);
+		}
+
+		protected override void Updating()
+		{
+			Debug.WriteLine(GetType().Name + "Update " + (++updateCount));
+			base.Updating();
 		}
 
 		private void EntityUpdate(IEntity entity)

@@ -2,13 +2,13 @@
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Interfaces;
-using Atlas.Engine.LinkList;
+using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Families
 {
-	interface IFamily:IEngine<IFamily>, IDispose<IFamily>
+	interface IFamily:IEngineObject<IFamily>, IDispose<IFamily>
 	{
 		Type FamilyType { get; set; }
 

@@ -1,6 +1,6 @@
-﻿using Atlas.Engine.Components;
+﻿using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
-using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
@@ -11,7 +11,7 @@ namespace Atlas.Engine.Entities
 {
 	sealed class AtlasEntity:IEntity
 	{
-		private IEngineManager engine;
+		private IEngine engine;
 		private string globalName = new Guid().ToString("N");
 		private string localName = new Guid().ToString("N");
 		private int sleeping = 0;
@@ -21,11 +21,11 @@ namespace Atlas.Engine.Entities
 		private IEntity parent;
 		private int parentIndex = -1;
 		private LinkList<IEntity> children = new LinkList<IEntity>();
-		private Dictionary<string, IEntity> childLocalNames = new Dictionary<string, IEntity>();
+		private Dictionary<string, IEntity> childrenLocalName = new Dictionary<string, IEntity>();
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
 
-		private Signal<IEntity, IEngineManager, IEngineManager> engineChanged = new Signal<IEntity, IEngineManager, IEngineManager>();
+		private Signal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
 		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
@@ -39,7 +39,7 @@ namespace Atlas.Engine.Entities
 		private Signal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
 		private Signal<IEntity, int, int> sleepingChanged = new Signal<IEntity, int, int>();
 		private Signal<IEntity, int, int> freeSleepingChanged = new Signal<IEntity, int, int>();
-		private Signal<IEntity, bool, bool> isDisposedChanged = new Signal<IEntity, bool, bool>();
+		private Signal<IEntity, bool> isDisposedChanged = new Signal<IEntity, bool>();
 
 		public static implicit operator bool(AtlasEntity entity)
 		{
@@ -93,7 +93,7 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public ISignal<IEntity, IEngineManager, IEngineManager> EngineChanged
+		public ISignal<IEntity, IEngine, IEngine> EngineChanged
 		{
 			get { return engineChanged; }
 		}
@@ -163,12 +163,12 @@ namespace Atlas.Engine.Entities
 			get { return freeSleepingChanged; }
 		}
 
-		public ISignal<IEntity, bool, bool> IsDisposedChanged
+		public ISignal<IEntity, bool> IsDisposedChanged
 		{
 			get { return isDisposedChanged; }
 		}
 
-		public IEngineManager Engine
+		public IEngine Engine
 		{
 			get { return engine; }
 			set
@@ -177,7 +177,7 @@ namespace Atlas.Engine.Entities
 				{
 					if(engine == null && value.HasEntity(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -186,7 +186,7 @@ namespace Atlas.Engine.Entities
 				{
 					if(engine != null && !engine.HasEntity(this))
 					{
-						IEngineManager previous = engine;
+						IEngine previous = engine;
 						engine = value;
 						engineChanged.Dispatch(this, value, previous);
 					}
@@ -431,13 +431,13 @@ namespace Atlas.Engine.Entities
 				return null;
 			if(child.Parent == this)
 			{
-				if(childLocalNames.ContainsKey(child.LocalName) && childLocalNames[child.LocalName] != child)
+				if(childrenLocalName.ContainsKey(child.LocalName) && childrenLocalName[child.LocalName] != child)
 				{
 					child.LocalName = new Guid().ToString("N");
 				}
-				if(!childLocalNames.ContainsKey(child.LocalName))
+				if(!childrenLocalName.ContainsKey(child.LocalName))
 				{
-					childLocalNames.Add(child.LocalName, child);
+					childrenLocalName.Add(child.LocalName, child);
 					children.Add(child, index);
 					child.LocalNameChanged.Add(ChildLocalNameChanged, int.MinValue);
 					childAdded.Dispatch(this, child, index);
@@ -450,15 +450,16 @@ namespace Atlas.Engine.Entities
 			}
 			else
 			{
-				child.SetParent(this, index);
+				if(!child.SetParent(this, index))
+					return null;
 			}
 			return child;
 		}
 
 		private void ChildLocalNameChanged(IEntity child, string next, string previous)
 		{
-			childLocalNames.Remove(previous);
-			childLocalNames.Add(next, child);
+			childrenLocalName.Remove(previous);
+			childrenLocalName.Add(next, child);
 		}
 
 		public IEntity RemoveChild(IEntity child)
@@ -467,11 +468,11 @@ namespace Atlas.Engine.Entities
 				return null;
 			if(child.Parent != this)
 			{
-				if(!childLocalNames.ContainsKey(child.LocalName))
+				if(!childrenLocalName.ContainsKey(child.LocalName))
 					return null;
 				int index = children.GetIndex(child);
 				children.Remove(index);
-				childLocalNames.Remove(child.LocalName);
+				childrenLocalName.Remove(child.LocalName);
 				child.LocalNameChanged.Remove(ChildLocalNameChanged);
 				childRemoved.Dispatch(this, child, index);
 				childIndicesChanged.Dispatch(this, index, children.Count, true);
@@ -494,9 +495,9 @@ namespace Atlas.Engine.Entities
 
 		public IEntity RemoveChild(string localName)
 		{
-			if(!childLocalNames.ContainsKey(localName))
+			if(!childrenLocalName.ContainsKey(localName))
 				return null;
-			return RemoveChild(childLocalNames[localName]);
+			return RemoveChild(childrenLocalName[localName]);
 		}
 
 		public bool RemoveChildren()
@@ -538,8 +539,8 @@ namespace Atlas.Engine.Entities
 				IsDisposed = false;
 				index = Math.Max(0, Math.Min(index, parent.Children.Count));
 				parent.AddChild(this, index);
-				parent.ChildIndicesChanged.Add(ParentChildIndicesChanged);
-				parent.SleepingChanged.Add(ParentSleepingChanged);
+				parent.ChildIndicesChanged.Add(ParentChildIndicesChanged, int.MinValue + index);
+				parent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + index);
 				if(!IsFreeSleeping && parent.IsSleeping)
 					++sleeping;
 			}
@@ -564,7 +565,10 @@ namespace Atlas.Engine.Entities
 
 		public int ParentIndex
 		{
-			get { return parentIndex; }
+			get
+			{
+				return parentIndex;
+			}
 			set
 			{
 				if(parent != null)
@@ -592,12 +596,16 @@ namespace Atlas.Engine.Entities
 
 		private void SetParentIndex(int value)
 		{
-			if(parentIndex != value)
+			if(parentIndex == value)
+				return;
+			int previous = parentIndex;
+			parentIndex = value;
+			if(parent != null)
 			{
-				int previous = parentIndex;
-				parentIndex = value;
-				parentIndexChanged.Dispatch(this, value, previous);
+				parent.ChildIndicesChanged.Get(ParentChildIndicesChanged).Priority = int.MinValue + parentIndex;
+				parent.SleepingChanged.Get(ParentSleepingChanged).Priority = int.MinValue + parentIndex;
 			}
+			parentIndexChanged.Dispatch(this, value, previous);
 		}
 
 		public bool HasDescendant(IEntity descendant)
@@ -647,7 +655,7 @@ namespace Atlas.Engine.Entities
 
 		public IEntity GetChild(string localName)
 		{
-			return childLocalNames.ContainsKey(localName) ? childLocalNames[localName] : null;
+			return childrenLocalName.ContainsKey(localName) ? childrenLocalName[localName] : null;
 		}
 
 		public IEntity GetChild(int index)
@@ -704,17 +712,8 @@ namespace Atlas.Engine.Entities
 
 		public bool SwapChildren(int index1, int index2)
 		{
-			if(index1 < 0)
+			if(!children.Swap(index1, index2))
 				return false;
-			if(index2 < 0)
-				return false;
-			if(index1 > children.Count - 1)
-				return false;
-			if(index2 > children.Count - 1)
-				return false;
-			IEntity child1 = children[index1];
-			IEntity child2 = children[index2];
-			children.Swap(child1, child2);
 			childIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), false);
 			return true;
 		}
@@ -726,7 +725,7 @@ namespace Atlas.Engine.Entities
 
 		public IReadOnlyDictionary<string, IEntity> ChildLocalNames
 		{
-			get { return childLocalNames; }
+			get { return childrenLocalName; }
 		}
 
 		private void ParentSleepingChanged(IEntity parent, int next, int previous)
@@ -781,7 +780,7 @@ namespace Atlas.Engine.Entities
 					}
 					else if(value <= 0 && previous > 0)
 					{
-						parent.SleepingChanged.Add(ParentSleepingChanged);
+						parent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + parentIndex);
 						if(parent.IsSleeping)
 							SetSleeping(sleeping + 1);
 					}
@@ -856,21 +855,27 @@ namespace Atlas.Engine.Entities
 
 		public bool IsDisposed
 		{
-			get { return isDisposed; }
+			get
+			{
+				return isDisposed;
+			}
 			private set
 			{
 				if(isDisposed != value)
 				{
 					bool previous = isDisposed;
 					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value, previous);
+					isDisposedChanged.Dispatch(this, value);
 				}
 			}
 		}
 
 		public bool IsAutoDisposed
 		{
-			get { return isAutoDisposed; }
+			get
+			{
+				return isAutoDisposed;
+			}
 			set
 			{
 				if(isAutoDisposed != value)

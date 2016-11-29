@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Atlas.Engine.LinkList
+namespace Atlas.Engine.Collections.LinkList
 {
 	class LinkList<T>:ILinkList<T>
 	{
@@ -46,9 +46,12 @@ namespace Atlas.Engine.LinkList
 		{
 			get
 			{
-				return Get(i);
+				return GetNode(i).value;
 			}
-			//set { InnerList[i] = value; }
+			set
+			{
+				GetNode(i).value = value;
+			}
 		}
 
 		public ILinkListNode<T> First

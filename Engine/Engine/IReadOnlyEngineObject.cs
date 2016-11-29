@@ -2,13 +2,13 @@
 
 namespace Atlas.Engine.Engine
 {
-	interface IReadOnlyEngine<T>
+	interface IReadOnlyEngineObject<T>
 	{
 		/// <summary>
 		/// The Engine managing this instance.
 		/// </summary>
-		IEngineManager Engine { get; }
+		IEngine Engine { get; }
 
-		ISignal<T, IEngineManager, IEngineManager> EngineChanged { get; }
+		ISignal<T, IEngine, IEngine> EngineChanged { get; }
 	}
 }

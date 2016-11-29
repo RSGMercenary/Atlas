@@ -6,6 +6,6 @@ namespace Atlas.Engine.Interfaces
 	{
 		void Update();
 		bool IsUpdating { get; }
-		Signal<T, bool> IsUpdatingChanged { get; }
+		ISignal<T, bool> IsUpdatingChanged { get; }
 	}
 }

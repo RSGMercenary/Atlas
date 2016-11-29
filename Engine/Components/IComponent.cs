@@ -1,13 +1,13 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Interfaces;
-using Atlas.Engine.LinkList;
+using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent:IReadOnlyEngine<IComponent>, IDispose<IComponent>, IAutoDispose
+	interface IComponent:IReadOnlyEngineObject<IComponent>, IDispose<IComponent>, IAutoDispose
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);

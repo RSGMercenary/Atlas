@@ -1,6 +1,6 @@
-﻿using Atlas.Engine.Engine;
+﻿using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Engine.LinkList;
 using Atlas.Engine.Signals;
 using System;
 using System.Text;
@@ -13,12 +13,12 @@ namespace Atlas.Engine.Components
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
 		private bool isDisposed = false;
 		private bool isAutoDisposed = true;
-		IEngineManager engine;
+		IEngine engine;
 
-		private Signal<IComponent, IEngineManager, IEngineManager> engineChanged = new Signal<IComponent, IEngineManager, IEngineManager>();
+		private Signal<IComponent, IEngine, IEngine> engineChanged = new Signal<IComponent, IEngine, IEngine>();
 		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
 		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, bool, bool> isDisposedChanged = new Signal<IComponent, bool, bool>();
+		private Signal<IComponent, bool> isDisposedChanged = new Signal<IComponent, bool>();
 
 		public static implicit operator bool(AtlasComponent component)
 		{
@@ -70,12 +70,12 @@ namespace Atlas.Engine.Components
 				{
 					bool previous = isDisposed;
 					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value, previous);
+					isDisposedChanged.Dispatch(this, value);
 				}
 			}
 		}
 
-		public ISignal<IComponent, bool, bool> IsDisposedChanged
+		public ISignal<IComponent, bool> IsDisposedChanged
 		{
 			get
 			{
@@ -213,7 +213,7 @@ namespace Atlas.Engine.Components
 			return entity;
 		}
 
-		private void EntityEngineChanged(IEntity entity, IEngineManager next = null, IEngineManager previous = null)
+		private void EntityEngineChanged(IEntity entity, IEngine next = null, IEngine previous = null)
 		{
 			if(!isShareable) //One manager.
 			{
@@ -228,7 +228,7 @@ namespace Atlas.Engine.Components
 				}
 				else
 				{
-					IEngineManager engine = managers.First.Value.Engine;
+					IEngine engine = managers.First.Value.Engine;
 					if(engine == null)
 						return;
 					for(ILinkListNode<IEntity> current = managers.First.Next; current != null;)
@@ -242,7 +242,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public IEngineManager Engine
+		public IEngine Engine
 		{
 			get
 			{
@@ -252,14 +252,14 @@ namespace Atlas.Engine.Components
 			{
 				if(engine != value)
 				{
-					IEngineManager previous = engine;
+					IEngine previous = engine;
 					engine = value;
 					ChangingEngine(value, previous);
 				}
 			}
 		}
 
-		public ISignal<IComponent, IEngineManager, IEngineManager> EngineChanged
+		public ISignal<IComponent, IEngine, IEngine> EngineChanged
 		{
 			get
 			{
@@ -267,7 +267,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		protected virtual void ChangingEngine(IEngineManager current, IEngineManager previous)
+		protected virtual void ChangingEngine(IEngine current, IEngine previous)
 		{
 
 		}

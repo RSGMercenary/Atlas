@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.LinkList;
+﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Interfaces
