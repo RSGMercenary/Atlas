@@ -5,8 +5,7 @@ namespace Atlas.Engine.Interfaces
 	interface IUpdate<T>
 	{
 		void Update();
-
 		bool IsUpdating { get; }
-		Signal<T, bool, bool> IsUpdatingChanged { get; }
+		Signal<T, bool> IsUpdatingChanged { get; }
 	}
 }

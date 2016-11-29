@@ -20,11 +20,10 @@ namespace Atlas.Engine.Engine
 		IReadOnlyLinkList<ISystem> Systems { get; }
 		IReadOnlyLinkList<IFamily> Families { get; }
 
-		IEntity RequestEntity(string globalName = "", string localName = "");
-
 		bool HasEntity(string globalName);
 		bool HasEntity(IEntity entity);
 
+		IEntity GetEntity();
 		IEntity GetEntity(string globalName);
 
 		ISignal<IEngineManager, IEntity> EntityAdded { get; }
@@ -44,16 +43,16 @@ namespace Atlas.Engine.Engine
 		ISystem CurrentSystem { get; }
 
 		bool HasFamily(IFamily family);
-		bool HasFamily<TFamilyType>() where TFamilyType : class;
+		bool HasFamily<TFamilyType>();
 		bool HasFamily(Type type);
 
-		IFamily GetFamily<TFamilyType>() where TFamilyType : class;
+		IFamily GetFamily<TFamilyType>();
 		IFamily GetFamily(Type type);
 
-		IFamily AddFamily<TFamilyType>() where TFamilyType : class;
+		IFamily AddFamily<TFamilyType>();
 		IFamily AddFamily(Type type);
 
-		IFamily RemoveFamily<TFamilyType>() where TFamilyType : class;
+		IFamily RemoveFamily<TFamilyType>();
 		IFamily RemoveFamily(Type type);
 
 		ISignal<IEngineManager, Type> FamilyAdded { get; }

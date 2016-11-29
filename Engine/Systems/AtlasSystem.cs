@@ -15,10 +15,12 @@ namespace Atlas.Engine.Systems
 		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
 
 		private bool isUpdating = false;
-		private Signal<ISystem, bool, bool> isUpdatingChanged = new Signal<ISystem, bool, bool>();
+		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
 
 		private bool isDisposed = false;
 		private Signal<ISystem, bool, bool> isDisposedChanged = new Signal<ISystem, bool, bool>();
+
+		private bool isUpdatingLock = false;
 
 		public static implicit operator bool(AtlasSystem system)
 		{
@@ -142,11 +144,13 @@ namespace Atlas.Engine.Systems
 				return;
 			if(engine.CurrentSystem != this)
 				return;
-			if(!IsUpdating)
+			if(!isUpdatingLock)
 			{
+				isUpdatingLock = true;
 				IsUpdating = true;
 				Updating();
 				IsUpdating = false;
+				isUpdatingLock = false;
 			}
 		}
 
@@ -163,16 +167,15 @@ namespace Atlas.Engine.Systems
 			}
 			private set
 			{
-				if(isUpdating != value)
-				{
-					bool previous = isUpdating;
-					isUpdating = value;
-					isUpdatingChanged.Dispatch(this, value, previous);
-				}
+				if(isUpdating == value)
+					return;
+				bool previous = isUpdating;
+				isUpdating = value;
+				isUpdatingChanged.Dispatch(this, value);
 			}
 		}
 
-		public Signal<ISystem, bool, bool> IsUpdatingChanged
+		public Signal<ISystem, bool> IsUpdatingChanged
 		{
 			get
 			{
@@ -188,12 +191,11 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if(sleeping != value)
-				{
-					int previous = sleeping;
-					sleeping = value;
-					sleepingChanged.Dispatch(this, value, previous);
-				}
+				if(sleeping == value)
+					return;
+				int previous = sleeping;
+				sleeping = value;
+				sleepingChanged.Dispatch(this, value, previous);
 			}
 		}
 
@@ -221,12 +223,11 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if(priority != value)
-				{
-					int previous = priority;
-					priority = value;
-					priorityChanged.Dispatch(this, value, previous);
-				}
+				if(priority == value)
+					return;
+				int previous = priority;
+				priority = value;
+				priorityChanged.Dispatch(this, value, previous);
 			}
 		}
 

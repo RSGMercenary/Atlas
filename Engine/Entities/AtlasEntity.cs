@@ -405,6 +405,21 @@ namespace Atlas.Engine.Entities
 			return GetChild(localName) != null;
 		}
 
+		private IEntity GetEntity()
+		{
+			return engine != null ? engine.GetEntity() : new AtlasEntity();
+		}
+
+		public IEntity AddChild()
+		{
+			return AddChild(GetEntity(), children.Count);
+		}
+
+		public IEntity AddChild(int index)
+		{
+			return AddChild(GetEntity(), index);
+		}
+
 		public IEntity AddChild(IEntity child)
 		{
 			return AddChild(child, children.Count);
