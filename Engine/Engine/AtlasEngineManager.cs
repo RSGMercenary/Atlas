@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Engine
 {
-	sealed class AtlasEngineManager:AtlasComponent<AtlasEngineManager>, IEngineManager
+	sealed class AtlasEngineManager:AtlasComponent<IEngineManager>, IEngineManager
 	{
 		private static AtlasEngineManager instance;
 
