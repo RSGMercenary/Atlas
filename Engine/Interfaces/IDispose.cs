@@ -5,7 +5,7 @@ namespace Atlas.Engine.Interfaces
 {
 	interface IDispose<T>:IDisposable
 	{
-		bool IsDisposed { get; }
-		ISignal<T, bool> IsDisposedChanged { get; }
+		bool IsDisposing { get; }
+		ISignal<T> Disposed { get; }
 	}
 }

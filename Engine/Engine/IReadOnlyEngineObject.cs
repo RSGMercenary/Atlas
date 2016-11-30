@@ -1,12 +1,10 @@
-﻿using Atlas.Engine.Signals;
+﻿using Atlas.Engine.Interfaces;
+using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Engine
 {
-	interface IReadOnlyEngineObject<T>
+	interface IReadOnlyEngineObject<T>:IDispose<T>, IAutoDispose
 	{
-		/// <summary>
-		/// The Engine managing this instance.
-		/// </summary>
 		IEngine Engine { get; }
 
 		ISignal<T, IEngine, IEngine> EngineChanged { get; }

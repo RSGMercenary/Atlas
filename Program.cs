@@ -8,6 +8,8 @@ namespace Atlas
 {
 	class Program
 	{
+		int count = 0;
+
 		static void Main(string[] args)
 		{
 			string name = "0-0-0";
@@ -30,19 +32,26 @@ namespace Atlas
 			}
 
 			root.AddChild();
+			root.AddChild();
 
-			IEntity test = engine.GetEntity("0-2-0");
-			Debug.WriteLine(root.HasDescendant(test));
-			Debug.WriteLine(test.HasAncestor(root));
+			Debug.WriteLine(root.ToString());
 
-			//Debug.WriteLine(entity.ToString(1, true, false));
-			Debug.WriteLine(root.ToString(-1, false, false, true));
-
+			int count = 0;
+			bool run = true;
 			//return;
-			while(true)
+			while(run)
 			{
 				engine.Update();
+				if(++count == 100)
+				{
+					run = false;
+					engine.Dispose();
+				}
 			}
+			root.Dispose();
+			Debug.WriteLine("=== Done ===");
+			Debug.WriteLine(root.ToString());
+			Debug.WriteLine(engine.ToString());
 		}
 	}
 }

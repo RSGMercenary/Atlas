@@ -5,22 +5,18 @@ namespace Atlas.Engine.Systems
 {
 	abstract class AtlasSystem:ISystem
 	{
-		private IEngine engine;
-		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
-
-		private int sleeping = 0;
-		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
-
-		private int priority = 0;
-		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
-
+		IEngine engine;
 		private bool isUpdating = false;
+		private bool isUpdatingLocked = false;
+		private int priority = 0;
+		private int sleeping = 0;
+		private bool isDisposing = false;
+
+		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
 		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
-
-		private bool isDisposed = false;
-		private Signal<ISystem, bool> isDisposedChanged = new Signal<ISystem, bool>();
-
-		private bool isUpdatingLock = false;
+		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
+		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
+		private Signal<ISystem> disposed = new Signal<ISystem>();
 
 		public static implicit operator bool(AtlasSystem system)
 		{
@@ -34,48 +30,45 @@ namespace Atlas.Engine.Systems
 
 		public void Dispose()
 		{
-			if(engine == null)
+			if(!isDisposing)
 			{
-				IsDisposed = true;
-				Disposing();
-				engineChanged.Dispose();
-				isUpdatingChanged.Dispose();
-				priorityChanged.Dispose();
-				sleepingChanged.Dispose();
+				Engine = null;
+				if(Engine == null)
+				{
+					isDisposing = true;
+					Disposing();
+					isDisposing = false;
+				}
 			}
 		}
 
 		protected virtual void Disposing()
 		{
-
+			engineChanged.Dispose();
+			isUpdatingChanged.Dispose();
+			priorityChanged.Dispose();
+			sleepingChanged.Dispose();
+			disposed.Dispatch(this);
+			disposed.Dispose();
 		}
 
-		public bool IsDisposed
+		public ISignal<ISystem> Disposed
 		{
 			get
 			{
-				return IsDisposed;
-			}
-			private set
-			{
-				if(isDisposed != value)
-				{
-					bool previous = isDisposed;
-					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value);
-				}
+				return disposed;
 			}
 		}
 
-		public ISignal<ISystem, bool> IsDisposedChanged
+		public bool IsDisposing
 		{
 			get
 			{
-				return isDisposedChanged;
+				return isDisposing;
 			}
 		}
 
-		public bool IsDisposedWhenUnmanaged
+		public bool IsAutoDisposed
 		{
 			get
 			{
@@ -83,7 +76,7 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-
+				//Systems are always auto disposed.
 			}
 		}
 
@@ -118,6 +111,14 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
+		public ISignal<ISystem, IEngine, IEngine> EngineChanged
+		{
+			get
+			{
+				return engineChanged;
+			}
+		}
+
 		protected virtual void AddingEngine(IEngine engine)
 		{
 
@@ -128,29 +129,21 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		public ISignal<ISystem, IEngine, IEngine> EngineChanged
-		{
-			get
-			{
-				return engineChanged;
-			}
-		}
-
 		public void Update()
 		{
 			if(IsSleeping)
 				return;
-			if(engine == null)
+			if(Engine == null)
 				return;
-			if(engine.CurrentSystem != this)
+			if(Engine.CurrentSystem != this)
 				return;
-			if(!isUpdatingLock)
+			if(!isUpdatingLocked)
 			{
-				isUpdatingLock = true;
+				isUpdatingLocked = true;
 				IsUpdating = true;
 				Updating();
 				IsUpdating = false;
-				isUpdatingLock = false;
+				isUpdatingLocked = false;
 			}
 		}
 

@@ -11,7 +11,7 @@ namespace Atlas.Engine.Interfaces
 
 		IReadOnlyLinkList<T> Children { get; }
 
-		bool SetParent(T parent, int index = int.MaxValue);
+		bool SetParent(T parent = default(T), int index = int.MaxValue);
 
 		bool HasDescendant(T descendant);
 

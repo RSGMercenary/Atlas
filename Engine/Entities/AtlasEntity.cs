@@ -11,19 +11,19 @@ namespace Atlas.Engine.Entities
 {
 	sealed class AtlasEntity:IEntity
 	{
-		private IEngine engine;
-		private string globalName = new Guid().ToString("N");
-		private string localName = new Guid().ToString("N");
+		IEngine engine;
+		private string globalName = Guid.NewGuid().ToString("N");
+		private string localName = Guid.NewGuid().ToString("N");
 		private int sleeping = 0;
 		private int freeSleeping = 0;
-		private bool isDisposed = false;
-		private bool isAutoDisposed = true;
 		private IEntity parent;
 		private int parentIndex = -1;
 		private LinkList<IEntity> children = new LinkList<IEntity>();
 		private Dictionary<string, IEntity> childrenLocalName = new Dictionary<string, IEntity>();
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
+		private bool isAutoDisposed = true;
+		private bool isDisposing = false;
 
 		private Signal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
 		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
@@ -39,7 +39,7 @@ namespace Atlas.Engine.Entities
 		private Signal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
 		private Signal<IEntity, int, int> sleepingChanged = new Signal<IEntity, int, int>();
 		private Signal<IEntity, int, int> freeSleepingChanged = new Signal<IEntity, int, int>();
-		private Signal<IEntity, bool> isDisposedChanged = new Signal<IEntity, bool>();
+		private Signal<IEntity> disposed = new Signal<IEntity>();
 
 		public static implicit operator bool(AtlasEntity entity)
 		{
@@ -48,6 +48,7 @@ namespace Atlas.Engine.Entities
 
 		public AtlasEntity()
 		{
+
 		}
 
 		public AtlasEntity(string globalName = "", string localName = "")
@@ -58,44 +59,81 @@ namespace Atlas.Engine.Entities
 
 		public void Dispose()
 		{
-			if(engine != null)
+			if(!isDisposing)
 			{
-				IsAutoDisposed = true;
-				Parent = null;
+				isDisposing = true;
+				Disposing();
+				isDisposing = false;
 			}
-			else
-			{
-				IsDisposed = true;
-				RemoveChildren();
-				RemoveComponents();
-				RemoveSystems();
-				Parent = null;
-				Sleeping = 0;
-				FreeSleeping = 0;
-				IsAutoDisposed = true;
-				GlobalName = "";
-				LocalName = "";
+		}
 
-				engineChanged.Dispose();
-				globalNameChanged.Dispose();
-				localNameChanged.Dispose();
-				parentChanged.Dispose();
-				parentIndexChanged.Dispose();
-				childAdded.Dispose();
-				childRemoved.Dispose();
-				childIndicesChanged.Dispose();
-				componentAdded.Dispose();
-				componentRemoved.Dispose();
-				systemAdded.Dispose();
-				systemRemoved.Dispose();
-				sleepingChanged.Dispose();
-				freeSleepingChanged.Dispose();
+		private void Disposing()
+		{
+			RemoveChildren();
+			RemoveComponents();
+			RemoveSystems();
+			IsAutoDisposed = true;
+			Parent = null;
+			Sleeping = 0;
+			FreeSleeping = 0;
+			GlobalName = Guid.NewGuid().ToString("N");
+			LocalName = Guid.NewGuid().ToString("N");
+			engineChanged.Dispose();
+			globalNameChanged.Dispose();
+			localNameChanged.Dispose();
+			parentChanged.Dispose();
+			parentIndexChanged.Dispose();
+			childAdded.Dispose();
+			childRemoved.Dispose();
+			childIndicesChanged.Dispose();
+			componentAdded.Dispose();
+			componentRemoved.Dispose();
+			systemAdded.Dispose();
+			systemRemoved.Dispose();
+			sleepingChanged.Dispose();
+			freeSleepingChanged.Dispose();
+			disposed.Dispatch(this);
+			disposed.Dispose();
+		}
+
+		public ISignal<IEntity> Disposed
+		{
+			get
+			{
+				return disposed;
+			}
+		}
+
+		public bool IsDisposing
+		{
+			get
+			{
+				return isDisposing;
+			}
+		}
+
+		public bool IsAutoDisposed
+		{
+			get
+			{
+				return isAutoDisposed;
+			}
+			set
+			{
+				if(isAutoDisposed == value)
+					return;
+				isAutoDisposed = value;
+				if(parent == null && isAutoDisposed)
+					Dispose();
 			}
 		}
 
 		public ISignal<IEntity, IEngine, IEngine> EngineChanged
 		{
-			get { return engineChanged; }
+			get
+			{
+				return engineChanged;
+			}
 		}
 
 		public ISignal<IEntity, string, string> GlobalNameChanged
@@ -163,14 +201,12 @@ namespace Atlas.Engine.Entities
 			get { return freeSleepingChanged; }
 		}
 
-		public ISignal<IEntity, bool> IsDisposedChanged
-		{
-			get { return isDisposedChanged; }
-		}
-
 		public IEngine Engine
 		{
-			get { return engine; }
+			get
+			{
+				return engine;
+			}
 			set
 			{
 				if(value != null)
@@ -203,7 +239,7 @@ namespace Atlas.Engine.Entities
 					return;
 				if(globalName == value)
 					return;
-				if(engine != null && engine.HasEntity(value))
+				if(Engine != null && Engine.HasEntity(value))
 					return;
 				string previous = globalName;
 				globalName = value;
@@ -230,7 +266,10 @@ namespace Atlas.Engine.Entities
 
 		public IEntity Root
 		{
-			get { return engine != null ? engine.Manager : null; }
+			get
+			{
+				return Engine != null ? Engine.Manager : null;
+			}
 		}
 
 		public bool HasComponent<TAbstraction>() where TAbstraction : IComponent
@@ -407,7 +446,7 @@ namespace Atlas.Engine.Entities
 
 		private IEntity GetEntity()
 		{
-			return engine != null ? engine.GetEntity() : new AtlasEntity();
+			return Engine != null ? Engine.GetEntity() : new AtlasEntity();
 		}
 
 		public IEntity AddChild()
@@ -433,7 +472,7 @@ namespace Atlas.Engine.Entities
 			{
 				if(childrenLocalName.ContainsKey(child.LocalName) && childrenLocalName[child.LocalName] != child)
 				{
-					child.LocalName = new Guid().ToString("N");
+					child.LocalName = Guid.NewGuid().ToString("N");
 				}
 				if(!childrenLocalName.ContainsKey(child.LocalName))
 				{
@@ -536,7 +575,6 @@ namespace Atlas.Engine.Entities
 			if(parent != null)
 			{
 				this.parent = parent;
-				IsDisposed = false;
 				index = Math.Max(0, Math.Min(index, parent.Children.Count));
 				parent.AddChild(this, index);
 				parent.ChildIndicesChanged.Add(ParentChildIndicesChanged, int.MinValue + index);
@@ -853,42 +891,6 @@ namespace Atlas.Engine.Entities
 			return true;
 		}
 
-		public bool IsDisposed
-		{
-			get
-			{
-				return isDisposed;
-			}
-			private set
-			{
-				if(isDisposed != value)
-				{
-					bool previous = isDisposed;
-					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value);
-				}
-			}
-		}
-
-		public bool IsAutoDisposed
-		{
-			get
-			{
-				return isAutoDisposed;
-			}
-			set
-			{
-				if(isAutoDisposed != value)
-				{
-					isAutoDisposed = value;
-					if(!isDisposed && parent == null && isAutoDisposed)
-					{
-						Dispose();
-					}
-				}
-			}
-		}
-
 		public string HierarchyToString()
 		{
 			if(parent != null)
@@ -920,7 +922,7 @@ namespace Atlas.Engine.Entities
 			text.AppendLine(indent + "  Local Name    = " + localName);
 			text.AppendLine(indent + "  Sleeping      = " + sleeping);
 			text.AppendLine(indent + "  Free Sleeping = " + freeSleeping);
-			text.AppendLine(indent + "  Auto Dispose  = " + isAutoDisposed);
+			text.AppendLine(indent + "  Auto Dispose  = " + IsAutoDisposed);
 
 			text.AppendLine(indent + "  Components (" + components.Count + ")");
 			if(addComponents)
@@ -929,7 +931,7 @@ namespace Atlas.Engine.Entities
 				foreach(Type type in components.Keys)
 				{
 					IComponent component = components[type];
-					text.Append(component.ToString(++index, addManagers, indent + "    "));
+					text.Append(component.ToString(addManagers, ++index, indent + "    "));
 				}
 			}
 

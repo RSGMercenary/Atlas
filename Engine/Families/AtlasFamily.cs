@@ -11,20 +11,18 @@ namespace Atlas.Engine.Families
 {
 	sealed class AtlasFamily:IFamily
 	{
-		private IEngine engine;
-		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
-
+		IEngine engine;
 		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 		private List<Type> components = new List<Type>();
 		private HashSet<Type> componentsSet = new HashSet<Type>();
+		private bool isDisposing = false;
 
+		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
 		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
-
-		private bool isDisposed = false;
-		private Signal<IFamily, bool> isDisposedChanged = new Signal<IFamily, bool>();
+		private Signal<IFamily> disposed = new Signal<IFamily>();
 
 		public static implicit operator bool(AtlasFamily nodelist)
 		{
@@ -36,14 +34,50 @@ namespace Atlas.Engine.Families
 
 		}
 
+		public IReadOnlyLinkList<IEntity> Entities { get { return entities; } }
+
+		public ISignal<IFamily, IEntity> EntityAdded { get { return entityAdded; } }
+		public ISignal<IFamily, IEntity> EntityRemoved { get { return entityRemoved; } }
+
+
 		public void Dispose()
 		{
-			if(engine != null)
-				return;
-			FamilyType = null;
+			if(!isDisposing)
+			{
+				Engine = null;
+				if(Engine == null)
+				{
+					isDisposing = true;
+					Disposing();
+					isDisposing = false;
+				}
+			}
+		}
+
+		private void Disposing()
+		{
+			SetFamilyType(null);
 			engineChanged.Dispose();
 			entityAdded.Dispose();
 			entityRemoved.Dispose();
+			disposed.Dispatch(this);
+			disposed.Dispose();
+		}
+
+		public ISignal<IFamily> Disposed
+		{
+			get
+			{
+				return disposed;
+			}
+		}
+
+		public bool IsDisposing
+		{
+			get
+			{
+				return isDisposing;
+			}
 		}
 
 		public IEngine Engine
@@ -93,41 +127,25 @@ namespace Atlas.Engine.Families
 			{
 				if(familyType != null)
 					return;
-				if(familyType == value)
-					return;
+				SetFamilyType(value);
+			}
+		}
 
-				familyType = value;
-
+		private void SetFamilyType(Type value)
+		{
+			if(familyType == value)
+				return;
+			familyType = value;
+			components.Clear();
+			componentsSet.Clear();
+			if(familyType != null)
+			{
 				foreach(FieldInfo info in familyType.GetFields())
 				{
 					Type component = info.FieldType;
 					components.Add(component);
 					componentsSet.Add(component);
 				}
-			}
-		}
-
-		public IReadOnlyLinkList<IEntity> Entities
-		{
-			get
-			{
-				return entities;
-			}
-		}
-
-		public ISignal<IFamily, IEntity> EntityAdded
-		{
-			get
-			{
-				return entityAdded;
-			}
-		}
-
-		public ISignal<IFamily, IEntity> EntityRemoved
-		{
-			get
-			{
-				return entityRemoved;
 			}
 		}
 
@@ -208,32 +226,7 @@ namespace Atlas.Engine.Families
 			nodesPooled.Add(node);
 		}*/
 
-		public bool IsDisposed
-		{
-			get
-			{
-				return isDisposed;
-			}
-			private set
-			{
-				if(isDisposed != value)
-				{
-					bool previous = isDisposed;
-					isDisposed = value;
-					isDisposedChanged.Dispatch(this, value);
-				}
-			}
-		}
-
-		public ISignal<IFamily, bool> IsDisposedChanged
-		{
-			get
-			{
-				return isDisposedChanged;
-			}
-		}
-
-		public bool IsDisposedWhenUnmanaged
+		public bool IsAutoDisposed
 		{
 			get
 			{
@@ -241,7 +234,7 @@ namespace Atlas.Engine.Families
 			}
 			set
 			{
-
+				//Families are always auto disposed.
 			}
 		}
 	}

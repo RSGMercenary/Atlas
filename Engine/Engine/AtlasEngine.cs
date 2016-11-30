@@ -29,11 +29,11 @@ namespace Atlas.Engine.Engine
 		private FixedStack<IEntity> entityPool = new FixedStack<IEntity>(AtlasEngineDefaults.DefaultEntityPoolCapacity);
 		private FixedStack<IFamily> familyPool = new FixedStack<IFamily>(AtlasEngineDefaults.DefaultFamilyPoolCapacity);
 
-		private Dictionary<Type, int> familyCounts = new Dictionary<Type, int>();
-		private Dictionary<Type, int> systemCounts = new Dictionary<Type, int>();
+		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
+		private Dictionary<Type, int> systemsCount = new Dictionary<Type, int>();
 
-		private Stack<IFamily> familiesRemoved = new Stack<IFamily>();
-		private Stack<ISystem> systemsRemoved = new Stack<ISystem>();
+		private List<IFamily> familiesRemoved = new List<IFamily>();
+		private List<ISystem> systemsRemoved = new List<ISystem>();
 
 		private ISystem currentSystem;
 		private int sleeping = 0;
@@ -135,7 +135,7 @@ namespace Atlas.Engine.Engine
 					return null;
 				}
 			}
-			entity.IsDisposedChanged.Add(EntityDisposed, int.MinValue);
+			entity.Disposed.Add(EntityDisposed, int.MinValue);
 			return entity;
 		}
 
@@ -158,7 +158,7 @@ namespace Atlas.Engine.Engine
 		{
 			if(entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] != entity)
 			{
-				entity.GlobalName = new Guid().ToString("N");
+				entity.GlobalName = Guid.NewGuid().ToString("N");
 			}
 			if(!entitiesGlobalName.ContainsKey(entity.GlobalName))
 			{
@@ -204,8 +204,6 @@ namespace Atlas.Engine.Engine
 				current = current.Next;
 			}
 
-			entityRemoved.Dispatch(this, entity);
-
 			entitiesGlobalName.Remove(entity.GlobalName);
 			entities.Remove(entity);
 
@@ -229,6 +227,8 @@ namespace Atlas.Engine.Engine
 			}
 
 			entity.Engine = null;
+
+			entityRemoved.Dispatch(this, entity);
 		}
 
 		private void EntityChildAdded(IEntity parent, IEntity child, int index)
@@ -249,14 +249,11 @@ namespace Atlas.Engine.Engine
 			entitiesGlobalName.Add(next, entity);
 		}
 
-		private void EntityDisposed(IEntity entity, bool isDisposed)
+		private void EntityDisposed(IEntity entity)
 		{
-			if(isDisposed)
-			{
-				entity.IsDisposedChanged.Remove(EntityDisposed);
-				if(defaultEntity.IsInstanceOfType(entity))
-					entityPool.Push(entity);
-			}
+			entity.Disposed.Remove(EntityDisposed);
+			if(defaultEntity.IsInstanceOfType(entity))
+				entityPool.Push(entity);
 		}
 
 		#endregion
@@ -277,8 +274,9 @@ namespace Atlas.Engine.Engine
 					Debug.WriteLine(e);
 					return;
 				}
+
 				systemsType.Add(type, system);
-				systemCounts.Add(type, 1);
+				systemsCount.Add(type, 1);
 				system.PriorityChanged.Add(SystemPriorityChanged);
 				SystemPriorityChanged(system, system.Priority, 0);
 
@@ -288,7 +286,10 @@ namespace Atlas.Engine.Engine
 			}
 			else
 			{
-				++systemCounts[type];
+				//System was marked for removal, but was requested again during update.
+				if(systemsCount[type] == 0)
+					systemsRemoved.Remove(systemsType[type]);
+				++systemsCount[type];
 			}
 		}
 
@@ -297,24 +298,20 @@ namespace Atlas.Engine.Engine
 			if(!systemsType.ContainsKey(type))
 				return;
 
-			if(--systemCounts[type] <= 0)
+			if(systemsCount[type] > 0)
 			{
-				ISystem system = systemsType[type];
-				systemRemoved.Dispatch(this, type);
-
-				system.PriorityChanged.Remove(SystemPriorityChanged);
-
-				systemsType.Remove(type);
-				systemCounts.Remove(type);
-				systems.Remove(system);
-
-				if(isUpdating)
+				if(--systemsCount[type] == 0)
 				{
-					systemsRemoved.Push(system);
-				}
-				else
-				{
-					system.Dispose();
+					ISystem system = systemsType[type];
+
+					if(isUpdating)
+					{
+						systemsRemoved.Add(system);
+					}
+					else
+					{
+						DisposeSystem(system);
+					}
 				}
 			}
 		}
@@ -323,13 +320,17 @@ namespace Atlas.Engine.Engine
 		{
 			systems.Remove(system);
 
-			for(int index = systems.Count; index > 0; --index)
+			int index = systems.Count;
+			ILinkListNode<ISystem> compare = systems.Last;
+			while(index > 0)
 			{
-				if(systems[index - 1].Priority <= current)
+				if(compare.Value.Priority <= current)
 				{
 					systems.Add(system, index);
 					return;
 				}
+				compare = compare.Previous;
+				--index;
 			}
 
 			systems.Add(system, 0);
@@ -410,8 +411,21 @@ namespace Atlas.Engine.Engine
 		{
 			while(systemsRemoved.Count > 0)
 			{
-				systemsRemoved.Pop().Dispose();
+				ISystem system = systemsRemoved[0];
+				systemsRemoved.RemoveAt(0);
+				DisposeSystem(system);
 			}
+		}
+
+		private void DisposeSystem(ISystem system)
+		{
+			Type type = system.GetType();
+			system.PriorityChanged.Remove(SystemPriorityChanged);
+			systems.Remove(system);
+			systemsType.Remove(type);
+			systemsCount.Remove(type);
+			systemRemoved.Dispatch(this, type);
+			system.Dispose();
 		}
 
 		public ISystem CurrentSystem
@@ -539,7 +553,7 @@ namespace Atlas.Engine.Engine
 
 				families.Add(family);
 				familiesType.Add(type, family);
-				familyCounts.Add(type, 1);
+				familiesCount.Add(type, 1);
 				family.FamilyType = type;
 				family.Engine = this;
 
@@ -550,14 +564,15 @@ namespace Atlas.Engine.Engine
 					current = current.Next;
 				}
 
-				++familyCounts[type];
-
 				familyAdded.Dispatch(this, type);
 			}
 			else
 			{
 				family = familiesType[type];
-				++familyCounts[type];
+				//Family was marked for removal, but was requested again during update.
+				if(familiesCount[type] == 0)
+					familiesRemoved.Remove(family);
+				++familiesCount[type];
 			}
 			return family;
 		}
@@ -574,21 +589,18 @@ namespace Atlas.Engine.Engine
 
 			IFamily family = familiesType[type];
 
-			if(--familyCounts[type] == 0)
+			if(familiesCount[type] > 0)
 			{
-				familyRemoved.Dispatch(this, type);
-				familiesType.Remove(type);
-				familyCounts.Remove(type);
-
-				family.Engine = null;
-
-				if(isUpdating)
+				if(--familiesCount[type] == 0)
 				{
-					familiesRemoved.Push(family);
-				}
-				else
-				{
-					DisposeFamily(family);
+					if(isUpdating)
+					{
+						familiesRemoved.Add(family);
+					}
+					else
+					{
+						DisposeFamily(family);
+					}
 				}
 			}
 
@@ -599,12 +611,19 @@ namespace Atlas.Engine.Engine
 		{
 			while(familiesRemoved.Count > 0)
 			{
-				DisposeFamily(familiesRemoved.Pop());
+				IFamily family = familiesRemoved[0];
+				familiesRemoved.RemoveAt(0);
+				DisposeFamily(family);
 			}
 		}
 
 		private void DisposeFamily(IFamily family)
 		{
+			Type type = family.FamilyType;
+			families.Remove(family);
+			familiesType.Remove(type);
+			familiesCount.Remove(type);
+			familyRemoved.Dispatch(this, type);
 			family.Dispose();
 			if(defaultFamily.IsInstanceOfType(family))
 				familyPool.Push(family);

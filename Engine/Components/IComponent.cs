@@ -1,13 +1,12 @@
-﻿using Atlas.Engine.Engine;
+﻿using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Interfaces;
-using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent:IReadOnlyEngineObject<IComponent>, IDispose<IComponent>, IAutoDispose
+	interface IComponent:IReadOnlyEngineObject<IComponent>
 	{
 		int GetManagerIndex(IEntity entity);
 		bool SetManagerIndex(IEntity entity, int index);
@@ -30,7 +29,7 @@ namespace Atlas.Engine.Components
 
 		bool IsShareable { get; }
 
-		string ToString(int index = 0, bool AddManagers = true, string indent = "");
+		string ToString(bool AddManagers = true, int index = 0, string indent = "");
 	}
 
 	interface IComponent<TBaseAbstraction>:IComponent where TBaseAbstraction : IComponent
