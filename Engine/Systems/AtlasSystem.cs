@@ -11,6 +11,7 @@ namespace Atlas.Engine.Systems
 		private int priority = 0;
 		private int sleeping = 0;
 		private bool isDisposing = false;
+		private bool isDisposed = false;
 
 		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
 		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
@@ -224,7 +225,7 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public Signal<ISystem, int, int> PriorityChanged
+		public ISignal<ISystem, int, int> PriorityChanged
 		{
 			get
 			{

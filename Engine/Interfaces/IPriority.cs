@@ -6,6 +6,6 @@ namespace Atlas.Engine.Interfaces
 	{
 		int Priority { get; set; }
 
-		Signal<T, int, int> PriorityChanged { get; }
+		ISignal<T, int, int> PriorityChanged { get; }
 	}
 }
