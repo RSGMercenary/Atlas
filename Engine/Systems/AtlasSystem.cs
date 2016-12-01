@@ -130,25 +130,48 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		public void Update()
+		public void FixedUpdate(double deltaTime)
 		{
 			if(IsSleeping)
 				return;
-			if(Engine == null)
+			if(engine == null)
 				return;
-			if(Engine.CurrentSystem != this)
+			if(engine.CurrentFixedUpdateSystem != this)
 				return;
 			if(!isUpdatingLocked)
 			{
 				isUpdatingLocked = true;
 				IsUpdating = true;
-				Updating();
+				FixedUpdating(deltaTime);
 				IsUpdating = false;
 				isUpdatingLocked = false;
 			}
 		}
 
-		protected virtual void Updating()
+		protected virtual void FixedUpdating(double deltaTime)
+		{
+
+		}
+
+		public void Update(double deltaTime)
+		{
+			if(IsSleeping)
+				return;
+			if(engine == null)
+				return;
+			if(engine.CurrentUpdateSystem != this)
+				return;
+			if(!isUpdatingLocked)
+			{
+				isUpdatingLocked = true;
+				IsUpdating = true;
+				Updating(deltaTime);
+				IsUpdating = false;
+				isUpdatingLocked = false;
+			}
+		}
+
+		protected virtual void Updating(double deltaTime)
 		{
 
 		}

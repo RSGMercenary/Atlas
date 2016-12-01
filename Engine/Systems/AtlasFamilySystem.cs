@@ -1,7 +1,6 @@
 ﻿using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
-using Atlas.Engine.Collections.LinkList;
 using System;
 
 namespace Atlas.Engine.Systems
@@ -9,21 +8,33 @@ namespace Atlas.Engine.Systems
 	abstract class AtlasFamilySystem<TFamilyType>:AtlasSystem
 	{
 		private IFamily family;
-		private Action<IEntity> entityUpdate;
+		private Action<double, IEntity> entityUpdate;
 		private Action<IFamily, IEntity> entityAdded;
 		private Action<IFamily, IEntity> entityRemoved;
-		bool isInitialized = false;
+		private bool updateEntitiesSleeping = false;
+		private bool isInitialized = false;
 
 		public AtlasFamilySystem()
 		{
 
 		}
 
-		protected void Initialize(Action<IEntity> entityUpdate = null, Action<IFamily, IEntity> entityAdded = null, Action<IFamily, IEntity> entityRemoved = null)
+		protected void Initialize(Action<double, IEntity> entityUpdate, bool updateEntitiesSleeping = false)
+		{
+			Initialize(entityUpdate, updateEntitiesSleeping, null, null);
+		}
+
+		protected void Initialize(Action<IFamily, IEntity> entityAdded = null, Action<IFamily, IEntity> entityRemoved = null)
+		{
+			Initialize(null, false, entityAdded, entityRemoved);
+		}
+
+		protected void Initialize(Action<double, IEntity> entityUpdate, bool updateEntitiesSleeping, Action<IFamily, IEntity> entityAdded, Action<IFamily, IEntity> entityRemoved)
 		{
 			if(isInitialized)
 				return;
 			isInitialized = true;
+			this.updateEntitiesSleeping = updateEntitiesSleeping;
 			this.entityUpdate = entityUpdate;
 			this.entityAdded = entityAdded;
 			this.entityRemoved = entityRemoved;
@@ -38,23 +49,43 @@ namespace Atlas.Engine.Systems
 			base.Disposing();
 		}
 
-		override protected void Updating()
-		{
-			if(entityUpdate == null)
-				return;
-			ILinkListNode<IEntity> current = family.Entities.First;
-			while(current != null)
-			{
-				entityUpdate(current.Value);
-				current = current.Next;
-			}
-		}
-
 		public IFamily Family
 		{
 			get
 			{
 				return family;
+			}
+		}
+
+		public Action<double, IEntity> EntityUpdate
+		{
+			get
+			{
+				return entityUpdate;
+			}
+		}
+
+		public Action<IFamily, IEntity> EntityAdded
+		{
+			get
+			{
+				return entityAdded;
+			}
+		}
+
+		public Action<IFamily, IEntity> EntityRemoved
+		{
+			get
+			{
+				return entityRemoved;
+			}
+		}
+
+		public bool UpdateEntitiesSleeping
+		{
+			get
+			{
+				return updateEntitiesSleeping;
 			}
 		}
 
@@ -65,11 +96,9 @@ namespace Atlas.Engine.Systems
 			if(entityAdded != null)
 			{
 				family.EntityAdded.Add(entityAdded);
-				ILinkListNode<IEntity> current = family.Entities.First;
-				while(current != null)
+				for(var current = family.Entities.First; current != null; current = current.Next)
 				{
 					entityAdded(family, current.Value);
-					current = current.Next;
 				}
 			}
 			if(entityRemoved != null)
@@ -87,11 +116,9 @@ namespace Atlas.Engine.Systems
 			if(entityRemoved != null)
 			{
 				family.EntityRemoved.Remove(entityRemoved);
-				ILinkListNode<IEntity> current = family.Entities.First;
-				while(current != null)
+				for(var current = family.Entities.First; current != null; current = current.Next)
 				{
 					entityRemoved(family, current.Value);
-					current = current.Next;
 				}
 			}
 			engine.RemoveFamily<TFamilyType>();

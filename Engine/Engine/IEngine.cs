@@ -42,7 +42,8 @@ namespace Atlas.Engine.Engine
 		ISignal<IEngine, Type> SystemAdded { get; }
 		ISignal<IEngine, Type> SystemRemoved { get; }
 
-		ISystem CurrentSystem { get; }
+		ISystem CurrentUpdateSystem { get; }
+		ISystem CurrentFixedUpdateSystem { get; }
 
 		bool HasFamily(IFamily family);
 		bool HasFamily<TFamilyType>();
@@ -59,5 +60,20 @@ namespace Atlas.Engine.Engine
 
 		ISignal<IEngine, Type> FamilyAdded { get; }
 		ISignal<IEngine, Type> FamilyRemoved { get; }
+
+		/// <summary>
+		/// The delta time since the last <see cref="ISystem.Update"/> loop was started.
+		/// </summary>
+		double DeltaUpdateTime { get; }
+
+		double TotalUpdateTime { get; }
+
+		double DeltaFixedUpdateTime { get; set; }
+
+		double TotalFixedUpdateTime { get; }
+
+		double DeltaEngineTime { get; }
+
+		double TotalEngineTime { get; }
 	}
 }

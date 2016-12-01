@@ -948,11 +948,9 @@ namespace Atlas.Engine.Entities
 			text.AppendLine(indent + "  Children   (" + children.Count + ")");
 			if(depth != 0)
 			{
-				ILinkListNode<IEntity> current = children.First;
-				while(current != null)
+				for(var current = children.First; current != null; current = current.Next)
 				{
 					text.Append(current.Value.ToString(depth - 1, addComponents, addSystems, addManagers, indent + "    "));
-					current = current.Next;
 				}
 			}
 			return text.ToString();

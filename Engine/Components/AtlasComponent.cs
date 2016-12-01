@@ -282,11 +282,10 @@ namespace Atlas.Engine.Components
 					IEngine engine = managers.First.Value.Engine;
 					if(engine == null)
 						return;
-					for(ILinkListNode<IEntity> current = managers.First.Next; current != null;)
+					for(var current = managers.First.Next; current != null; current = current.Next)
 					{
 						if(current.Value.Engine != engine)
 							return;
-						current = current.Next;
 					}
 					Engine = engine; //Same engines.
 				}
@@ -359,15 +358,13 @@ namespace Atlas.Engine.Components
 			if(addManagers)
 			{
 				index = 0;
-				ILinkListNode<IEntity> current = managers.First;
-				while(current != null)
+				for(var current = managers.First; current != null; current = current.Next)
 				{
 					IEntity manager = current.Value;
 					text.AppendLine(indent + "    Manager " + (++index));
 					text.AppendLine(indent + "      Abstraction = " + manager.GetComponentType(this).FullName);
 					text.AppendLine(indent + "      GlobalName  = " + manager.GlobalName);
 					text.AppendLine(indent + "      Hierarchy   = " + manager.HierarchyToString());
-					current = current.Next;
 				}
 			}
 			return text.ToString();

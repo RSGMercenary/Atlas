@@ -35,9 +35,21 @@ namespace Atlas.Engine.Engine
 		private List<IFamily> familiesRemoved = new List<IFamily>();
 		private List<ISystem> systemsRemoved = new List<ISystem>();
 
-		private ISystem currentSystem;
-		private int sleeping = 0;
+
+		private Stopwatch timer = new Stopwatch();
+		private int sleeping = 1;
 		private bool isUpdating = false;
+
+		private double deltaUpdateTime = 0;
+		private double totalUpdateTime = 0;
+		private ISystem currentUpdateSystem;
+
+		private double deltaFixedUpdateTime = 1 / 60;
+		private double totalFixedUpdateTime = 0;
+		private ISystem currentFixedUpdateSystem;
+
+		private double deltaEngineTime = 0;
+		private double totalEngineTime = 0;
 
 		private Signal<IEngine, IEntity> entityAdded = new Signal<IEngine, IEntity>();
 		private Signal<IEngine, IEntity> entityRemoved = new Signal<IEngine, IEntity>();
@@ -47,12 +59,6 @@ namespace Atlas.Engine.Engine
 		private Signal<IEngine, Type> systemRemoved = new Signal<IEngine, Type>();
 		private Signal<IEngine, int, int> sleepingChanged = new Signal<IEngine, int, int>();
 		private Signal<IEngine, bool> isUpdatingChanged = new Signal<IEngine, bool>();
-
-		//private int _frameRate = 60;
-		//private int _maxUpdates = 5;
-		//private double _timeTotal = 0; //TO-DO :: Not sure if this should be float, double, or...
-		//private double _timeElapsedMax = 1;
-		//private double _timePrevious;
 
 		private AtlasEngine()
 		{
@@ -91,12 +97,14 @@ namespace Atlas.Engine.Engine
 			AddEntity(entity);
 			entity.ParentChanged.Remove(EntityParentChanged);
 			entity.Parent = null;
+			--Sleeping;
 		}
 
 		override protected void RemovingManager(IEntity entity, int index)
 		{
 			RemoveEntity(entity);
 			base.RemovingManager(entity, index);
+			++Sleeping;
 		}
 
 		#region Entities
@@ -180,28 +188,25 @@ namespace Atlas.Engine.Engine
 					EntitySystemAdded(entity, type);
 				}
 
-				for(ILinkListNode<IFamily> current = families.First; current != null;)
+				for(var current = families.First; current != null; current = current.Next)
 				{
 					current.Value.AddEntity(entity);
-					current = current.Next;
 				}
 
 				entityAdded.Dispatch(this, entity);
 
-				for(ILinkListNode<IEntity> current = entity.Children.First; current != null;)
+				for(var current = entity.Children.First; current != null; current = current.Next)
 				{
 					AddEntity(current.Value);
-					current = current.Next;
 				}
 			}
 		}
 
 		private void RemoveEntity(IEntity entity)
 		{
-			for(ILinkListNode<IEntity> current = entity.Children.First; current != null;)
+			for(var current = entity.Children.First; current != null; current = current.Next)
 			{
 				RemoveEntity(current.Value);
-				current = current.Next;
 			}
 
 			entitiesGlobalName.Remove(entity.GlobalName);
@@ -220,10 +225,9 @@ namespace Atlas.Engine.Engine
 				EntitySystemRemoved(entity, type);
 			}
 
-			for(ILinkListNode<IFamily> current = families.First; current != null;)
+			for(var current = families.First; current != null; current = current.Next)
 			{
 				current.Value.RemoveEntity(entity);
-				current = current.Next;
 			}
 
 			entity.Engine = null;
@@ -259,6 +263,130 @@ namespace Atlas.Engine.Engine
 		#endregion
 
 		#region Systems
+
+		public double DeltaUpdateTime
+		{
+			get
+			{
+				return deltaUpdateTime;
+			}
+			private set
+			{
+				if(deltaUpdateTime == value)
+					return;
+				deltaUpdateTime = value;
+			}
+		}
+
+		public double TotalUpdateTime
+		{
+			get
+			{
+				return totalUpdateTime;
+			}
+			private set
+			{
+				if(totalUpdateTime == value)
+					return;
+				totalUpdateTime = value;
+			}
+		}
+
+		public double DeltaFixedUpdateTime
+		{
+			get
+			{
+				return deltaFixedUpdateTime;
+			}
+			set
+			{
+				deltaFixedUpdateTime = value;
+			}
+		}
+
+		public double TotalFixedUpdateTime
+		{
+			get
+			{
+				return totalFixedUpdateTime;
+			}
+			private set
+			{
+				if(totalFixedUpdateTime == value)
+					return;
+				totalFixedUpdateTime = value;
+			}
+		}
+		public double DeltaEngineTime
+		{
+			get
+			{
+				return deltaEngineTime;
+			}
+			private set
+			{
+				if(deltaEngineTime == value)
+					return;
+				deltaEngineTime = value;
+			}
+		}
+		public double TotalEngineTime
+		{
+			get
+			{
+				return totalEngineTime;
+			}
+			private set
+			{
+				if(totalEngineTime == value)
+					return;
+				totalEngineTime = value;
+			}
+		}
+
+
+		public bool IsUpdating
+		{
+			get
+			{
+				return isUpdating;
+			}
+			private set
+			{
+				if(isUpdating == value)
+					return;
+				isUpdating = value;
+				isUpdatingChanged.Dispatch(this, value);
+			}
+		}
+
+		public ISystem CurrentFixedUpdateSystem
+		{
+			get
+			{
+				return currentFixedUpdateSystem;
+			}
+			private set
+			{
+				if(currentFixedUpdateSystem == value)
+					return;
+				currentFixedUpdateSystem = value;
+			}
+		}
+
+		public ISystem CurrentUpdateSystem
+		{
+			get
+			{
+				return currentUpdateSystem;
+			}
+			private set
+			{
+				if(currentUpdateSystem == value)
+					return;
+				currentUpdateSystem = value;
+			}
+		}
 
 		private void EntitySystemAdded(IEntity entity, Type type)
 		{
@@ -304,7 +432,7 @@ namespace Atlas.Engine.Engine
 				{
 					ISystem system = systemsType[type];
 
-					if(isUpdating)
+					if(IsUpdating)
 					{
 						systemsRemoved.Add(system);
 					}
@@ -316,20 +444,18 @@ namespace Atlas.Engine.Engine
 			}
 		}
 
-		private void SystemPriorityChanged(ISystem system, int current, int previous)
+		private void SystemPriorityChanged(ISystem system, int next, int previous)
 		{
 			systems.Remove(system);
 
 			int index = systems.Count;
-			ILinkListNode<ISystem> compare = systems.Last;
-			while(index > 0)
+			for(var current = systems.Last; current != null; current = current.Previous)
 			{
-				if(compare.Value.Priority <= current)
+				if(current.Value.Priority <= next)
 				{
 					systems.Add(system, index);
 					return;
 				}
-				compare = compare.Previous;
 				--index;
 			}
 
@@ -366,45 +492,44 @@ namespace Atlas.Engine.Engine
 			return systems[index];
 		}
 
-		public bool IsUpdating
-		{
-			get
-			{
-				return isUpdating;
-			}
-			private set
-			{
-				if(isUpdating == value)
-					return;
-				bool previous = isUpdating;
-				isUpdating = value;
-				isUpdatingChanged.Dispatch(this, value);
-			}
-		}
-
 		public void Update()
 		{
 			if(IsSleeping)
 				return;
 
-			if(!IsUpdating)
+			IsUpdating = true;
+
+			DeltaEngineTime = timer.Elapsed.TotalSeconds - totalEngineTime;
+
+			if(totalFixedUpdateTime < timer.Elapsed.TotalSeconds)
 			{
-				IsUpdating = true;
-
-				ILinkListNode<ISystem> current = systems.First;
-				while(current != null)
+				while(totalFixedUpdateTime < timer.Elapsed.TotalSeconds)
 				{
-					currentSystem = current.Value;
-					current.Value.Update();
-					current = current.Next;
-					currentSystem = null;
+					for(var current = systems.First; current != null; current = current.Next)
+					{
+						CurrentFixedUpdateSystem = current.Value;
+						current.Value.FixedUpdate(deltaFixedUpdateTime);
+						CurrentFixedUpdateSystem = null;
+					}
+					TotalFixedUpdateTime += deltaFixedUpdateTime;
 				}
-
-				IsUpdating = false;
-
-				DisposeSystems();
-				DisposeFamilies();
 			}
+
+			DeltaUpdateTime = timer.Elapsed.TotalSeconds - totalUpdateTime;
+			for(var current = systems.First; current != null; current = current.Next)
+			{
+				CurrentUpdateSystem = current.Value;
+				current.Value.Update(deltaUpdateTime);
+				CurrentUpdateSystem = null;
+			}
+			TotalUpdateTime = timer.Elapsed.TotalSeconds;
+
+			DisposeSystems();
+			DisposeFamilies();
+
+			TotalEngineTime = timer.Elapsed.TotalSeconds;
+
+			IsUpdating = false;
 		}
 
 		private void DisposeSystems()
@@ -426,14 +551,6 @@ namespace Atlas.Engine.Engine
 			systemsCount.Remove(type);
 			systemRemoved.Dispatch(this, type);
 			system.Dispose();
-		}
-
-		public ISystem CurrentSystem
-		{
-			get
-			{
-				return currentSystem;
-			}
 		}
 
 		public bool IsSleeping
@@ -459,35 +576,6 @@ namespace Atlas.Engine.Engine
 				sleepingChanged.Dispatch(this, value, previous);
 			}
 		}
-
-		/*private function onEnterFrame(event:Event):Void
-		{
-			var timeCurrent:Float 	= getTimer();
-			var timeElapsed:Float 	= (timeCurrent - this._timePrevious) / 1000;
-			this._timePrevious 		= timeCurrent;
-
-			if(timeElapsed > this._timeElapsedMax)
-			{
-				timeElapsed = this._timeElapsedMax;
-			}
-
-			this._timeTotal += timeElapsed;
-
-			var frameTime:Float = 1 / this._frameRate;
-			var numUpdates:UInt = Math.floor(this._timeTotal / frameTime);
-
-			this._timeTotal -= numUpdates * frameTime;
-
-			if(numUpdates > this._maxUpdates)
-			{
-				numUpdates = this._maxUpdates;
-			}
-
-			for(index in 0...numUpdates - 1)
-			{
-				this.update(frameTime);
-			}
-		}*/
 
 		#endregion
 
@@ -557,11 +645,9 @@ namespace Atlas.Engine.Engine
 				family.FamilyType = type;
 				family.Engine = this;
 
-				ILinkListNode<IEntity> current = entities.First;
-				while(current != null)
+				for(var current = entities.First; current != null; current = current.Next)
 				{
 					family.AddEntity(current.Value);
-					current = current.Next;
 				}
 
 				familyAdded.Dispatch(this, type);
@@ -593,7 +679,7 @@ namespace Atlas.Engine.Engine
 			{
 				if(--familiesCount[type] == 0)
 				{
-					if(isUpdating)
+					if(IsUpdating)
 					{
 						familiesRemoved.Add(family);
 					}
@@ -641,21 +727,17 @@ namespace Atlas.Engine.Engine
 
 		private void EntityComponentAdded(IEntity entity, IComponent component, Type componentType)
 		{
-			ILinkListNode<IFamily> current = families.First;
-			while(current != null)
+			for(var current = families.First; current != null; current = current.Next)
 			{
 				current.Value.AddEntity(entity, component, componentType);
-				current = current.Next;
 			}
 		}
 
 		private void EntityComponentRemoved(IEntity entity, IComponent component, Type componentType)
 		{
-			ILinkListNode<IFamily> current = families.First;
-			while(current != null)
+			for(var current = families.First; current != null; current = current.Next)
 			{
 				current.Value.RemoveEntity(entity, component, componentType);
-				current = current.Next;
 			}
 		}
 

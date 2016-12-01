@@ -6,22 +6,22 @@ using System.Diagnostics;
 
 namespace Atlas.Testing.Systems
 {
-	class TestSystem:AtlasFamilySystem<TestFamily>
+	class TestSystem:AtlasFamilyUpdateSystem<TestFamily>
 	{
 		private uint updateCount = 0;
 
 		public TestSystem()
 		{
-			Initialize(EntityUpdate);
+			Initialize(UpdateEntity);
 		}
 
-		protected override void Updating()
+		protected override void Updating(double deltaTime)
 		{
-			Debug.WriteLine(GetType().Name + "Update " + (++updateCount));
-			base.Updating();
+			Debug.WriteLine(GetType().Name + " Update " + (++updateCount));
+			base.Updating(deltaTime);
 		}
 
-		private void EntityUpdate(IEntity entity)
+		private void UpdateEntity(double deltaTime, IEntity entity)
 		{
 			Debug.WriteLine(entity.GlobalName);
 			if(entity.GlobalName == "0-3-0")
