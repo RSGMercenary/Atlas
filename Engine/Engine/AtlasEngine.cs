@@ -35,16 +35,16 @@ namespace Atlas.Engine.Engine
 		private List<IFamily> familiesRemoved = new List<IFamily>();
 		private List<ISystem> systemsRemoved = new List<ISystem>();
 
-
 		private Stopwatch timer = new Stopwatch();
 		private int sleeping = 1;
 		private bool isUpdating = false;
+		private bool isRunning = false;
 
 		private double deltaUpdateTime = 0;
 		private double totalUpdateTime = 0;
 		private ISystem currentUpdateSystem;
 
-		private double deltaFixedUpdateTime = 1 / 60;
+		private double deltaFixedUpdateTime = (double)1 / 60;
 		private double totalFixedUpdateTime = 0;
 		private ISystem currentFixedUpdateSystem;
 
@@ -65,12 +65,18 @@ namespace Atlas.Engine.Engine
 
 		}
 
+		private AtlasEngine(bool instanceWithEntity)
+		{
+			if(instanceWithEntity)
+				AddManager(GetEntity(false));
+		}
+
 		public static AtlasEngine Instance
 		{
 			get
 			{
 				if(instance == null)
-					instance = new AtlasEngine();
+					instance = new AtlasEngine(AtlasEngineDefaults.InstanceWithEntity);
 				return instance;
 			}
 		}
@@ -124,7 +130,7 @@ namespace Atlas.Engine.Engine
 			}
 		}
 
-		public IEntity GetEntity()
+		public IEntity GetEntity(bool managed = true, string globalName = "", string localName = "")
 		{
 			IEntity entity;
 			if(entityPool.Count > 0)
@@ -143,7 +149,12 @@ namespace Atlas.Engine.Engine
 					return null;
 				}
 			}
-			entity.Disposed.Add(EntityDisposed, int.MinValue);
+			if(managed)
+			{
+				entity.Disposed.Add(EntityDisposed, int.MinValue);
+			}
+			entity.GlobalName = globalName;
+			entity.LocalName = localName;
 			return entity;
 		}
 
@@ -492,30 +503,46 @@ namespace Atlas.Engine.Engine
 			return systems[index];
 		}
 
-		public void Update()
+		public void Run()
+		{
+			if(!IsRunning && !Managers.IsEmpty)
+			{
+				IsRunning = true;
+				while(!Managers.IsEmpty)
+				{
+					Debug.WriteLine(Debugger.IsAttached);
+					Update();
+				}
+				IsRunning = false;
+			}
+		}
+
+		private void Update()
 		{
 			if(IsSleeping)
 				return;
 
 			IsUpdating = true;
 
-			DeltaEngineTime = timer.Elapsed.TotalSeconds - totalEngineTime;
+			timer.Start();
 
-			if(totalFixedUpdateTime < timer.Elapsed.TotalSeconds)
+			DeltaEngineTime = timer.Elapsed.TotalSeconds - TotalEngineTime;
+
+			//DeltaFixedUpdateTime can be changed, but we probably shouldn't change it during an update loop.
+			double deltaFixedUpdateTime = this.deltaFixedUpdateTime;
+			while(TotalFixedUpdateTime < timer.Elapsed.TotalSeconds)
 			{
-				while(totalFixedUpdateTime < timer.Elapsed.TotalSeconds)
+				for(var current = systems.First; current != null; current = current.Next)
 				{
-					for(var current = systems.First; current != null; current = current.Next)
-					{
-						CurrentFixedUpdateSystem = current.Value;
-						current.Value.FixedUpdate(deltaFixedUpdateTime);
-						CurrentFixedUpdateSystem = null;
-					}
-					TotalFixedUpdateTime += deltaFixedUpdateTime;
+					CurrentFixedUpdateSystem = current.Value;
+					current.Value.FixedUpdate(deltaFixedUpdateTime);
+					CurrentFixedUpdateSystem = null;
 				}
+				TotalFixedUpdateTime += deltaFixedUpdateTime;
 			}
 
 			DeltaUpdateTime = timer.Elapsed.TotalSeconds - totalUpdateTime;
+			Debug.WriteLine(DeltaUpdateTime);
 			for(var current = systems.First; current != null; current = current.Next)
 			{
 				CurrentUpdateSystem = current.Value;
@@ -528,6 +555,9 @@ namespace Atlas.Engine.Engine
 			DisposeFamilies();
 
 			TotalEngineTime = timer.Elapsed.TotalSeconds;
+
+			if(IsSleeping)
+				timer.Stop();
 
 			IsUpdating = false;
 		}
@@ -551,6 +581,33 @@ namespace Atlas.Engine.Engine
 			systemsCount.Remove(type);
 			systemRemoved.Dispatch(this, type);
 			system.Dispose();
+		}
+
+		public bool IsRunning
+		{
+			get
+			{
+				return isRunning;
+			}
+			private set
+			{
+				if(isRunning == value)
+					return;
+				isRunning = value;
+				if(isRunning)
+				{
+					timer.Start();
+				}
+				else
+				{
+					timer.Reset();
+					DeltaUpdateTime = 0;
+					TotalUpdateTime = 0;
+					TotalFixedUpdateTime = 0;
+					DeltaEngineTime = 0;
+					TotalEngineTime = 0;
+				}
+			}
 		}
 
 		public bool IsSleeping

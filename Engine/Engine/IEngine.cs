@@ -10,7 +10,7 @@ using System;
 
 namespace Atlas.Engine.Engine
 {
-	interface IEngine:IComponent, IUpdate<IEngine>, ISleep<IEngine>
+	interface IEngine:IComponent, ISleep<IEngine>
 	{
 		Type DefaultEntity { get; set; }
 		Type DefaultFamily { get; set; }
@@ -25,7 +25,7 @@ namespace Atlas.Engine.Engine
 		bool HasEntity(string globalName);
 		bool HasEntity(IEntity entity);
 
-		IEntity GetEntity();
+		IEntity GetEntity(bool managed = true, string globalName = "", string localName = "");
 		IEntity GetEntity(string globalName);
 
 		ISignal<IEngine, IEntity> EntityAdded { get; }
@@ -66,6 +66,9 @@ namespace Atlas.Engine.Engine
 		/// </summary>
 		double DeltaUpdateTime { get; }
 
+		/// <summary>
+		/// The total time spent running <see cref="ISystem.Update"/> loops was started.
+		/// </summary>
 		double TotalUpdateTime { get; }
 
 		double DeltaFixedUpdateTime { get; set; }
@@ -75,5 +78,11 @@ namespace Atlas.Engine.Engine
 		double DeltaEngineTime { get; }
 
 		double TotalEngineTime { get; }
+
+		void Run();
+		bool IsRunning { get; }
+
+		bool IsUpdating { get; }
+		ISignal<IEngine, bool> IsUpdatingChanged { get; }
 	}
 }

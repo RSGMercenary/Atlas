@@ -36,18 +36,9 @@ namespace Atlas
 
 			Debug.WriteLine(root.ToString());
 
-			int count = 0;
-			bool run = true;
-			//return;
-			while(run)
-			{
-				engine.Update();
-				if(++count == 100)
-				{
-					run = false;
-					engine.Dispose();
-				}
-			}
+			engine.Run();
+
+			//Will never get here now. Run is infinite.
 			root.Dispose();
 			Debug.WriteLine("=== Done ===");
 			Debug.WriteLine(root.ToString());

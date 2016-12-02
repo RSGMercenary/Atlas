@@ -11,7 +11,7 @@ namespace Atlas.Engine.Entities
 {
 	sealed class AtlasEntity:IEntity
 	{
-		IEngine engine;
+		private IEngine engine;
 		private string globalName = Guid.NewGuid().ToString("N");
 		private string localName = Guid.NewGuid().ToString("N");
 		private int sleeping = 0;
@@ -323,8 +323,7 @@ namespace Atlas.Engine.Entities
 		}
 
 		//Component with Type
-		public TComponent AddComponent<TComponent, TAbstraction>(TComponent component)
-			where TComponent : IComponent, TAbstraction
+		public TComponent AddComponent<TComponent, TAbstraction>(TComponent component) where TComponent : IComponent, TAbstraction
 		{
 			return (TComponent)AddComponent(component, typeof(TAbstraction), int.MaxValue);
 		}
@@ -444,19 +443,19 @@ namespace Atlas.Engine.Entities
 			return GetChild(localName) != null;
 		}
 
-		private IEntity GetEntity()
+		private IEntity GetEntity(string globalName, string localName)
 		{
-			return Engine != null ? Engine.GetEntity() : new AtlasEntity();
+			return Engine != null ? Engine.GetEntity(true, globalName, localName) : new AtlasEntity();
 		}
 
-		public IEntity AddChild()
+		public IEntity AddChild(string globalName = "", string localName = "")
 		{
-			return AddChild(GetEntity(), children.Count);
+			return AddChild(GetEntity(globalName, localName), children.Count);
 		}
 
-		public IEntity AddChild(int index)
+		public IEntity AddChild(int index, string globalName = "", string localName = "")
 		{
-			return AddChild(GetEntity(), index);
+			return AddChild(GetEntity(globalName, localName), index);
 		}
 
 		public IEntity AddChild(IEntity child)

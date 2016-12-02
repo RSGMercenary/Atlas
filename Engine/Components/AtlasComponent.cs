@@ -9,7 +9,7 @@ namespace Atlas.Engine.Components
 {
 	abstract class AtlasComponent:IComponent
 	{
-		IEngine engine;
+		private IEngine engine;
 		private readonly bool isShareable = false;
 		private bool isAutoDisposed = true;
 		private bool isDisposing = false;
