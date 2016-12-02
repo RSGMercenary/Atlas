@@ -8,7 +8,7 @@ namespace Atlas.Testing.Systems
 {
 	class TestSystem:AtlasFamilyUpdateSystem<TestFamily>
 	{
-		private uint updateCount = 0;
+		private float updateCount = 0;
 
 		public TestSystem()
 		{
@@ -17,13 +17,14 @@ namespace Atlas.Testing.Systems
 
 		protected override void Updating(double deltaTime)
 		{
-			Debug.WriteLine(GetType().Name + " Update " + (++updateCount));
+			updateCount = (float)deltaTime;
+			Debug.WriteLine(GetType().Name + " Update " + (updateCount));
 			base.Updating(deltaTime);
 		}
 
 		private void UpdateEntity(double deltaTime, IEntity entity)
 		{
-			Debug.WriteLine(entity.GlobalName);
+			//Debug.WriteLine(entity.GlobalName);
 			if(entity.GlobalName == "0-3-0")
 			{
 				entity.RemoveComponent<TestComponent>();

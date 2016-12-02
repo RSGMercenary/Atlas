@@ -1,5 +1,4 @@
-﻿using Atlas.Engine.Engine;
-using Atlas.Engine.Interfaces;
+﻿using Atlas.Engine.Interfaces;
 
 namespace Atlas.Engine.Systems
 {

@@ -1,20 +1,14 @@
 ﻿using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Collections.LinkList;
-using Atlas.Engine.Components;
-using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
-using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 
-namespace Atlas.Engine.Engine
+namespace Atlas.Engine.Entities
 {
-	interface IEngine:IComponent, ISleep<IEngine>
+	interface IEngine:IEntity
 	{
-		Type DefaultEntity { get; set; }
-		Type DefaultFamily { get; set; }
-
 		FixedStack<IEntity> EntityPool { get; }
 		FixedStack<IFamily> FamilyPool { get; }
 

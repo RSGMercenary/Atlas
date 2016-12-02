@@ -1,4 +1,6 @@
-﻿namespace Atlas.Engine.Engine
+﻿using Atlas.Engine.Entities;
+
+namespace Atlas.Engine.Interfaces
 {
 	interface IEngineObject<T>:IReadOnlyEngineObject<T>
 	{

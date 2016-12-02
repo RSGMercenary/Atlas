@@ -31,7 +31,7 @@ namespace Atlas.Engine.Signals
 
 		public bool Dispatch(string type, TSender sender)
 		{
-			if(IsEmpty)
+			if(!HasListeners)
 				return false;
 			TMessage message = CreateMessage();
 			message.Initialize(type, sender);
@@ -43,7 +43,7 @@ namespace Atlas.Engine.Signals
 			if(IsQueue && IsDispatching)
 			{
 				//We could be dispatching, but all the listeners have been removed.
-				if(!IsEmpty)
+				if(HasListeners)
 				{
 					messagesQueued.Enqueue(message);
 					return true;
@@ -58,7 +58,7 @@ namespace Atlas.Engine.Signals
 			DisposeMessage(message);
 			if(IsQueue)
 			{
-				if(IsEmpty)
+				if(!HasListeners)
 				{
 					//No listeners. The queue is useless.
 					while(messagesQueued.Count > 0)

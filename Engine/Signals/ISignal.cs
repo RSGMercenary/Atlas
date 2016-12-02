@@ -10,7 +10,7 @@ namespace Atlas.Engine.Signals
 		bool IsDispatching { get; }
 
 		int NumSlots { get; }
-		bool IsEmpty { get; }
+		bool HasListeners { get; }
 
 		IReadOnlyList<ISlotBase> Slots { get; }
 		List<ISlotBase> SlotsCopy { get; }

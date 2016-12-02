@@ -3,8 +3,8 @@ using Atlas.Engine.Interfaces;
 
 namespace Atlas.Framework.Components.Transform
 {
-	interface ITransform:IComponent<ITransform>, IHierarchy<ITransform>
+	interface ITransform2D:IComponent<ITransform2D>, IHierarchy<ITransform2D, ITransform2D>
 	{
-		bool OverrideManagerHierarchy { get; set; }
+		bool OverrideEntityHierarchy { get; set; }
 	}
 }

@@ -1,22 +1,19 @@
 ﻿using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
-using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 
-namespace Atlas.Engine.Engine
+namespace Atlas.Engine.Entities
 {
-	sealed class AtlasEngine:AtlasComponent<IEngine>, IEngine
+	sealed class AtlasEngine:AtlasEntity, IEngine
 	{
 		private static AtlasEngine instance;
-
-		private Type defaultEntity = AtlasEngineDefaults.DefaultEntity;
-		private Type defaultFamily = AtlasEngineDefaults.DefaultFamily;
 
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private LinkList<IFamily> families = new LinkList<IFamily>();
@@ -26,8 +23,8 @@ namespace Atlas.Engine.Engine
 		private Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
 		private Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
-		private FixedStack<IEntity> entityPool = new FixedStack<IEntity>(AtlasEngineDefaults.DefaultEntityPoolCapacity);
-		private FixedStack<IFamily> familyPool = new FixedStack<IFamily>(AtlasEngineDefaults.DefaultFamilyPoolCapacity);
+		private FixedStack<IEntity> entityPool = new FixedStack<IEntity>();
+		private FixedStack<IFamily> familyPool = new FixedStack<IFamily>();
 
 		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
 		private Dictionary<Type, int> systemsCount = new Dictionary<Type, int>();
@@ -36,7 +33,6 @@ namespace Atlas.Engine.Engine
 		private List<ISystem> systemsRemoved = new List<ISystem>();
 
 		private Stopwatch timer = new Stopwatch();
-		private int sleeping = 1;
 		private bool isUpdating = false;
 		private bool isRunning = false;
 
@@ -57,18 +53,19 @@ namespace Atlas.Engine.Engine
 		private Signal<IEngine, Type> familyRemoved = new Signal<IEngine, Type>();
 		private Signal<IEngine, Type> systemAdded = new Signal<IEngine, Type>();
 		private Signal<IEngine, Type> systemRemoved = new Signal<IEngine, Type>();
-		private Signal<IEngine, int, int> sleepingChanged = new Signal<IEngine, int, int>();
 		private Signal<IEngine, bool> isUpdatingChanged = new Signal<IEngine, bool>();
 
 		private AtlasEngine()
 		{
+			//Force the root's root through reflection.
+			//If this errors out, you probably changed the field name. You idiot.
+			Type type = GetType().BaseType; //Goes Engine->Entity, then you can get fields.
+			BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+			FieldInfo info = type.GetField("root", flags);
+			info.SetValue(this, this);
 
-		}
-
-		private AtlasEngine(bool instanceWithEntity)
-		{
-			if(instanceWithEntity)
-				AddManager(GetEntity(false));
+			//Add root to managed entities.
+			AddEntity(this);
 		}
 
 		public static AtlasEngine Instance
@@ -76,10 +73,38 @@ namespace Atlas.Engine.Engine
 			get
 			{
 				if(instance == null)
-					instance = new AtlasEngine(AtlasEngineDefaults.InstanceWithEntity);
+					instance = new AtlasEngine();
 				return instance;
 			}
 		}
+
+		protected override void Disposing()
+		{
+			//Not sure about this one...
+			instance = null;
+
+			entityAdded.Dispose();
+			entityRemoved.Dispose();
+			familyAdded.Dispose();
+			familyRemoved.Dispose();
+			systemAdded.Dispose();
+			systemRemoved.Dispose();
+			isUpdatingChanged.Dispose();
+			base.Disposing();
+		}
+
+		protected override void Resetting()
+		{
+			base.Resetting();
+		}
+
+		public ISignal<IEngine, IEntity> EntityAdded { get { return entityAdded; } }
+		public ISignal<IEngine, IEntity> EntityRemoved { get { return entityRemoved; } }
+		public ISignal<IEngine, Type> FamilyAdded { get { return familyAdded; } }
+		public ISignal<IEngine, Type> FamilyRemoved { get { return familyRemoved; } }
+		public ISignal<IEngine, Type> SystemAdded { get { return systemAdded; } }
+		public ISignal<IEngine, Type> SystemRemoved { get { return systemRemoved; } }
+		public ISignal<IEngine, bool> IsUpdatingChanged { get { return isUpdatingChanged; } }
 
 		public FixedStack<IEntity> EntityPool { get { return entityPool; } }
 		public FixedStack<IFamily> FamilyPool { get { return familyPool; } }
@@ -88,47 +113,7 @@ namespace Atlas.Engine.Engine
 		public IReadOnlyLinkList<IFamily> Families { get { return families; } }
 		public IReadOnlyLinkList<ISystem> Systems { get { return systems; } }
 
-		public ISignal<IEngine, IEntity> EntityAdded { get { return entityAdded; } }
-		public ISignal<IEngine, IEntity> EntityRemoved { get { return entityRemoved; } }
-		public ISignal<IEngine, Type> FamilyAdded { get { return familyAdded; } }
-		public ISignal<IEngine, Type> FamilyRemoved { get { return familyRemoved; } }
-		public ISignal<IEngine, Type> SystemAdded { get { return systemAdded; } }
-		public ISignal<IEngine, Type> SystemRemoved { get { return systemRemoved; } }
-		public ISignal<IEngine, int, int> SleepingChanged { get { return sleepingChanged; } }
-		public ISignal<IEngine, bool> IsUpdatingChanged { get { return isUpdatingChanged; } }
-
-		override protected void AddingManager(IEntity entity, int index)
-		{
-			base.AddingManager(entity, index);
-			AddEntity(entity);
-			entity.ParentChanged.Remove(EntityParentChanged);
-			entity.Parent = null;
-			--Sleeping;
-		}
-
-		override protected void RemovingManager(IEntity entity, int index)
-		{
-			RemoveEntity(entity);
-			base.RemovingManager(entity, index);
-			++Sleeping;
-		}
-
 		#region Entities
-
-		public Type DefaultEntity
-		{
-			get
-			{
-				return defaultEntity;
-			}
-			set
-			{
-				if(defaultEntity == value)
-					return;
-				defaultEntity = value;
-				entityPool.Clear();
-			}
-		}
 
 		public IEntity GetEntity(bool managed = true, string globalName = "", string localName = "")
 		{
@@ -139,15 +124,7 @@ namespace Atlas.Engine.Engine
 			}
 			else
 			{
-				try
-				{
-					entity = Activator.CreateInstance(defaultEntity) as IEntity;
-				}
-				catch(Exception e)
-				{
-					Debug.WriteLine(e);
-					return null;
-				}
+				entity = new AtlasEntity();
 			}
 			if(managed)
 			{
@@ -189,12 +166,12 @@ namespace Atlas.Engine.Engine
 				entity.GlobalNameChanged.Add(EntityGlobalNameChanged, int.MinValue);
 				entity.ComponentAdded.Add(EntityComponentAdded, int.MinValue);
 				entity.ComponentRemoved.Add(EntityComponentRemoved, int.MinValue);
-				entity.SystemAdded.Add(EntitySystemAdded, int.MinValue);
-				entity.SystemRemoved.Add(EntitySystemRemoved, int.MinValue);
+				entity.SystemTypeAdded.Add(EntitySystemAdded, int.MinValue);
+				entity.SystemTypeRemoved.Add(EntitySystemRemoved, int.MinValue);
 
 				entity.Engine = this;
 
-				foreach(Type type in entity.Systems)
+				foreach(Type type in entity.SystemTypes)
 				{
 					EntitySystemAdded(entity, type);
 				}
@@ -228,10 +205,10 @@ namespace Atlas.Engine.Engine
 			entity.GlobalNameChanged.Remove(EntityGlobalNameChanged);
 			entity.ComponentAdded.Remove(EntityComponentAdded);
 			entity.ComponentRemoved.Remove(EntityComponentRemoved);
-			entity.SystemAdded.Remove(EntitySystemAdded);
-			entity.SystemRemoved.Remove(EntitySystemRemoved);
+			entity.SystemTypeAdded.Remove(EntitySystemAdded);
+			entity.SystemTypeRemoved.Remove(EntitySystemRemoved);
 
-			foreach(Type type in entity.Systems)
+			foreach(Type type in entity.SystemTypes)
 			{
 				EntitySystemRemoved(entity, type);
 			}
@@ -267,8 +244,7 @@ namespace Atlas.Engine.Engine
 		private void EntityDisposed(IEntity entity)
 		{
 			entity.Disposed.Remove(EntityDisposed);
-			if(defaultEntity.IsInstanceOfType(entity))
-				entityPool.Push(entity);
+			entityPool.Push(entity);
 		}
 
 		#endregion
@@ -311,6 +287,8 @@ namespace Atlas.Engine.Engine
 			}
 			set
 			{
+				if(deltaFixedUpdateTime == value)
+					return;
 				deltaFixedUpdateTime = value;
 			}
 		}
@@ -328,6 +306,7 @@ namespace Atlas.Engine.Engine
 				totalFixedUpdateTime = value;
 			}
 		}
+
 		public double DeltaEngineTime
 		{
 			get
@@ -480,7 +459,7 @@ namespace Atlas.Engine.Engine
 
 		public bool HasSystem<TSystem>() where TSystem : ISystem
 		{
-			return HasSystem(typeof(TSystem));
+			return HasSystemType(typeof(TSystem));
 		}
 
 		public bool HasSystem(Type systemType)
@@ -505,26 +484,22 @@ namespace Atlas.Engine.Engine
 
 		public void Run()
 		{
-			if(!IsRunning && !Managers.IsEmpty)
+			if(!IsRunning)
 			{
 				IsRunning = true;
-				while(!Managers.IsEmpty)
+				while(true)
 				{
-					Debug.WriteLine(Debugger.IsAttached);
 					Update();
 				}
-				IsRunning = false;
+				//IsRunning = false;
 			}
 		}
 
 		private void Update()
 		{
-			if(IsSleeping)
-				return;
-
 			IsUpdating = true;
 
-			timer.Start();
+			//timer.Start();
 
 			DeltaEngineTime = timer.Elapsed.TotalSeconds - TotalEngineTime;
 
@@ -542,7 +517,6 @@ namespace Atlas.Engine.Engine
 			}
 
 			DeltaUpdateTime = timer.Elapsed.TotalSeconds - totalUpdateTime;
-			Debug.WriteLine(DeltaUpdateTime);
 			for(var current = systems.First; current != null; current = current.Next)
 			{
 				CurrentUpdateSystem = current.Value;
@@ -555,9 +529,6 @@ namespace Atlas.Engine.Engine
 			DisposeFamilies();
 
 			TotalEngineTime = timer.Elapsed.TotalSeconds;
-
-			if(IsSleeping)
-				timer.Stop();
 
 			IsUpdating = false;
 		}
@@ -610,48 +581,9 @@ namespace Atlas.Engine.Engine
 			}
 		}
 
-		public bool IsSleeping
-		{
-			get
-			{
-				return sleeping > 0;
-			}
-		}
-
-		public int Sleeping
-		{
-			get
-			{
-				return sleeping;
-			}
-			set
-			{
-				if(sleeping == value)
-					return;
-				int previous = sleeping;
-				sleeping = value;
-				sleepingChanged.Dispatch(this, value, previous);
-			}
-		}
-
 		#endregion
 
 		#region Families
-
-		public Type DefaultFamily
-		{
-			get
-			{
-				return defaultFamily;
-			}
-			set
-			{
-				if(defaultFamily == value)
-					return;
-				defaultFamily = value;
-				familyPool.Clear();
-			}
-		}
 
 		public bool HasFamily(IFamily family)
 		{
@@ -685,15 +617,7 @@ namespace Atlas.Engine.Engine
 				}
 				else
 				{
-					try
-					{
-						family = Activator.CreateInstance(defaultFamily) as IFamily;
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						return null;
-					}
+					family = new AtlasFamily();
 				}
 
 				families.Add(family);
@@ -768,8 +692,7 @@ namespace Atlas.Engine.Engine
 			familiesCount.Remove(type);
 			familyRemoved.Dispatch(this, type);
 			family.Dispose();
-			if(defaultFamily.IsInstanceOfType(family))
-				familyPool.Push(family);
+			familyPool.Push(family);
 		}
 
 		public IFamily GetFamily<TFamilyType>()

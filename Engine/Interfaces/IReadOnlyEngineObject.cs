@@ -1,7 +1,7 @@
-﻿using Atlas.Engine.Interfaces;
+﻿using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
 
-namespace Atlas.Engine.Engine
+namespace Atlas.Engine.Interfaces
 {
 	interface IReadOnlyEngineObject<T>:IDispose<T>, IAutoDispose
 	{

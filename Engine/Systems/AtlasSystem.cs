@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Engine;
+﻿using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Systems

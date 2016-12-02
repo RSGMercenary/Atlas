@@ -1,5 +1,4 @@
 ﻿using Atlas.Engine.Components;
-using Atlas.Engine.Engine;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
@@ -8,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngineObject<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IAutoDispose
+	interface IEntity:IEngineObject<IEntity>, IHierarchy<IEntity, IEntity>, ISleepHierarchy<IEntity>, IAutoDispose, IReset
 	{
 		#region Entities
 
@@ -65,9 +64,7 @@ namespace Atlas.Engine.Entities
 		TComponent AddComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction, new();
 		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component) where TComponent : IComponent, TAbstraction;
 
-		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index)
-			where TComponent : IComponent, TAbstraction;
-
+		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index) where TComponent : IComponent, TAbstraction;
 		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
 		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
 		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
@@ -91,20 +88,20 @@ namespace Atlas.Engine.Entities
 
 		#region Systems
 
-		bool HasSystem(Type type);
-		bool HasSystem<TSystem>() where TSystem : ISystem;
+		bool HasSystemType(Type type);
+		bool HasSystemType<TSystem>() where TSystem : ISystem;
 
-		bool AddSystem(Type type);
-		bool AddSystem<TSystem>() where TSystem : ISystem;
+		bool AddSystemType(Type type);
+		bool AddSystemType<TSystem>() where TSystem : ISystem;
 
-		bool RemoveSystem(Type type);
-		bool RemoveSystem<TSystem>() where TSystem : ISystem;
-		bool RemoveSystems();
+		bool RemoveSystemType(Type type);
+		bool RemoveSystemType<TSystem>() where TSystem : ISystem;
+		bool RemoveSystemTypes();
 
-		IReadOnlyCollection<Type> Systems { get; }
+		IReadOnlyCollection<Type> SystemTypes { get; }
 
-		ISignal<IEntity, Type> SystemAdded { get; }
-		ISignal<IEntity, Type> SystemRemoved { get; }
+		ISignal<IEntity, Type> SystemTypeAdded { get; }
+		ISignal<IEntity, Type> SystemTypeRemoved { get; }
 
 		#endregion
 

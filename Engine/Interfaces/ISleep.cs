@@ -2,10 +2,8 @@
 
 namespace Atlas.Engine.Interfaces
 {
-	interface ISleep<T>
+	interface ISleep<T>:ISleepBase
 	{
-		bool IsSleeping { get; }
-		int Sleeping { get; set; }
 		ISignal<T, int, int> SleepingChanged { get; }
 	}
 }

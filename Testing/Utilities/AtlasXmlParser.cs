@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Xml;
 
-namespace Atlas.Engine.Utilities
+namespace Atlas.Testing.Utilities
 {
 	static class AtlasXmlParser
 	{
@@ -17,27 +16,32 @@ namespace Atlas.Engine.Utilities
 		public static object construct(XmlNode xml, Type objectClass = null)
 		{
 			if(objectClass == null)
-				objectClass = Type.GetType(xml.Attributes["type"].Value, false);
+				objectClass = Type.GetType(xml.Attributes["type"]?.Value, false);
 			if(objectClass == null)
 				return null;
-			List<object> properties = null;
+			object[] properties;
 			XmlNode constructor = xml.SelectSingleNode("constructor");
 			if(constructor != null)
 			{
 				properties = GetMembers(constructor);
 			}
+			else
+			{
+				properties = new object[] { };
+			}
 			//Account for null object params.
-			return Activator.CreateInstance(objectClass, properties.ToArray());
+			return Activator.CreateInstance(objectClass, properties);
 		}
 
-		public static List<object> GetMembers(XmlNode xml)
+		public static object[] GetMembers(XmlNode xml)
 		{
-			List<object> members = new List<object>();
 			if(xml == null)
-				return members;
+				return new object[] { };
+			object[] members = new object[xml.ChildNodes.Count];
+			int index = 0;
 			for(var current = xml.FirstChild; current != null; current = current.NextSibling)
 			{
-				members.Add(GetMember(current));
+				members[index++] = GetMember(current);
 			}
 			return members;
 		}
@@ -47,12 +51,12 @@ namespace Atlas.Engine.Utilities
 			if(xml == null)
 				return null;
 			if(type == null)
-				type = Type.GetType(xml.Attributes["class"].Value, false);
+				type = Type.GetType(xml.Attributes["type"]?.Value, false);
 			if(type == null)
 				return null;
-			if(type.IsPrimitive)
+			if(type.IsPrimitive || type == typeof(string))
 			{
-				return xml.Value;
+				return xml.InnerText;
 			}
 			else if(type == typeof(Delegate))
 			{
@@ -68,7 +72,7 @@ namespace Atlas.Engine.Utilities
 			}
 			else if(type == typeof(Type))
 			{
-				return Type.GetType(xml.Value, false);
+				return Type.GetType(xml.InnerText, false);
 			}
 			else
 			{
@@ -87,7 +91,7 @@ namespace Atlas.Engine.Utilities
 				return;
 			for(var current = properties.FirstChild; current != null; current = current.NextSibling)
 			{
-				SetMember(instance, xml);
+				SetMember(instance, current);
 			}
 		}
 
@@ -99,7 +103,7 @@ namespace Atlas.Engine.Utilities
 				return;
 			string property = xml.LocalName;
 
-			Type type = Type.GetType(xml.Attributes["type"].Value, false);
+			Type type = Type.GetType(xml.Attributes["type"]?.Value, false);
 
 			if(type == null)
 				return;
@@ -109,14 +113,24 @@ namespace Atlas.Engine.Utilities
 
 			if(type == typeof(Delegate))
 			{
-				MethodInfo methodInfo = instanceType.GetMethod(property, flags);
+				Type[] types = new Type[] { };
+				object member = GetMember(xml, type);
+				if(member is object[])
+				{
+					//types = 
+				}
+				else
+				{
+					types = new Type[] { member.GetType() };
+				}
+				MethodInfo methodInfo = instanceType.GetMethod(property, flags, null, types, null);
 				if(methodInfo != null)
 					methodInfo.Invoke(instance, null);
 				//instance[property].apply(null, AtlasXmlParser.getProperty(xml, objectClass));
 			}
 			else
 			{
-				if(xml.Attributes["constructed"].Value.ToLower() != bool.TrueString.ToLower())
+				if(xml.Attributes["constructed"]?.Value.ToLower() != bool.TrueString.ToLower())
 				{
 					FieldInfo fieldInfo = instanceType.GetField(property, flags);
 					if(fieldInfo != null)

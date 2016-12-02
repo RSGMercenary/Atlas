@@ -3,9 +3,9 @@ using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Interfaces
 {
-	interface IHierarchy<T>
+	interface IHierarchy<T, R> where R : T
 	{
-		T Root { get; }
+		R Root { get; }
 
 		T Parent { get; set; }
 
@@ -34,6 +34,8 @@ namespace Atlas.Engine.Interfaces
 		T RemoveChild(int index);
 
 		bool RemoveChildren();
+
+		ISignal<T, R, R, T> RootChanged { get; }
 
 		ISignal<T, T, T> ParentChanged { get; }
 

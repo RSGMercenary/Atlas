@@ -48,11 +48,11 @@ namespace Atlas.Engine.Signals
 			}
 		}
 
-		public bool IsEmpty
+		public bool HasListeners
 		{
 			get
 			{
-				return slots.Count <= 0;
+				return slots.Count > 0;
 			}
 		}
 

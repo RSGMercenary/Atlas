@@ -1,8 +1,7 @@
 ﻿namespace Atlas.Framework.Components.Transform
 {/*
-	class Transform:AtlasComponent<ITransform>, ITransform
+	class Transform2D:AtlasComponent<ITransform2D>, ITransform2D
 	{
-		
 		private float positionX = 0;
 		private float positionY = 0;
 		private float positionZ = 0;
@@ -14,33 +13,33 @@
 		private float scaleX = 0;
 		private float scaleY = 0;
 		private float scaleZ = 0;
-		
 
-		private IChildSpace<ITransform> global;
-		private IChildSpace<ITransform> local;
 
-		private ITransform parent;
-		private LinkList<ITransform> children = new LinkList<ITransform>();
+		private IChildSpace<ITransform2D> global;
+		private IChildSpace<ITransform2D> local;
+
+		private ITransform2D parent;
+		private LinkList<ITransform2D> children = new LinkList<ITransform2D>();
 		bool overrideManagerHierarchy = true;
 
-		private Signal<ITransform, ITransform, ITransform> parentChanged = new Signal<ITransform, ITransform, ITransform>();
-		private Signal<ITransform, int, int> parentIndexChanged = new Signal<ITransform, int, int>();
-		private Signal<ITransform, ITransform, int> childAdded = new Signal<ITransform, ITransform, int>();
-		private Signal<ITransform, ITransform, int> childRemoved = new Signal<ITransform, ITransform, int>();
-		private Signal<ITransform, int, int, bool> childIndicesChanged = new Signal<ITransform, int, int, bool>();
+		private Signal<ITransform2D, ITransform2D, ITransform2D> parentChanged = new Signal<ITransform2D, ITransform2D, ITransform2D>();
+		private Signal<ITransform2D, int, int> parentIndexChanged = new Signal<ITransform2D, int, int>();
+		private Signal<ITransform2D, ITransform2D, int> childAdded = new Signal<ITransform2D, ITransform2D, int>();
+		private Signal<ITransform2D, ITransform2D, int> childRemoved = new Signal<ITransform2D, ITransform2D, int>();
+		private Signal<ITransform2D, int, int, bool> childIndicesChanged = new Signal<ITransform2D, int, int, bool>();
 
-		public Transform()
+		public Transform2D()
 		{
-			global = new ChildSpace<ITransform>(this);
-			local = new ChildSpace<ITransform>(this);
+			global = new ChildSpace<ITransform2D>(this);
+			local = new ChildSpace<ITransform2D>(this);
 		}
 
-		public ISignal<ITransform, ITransform, ITransform> ParentChanged { get { return parentChanged; } }
-		public ISignal<ITransform, int, int> ParentIndexChanged { get { return parentIndexChanged; } }
-		public ISignal<ITransform, ITransform, int> ChildAdded { get { return childAdded; } }
-		public ISignal<ITransform, ITransform, int> ChildRemoved { get { return childRemoved; } }
+		public ISignal<ITransform2D, ITransform2D, ITransform2D> ParentChanged { get { return parentChanged; } }
+		public ISignal<ITransform2D, int, int> ParentIndexChanged { get { return parentIndexChanged; } }
+		public ISignal<ITransform2D, ITransform2D, int> ChildAdded { get { return childAdded; } }
+		public ISignal<ITransform2D, ITransform2D, int> ChildRemoved { get { return childRemoved; } }
 
-		public ISignal<ITransform, int, int, bool> ChildIndicesChanged
+		public ISignal<ITransform2D, int, int, bool> ChildIndicesChanged
 		{
 			get
 			{
@@ -48,7 +47,7 @@
 			}
 		}
 
-		public IChildSpace<ITransform> Global
+		public IChildSpace<ITransform2D> Global
 		{
 			get
 			{
@@ -56,7 +55,7 @@
 			}
 		}
 
-		public IChildSpace<ITransform> Local
+		public IChildSpace<ITransform2D> Local
 		{
 			get
 			{
@@ -64,7 +63,7 @@
 			}
 		}
 
-		public ITransform Root
+		public ITransform2D Root
 		{
 			get
 			{
@@ -72,11 +71,11 @@
 					return null;
 				if(Engine.Manager == null)
 					return null;
-				return Engine.Manager.GetComponent<ITransform>();
+				return Engine.Manager.GetComponent<ITransform2D>();
 			}
 		}
 
-		public ITransform Parent
+		public ITransform2D Parent
 		{
 			get
 			{
@@ -88,7 +87,7 @@
 			}
 		}
 
-		public IReadOnlyLinkList<ITransform> Children
+		public IReadOnlyLinkList<ITransform2D> Children
 		{
 			get
 			{
@@ -131,7 +130,7 @@
 			}
 		}
 
-		public bool SetParent(ITransform parent = null, int index = int.MaxValue)
+		public bool SetParent(ITransform2D parent = null, int index = int.MaxValue)
 		{
 			//Parents are the same.
 			if(this.parent == parent)
@@ -139,7 +138,7 @@
 			//Can't set a parent's ancestor (this) as a child.
 			if(HasDescendant(parent))
 				return false;
-			ITransform previousParent = this.parent;
+			ITransform2D previousParent = this.parent;
 			int previousIndex = -1;
 			this.parent = parent;
 			if(previousParent != null)
@@ -172,17 +171,17 @@
 			SetManagerHierarchy();
 		}
 
-		public bool HasChild(ITransform child)
+		public bool HasChild(ITransform2D child)
 		{
 			return children.Contains(child);
 		}
 
-		public int GetChildIndex(ITransform child)
+		public int GetChildIndex(ITransform2D child)
 		{
 			return children.GetIndex(child);
 		}
 
-		public bool SetChildIndex(ITransform child, int index)
+		public bool SetChildIndex(ITransform2D child, int index)
 		{
 			int previous = children.GetIndex(child);
 
@@ -224,7 +223,7 @@
 			return true;
 		}
 
-		public bool HasDescendant(ITransform relative)
+		public bool HasDescendant(ITransform2D relative)
 		{
 			while(relative != null && relative != this)
 			{
@@ -233,17 +232,17 @@
 			return relative == this;
 		}
 
-		public ITransform GetChild(int index)
+		public ITransform2D GetChild(int index)
 		{
 			return children.Get(index);
 		}
 
-		public ITransform AddChild(ITransform child)
+		public ITransform2D AddChild(ITransform2D child)
 		{
 			return AddChild(child, children.Count);
 		}
 
-		public ITransform AddChild(ITransform child, int index)
+		public ITransform2D AddChild(ITransform2D child, int index)
 		{
 			if(child == null)
 				return null;
@@ -256,7 +255,7 @@
 					childIndicesChanged.Dispatch(this, index, children.Count, true);
 					for(int i = index + 1; i < children.Count; ++i)
 					{
-						ITransform sibling = children[i];
+						ITransform2D sibling = children[i];
 						sibling.ParentIndexChanged.Dispatch(sibling, i, i - 1);
 					}
 				}
@@ -272,7 +271,7 @@
 			return child;
 		}
 
-		public ITransform RemoveChild(ITransform child)
+		public ITransform2D RemoveChild(ITransform2D child)
 		{
 			if(child == null)
 				return null;
@@ -286,7 +285,7 @@
 				childIndicesChanged.Dispatch(this, index, children.Count, true);
 				for(int i = index; i < children.Count; ++i)
 				{
-					ITransform sibling = children[i];
+					ITransform2D sibling = children[i];
 					sibling.ParentIndexChanged.Dispatch(sibling, i, i + 1);
 				}
 			}
@@ -297,7 +296,7 @@
 			return child;
 		}
 
-		public ITransform RemoveChild(int index)
+		public ITransform2D RemoveChild(int index)
 		{
 			return RemoveChild(children[index]);
 		}
