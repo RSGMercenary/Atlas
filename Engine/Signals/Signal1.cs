@@ -1,10 +1,16 @@
 ﻿using Atlas.Engine.Interfaces;
 using System;
+using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
 	class Signal<T1>:SignalBase, ISignal<T1>, IDispatch<T1>
 	{
+		private class Packet<TT1>
+		{
+			public TT1 item1;
+		}
+
 		public Signal()
 		{
 
@@ -20,8 +26,9 @@ namespace Atlas.Engine.Signals
 					{
 						slot.Listener.Invoke(item1);
 					}
-					catch
+					catch(Exception e)
 					{
+						Debug.WriteLine(e);
 						//We remove the Slot so the Error doesn't inevitably happen again.
 						Remove(slot.Listener);
 					}

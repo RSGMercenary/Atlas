@@ -5,8 +5,8 @@ namespace Atlas.Engine.Signals
 {
 	class SignalBase:ISignalBase, IDisposable
 	{
-		protected List<SlotBase> slots = new List<SlotBase>();
-		protected int dispatching = 0;
+		private List<SlotBase> slots = new List<SlotBase>();
+		private int dispatching = 0;
 
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();

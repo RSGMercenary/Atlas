@@ -1,4 +1,7 @@
-﻿namespace Atlas.Engine.Signals
+﻿using System;
+using System.Diagnostics;
+
+namespace Atlas.Engine.Signals
 {
 	class SignalDynamic:SignalBase, ISignalDynamic
 	{
@@ -17,8 +20,9 @@
 					{
 						slot.Listener.DynamicInvoke(items);
 					}
-					catch
+					catch(Exception e)
 					{
+						Debug.WriteLine(e);
 						//We remove the Slot so the Error doesn't inevitably happen again.
 						Remove(slot.Listener);
 					}

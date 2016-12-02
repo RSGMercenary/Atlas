@@ -1,5 +1,6 @@
 ﻿using Atlas.Engine.Interfaces;
 using System;
+using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
@@ -20,8 +21,9 @@ namespace Atlas.Engine.Signals
 					{
 						slot.Listener.Invoke();
 					}
-					catch
+					catch(Exception e)
 					{
+						Debug.WriteLine(e);
 						//We remove the Slot so the Error doesn't inevitably happen again.
 						Remove(slot.Listener);
 					}
