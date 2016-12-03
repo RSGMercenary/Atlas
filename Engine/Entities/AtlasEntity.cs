@@ -148,6 +148,8 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
+		#region Entity
+
 		public string GlobalName
 		{
 			get
@@ -188,31 +190,62 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public IEntity Root
+		public string HierarchyToString()
 		{
-			get
+			if(parent != null)
 			{
-				return root;
+				return parent.HierarchyToString() + "/" + localName;
 			}
-			private set
+			else
 			{
-				SetRoot(value, this);
+				return localName;
 			}
 		}
 
-		private void SetRoot(IEntity value, IEntity source)
+		public IEntity GetHierarchy(string hierarchy)
 		{
-			if(root == value)
-				return;
-			IEntity previous = root;
-			root = value;
-			rootChanged.Dispatch(this, value, previous, source);
+			if(string.IsNullOrWhiteSpace(hierarchy))
+				return null;
+			string[] localNames = hierarchy.Split('/');
+			IEntity entity = this;
+			foreach(string localName in localNames)
+			{
+				if(string.IsNullOrWhiteSpace(localName))
+					continue;
+				if(localName == "..")
+				{
+					entity = entity.Parent;
+				}
+				else
+				{
+					entity = entity.GetChild(localName);
+				}
+				if(entity == null)
+				{
+					break;
+				}
+			}
+			return entity;
 		}
 
-		private void ParentRootChanged(IEntity parent, IEntity next, IEntity previous, IEntity source)
+		public bool SetHierarchy(string hierarchy, int index)
 		{
-			SetRoot(next, source);
+			return SetParent(GetHierarchy(hierarchy), index);
 		}
+
+		public IEntity GetChild(string localName)
+		{
+			return childrenLocalName.ContainsKey(localName) ? childrenLocalName[localName] : null;
+		}
+
+		public IReadOnlyDictionary<string, IEntity> ChildLocalNames
+		{
+			get { return childrenLocalName; }
+		}
+
+		#endregion
+
+		#region Engine
 
 		public IEngine Engine
 		{
@@ -242,6 +275,10 @@ namespace Atlas.Engine.Entities
 				}
 			}
 		}
+
+		#endregion
+
+		#region Components
 
 		public bool HasComponent<TAbstraction>() where TAbstraction : IComponent
 		{
@@ -284,7 +321,10 @@ namespace Atlas.Engine.Entities
 
 		public IReadOnlyDictionary<Type, IComponent> Components
 		{
-			get { return components; }
+			get
+			{
+				return components;
+			}
 		}
 
 		//New component with Type
@@ -398,15 +438,30 @@ namespace Atlas.Engine.Entities
 			return true;
 		}
 
-		public IEntity Parent
+		#endregion
+
+		#region Hierarchy
+
+		public IEntity Root
 		{
-			get { return parent; }
-			set { SetParent(value); }
+			get
+			{
+				return root;
+			}
 		}
 
-		public bool HasChild(IEntity child)
+		private void SetRoot(IEntity value, IEntity source)
 		{
-			return children.Contains(child);
+			if(root == value)
+				return;
+			IEntity previous = root;
+			root = value;
+			rootChanged.Dispatch(this, value, previous, source);
+		}
+
+		private void ParentRootChanged(IEntity parent, IEntity next, IEntity previous, IEntity source)
+		{
+			SetRoot(next, source);
 		}
 
 		public bool HasChild(string localName)
@@ -427,6 +482,17 @@ namespace Atlas.Engine.Entities
 		public IEntity AddChild(int index, string globalName = "", string localName = "")
 		{
 			return AddChild(GetEntity(globalName, localName), index);
+		}
+
+		public IEntity Parent
+		{
+			get { return parent; }
+			set { SetParent(value); }
+		}
+
+		public bool HasChild(IEntity child)
+		{
+			return children.Contains(child);
 		}
 
 		public IEntity AddChild(IEntity child)
@@ -586,38 +652,6 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		private void ParentChildIndicesChanged(IEntity parent, int min, int max, bool inclusive)
-		{
-			if(inclusive)
-			{
-				if(parentIndex >= min && parentIndex <= max)
-				{
-					SetParentIndex(parent.GetChildIndex(this));
-				}
-			}
-			else
-			{
-				if(parentIndex == min || parentIndex == max)
-				{
-					SetParentIndex(parent.GetChildIndex(this));
-				}
-			}
-		}
-
-		private void SetParentIndex(int value)
-		{
-			if(parentIndex == value)
-				return;
-			int previous = parentIndex;
-			parentIndex = value;
-			if(parent != null)
-			{
-				parent.ChildIndicesChanged.Get(ParentChildIndicesChanged).Priority = int.MinValue + parentIndex;
-				parent.SleepingChanged.Get(ParentSleepingChanged).Priority = int.MinValue + parentIndex;
-			}
-			parentIndexChanged.Dispatch(this, value, previous);
-		}
-
 		public bool HasDescendant(IEntity descendant)
 		{
 			while(descendant != null && descendant != this)
@@ -630,42 +664,6 @@ namespace Atlas.Engine.Entities
 		public bool HasAncestor(IEntity ancestor)
 		{
 			return ancestor != null ? ancestor.HasDescendant(this) : false;
-		}
-
-		public IEntity GetHierarchy(string hierarchy)
-		{
-			if(string.IsNullOrWhiteSpace(hierarchy))
-				return null;
-			string[] localNames = hierarchy.Split('/');
-			IEntity entity = this;
-			foreach(string localName in localNames)
-			{
-				if(string.IsNullOrWhiteSpace(localName))
-					continue;
-				if(localName == "..")
-				{
-					entity = entity.Parent;
-				}
-				else
-				{
-					entity = entity.GetChild(localName);
-				}
-				if(entity == null)
-				{
-					break;
-				}
-			}
-			return entity;
-		}
-
-		public bool SetHierarchy(string hierarchy, int index)
-		{
-			return SetParent(GetHierarchy(hierarchy), index);
-		}
-
-		public IEntity GetChild(string localName)
-		{
-			return childrenLocalName.ContainsKey(localName) ? childrenLocalName[localName] : null;
 		}
 
 		public IEntity GetChild(int index)
@@ -733,20 +731,51 @@ namespace Atlas.Engine.Entities
 			get { return children; }
 		}
 
-		public IReadOnlyDictionary<string, IEntity> ChildLocalNames
+		private void ParentChildIndicesChanged(IEntity parent, int min, int max, bool inclusive)
 		{
-			get { return childrenLocalName; }
+			if(inclusive)
+			{
+				if(parentIndex >= min && parentIndex <= max)
+				{
+					SetParentIndex(parent.GetChildIndex(this));
+				}
+			}
+			else
+			{
+				if(parentIndex == min || parentIndex == max)
+				{
+					SetParentIndex(parent.GetChildIndex(this));
+				}
+			}
 		}
 
-		private void ParentSleepingChanged(IEntity parent, int next, int previous, IEntity source)
+		private void SetParentIndex(int value)
 		{
-			if(next > 0 && previous <= 0)
+			if(parentIndex == value)
+				return;
+			int previous = parentIndex;
+			parentIndex = value;
+			if(parent != null)
 			{
-				SetSleeping(sleeping + 1, source);
+				parent.ChildIndicesChanged.Get(ParentChildIndicesChanged).Priority = int.MinValue + parentIndex;
+				parent.SleepingChanged.Get(ParentSleepingChanged).Priority = int.MinValue + parentIndex;
 			}
-			else if(next <= 0 && previous > 0)
+			parentIndexChanged.Dispatch(this, value, previous);
+		}
+
+		#endregion
+
+		#region Sleep
+
+		public int Sleeping
+		{
+			get
 			{
-				SetSleeping(sleeping - 1, source);
+				return sleeping;
+			}
+			set
+			{
+				SetSleeping(value, this);
 			}
 		}
 
@@ -759,15 +788,15 @@ namespace Atlas.Engine.Entities
 			sleepingChanged.Dispatch(this, value, previous, source);
 		}
 
-		public int Sleeping
+		private void ParentSleepingChanged(IEntity parent, int next, int previous, IEntity source)
 		{
-			get
+			if(next > 0 && previous <= 0)
 			{
-				return sleeping;
+				SetSleeping(sleeping + 1, source);
 			}
-			set
+			else if(next <= 0 && previous > 0)
 			{
-				SetSleeping(value, this);
+				SetSleeping(sleeping - 1, source);
 			}
 		}
 
@@ -817,6 +846,10 @@ namespace Atlas.Engine.Entities
 				return freeSleeping > 0;
 			}
 		}
+
+		#endregion
+
+		#region Systems
 
 		public IReadOnlyCollection<Type> SystemTypes
 		{
@@ -881,33 +914,18 @@ namespace Atlas.Engine.Entities
 			return true;
 		}
 
-		public string HierarchyToString()
-		{
-			if(parent != null)
-			{
-				return parent.HierarchyToString() + "/" + localName;
-			}
-			else
-			{
-				return localName;
-			}
-		}
+		#endregion
 
 		public override string ToString()
 		{
 			return ToString(-1, true, true, false);
 		}
 
-		public string ToString(int depth, bool addComponents, bool addSystems, bool addManagers = false, string indent = "")
+		public string ToString(int depth, bool addComponents, bool addEntities, bool addSystems, string indent = "")
 		{
 			StringBuilder text = new StringBuilder();
 
-			text.Append(indent + "Entity");
-			if(root == this)
-				text.Append(" (Root)");
-			else if(parentIndex > -1)
-				text.Append(" (" + (parentIndex + 1) + ")");
-			text.AppendLine();
+			text.AppendLine(indent + "Child " + (parentIndex + 1));
 			text.AppendLine(indent + "  Instance      = " + GetType().FullName);
 			text.AppendLine(indent + "  Global Name   = " + globalName);
 			text.AppendLine(indent + "  Local Name    = " + localName);
@@ -922,7 +940,7 @@ namespace Atlas.Engine.Entities
 				foreach(Type type in components.Keys)
 				{
 					IComponent component = components[type];
-					text.Append(component.ToString(addManagers, ++index, indent + "    "));
+					text.Append(component.ToString(addEntities, ++index, indent + "    "));
 				}
 			}
 
@@ -941,7 +959,7 @@ namespace Atlas.Engine.Entities
 			{
 				for(var current = children.First; current != null; current = current.Next)
 				{
-					text.Append(current.Value.ToString(depth - 1, addComponents, addSystems, addManagers, indent + "    "));
+					text.Append(current.Value.ToString(depth - 1, addComponents, addSystems, addEntities, indent + "    "));
 				}
 			}
 			return text.ToString();

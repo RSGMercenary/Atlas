@@ -120,7 +120,15 @@ namespace Atlas.Engine.Entities
 
 		string HierarchyToString();
 
-		string ToString(int depth = -1, bool addComponents = true, bool addSystems = true, bool addManagers = false,
-			string indent = "");
+		/// <summary>
+		/// Returns a formatted and indented string of the <see cref="IEntity"/> hierarchy.
+		/// </summary>
+		/// <param name="depth">Adds children recursively to the output until the given depth. -1 is the entire hierarchy.</param>
+		/// <param name="addComponents">Adds components to the output.</param>
+		/// <param name="addEntities">Adds component entities to the output.</param>
+		/// <param name="addSystems">Adds systems to the output.</param>
+		/// <param name="indent"></param>
+		/// <returns></returns>
+		string ToString(int depth = -1, bool addComponents = true, bool addEntities = false, bool addSystems = true, string indent = "");
 	}
 }

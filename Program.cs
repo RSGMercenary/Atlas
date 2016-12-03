@@ -1,29 +1,15 @@
 ﻿using Atlas.Engine.Entities;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
-using System;
 using System.Diagnostics;
-using System.Xml.Linq;
 
 namespace Atlas
 {
 	class Program
 	{
-		static string FormatXml(string xml)
-		{
-			try
-			{
-				XDocument doc = XDocument.Parse(xml);
-				return doc.ToString();
-			}
-			catch(Exception e)
-			{
-				return xml;
-			}
-		}
-
 		static void Main(string[] args)
 		{
+
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();
 

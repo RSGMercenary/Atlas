@@ -125,7 +125,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return (!isShareable && !entities.IsEmpty) ? entities.First.Value : null;
+				return !isShareable ? entities.First?.Value : null;
 			}
 		}
 
@@ -345,7 +345,7 @@ namespace Atlas.Engine.Components
 			properties.Enqueue(new KeyValuePair<string, string>("Audio Dispose", isAutoDisposed.ToString()));
 		}
 		*/
-		public string ToString(bool addManagers = true, int index = 0, string indent = "")
+		public string ToString(bool addEntities = true, int index = 0, string indent = "")
 		{
 			StringBuilder text = new StringBuilder();
 
@@ -363,14 +363,14 @@ namespace Atlas.Engine.Components
 			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
 			text.AppendLine(indent + "  Shareable    = " + isShareable);
 			text.AppendLine(indent + "  Auto Dispose = " + isAutoDisposed);
-			text.AppendLine(indent + "  Managers (" + entities.Count + ")");
-			if(addManagers)
+			text.AppendLine(indent + "  Entities (" + entities.Count + ")");
+			if(addEntities)
 			{
 				index = 0;
 				for(var current = entities.First; current != null; current = current.Next)
 				{
 					IEntity manager = current.Value;
-					text.AppendLine(indent + "    Manager " + (++index));
+					text.AppendLine(indent + "    Entity " + (++index));
 					text.AppendLine(indent + "      Abstraction = " + manager.GetComponentType(this).FullName);
 					text.AppendLine(indent + "      GlobalName  = " + manager.GlobalName);
 					text.AppendLine(indent + "      Hierarchy   = " + manager.HierarchyToString());
