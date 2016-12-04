@@ -74,6 +74,9 @@ namespace Atlas.Engine.Entities
 			Parent = null;
 			Sleeping = 0;
 			FreeSleeping = 0;
+			//Doing this for the Engine as it's self-referencing.
+			//If it's not nulled, GC might not pick it up.(?)
+			root = null;
 			engineChanged.Dispose();
 			globalNameChanged.Dispose();
 			localNameChanged.Dispose();

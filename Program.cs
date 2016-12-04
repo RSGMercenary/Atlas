@@ -1,4 +1,5 @@
 ﻿using Atlas.Engine.Entities;
+using Atlas.Framework.Geometry;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
 using System.Diagnostics;
@@ -9,6 +10,10 @@ namespace Atlas
 	{
 		static void Main(string[] args)
 		{
+
+			Vector2 line = new Vector2(5, 5);
+			Vector2 mirror = new Vector2(1, 4);
+			line.Reflect2(mirror);
 
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();
