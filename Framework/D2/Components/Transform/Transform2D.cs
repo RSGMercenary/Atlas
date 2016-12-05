@@ -1,5 +1,6 @@
 ﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
+using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using System;
 
@@ -52,7 +53,7 @@ namespace Atlas.Framework.Components.Transform
 			}
 		}
 
-		public ISignal<ITransform2D, ITransform2D, ITransform2D> ParentChanged
+		public ISignal<ITransform2D, ITransform2D, ITransform2D> AncestorChanged
 		{
 			get
 			{
@@ -77,6 +78,14 @@ namespace Atlas.Framework.Components.Transform
 		}
 
 		public ISignal<ITransform2D, ITransform2DManager, ITransform2DManager, ITransform2D> RootChanged
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> IHierarchy<ITransform2D, ITransform2DManager>.AncestorChanged
 		{
 			get
 			{

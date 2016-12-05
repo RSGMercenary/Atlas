@@ -37,7 +37,7 @@ namespace Atlas.Engine.Interfaces
 
 		ISignal<T, R, R, T> RootChanged { get; }
 
-		ISignal<T, T, T> ParentChanged { get; }
+		ISignal<T, T, T, T> AncestorChanged { get; }
 
 		ISignal<T, int, int> ParentIndexChanged { get; }
 

@@ -352,6 +352,21 @@ namespace Atlas.Framework.Geometry
 			return Reflect3(normal.X, normal.Y, normal.Z);
 		}
 
+		public Vector3 RotateAround2(IReadOnlyVector2 vector, float radians)
+		{
+			float cosine = (float)Math.Cos(radians);
+			float sine = (float)Math.Sin(radians);
+			float x = X;
+			float y = Y;
+			x -= vector.X;
+			y -= vector.Y;
+			float offsetX = x * cosine - y * sine;
+			float offsetY = x * sine + y * cosine;
+			X = vector.X + offsetX;
+			Y = vector.Y + offsetY;
+			return this;
+		}
+
 		#endregion
 	}
 }

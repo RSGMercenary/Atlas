@@ -162,7 +162,7 @@ namespace Atlas.Engine.Entities
 				entities.Add(entity);
 
 				entity.ChildAdded.Add(EntityChildAdded, int.MinValue);
-				entity.ParentChanged.Add(EntityParentChanged, int.MinValue);
+				entity.AncestorChanged.Add(EntityAncestorChanged, int.MinValue);
 				entity.GlobalNameChanged.Add(EntityGlobalNameChanged, int.MinValue);
 				entity.ComponentAdded.Add(EntityComponentAdded, int.MinValue);
 				entity.ComponentRemoved.Add(EntityComponentRemoved, int.MinValue);
@@ -201,7 +201,7 @@ namespace Atlas.Engine.Entities
 			entities.Remove(entity);
 
 			entity.ChildAdded.Remove(EntityChildAdded);
-			entity.ParentChanged.Remove(EntityParentChanged);
+			entity.AncestorChanged.Remove(EntityAncestorChanged);
 			entity.GlobalNameChanged.Remove(EntityGlobalNameChanged);
 			entity.ComponentAdded.Remove(EntityComponentAdded);
 			entity.ComponentRemoved.Remove(EntityComponentRemoved);
@@ -228,8 +228,10 @@ namespace Atlas.Engine.Entities
 			AddEntity(child);
 		}
 
-		private void EntityParentChanged(IEntity child, IEntity next, IEntity previous)
+		private void EntityAncestorChanged(IEntity child, IEntity next, IEntity previous, IEntity source)
 		{
+			if(child != source)
+				return;
 			if(next != null)
 				return;
 			RemoveEntity(child);

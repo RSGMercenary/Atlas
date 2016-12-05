@@ -11,9 +11,13 @@ namespace Atlas
 		static void Main(string[] args)
 		{
 
-			Vector2 line = new Vector2(5, 5);
-			Vector2 mirror = new Vector2(1, 4);
-			line.Reflect2(mirror);
+			Vector2 vector1 = new Vector2(6, 5);
+			Vector2 vector2 = new Vector2(6, 5);
+
+			//float degrees = 90;
+			//float radians = degrees * (float)(Math.PI / 180);
+			vector1.ReflectAround2(new Vector2(7, 5), new Vector2(1, 0));
+			vector2.Reflect2(new Vector2(1, -1));
 
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();

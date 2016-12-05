@@ -2,12 +2,6 @@
 
 namespace Atlas.Framework.Geometry
 {
-	/*class Vector2
-	{
-
-	}*/
-
-
 	class Vector2:IVector2<Vector2>
 	{
 		public static readonly IReadOnlyVector2 Up = new Vector2(0, 1);
@@ -140,11 +134,21 @@ namespace Atlas.Framework.Geometry
 			return this;
 		}
 
-		public Vector2 Reflect2(float x, float y)
+		public Vector2 Reflect2(float normalX, float normalY)
 		{
-			float dot = 2 * Dot2(x, y);
-			X -= dot * x;
-			Y -= dot * y;
+			float dot = 2 * Dot2(normalX, normalY);
+			X -= dot * normalX;
+			Y -= dot * normalY;
+			return this;
+		}
+
+		public Vector2 ReflectAround2(float x, float y, float normalX, float normalY)
+		{
+			x = X - x;
+			y = Y - y;
+			float dot = 2 * (x * normalX + y * normalY);
+			X -= dot * normalX;
+			Y -= dot * normalY;
 			return this;
 		}
 
@@ -160,8 +164,28 @@ namespace Atlas.Framework.Geometry
 
 		public Vector2 Normalize2(float length = 1)
 		{
+			//Should check for slight differences from 1.
+			/*double min = 1 - 1e-14;
+			double max = 1 + 1e-14;
+			float lengthSquared2 = LengthSquared2;
+			if(lengthSquared2 >= min && lengthSquared2 <= max)
+				return this;*/
+
 			float ratio = Math.Abs(length) / Length2;
 			return Multiply2(ratio, ratio);
+		}
+
+		public Vector2 RotateAround2(float radians, float x = 0, float y = 0)
+		{
+			double cos = -Math.Cos(radians);
+			double sin = -Math.Sin(radians);
+			double deltaX = X - x;
+			double deltaY = Y - y;
+			double offsetX = deltaX * cos - deltaY * sin;
+			double offsetY = deltaX * sin + deltaY * cos;
+			X = x + (float)offsetX;
+			Y = y + (float)offsetY;
+			return this;
 		}
 
 		public Vector2 PerpendicularCCW2()
@@ -217,6 +241,17 @@ namespace Atlas.Framework.Geometry
 		{
 			Vector2 normal = new Vector2(vector).Normalize2();
 			return Reflect2(normal.X, normal.Y);
+		}
+
+		public Vector2 RotateAround2(IReadOnlyVector2 vector, float radians)
+		{
+			return RotateAround2(radians, vector.X, vector.Y);
+		}
+
+		public Vector2 ReflectAround2(IReadOnlyVector2 vector, IReadOnlyVector2 normal)
+		{
+			Vector2 normalized = new Vector2(normal).Normalize2();
+			return ReflectAround2(vector.X, vector.Y, normalized.X, normalized.Y);
 		}
 
 		#endregion

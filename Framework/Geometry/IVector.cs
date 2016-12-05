@@ -76,7 +76,10 @@
 		TReturn Subtract2(IReadOnlyVector2 vector);
 		TReturn Multiply2(IReadOnlyVector2 vector);
 		TReturn Divide2(IReadOnlyVector2 vector);
-		TReturn Reflect2(IReadOnlyVector2 vector);
+		TReturn Reflect2(IReadOnlyVector2 plane);
+
+		TReturn RotateAround2(IReadOnlyVector2 vector, float radians);
+		//TReturn ReflectAround2(IReadOnlyVector2 vector, IReadOnlyVector2 plane);
 
 		TReturn PerpendicularCCW2();
 		TReturn PerpendicularCW2();

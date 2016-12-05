@@ -29,8 +29,8 @@ namespace Atlas.Engine.Entities
 		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, IEntity, IEntity, IEntity> rootChanged = new Signal<IEntity, IEntity, IEntity, IEntity>();
-		private Signal<IEntity, IEntity, IEntity> parentChanged = new Signal<IEntity, IEntity, IEntity>();
-		private Signal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>(); //Index within parent
+		private Signal<IEntity, IEntity, IEntity, IEntity> ancestorChanged = new Signal<IEntity, IEntity, IEntity, IEntity>();
+		private Signal<IEntity, int, int> parentIndexChanged = new Signal<IEntity, int, int>();
 		private Signal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
 		private Signal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
 		private Signal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>();
@@ -80,7 +80,7 @@ namespace Atlas.Engine.Entities
 			engineChanged.Dispose();
 			globalNameChanged.Dispose();
 			localNameChanged.Dispose();
-			parentChanged.Dispose();
+			ancestorChanged.Dispose();
 			parentIndexChanged.Dispose();
 			childAdded.Dispose();
 			childRemoved.Dispose();
@@ -114,7 +114,7 @@ namespace Atlas.Engine.Entities
 		public ISignal<IEntity, string, string> GlobalNameChanged { get { return globalNameChanged; } }
 		public ISignal<IEntity, string, string> LocalNameChanged { get { return localNameChanged; } }
 		public ISignal<IEntity, IEntity, IEntity, IEntity> RootChanged { get { return rootChanged; } }
-		public ISignal<IEntity, IEntity, IEntity> ParentChanged { get { return parentChanged; } }
+		public ISignal<IEntity, IEntity, IEntity, IEntity> AncestorChanged { get { return ancestorChanged; } }
 		public ISignal<IEntity, int, int> ParentIndexChanged { get { return parentIndexChanged; } }
 		public ISignal<IEntity, IEntity, int> ChildAdded { get { return childAdded; } }
 		public ISignal<IEntity, IEntity, int> ChildRemoved { get { return childRemoved; } }
@@ -453,18 +453,12 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		private void SetRoot(IEntity value, IEntity source)
+		private void OnRootChanged(IEntity entity, IEntity next, IEntity previous, IEntity source)
 		{
-			if(root == value)
+			if(root == next)
 				return;
-			IEntity previous = root;
-			root = value;
-			rootChanged.Dispatch(this, value, previous, source);
-		}
-
-		private void ParentRootChanged(IEntity parent, IEntity next, IEntity previous, IEntity source)
-		{
-			SetRoot(next, source);
+			root = next;
+			rootChanged.Dispatch(this, next, previous, source);
 		}
 
 		public bool HasChild(string localName)
@@ -605,7 +599,8 @@ namespace Atlas.Engine.Entities
 			if(previousParent != null)
 			{
 				parent = null;
-				previousParent.RootChanged.Remove(ParentRootChanged);
+				previousParent.RootChanged.Remove(OnRootChanged);
+				previousParent.AncestorChanged.Remove(OnAncestorChanged);
 				previousParent.ChildIndicesChanged.Remove(ParentChildIndicesChanged);
 				previousParent.SleepingChanged.Remove(ParentSleepingChanged);
 				previousParent.RemoveChild(parentIndex);
@@ -619,7 +614,8 @@ namespace Atlas.Engine.Entities
 				parent = nextParent;
 				index = Math.Max(0, Math.Min(index, nextParent.Children.Count));
 				nextParent.AddChild(this, index);
-				nextParent.RootChanged.Add(ParentRootChanged, int.MinValue);
+				nextParent.RootChanged.Add(OnRootChanged, int.MinValue + index);
+				nextParent.AncestorChanged.Add(OnAncestorChanged, int.MinValue + index);
 				nextParent.ChildIndicesChanged.Add(ParentChildIndicesChanged, int.MinValue + index);
 				nextParent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + index);
 				if(!IsFreeSleeping && nextParent.IsSleeping)
@@ -631,15 +627,21 @@ namespace Atlas.Engine.Entities
 			{
 				index = -1;
 			}
-			parentChanged.Dispatch(this, nextParent, previousParent);
+			OnRootChanged(this, root, this.root, source);
+			OnAncestorChanged(this, nextParent, previousParent, this);
 			SetParentIndex(index);
 			SetSleeping(this.sleeping + sleeping, source);
-			SetRoot(root, source);
+
 			if(parent == null && isAutoDisposed)
 			{
 				Dispose();
 			}
 			return true;
+		}
+
+		private void OnAncestorChanged(IEntity entity, IEntity next, IEntity previous, IEntity source)
+		{
+			ancestorChanged.Dispatch(this, next, previous, source);
 		}
 
 		public int ParentIndex
@@ -758,8 +760,11 @@ namespace Atlas.Engine.Entities
 				return;
 			int previous = parentIndex;
 			parentIndex = value;
+			//Children should be notified of these events in the order of their index.
 			if(parent != null)
 			{
+				//This gets a + 1 because the Engine takes priority.
+				parent.AncestorChanged.Get(OnAncestorChanged).Priority = int.MinValue + parentIndex + 1;
 				parent.ChildIndicesChanged.Get(ParentChildIndicesChanged).Priority = int.MinValue + parentIndex;
 				parent.SleepingChanged.Get(ParentSleepingChanged).Priority = int.MinValue + parentIndex;
 			}
