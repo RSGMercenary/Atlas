@@ -1,4 +1,4 @@
-﻿namespace Atlas.Messages
+﻿namespace Atlas.Testing.Messages
 {
 	interface IHierarchyMessage<TSender>:IMessage<TSender>
 	{

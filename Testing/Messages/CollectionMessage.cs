@@ -1,4 +1,4 @@
-﻿namespace Atlas.Messages
+﻿namespace Atlas.Testing.Messages
 {
 	class CollectionMessage<TSender, TKey, TValue>:Message<TSender, TKey, TValue>
 	{

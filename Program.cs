@@ -1,7 +1,9 @@
 ﻿using Atlas.Engine.Entities;
 using Atlas.Framework.Geometry;
+using Atlas.Framework.Utilites;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
+using System;
 using System.Diagnostics;
 
 namespace Atlas
@@ -10,15 +12,16 @@ namespace Atlas
 	{
 		static void Main(string[] args)
 		{
-
 			Vector2 vector1 = new Vector2(6, 5);
 			Vector2 vector2 = new Vector2(6, 5);
 
-			//float degrees = 90;
-			//float radians = degrees * (float)(Math.PI / 180);
-			vector1.ReflectAround2(new Vector2(7, 5), new Vector2(1, 0));
+			vector1.ReflectAround2(new Vector2(0, 0), new Vector2(1, -1));
 			vector2.Reflect2(new Vector2(1, -1));
 
+			Vector3 vec3 = new Vector3(5, 5);
+			vec3.RotateAround2(new Vector2(10, 5), (float)Conversion.ToRadians(90));
+			int x = (int)Math.Round(vec3.X);
+			int y = (int)Math.Round(vec3.Y);
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();
 

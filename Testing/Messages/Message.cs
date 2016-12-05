@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.Messages
+namespace Atlas.Testing.Messages
 {
 	class Message:IMessage, IDisposable
 	{

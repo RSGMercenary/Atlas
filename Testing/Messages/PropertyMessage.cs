@@ -1,4 +1,4 @@
-﻿namespace Atlas.Messages
+﻿namespace Atlas.Testing.Messages
 {
 	class PropertyMessage<TSender, TProperty>:Message<TSender, TProperty, TProperty>
 	{

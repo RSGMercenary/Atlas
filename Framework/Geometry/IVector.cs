@@ -12,10 +12,11 @@
 
 		float Dot2(float x, float y);
 		float Cross2(float x, float y);
-		//float Radians(float x, float y);
+		float Distance2(float x, float y);
 
 		float Dot2(IReadOnlyVector2 vector);
 		float Cross2(IReadOnlyVector2 vector);
+		float Distance2(IReadOnlyVector2 vector);
 	}
 
 	interface IReadOnlyVector3:IReadOnlyVector2
@@ -26,9 +27,11 @@
 
 		float Dot3(float x, float y, float z);
 		float Cross3(float x, float y, float z);
+		float Distance3(float x, float y, float z);
 
 		float Dot3(IReadOnlyVector3 vector);
 		float Cross3(IReadOnlyVector3 vector);
+		float Distance3(IReadOnlyVector3 vector);
 	}
 
 	interface IReadOnlyVector4:IReadOnlyVector3
@@ -68,7 +71,8 @@
 		TReturn Subtract2(float x = 0, float y = 0);
 		TReturn Multiply2(float x = 1, float y = 1);
 		TReturn Divide2(float x = 1, float y = 1);
-		TReturn Reflect2(float x, float y);
+		TReturn Rotate2(float radians);
+		TReturn Reflect2(float normalX, float normalY);
 		TReturn Normalize2(float length = 1);
 
 		TReturn Set2(IReadOnlyVector2 vector);
@@ -76,10 +80,10 @@
 		TReturn Subtract2(IReadOnlyVector2 vector);
 		TReturn Multiply2(IReadOnlyVector2 vector);
 		TReturn Divide2(IReadOnlyVector2 vector);
-		TReturn Reflect2(IReadOnlyVector2 plane);
+		TReturn Reflect2(IReadOnlyVector2 normal);
 
 		TReturn RotateAround2(IReadOnlyVector2 vector, float radians);
-		//TReturn ReflectAround2(IReadOnlyVector2 vector, IReadOnlyVector2 plane);
+		TReturn ReflectAround2(IReadOnlyVector2 vector, IReadOnlyVector2 normal);
 
 		TReturn PerpendicularCCW2();
 		TReturn PerpendicularCW2();

@@ -1,4 +1,4 @@
-﻿namespace Atlas.Messages
+﻿namespace Atlas.Testing.Messages
 {
 	interface IMessageDispatcherBase
 	{

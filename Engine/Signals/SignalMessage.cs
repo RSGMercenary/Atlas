@@ -1,4 +1,4 @@
-﻿using Atlas.Messages;
+﻿using Atlas.Testing.Messages;
 using System;
 using System.Collections.Generic;
 

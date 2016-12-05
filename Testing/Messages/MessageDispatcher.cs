@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.Messages
+namespace Atlas.Testing.Messages
 {
 	class MessageDispatcher<TSender>:IMessageDispatcher<TSender>
 	{
