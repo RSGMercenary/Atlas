@@ -4,7 +4,7 @@ using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using System;
 
-namespace Atlas.Framework.Components.Transform
+namespace Atlas.Framework.D2.Components.Transform
 {
 	class Transform2D:AtlasComponent, ITransform2D
 	{

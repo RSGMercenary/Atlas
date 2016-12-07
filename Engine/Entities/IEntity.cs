@@ -81,8 +81,8 @@ namespace Atlas.Engine.Entities
 		Type GetComponentType(IComponent component);
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
-		ISignal<IEntity, IComponent, Type> ComponentAdded { get; }
-		ISignal<IEntity, IComponent, Type> ComponentRemoved { get; }
+		ISignal<IEntity, IComponent, Type, IEntity> ComponentAdded { get; }
+		ISignal<IEntity, IComponent, Type, IEntity> ComponentRemoved { get; }
 
 		#endregion
 

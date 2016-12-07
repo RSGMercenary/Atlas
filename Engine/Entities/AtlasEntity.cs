@@ -34,8 +34,8 @@ namespace Atlas.Engine.Entities
 		private Signal<IEntity, IEntity, int> childAdded = new Signal<IEntity, IEntity, int>();
 		private Signal<IEntity, IEntity, int> childRemoved = new Signal<IEntity, IEntity, int>();
 		private Signal<IEntity, int, int, bool> childIndicesChanged = new Signal<IEntity, int, int, bool>();
-		private Signal<IEntity, IComponent, Type> componentAdded = new Signal<IEntity, IComponent, Type>();
-		private Signal<IEntity, IComponent, Type> componentRemoved = new Signal<IEntity, IComponent, Type>();
+		private Signal<IEntity, IComponent, Type, IEntity> componentAdded = new Signal<IEntity, IComponent, Type, IEntity>();
+		private Signal<IEntity, IComponent, Type, IEntity> componentRemoved = new Signal<IEntity, IComponent, Type, IEntity>();
 		private Signal<IEntity, Type> systemAdded = new Signal<IEntity, Type>();
 		private Signal<IEntity, Type> systemRemoved = new Signal<IEntity, Type>();
 		private Signal<IEntity, int, int, IEntity> sleepingChanged = new Signal<IEntity, int, int, IEntity>();
@@ -119,8 +119,8 @@ namespace Atlas.Engine.Entities
 		public ISignal<IEntity, IEntity, int> ChildAdded { get { return childAdded; } }
 		public ISignal<IEntity, IEntity, int> ChildRemoved { get { return childRemoved; } }
 		public ISignal<IEntity, int, int, bool> ChildIndicesChanged { get { return childIndicesChanged; } }
-		public ISignal<IEntity, IComponent, Type> ComponentAdded { get { return componentAdded; } }
-		public ISignal<IEntity, IComponent, Type> ComponentRemoved { get { return componentRemoved; } }
+		public ISignal<IEntity, IComponent, Type, IEntity> ComponentAdded { get { return componentAdded; } }
+		public ISignal<IEntity, IComponent, Type, IEntity> ComponentRemoved { get { return componentRemoved; } }
 		public ISignal<IEntity, Type> SystemTypeAdded { get { return systemAdded; } }
 		public ISignal<IEntity, Type> SystemTypeRemoved { get { return systemRemoved; } }
 		public ISignal<IEntity, int, int, IEntity> SleepingChanged { get { return sleepingChanged; } }
@@ -394,7 +394,7 @@ namespace Atlas.Engine.Entities
 				RemoveComponent(type);
 				components.Add(type, component);
 				component.AddEntity(this, type, index);
-				componentAdded.Dispatch(this, component, type);
+				OnComponentAdded(this, component, type, this);
 			}
 			return component;
 		}
@@ -418,7 +418,7 @@ namespace Atlas.Engine.Entities
 			IComponent component = components[type];
 			components.Remove(type);
 			component.RemoveEntity(this, type);
-			componentRemoved.Dispatch(this, component, type);
+			OnComponentRemoved(this, component, type, this);
 			return component;
 		}
 
@@ -439,6 +439,16 @@ namespace Atlas.Engine.Entities
 				RemoveComponent(type);
 			}
 			return true;
+		}
+
+		private void OnComponentAdded(IEntity entity, IComponent component, Type type, IEntity source)
+		{
+			componentAdded.Dispatch(this, component, type, source);
+		}
+
+		private void OnComponentRemoved(IEntity entity, IComponent component, Type type, IEntity source)
+		{
+			componentRemoved.Dispatch(this, component, type, source);
 		}
 
 		#endregion
@@ -603,6 +613,8 @@ namespace Atlas.Engine.Entities
 				previousParent.AncestorChanged.Remove(OnAncestorChanged);
 				previousParent.ChildIndicesChanged.Remove(ParentChildIndicesChanged);
 				previousParent.SleepingChanged.Remove(ParentSleepingChanged);
+				previousParent.ComponentAdded.Remove(OnComponentAdded);
+				previousParent.ComponentRemoved.Remove(OnComponentRemoved);
 				previousParent.RemoveChild(parentIndex);
 				if(!IsFreeSleeping && previousParent.IsSleeping)
 					--sleeping;
@@ -618,6 +630,8 @@ namespace Atlas.Engine.Entities
 				nextParent.AncestorChanged.Add(OnAncestorChanged, int.MinValue + index);
 				nextParent.ChildIndicesChanged.Add(ParentChildIndicesChanged, int.MinValue + index);
 				nextParent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + index);
+				nextParent.ComponentAdded.Add(OnComponentAdded);
+				nextParent.ComponentRemoved.Add(OnComponentRemoved);
 				if(!IsFreeSleeping && nextParent.IsSleeping)
 					++sleeping;
 				root = nextParent.Root;

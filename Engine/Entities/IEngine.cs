@@ -58,20 +58,20 @@ namespace Atlas.Engine.Entities
 		/// <summary>
 		/// The delta time since the last <see cref="ISystem.Update"/> loop was started.
 		/// </summary>
-		double DeltaUpdateTime { get; }
+		float DeltaUpdateTime { get; }
 
 		/// <summary>
 		/// The total time spent running <see cref="ISystem.Update"/> loops was started.
 		/// </summary>
-		double TotalUpdateTime { get; }
+		float TotalUpdateTime { get; }
 
-		double DeltaFixedUpdateTime { get; set; }
+		float DeltaFixedUpdateTime { get; set; }
 
-		double TotalFixedUpdateTime { get; }
+		float TotalFixedUpdateTime { get; }
 
-		double DeltaEngineTime { get; }
+		float DeltaEngineTime { get; }
 
-		double TotalEngineTime { get; }
+		float TotalEngineTime { get; }
 
 		void Run();
 		bool IsRunning { get; }

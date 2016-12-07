@@ -177,6 +177,10 @@ namespace Atlas.Framework.Geometry
 
 		public TReturn ReflectAround2(float x, float y, float normalX, float normalY)
 		{
+			//We rotate perpendicular CCW to actually make a normal facing.
+			float temp = normalX;
+			normalX = normalY;
+			normalY = -temp;
 			x = X - x;
 			y = Y - y;
 			float dot = 2 * (x * normalX + y * normalY);

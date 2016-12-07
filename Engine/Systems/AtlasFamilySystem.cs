@@ -48,35 +48,17 @@ namespace Atlas.Engine.Systems
 			base.Disposing();
 		}
 
-		public IFamily Family
+		protected void FamilyUpdate(double deltaTime)
 		{
-			get
+			if(entityUpdate == null)
+				return;
+			if(family == null)
+				return;
+			for(var current = family.Entities.First; current != null; current = current.Next)
 			{
-				return family;
-			}
-		}
-
-		public Action<double, IEntity> EntityUpdate
-		{
-			get
-			{
-				return entityUpdate;
-			}
-		}
-
-		public Action<IFamily, IEntity> EntityAdded
-		{
-			get
-			{
-				return entityAdded;
-			}
-		}
-
-		public Action<IFamily, IEntity> EntityRemoved
-		{
-			get
-			{
-				return entityRemoved;
+				IEntity entity = current.Value;
+				if(UpdateEntitiesSleeping || !entity.IsSleeping)
+					entityUpdate(deltaTime, entity);
 			}
 		}
 

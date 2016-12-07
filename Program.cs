@@ -12,18 +12,16 @@ namespace Atlas
 	{
 		static void Main(string[] args)
 		{
-			Vector2 vector1 = new Vector2(6, 5);
-			Vector2 vector2 = new Vector2(6, 5);
-
-			vector1.ReflectAround2(new Vector2(0, 0), new Vector2(1, -1));
-			vector2.Reflect2(new Vector2(1, -1));
-
-			Vector3 vec3 = new Vector3(5, 5);
-			vec3.RotateAround2(new Vector2(10, 5), (float)Conversion.ToRadians(90));
-			int x = (int)Math.Round(vec3.X);
-			int y = (int)Math.Round(vec3.Y);
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();
+
+			Vector2 vector = new Vector2(6, 5);
+			vector.Reflect2(new Vector2(1, 0));
+			vector.ReflectAround2(new Vector2(0, 0), new Vector2(1, 0));
+
+			double radians = Conversion.ToRadians(90);
+			var x = Math.Cos(radians);
+			var y = Math.Sin(radians);
 
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{

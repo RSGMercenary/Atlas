@@ -36,16 +36,16 @@ namespace Atlas.Engine.Entities
 		private bool isUpdating = false;
 		private bool isRunning = false;
 
-		private double deltaUpdateTime = 0;
-		private double totalUpdateTime = 0;
+		private float deltaUpdateTime = 0;
+		private float totalUpdateTime = 0;
 		private ISystem currentUpdateSystem;
 
-		private double deltaFixedUpdateTime = (double)1 / 60;
-		private double totalFixedUpdateTime = 0;
+		private float deltaFixedUpdateTime = (float)1 / 60;
+		private float totalFixedUpdateTime = 0;
 		private ISystem currentFixedUpdateSystem;
 
-		private double deltaEngineTime = 0;
-		private double totalEngineTime = 0;
+		private float deltaEngineTime = 0;
+		private float totalEngineTime = 0;
 
 		private Signal<IEngine, IEntity> entityAdded = new Signal<IEngine, IEntity>();
 		private Signal<IEngine, IEntity> entityRemoved = new Signal<IEngine, IEntity>();
@@ -253,7 +253,7 @@ namespace Atlas.Engine.Entities
 
 		#region Systems
 
-		public double DeltaUpdateTime
+		public float DeltaUpdateTime
 		{
 			get
 			{
@@ -267,7 +267,7 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public double TotalUpdateTime
+		public float TotalUpdateTime
 		{
 			get
 			{
@@ -281,7 +281,7 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public double DeltaFixedUpdateTime
+		public float DeltaFixedUpdateTime
 		{
 			get
 			{
@@ -295,7 +295,7 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public double TotalFixedUpdateTime
+		public float TotalFixedUpdateTime
 		{
 			get
 			{
@@ -309,7 +309,7 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public double DeltaEngineTime
+		public float DeltaEngineTime
 		{
 			get
 			{
@@ -322,7 +322,7 @@ namespace Atlas.Engine.Entities
 				deltaEngineTime = value;
 			}
 		}
-		public double TotalEngineTime
+		public float TotalEngineTime
 		{
 			get
 			{
@@ -503,10 +503,10 @@ namespace Atlas.Engine.Entities
 
 			//timer.Start();
 
-			DeltaEngineTime = timer.Elapsed.TotalSeconds - TotalEngineTime;
+			DeltaEngineTime = (float)timer.Elapsed.TotalSeconds - TotalEngineTime;
 
 			//DeltaFixedUpdateTime can be changed, but we probably shouldn't change it during an update loop.
-			double deltaFixedUpdateTime = this.deltaFixedUpdateTime;
+			float deltaFixedUpdateTime = this.deltaFixedUpdateTime;
 			while(TotalFixedUpdateTime < timer.Elapsed.TotalSeconds)
 			{
 				for(var current = systems.First; current != null; current = current.Next)
@@ -518,19 +518,19 @@ namespace Atlas.Engine.Entities
 				TotalFixedUpdateTime += deltaFixedUpdateTime;
 			}
 
-			DeltaUpdateTime = timer.Elapsed.TotalSeconds - totalUpdateTime;
+			DeltaUpdateTime = (float)timer.Elapsed.TotalSeconds - totalUpdateTime;
 			for(var current = systems.First; current != null; current = current.Next)
 			{
 				CurrentUpdateSystem = current.Value;
 				current.Value.Update(deltaUpdateTime);
 				CurrentUpdateSystem = null;
 			}
-			TotalUpdateTime = timer.Elapsed.TotalSeconds;
+			TotalUpdateTime = (float)timer.Elapsed.TotalSeconds;
 
 			DisposeSystems();
 			DisposeFamilies();
 
-			TotalEngineTime = timer.Elapsed.TotalSeconds;
+			TotalEngineTime = (float)timer.Elapsed.TotalSeconds;
 
 			IsUpdating = false;
 		}
@@ -707,16 +707,20 @@ namespace Atlas.Engine.Entities
 			return familiesType.ContainsKey(type) ? familiesType[type] : null;
 		}
 
-		private void EntityComponentAdded(IEntity entity, IComponent component, Type componentType)
+		private void EntityComponentAdded(IEntity entity, IComponent component, Type componentType, IEntity source)
 		{
+			if(entity != source)
+				return;
 			for(var current = families.First; current != null; current = current.Next)
 			{
 				current.Value.AddEntity(entity, component, componentType);
 			}
 		}
 
-		private void EntityComponentRemoved(IEntity entity, IComponent component, Type componentType)
+		private void EntityComponentRemoved(IEntity entity, IComponent component, Type componentType, IEntity source)
 		{
+			if(entity != source)
+				return;
 			for(var current = families.First; current != null; current = current.Next)
 			{
 				current.Value.RemoveEntity(entity, component, componentType);
