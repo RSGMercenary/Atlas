@@ -1,5 +1,4 @@
-﻿using Atlas.Engine.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
@@ -23,82 +22,52 @@ namespace Atlas.Engine.Signals
 		ISlotBase Add(Delegate listener, int priority = 0);
 
 		bool Remove(Delegate listener);
+
 		bool Remove(int index);
 		bool RemoveAll();
 	}
 
-	interface ISignalDynamic:ISignalBase, IDispatchDynamic
+	interface ISignalBase<TSlot, TDelegate>:ISignalBase
+		where TSlot : class, ISlotBase
+		where TDelegate : class
+	{
+		TSlot Get(TDelegate listener);
+		new TSlot Get(int index);
+		int GetIndex(TDelegate listener);
+
+		TSlot Add(TDelegate listener);
+		TSlot Add(TDelegate listener, int priority = 0);
+
+		bool Remove(TDelegate listener);
+	}
+
+	interface ISignalDynamic:ISignalBase<ISlotBase, Delegate>
 	{
 
 	}
 
-	interface ISignal:ISignalBase
+	interface ISignal:ISignalBase<ISlot, Action>
 	{
-		//new List<ISlot> SlotsCopy { get; }
 
-		ISlot Get(Action listener);
-		new ISlot Get(int index);
-		int GetIndex(Action listener);
-
-		ISlot Add(Action listener);
-		ISlot Add(Action listener, int priority = 0);
-
-		bool Remove(Action listener);
 	}
 
-	interface ISignal<T1>:ISignalBase
+	interface ISignal<T1>:ISignalBase<ISlot<T1>, Action<T1>>
 	{
-		//new List<ISlot<T1>> SlotsCopy { get; }
 
-		ISlot<T1> Get(Action<T1> listener);
-		new ISlot<T1> Get(int index);
-		int GetIndex(Action<T1> listener);
-
-		ISlot<T1> Add(Action<T1> listener);
-		ISlot<T1> Add(Action<T1> listener, int priority = 0);
-
-		bool Remove(Action<T1> listener);
 	}
 
-	interface ISignal<T1, T2>:ISignalBase
+	interface ISignal<T1, T2>:ISignalBase<ISlot<T1, T2>, Action<T1, T2>>
 	{
-		//new List<ISlot<T1, T2>> SlotsCopy { get; }
 
-		ISlot<T1, T2> Get(Action<T1, T2> listener);
-		new ISlot<T1, T2> Get(int index);
-		int GetIndex(Action<T1, T2> listener);
-
-		ISlot<T1, T2> Add(Action<T1, T2> listener);
-		ISlot<T1, T2> Add(Action<T1, T2> listener, int priority = 0);
-
-		bool Remove(Action<T1, T2> listener);
 	}
 
-	interface ISignal<T1, T2, T3>:ISignalBase
+	interface ISignal<T1, T2, T3>:ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>>
 	{
-		//new List<ISlot<T1, T2, T3>> SlotsCopy { get; }
 
-		ISlot<T1, T2, T3> Get(Action<T1, T2, T3> listener);
-		new ISlot<T1, T2, T3> Get(int index);
-		int GetIndex(Action<T1, T2, T3> listener);
-
-		ISlot<T1, T2, T3> Add(Action<T1, T2, T3> listener);
-		ISlot<T1, T2, T3> Add(Action<T1, T2, T3> listener, int priority = 0);
-
-		bool Remove(Action<T1, T2, T3> listener);
 	}
 
-	interface ISignal<T1, T2, T3, T4>:ISignalBase
+	interface ISignal<T1, T2, T3, T4>:ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
 	{
-		//new List<ISlot<T1, T2, T3, T4>> SlotsCopy { get; }
 
-		ISlot<T1, T2, T3, T4> Get(Action<T1, T2, T3, T4> listener);
-		new ISlot<T1, T2, T3, T4> Get(int index);
-		int GetIndex(Action<T1, T2, T3, T4> listener);
-
-		ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener);
-		ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0);
-
-		bool Remove(Action<T1, T2, T3, T4> listener);
 	}
 }

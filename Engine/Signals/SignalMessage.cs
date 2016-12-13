@@ -34,7 +34,7 @@ namespace Atlas.Engine.Signals
 			if(!HasListeners)
 				return false;
 			TMessage message = CreateMessage();
-			message.Initialize(type, sender);
+			//message.Initialize(type, sender);
 			return Dispatch(message);
 		}
 

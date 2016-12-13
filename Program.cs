@@ -15,9 +15,9 @@ namespace Atlas
 			IEngine root = AtlasEngine.Instance;
 			root.AddSystemType<TestSystem>();
 
-			Vector2 vector = new Vector2(6, 5);
-			vector.Reflect2(new Vector2(1, 0));
-			vector.ReflectAround2(new Vector2(0, 0), new Vector2(1, 0));
+			Vector2 vector = new Vector2(-6, -5);
+			vector.Reflect2(new Vector2(5, 5));
+			//vector.ReflectAround2(new Vector2(5, 5), new Vector2(1, 1));
 
 			double radians = Conversion.ToRadians(90);
 			var x = Math.Cos(radians);

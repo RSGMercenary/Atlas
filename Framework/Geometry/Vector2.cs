@@ -172,7 +172,11 @@ namespace Atlas.Framework.Geometry
 
 		public TReturn Reflect2(float normalX, float normalY)
 		{
-			return ReflectAround2(0, 0, normalX, normalY);
+			//return ReflectAround2(0, 0, normalX, normalY);
+			float dot = Dot2(normalX, normalY);
+			X -= dot * normalX;
+			Y -= dot * normalY;
+			return this as TReturn;
 		}
 
 		public TReturn ReflectAround2(float x, float y, float normalX, float normalY)

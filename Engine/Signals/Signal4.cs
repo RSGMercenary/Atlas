@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
-	class Signal<T1, T2, T3, T4>:SignalBase, ISignal<T1, T2, T3, T4>, IDispatch<T1, T2, T3, T4>
+	class Signal<T1, T2, T3, T4>:SignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISignal<T1, T2, T3, T4>, IDispatch<T1, T2, T3, T4>
 	{
 		public Signal()
 		{
@@ -32,36 +32,6 @@ namespace Atlas.Engine.Signals
 				return true;
 			}
 			return false;
-		}
-
-		public ISlot<T1, T2, T3, T4> Get(Action<T1, T2, T3, T4> listener)
-		{
-			return (ISlot<T1, T2, T3, T4>)base.Get(listener);
-		}
-
-		public new ISlot<T1, T2, T3, T4> Get(int index)
-		{
-			return (ISlot<T1, T2, T3, T4>)base.Get(index);
-		}
-
-		public int GetIndex(Action<T1, T2, T3, T4> listener)
-		{
-			return base.GetIndex(listener);
-		}
-
-		public ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener)
-		{
-			return (ISlot<T1, T2, T3, T4>)base.Add(listener);
-		}
-
-		public ISlot<T1, T2, T3, T4> Add(Action<T1, T2, T3, T4> listener, int priority = 0)
-		{
-			return (ISlot<T1, T2, T3, T4>)base.Add(listener, priority);
-		}
-
-		public bool Remove(Action<T1, T2, T3, T4> listener)
-		{
-			return base.Remove(listener);
 		}
 
 		override protected SlotBase CreateSlot()

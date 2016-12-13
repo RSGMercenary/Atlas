@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalBase:ISignalBase, IDisposable
+	class SignalBase:ISignalBase
 	{
 		private List<SlotBase> slots = new List<SlotBase>();
 		private int dispatching = 0;
@@ -12,11 +12,6 @@ namespace Atlas.Engine.Signals
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 
 		private bool isDisposed = false;
-
-		public SignalBase()
-		{
-
-		}
 
 		/// <summary>
 		/// Cleans up the Signal by removing and disposing all listeners,
@@ -86,11 +81,6 @@ namespace Atlas.Engine.Signals
 				return true;
 			}
 			return false;
-		}
-
-		virtual protected void DispatchesStop()
-		{
-
 		}
 
 		/// <summary>
@@ -192,7 +182,7 @@ namespace Atlas.Engine.Signals
 		{
 			if(listener != null)
 			{
-				SlotBase slot = (SlotBase)Get(listener);
+				SlotBase slot = Get(listener) as SlotBase;
 				if(slot == null)
 				{
 					if(slotsPooled.Count > 0)
@@ -205,7 +195,7 @@ namespace Atlas.Engine.Signals
 					}
 
 					slot.Signal = this;
-					slot.Listener = listener;
+					slot.Listener = listener as Delegate;
 					slot.Priority = priority;
 
 					PriorityChanged(slot, 0, 0);
@@ -290,6 +280,46 @@ namespace Atlas.Engine.Signals
 				Remove(slots.Count - 1);
 			}
 			return true;
+		}
+	}
+
+	class SignalBase<TSlot, TDelegate>:SignalBase, ISignalBase<TSlot, TDelegate>, IDisposable
+		where TSlot : class, ISlotBase
+		where TDelegate : class
+	{
+		public SignalBase()
+		{
+
+		}
+
+		public TSlot Add(TDelegate listener)
+		{
+			return Add(listener as Delegate) as TSlot;
+		}
+
+		public TSlot Add(TDelegate listener, int priority = 0)
+		{
+			return Add(listener as Delegate) as TSlot;
+		}
+
+		public TSlot Get(TDelegate listener)
+		{
+			return Get(listener as Delegate) as TSlot;
+		}
+
+		public int GetIndex(TDelegate listener)
+		{
+			return GetIndex(listener as Delegate);
+		}
+
+		public bool Remove(TDelegate listener)
+		{
+			return Remove(listener as Delegate);
+		}
+
+		public new TSlot Get(int index)
+		{
+			return base.Get(index) as TSlot;
 		}
 	}
 }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalDynamic:SignalBase, ISignalDynamic
+	class SignalDynamic:SignalBase<ISlotBase, Delegate>, ISignalDynamic
 	{
 		public SignalDynamic()
 		{

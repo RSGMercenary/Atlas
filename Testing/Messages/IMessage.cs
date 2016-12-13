@@ -6,32 +6,32 @@ namespace Atlas.Testing.Messages
 	{
 		string Type { get; }
 		object Sender { get; }
-		void Initialize(string type, object sender);
+		void Initialize(string type, object source, object sender);
 	}
 
-	interface IMessage<TSender>:IMessage
+	interface IMessage<TDispatcher>:IMessage
 	{
-		new TSender Sender { get; }
-		void Initialize(string type, TSender sender);
+		new TDispatcher Sender { get; }
+		void Initialize(string type, TDispatcher source, TDispatcher sender);
 	}
 
-	interface IMessage<TSender, T1>:IMessage<TSender>
+	interface IMessage<TDispatcher, T1>:IMessage<TDispatcher>
 	{
-		void Initialize(string type, TSender sender, T1 item1);
+		void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1);
 	}
 
-	interface IMessage<TSender, T1, T2>:IMessage<TSender, T1>
+	interface IMessage<TDispatcher, T1, T2>:IMessage<TDispatcher, T1>
 	{
-		void Initialize(string type, TSender sender, T1 item1, T2 item2);
+		void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2);
 	}
 
-	interface IMessage<TSender, T1, T2, T3>:IMessage<TSender, T1, T2>
+	interface IMessage<TDispatcher, T1, T2, T3>:IMessage<TDispatcher, T1, T2>
 	{
-		void Initialize(string type, TSender sender, T1 item1, T2 item2, T3 item3);
+		void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3);
 	}
 
-	interface IMessage<TSender, T1, T2, T3, T4>:IMessage<TSender, T1, T2, T3>
+	interface IMessage<TDispatcher, T1, T2, T3, T4>:IMessage<TDispatcher, T1, T2, T3>
 	{
-		void Initialize(string type, TSender sender, T1 item1, T2 item2, T3 item3, T4 item4);
+		void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3, T4 item4);
 	}
 }

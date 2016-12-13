@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
-	class Signal<T1, T2>:SignalBase, ISignal<T1, T2>, IDispatch<T1, T2>
+	class Signal<T1, T2>:SignalBase<ISlot<T1, T2>, Action<T1, T2>>, ISignal<T1, T2>, IDispatch<T1, T2>
 	{
 		public Signal()
 		{
@@ -32,36 +32,6 @@ namespace Atlas.Engine.Signals
 				return true;
 			}
 			return false;
-		}
-
-		public ISlot<T1, T2> Get(Action<T1, T2> listener)
-		{
-			return (ISlot<T1, T2>)base.Get(listener);
-		}
-
-		public new ISlot<T1, T2> Get(int index)
-		{
-			return (ISlot<T1, T2>)base.Get(index);
-		}
-
-		public int GetIndex(Action<T1, T2> listener)
-		{
-			return base.GetIndex(listener);
-		}
-
-		public ISlot<T1, T2> Add(Action<T1, T2> listener)
-		{
-			return (ISlot<T1, T2>)base.Add(listener);
-		}
-
-		public ISlot<T1, T2> Add(Action<T1, T2> listener, int priority = 0)
-		{
-			return (ISlot<T1, T2>)base.Add(listener, priority);
-		}
-
-		public bool Remove(Action<T1, T2> listener)
-		{
-			return base.Remove(listener);
 		}
 
 		override protected SlotBase CreateSlot()

@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Testing.Messages
 {
-	class CollectionMessage<TSender, TKey, TValue>:Message<TSender, TKey, TValue>
+	class CollectionMessage<TDispatcher, TKey, TValue>:Message<TDispatcher, TKey, TValue>
 	{
 		private TKey key;
 		private TValue value;
@@ -11,14 +11,14 @@
 
 		}
 
-		public CollectionMessage(string type, TSender sender, TKey key, TValue value)
+		public CollectionMessage(string type, TDispatcher source, TDispatcher sender, TKey key, TValue value)
 		{
-			Initialize(type, sender, key, value);
+			Initialize(type, source, sender, key, value);
 		}
 
-		public void Initialize(string type, TSender sender, TKey key, TValue value)
+		public void Initialize(string type, TDispatcher source, TDispatcher sender, TKey key, TValue value)
 		{
-			Initialize(type, sender);
+			Initialize(type, source, sender);
 			this.key = key;
 			this.value = value;
 		}

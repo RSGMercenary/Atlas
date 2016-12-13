@@ -8,35 +8,29 @@ namespace Atlas.Framework.D2.Components.Transform
 {
 	class Transform2D:AtlasComponent, ITransform2D
 	{
-		public ISignal<ITransform2D, ITransform2D, int> ChildAdded
+		private LinkList<ITransform2D> children = new LinkList<ITransform2D>();
+		private ITransform2D parent;
+		private int parentIndex = -1;
+
+		private Signal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> ancestorChanged = new Signal<ITransform2D, ITransform2D, ITransform2D, ITransform2D>();
+		private Signal<ITransform2D, ITransform2D, int> childAdded = new Signal<ITransform2D, ITransform2D, int>();
+		private Signal<ITransform2D, ITransform2D, int> childRemoved = new Signal<ITransform2D, ITransform2D, int>();
+		private Signal<ITransform2D, int, int, bool> childIndicesChanged = new Signal<ITransform2D, int, int, bool>();
+
+		public Transform2D()
 		{
-			get
-			{
-				throw new NotImplementedException();
-			}
+
 		}
 
-		public ISignal<ITransform2D, int, int, bool> ChildIndicesChanged
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		public ISignal<ITransform2D, ITransform2D, int> ChildRemoved
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
+		public ISignal<ITransform2D, ITransform2D, int> ChildAdded { get { return childAdded; } }
+		public ISignal<ITransform2D, ITransform2D, int> ChildRemoved { get { return childRemoved; } }
+		public ISignal<ITransform2D, int, int, bool> ChildIndicesChanged { get { return childIndicesChanged; } }
 
 		public IReadOnlyLinkList<ITransform2D> Children
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return children;
 			}
 		}
 
@@ -44,20 +38,19 @@ namespace Atlas.Framework.D2.Components.Transform
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return parent;
 			}
-
 			set
 			{
-				throw new NotImplementedException();
+				SetParent(value);
 			}
 		}
 
-		public ISignal<ITransform2D, ITransform2D, ITransform2D> AncestorChanged
+		public ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> AncestorChanged
 		{
 			get
 			{
-				throw new NotImplementedException();
+				return ancestorChanged;
 			}
 		}
 
