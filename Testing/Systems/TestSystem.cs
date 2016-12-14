@@ -24,7 +24,7 @@ namespace Atlas.Testing.Systems
 
 		private void UpdateEntity(double deltaTime, IEntity entity)
 		{
-			//Debug.WriteLine(entity.GlobalName);
+			Debug.WriteLine(entity.GlobalName);
 			if(entity.GlobalName == "0-3-0")
 			{
 				entity.RemoveComponent<TestComponent>();

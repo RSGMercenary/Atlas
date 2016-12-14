@@ -9,33 +9,36 @@ namespace Atlas.Engine.Signals
 		int Priority { get; set; }
 	}
 
-	interface ISlot:ISlotBase
+	interface ISlotBase<TSignal, TDelegate>:ISlotBase
+		where TSignal : class, ISignalBase
+		where TDelegate : class
 	{
-		new ISignal Signal { get; }
-		new Action Listener { get; }
+		new TSignal Signal { get; }
+		new TDelegate Listener { get; }
 	}
 
-	interface ISlot<T1>:ISlotBase
+	interface ISlot:ISlotBase<ISignal, Action>
 	{
-		new ISignal<T1> Signal { get; }
-		new Action<T1> Listener { get; }
+
 	}
 
-	interface ISlot<T1, T2>:ISlotBase
+	interface ISlot<T1>:ISlotBase<ISignal<T1>, Action<T1>>
 	{
-		new ISignal<T1, T2> Signal { get; }
-		new Action<T1, T2> Listener { get; }
+
 	}
 
-	interface ISlot<T1, T2, T3>:ISlotBase
+	interface ISlot<T1, T2>:ISlotBase<ISignal<T1, T2>, Action<T1, T2>>
 	{
-		new ISignal<T1, T2, T3> Signal { get; }
-		new Action<T1, T2, T3> Listener { get; }
+
 	}
 
-	interface ISlot<T1, T2, T3, T4>:ISlotBase
+	interface ISlot<T1, T2, T3>:ISlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>
 	{
-		new ISignal<T1, T2, T3, T4> Signal { get; }
-		new Action<T1, T2, T3, T4> Listener { get; }
+
+	}
+
+	interface ISlot<T1, T2, T3, T4>:ISlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
+	{
+
 	}
 }

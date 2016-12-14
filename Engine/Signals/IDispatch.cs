@@ -1,4 +1,4 @@
-﻿namespace Atlas.Engine.Interfaces
+﻿namespace Atlas.Engine.Signals
 {
 	interface IDispatchDynamic
 	{

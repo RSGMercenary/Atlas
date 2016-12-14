@@ -57,7 +57,7 @@ namespace Atlas.Engine.Systems
 			for(var current = family.Entities.First; current != null; current = current.Next)
 			{
 				IEntity entity = current.Value;
-				if(UpdateEntitiesSleeping || !entity.IsSleeping)
+				if(updateEntitiesSleeping || !entity.IsSleeping)
 					entityUpdate(deltaTime, entity);
 			}
 		}

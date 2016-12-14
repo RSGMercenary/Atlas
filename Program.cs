@@ -1,9 +1,8 @@
 ﻿using Atlas.Engine.Entities;
+using Atlas.Engine.Signals;
 using Atlas.Framework.Geometry;
-using Atlas.Framework.Utilites;
 using Atlas.Testing.Components;
 using Atlas.Testing.Systems;
-using System;
 using System.Diagnostics;
 
 namespace Atlas
@@ -19,9 +18,7 @@ namespace Atlas
 			vector.Reflect2(new Vector2(5, 5));
 			//vector.ReflectAround2(new Vector2(5, 5), new Vector2(1, 1));
 
-			double radians = Conversion.ToRadians(90);
-			var x = Math.Cos(radians);
-			var y = Math.Sin(radians);
+			ISignal<int, int> signal = new Signal<int, int>();
 
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{

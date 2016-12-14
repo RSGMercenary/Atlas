@@ -283,7 +283,8 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class SignalBase<TSlot, TDelegate>:SignalBase, ISignalBase<TSlot, TDelegate>, IDisposable
+	class SignalBase<TSlotBase, TSlot, TDelegate>:SignalBase, ISignalBase<TSlot, TDelegate>, IDisposable
+		where TSlotBase : SlotBase, TSlot, new()
 		where TSlot : class, ISlotBase
 		where TDelegate : class
 	{
@@ -320,6 +321,11 @@ namespace Atlas.Engine.Signals
 		public new TSlot Get(int index)
 		{
 			return base.Get(index) as TSlot;
+		}
+
+		sealed protected override SlotBase CreateSlot()
+		{
+			return new TSlotBase();
 		}
 	}
 }

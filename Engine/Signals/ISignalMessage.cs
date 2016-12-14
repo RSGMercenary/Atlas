@@ -1,5 +1,4 @@
-﻿using Atlas.Engine.Interfaces;
-using Atlas.Testing.Messages;
+﻿using Atlas.Testing.Messages;
 
 namespace Atlas.Engine.Signals
 {

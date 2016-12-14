@@ -35,7 +35,7 @@ namespace Atlas.Engine.Signals
 			}
 			set
 			{
-				signal = (SignalBase)value;
+				signal = value as SignalBase;
 			}
 		}
 
@@ -72,123 +72,57 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Slot:SlotBase, ISlot
+	class SlotBase<TSignal, TDelegate>:SlotBase
+		where TSignal : class, ISignalBase
+		where TDelegate : class
 	{
-		public Slot()
-		{
-
-		}
-
-		public new ISignal Signal
+		public new TSignal Signal
 		{
 			get
 			{
-				return (ISignal)signal;
+				return signal as TSignal;
+			}
+			set
+			{
+				signal = value as SignalBase;
 			}
 		}
 
-		public new Action Listener
+		public new TDelegate Listener
 		{
 			get
 			{
-				return (Action)listener;
+				return listener as TDelegate;
+			}
+			set
+			{
+				listener = value as Delegate;
 			}
 		}
 	}
 
-	class Slot<T1>:SlotBase, ISlot<T1>
+	class Slot:SlotBase<ISignal, Action>, ISlot
 	{
-		public Slot()
-		{
 
-		}
-
-		public new ISignal<T1> Signal
-		{
-			get
-			{
-				return (ISignal<T1>)signal;
-			}
-		}
-
-		public new Action<T1> Listener
-		{
-			get
-			{
-				return (Action<T1>)listener;
-			}
-		}
 	}
 
-	class Slot<T1, T2>:SlotBase, ISlot<T1, T2>
+	class Slot<T1>:SlotBase<ISignal<T1>, Action<T1>>, ISlot<T1>
 	{
-		public Slot()
-		{
 
-		}
-
-		public new ISignal<T1, T2> Signal
-		{
-			get
-			{
-				return (ISignal<T1, T2>)signal;
-			}
-		}
-
-		public new Action<T1, T2> Listener
-		{
-			get
-			{
-				return (Action<T1, T2>)listener;
-			}
-		}
 	}
 
-	class Slot<T1, T2, T3>:SlotBase, ISlot<T1, T2, T3>
+	class Slot<T1, T2>:SlotBase<ISignal<T1, T2>, Action<T1, T2>>, ISlot<T1, T2>
 	{
-		internal Slot()
-		{
 
-		}
-
-		public new ISignal<T1, T2, T3> Signal
-		{
-			get
-			{
-				return (ISignal<T1, T2, T3>)signal;
-			}
-		}
-
-		public new Action<T1, T2, T3> Listener
-		{
-			get
-			{
-				return (Action<T1, T2, T3>)listener;
-			}
-		}
 	}
 
-	class Slot<T1, T2, T3, T4>:SlotBase, ISlot<T1, T2, T3, T4>
+	class Slot<T1, T2, T3>:SlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>, ISlot<T1, T2, T3>
 	{
-		public Slot()
-		{
 
-		}
+	}
 
-		public new ISignal<T1, T2, T3, T4> Signal
-		{
-			get
-			{
-				return (ISignal<T1, T2, T3, T4>)signal;
-			}
-		}
+	class Slot<T1, T2, T3, T4>:SlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISlot<T1, T2, T3, T4>
+	{
 
-		public new Action<T1, T2, T3, T4> Listener
-		{
-			get
-			{
-				return (Action<T1, T2, T3, T4>)listener;
-			}
-		}
 	}
 }
