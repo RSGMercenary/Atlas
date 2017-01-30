@@ -1,13 +1,14 @@
 ﻿using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 
-namespace Atlas.Engine.Entities
+namespace Atlas.Engine.Components
 {
-	interface IEngine:IEntity
+	interface IEngine:IComponent
 	{
 		FixedStack<IEntity> EntityPool { get; }
 		FixedStack<IFamily> FamilyPool { get; }
@@ -73,10 +74,12 @@ namespace Atlas.Engine.Entities
 
 		float TotalEngineTime { get; }
 
-		void Run();
 		bool IsRunning { get; }
 
+		void Run();
+
 		bool IsUpdating { get; }
+
 		ISignal<IEngine, bool> IsUpdatingChanged { get; }
 	}
 }

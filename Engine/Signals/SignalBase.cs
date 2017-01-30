@@ -3,14 +3,18 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalBase:ISignalBase
+	class SignalBase:ISignalBase, IDisposable
 	{
-		private List<SlotBase> slots = new List<SlotBase>();
-		private int dispatching = 0;
+		public static implicit operator bool(SignalBase signal)
+		{
+			return signal != null;
+		}
 
+		private List<SlotBase> slots = new List<SlotBase>();
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
-
+		private int dispatching = 0;
+		private bool isDisposing = false;
 		private bool isDisposed = false;
 
 		/// <summary>
@@ -19,12 +23,18 @@ namespace Atlas.Engine.Signals
 		/// </summary>
 		public void Dispose()
 		{
-			if(!isDisposed)
-			{
-				IsDisposed = true;
-				slotsPooled.Clear();
-				RemoveAll();
-			}
+			if(isDisposed || isDisposing)
+				return;
+			isDisposing = true;
+			Disposing();
+			isDisposing = false;
+			isDisposed = true;
+		}
+
+		protected virtual void Disposing()
+		{
+			slotsPooled.Clear();
+			RemoveAll();
 		}
 
 		public bool IsDisposed
@@ -33,13 +43,13 @@ namespace Atlas.Engine.Signals
 			{
 				return isDisposed;
 			}
-			private set
+		}
+
+		public bool IsDisposing
+		{
+			get
 			{
-				if(isDisposed != value)
-				{
-					bool previous = isDisposed;
-					isDisposed = value;
-				}
+				return isDisposing;
 			}
 		}
 
@@ -71,8 +81,9 @@ namespace Atlas.Engine.Signals
 
 		protected bool DispatchStop()
 		{
-			--dispatching;
 			if(dispatching == 0)
+				return false;
+			if(--dispatching == 0)
 			{
 				while(slotsRemoved.Count > 0)
 				{
@@ -130,21 +141,18 @@ namespace Atlas.Engine.Signals
 		{
 			slot.Signal = null;
 			slot.Dispose();
-			if(!isDisposed)
+			if(!(isDisposed || isDisposing))
 				slotsPooled.Push(slot);
 		}
 
 		public ISlotBase Get(Delegate listener)
 		{
-			if(listener != null)
+			if(listener == null)
+				return null;
+			foreach(SlotBase slot in slots)
 			{
-				foreach(SlotBase slot in slots)
-				{
-					if(slot.Listener == listener)
-					{
-						return slot;
-					}
-				}
+				if(slot.Listener == listener)
+					return slot;
 			}
 			return null;
 		}
@@ -160,15 +168,12 @@ namespace Atlas.Engine.Signals
 
 		public int GetIndex(Delegate listener)
 		{
-			if(listener != null)
+			if(listener == null)
+				return -1;
+			for(int index = slots.Count - 1; index > -1; --index)
 			{
-				for(int index = slots.Count - 1; index > -1; --index)
-				{
-					if(slots[index].Listener == listener)
-					{
-						return index;
-					}
-				}
+				if(slots[index].Listener == listener)
+					return index;
 			}
 			return -1;
 		}
@@ -180,32 +185,30 @@ namespace Atlas.Engine.Signals
 
 		public ISlotBase Add(Delegate listener, int priority = 0)
 		{
-			if(listener != null)
+			if(listener == null)
+				return null;
+			SlotBase slot = Get(listener) as SlotBase;
+			if(!slot)
 			{
-				SlotBase slot = Get(listener) as SlotBase;
-				if(slot == null)
+				if(slotsPooled.Count > 0)
 				{
-					if(slotsPooled.Count > 0)
-					{
-						slot = slotsPooled.Pop();
-					}
-					else
-					{
-						slot = CreateSlot();
-					}
-
-					slot.Signal = this;
-					slot.Listener = listener as Delegate;
-					slot.Priority = priority;
-
-					PriorityChanged(slot, 0, 0);
-
-					IsDisposed = false;
-
-					return slot;
+					slot = slotsPooled.Pop();
+				}
+				else
+				{
+					slot = CreateSlot();
 				}
 			}
-			return null;
+
+			slot.Signal = this;
+			slot.Listener = listener as Delegate;
+			slot.Priority = priority;
+
+			PriorityChanged(slot, 0, 0);
+
+			isDisposed = false;
+
+			return slot;
 		}
 
 		virtual protected SlotBase CreateSlot()
@@ -283,9 +286,9 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class SignalBase<TSlotBase, TSlot, TDelegate>:SignalBase, ISignalBase<TSlot, TDelegate>, IDisposable
-		where TSlotBase : SlotBase, TSlot, new()
-		where TSlot : class, ISlotBase
+	class SignalBase<TSlot, TISlot, TDelegate>:SignalBase, ISignalBase<TISlot, TDelegate>
+		where TSlot : SlotBase, TISlot, new()
+		where TISlot : class, ISlotBase
 		where TDelegate : class
 	{
 		public SignalBase()
@@ -293,19 +296,19 @@ namespace Atlas.Engine.Signals
 
 		}
 
-		public TSlot Add(TDelegate listener)
+		public TISlot Add(TDelegate listener)
 		{
-			return Add(listener as Delegate) as TSlot;
+			return Add(listener as Delegate) as TISlot;
 		}
 
-		public TSlot Add(TDelegate listener, int priority = 0)
+		public TISlot Add(TDelegate listener, int priority = 0)
 		{
-			return Add(listener as Delegate) as TSlot;
+			return Add(listener as Delegate) as TISlot;
 		}
 
-		public TSlot Get(TDelegate listener)
+		public TISlot Get(TDelegate listener)
 		{
-			return Get(listener as Delegate) as TSlot;
+			return Get(listener as Delegate) as TISlot;
 		}
 
 		public int GetIndex(TDelegate listener)
@@ -318,14 +321,14 @@ namespace Atlas.Engine.Signals
 			return Remove(listener as Delegate);
 		}
 
-		public new TSlot Get(int index)
+		public new TISlot Get(int index)
 		{
-			return base.Get(index) as TSlot;
+			return base.Get(index) as TISlot;
 		}
 
 		sealed protected override SlotBase CreateSlot()
 		{
-			return new TSlotBase();
+			return new TSlot();
 		}
 	}
 }

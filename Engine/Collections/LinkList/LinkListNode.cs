@@ -2,6 +2,11 @@
 {
 	class LinkListNode<T>:ILinkListNode<T>
 	{
+		public static implicit operator bool(LinkListNode<T> node)
+		{
+			return node != null;
+		}
+
 		public LinkList<T> linklist;
 		public LinkListNode<T> previous;
 		public LinkListNode<T> next;

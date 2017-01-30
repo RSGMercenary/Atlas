@@ -2,6 +2,6 @@
 {
 	interface IAutoDispose
 	{
-		bool IsAutoDisposed { get; set; }
+		bool AutoDispose { get; set; }
 	}
 }

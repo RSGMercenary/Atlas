@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngineObject<IEntity>, IHierarchy<IEntity, IEntity>, ISleepHierarchy<IEntity>, IAutoDispose, IReset
+	interface IEntity:IEngineObject<IEntity>, IBaseObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IAutoDispose, IReset
 	{
 		#region Entities
 
@@ -54,32 +54,117 @@ namespace Atlas.Engine.Entities
 
 		#region Components
 
-		bool HasComponent<TAbstraction>() where TAbstraction : IComponent;
+		#region Has
+
+		bool HasComponent<TIComponent>()
+			where TIComponent : IComponent;
+
 		bool HasComponent(Type type);
 
-		TComponent GetComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction;
-		TAbstraction GetComponent<TAbstraction>() where TAbstraction : IComponent;
+		#endregion
+
+		#region Get
+
+		TComponent GetComponent<TIComponent, TComponent>()
+			where TIComponent : IComponent
+			where TComponent : TIComponent;
+
+		TIComponent GetComponent<TIComponent>()
+			where TIComponent : IComponent;
+
 		IComponent GetComponent(Type type);
 
-		TComponent AddComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction, new();
-		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component) where TComponent : IComponent, TAbstraction;
+		Type GetComponentType(IComponent component);
 
-		TComponent AddComponent<TComponent, TAbstraction>(TComponent Component, int index) where TComponent : IComponent, TAbstraction;
-		TComponent AddComponent<TComponent>() where TComponent : IComponent, new();
-		TComponent AddComponent<TComponent>(TComponent Component) where TComponent : IComponent;
-		TComponent AddComponent<TComponent>(TComponent Component, int index) where TComponent : IComponent;
+		IReadOnlyDictionary<Type, IComponent> Components { get; }
+
+		#endregion
+
+		#region Add
+
+		/// <summary>
+		/// Adds a Component to the Entity with a new instance.
+		/// </summary>
+		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <returns></returns>
+		TComponent AddComponent<TIComponent, TComponent>()
+			where TIComponent : IComponent
+			where TComponent : TIComponent, new();
+
+		/// <summary>
+		/// Adds a Component to the Entity with the given instance.
+		/// </summary>
+		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <param name="Component">The instance of the Component.</param>
+		/// <returns></returns>
+		TComponent AddComponent<TIComponent, TComponent>(TComponent component)
+			where TIComponent : IComponent
+			where TComponent : TIComponent;
+
+		/// <summary>
+		/// Adds a Component to the Entity with the given instance and index.
+		/// </summary>
+		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <param name="Component">The instance of the Component.</param>
+		/// <param name="index">The index of the Entity within the Component.</param>
+		/// <returns></returns>
+		TComponent AddComponent<TIComponent, TComponent>(TComponent component, int index)
+			where TIComponent : IComponent
+			where TComponent : TIComponent;
+
+		/// <summary>
+		/// Adds a Component to the Entity with a new instance.
+		/// </summary>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <returns></returns>
+		TComponent AddComponent<TComponent>()
+			where TComponent : IComponent, new();
+
+		/// <summary>
+		/// Adds a Component to the Entity with the given instance.
+		/// </summary>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <param name="Component">The instance of the Component.</param>
+		/// <returns></returns>
+		TComponent AddComponent<TComponent>(TComponent component)
+			where TComponent : IComponent;
+
+		/// <summary>
+		/// Adds a Component to the Entity with the given instance and index.
+		/// </summary>
+		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <param name="component">The instance of the Component.</param>
+		/// <param name="index">The index of the Entity within the Component.</param>
+		/// <returns></returns>
+		TComponent AddComponent<TComponent>(TComponent component, int index)
+			where TComponent : IComponent;
+
+		IComponent AddComponent(IComponent component);
 		IComponent AddComponent(IComponent component, Type type);
 		IComponent AddComponent(IComponent component, int index);
 		IComponent AddComponent(IComponent component, Type type = null, int index = int.MaxValue);
 
-		IComponent RemoveComponent(IComponent component);
-		TComponent RemoveComponent<TComponent, TAbstraction>() where TComponent : IComponent, TAbstraction;
-		TAbstraction RemoveComponent<TAbstraction>() where TAbstraction : IComponent;
+		#endregion
+
+		#region Remove
+
+		TComponent RemoveComponent<TIComponent, TComponent>()
+			where TIComponent : IComponent
+			where TComponent : TIComponent;
+
+		TIComponent RemoveComponent<TIComponent>()
+			where TIComponent : IComponent;
+
 		IComponent RemoveComponent(Type type);
+
+		IComponent RemoveComponent(IComponent component);
+
 		bool RemoveComponents();
 
-		Type GetComponentType(IComponent component);
-		IReadOnlyDictionary<Type, IComponent> Components { get; }
+		#endregion
 
 		ISignal<IEntity, IComponent, Type, IEntity> ComponentAdded { get; }
 		ISignal<IEntity, IComponent, Type, IEntity> ComponentRemoved { get; }
@@ -88,20 +173,20 @@ namespace Atlas.Engine.Entities
 
 		#region Systems
 
-		bool HasSystemType(Type type);
-		bool HasSystemType<TSystem>() where TSystem : ISystem;
+		bool HasSystem(Type type);
+		bool HasSystem<TSystem>() where TSystem : ISystem;
 
-		bool AddSystemType(Type type);
-		bool AddSystemType<TSystem>() where TSystem : ISystem;
+		bool AddSystem(Type type);
+		bool AddSystem<TSystem>() where TSystem : ISystem;
 
-		bool RemoveSystemType(Type type);
-		bool RemoveSystemType<TSystem>() where TSystem : ISystem;
-		bool RemoveSystemTypes();
+		bool RemoveSystem(Type type);
+		bool RemoveSystem<TSystem>() where TSystem : ISystem;
+		bool RemoveSystems();
 
-		IReadOnlyCollection<Type> SystemTypes { get; }
+		IReadOnlyCollection<Type> Systems { get; }
 
-		ISignal<IEntity, Type> SystemTypeAdded { get; }
-		ISignal<IEntity, Type> SystemTypeRemoved { get; }
+		ISignal<IEntity, Type> SystemAdded { get; }
+		ISignal<IEntity, Type> SystemRemoved { get; }
 
 		#endregion
 
@@ -125,10 +210,10 @@ namespace Atlas.Engine.Entities
 		/// </summary>
 		/// <param name="depth">Adds children recursively to the output until the given depth. -1 is the entire hierarchy.</param>
 		/// <param name="addComponents">Adds components to the output.</param>
-		/// <param name="addEntities">Adds component entities to the output.</param>
+		/// <param name="addManagers">Adds component entities to the output.</param>
 		/// <param name="addSystems">Adds systems to the output.</param>
 		/// <param name="indent"></param>
 		/// <returns></returns>
-		string ToString(int depth = -1, bool addComponents = true, bool addEntities = false, bool addSystems = true, string indent = "");
+		string ToString(int depth = -1, bool addComponents = true, bool addManagers = false, bool addSystems = true, string indent = "");
 	}
 }

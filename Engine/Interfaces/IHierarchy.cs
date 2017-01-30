@@ -1,13 +1,18 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.Hierarchy;
+using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
+using System;
 
 namespace Atlas.Engine.Interfaces
 {
-	interface IHierarchy<T, R> where R : T
+	//interface IHierarchy<T, R> where R : T
+	interface IHierarchy<T>:IDisposable
 	{
-		R Root { get; }
+		T Root { get; }
 
 		T Parent { get; set; }
+
+		int ParentIndex { get; set; }
 
 		IReadOnlyLinkList<T> Children { get; }
 
@@ -23,6 +28,10 @@ namespace Atlas.Engine.Interfaces
 
 		bool SetChildIndex(T child, int index);
 
+		bool SwapChildren(T child1, T child2);
+
+		bool SwapChildren(int index1, int index2);
+
 		T GetChild(int index);
 
 		T AddChild(T child);
@@ -35,14 +44,14 @@ namespace Atlas.Engine.Interfaces
 
 		bool RemoveChildren();
 
-		ISignal<T, R, R, T> RootChanged { get; }
+		ISignal<T, T, T, T> RootChanged { get; }
 
-		ISignal<T, T, T, T> AncestorChanged { get; }
+		ISignal<T, T, T, T> ParentChanged { get; }
 
 		ISignal<T, int, int> ParentIndexChanged { get; }
 
-		//Bool is true for inclusive (1 through 4) and false for exclusive (1 and 4)
-		ISignal<T, int, int, bool> ChildIndicesChanged { get; }
+		//-1 is for remove, +1 is for add, 0 is for swap.
+		ISignal<T, int, int, HierarchyChange> ChildIndicesChanged { get; }
 
 		ISignal<T, T, int> ChildAdded { get; }
 

@@ -5,7 +5,7 @@ using Atlas.Framework.D2.Families.Render;
 
 namespace Atlas.Framework.D2.Systems.Render
 {
-	class Render2DSystem:AtlasFamilyUpdateSystem<RenderFamily>
+	class Render2DSystem:AtlasFamilySystem<RenderFamily>
 	{
 		public Render2DSystem()
 		{

@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace Atlas.Testing.Systems
 {
-	class TestSystem:AtlasFamilyUpdateSystem<TestFamily>
+	class TestSystem:AtlasFamilySystem<TestFamily>
 	{
 		private float updateCount = 0;
 

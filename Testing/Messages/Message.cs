@@ -1,176 +1,167 @@
-﻿using System;
-
-namespace Atlas.Testing.Messages
+﻿namespace Atlas.Testing.Messages
 {
-	class Message:IMessage, IDisposable
+	class Message:IMessage
 	{
-		protected string type = "";
-		protected object source;
-		protected object sender;
+		protected bool isInitialized = false;
 
 		public Message()
 		{
 
 		}
 
-		public Message(string type = "", object source = null, object sender = null)
+		public virtual void Initialize()
 		{
-			Initialize(type, source, sender);
+
 		}
 
-		virtual public void Initialize(string type, object source, object sender)
+		public virtual void Dispose()
 		{
-			this.type = type;
-			this.source = source;
-			this.sender = sender;
-		}
 
-		virtual public void Dispose()
-		{
-			type = "";
-			sender = null;
-		}
-
-		public object Source
-		{
-			get
-			{
-				return source;
-			}
-		}
-
-		public object Sender
-		{
-			get
-			{
-				return sender;
-			}
-		}
-
-		public string Type
-		{
-			get
-			{
-				return type;
-			}
 		}
 	}
 
-	class Message<TDispatcher>:Message, IMessage<TDispatcher>
+	class Message<T1>:Message, IMessage<T1>
 	{
-		public Message()
-		{
-
-		}
-
-		public Message(string type, TDispatcher source, TDispatcher sender)
-		{
-			base.Initialize(type, source, sender);
-		}
-
-		public new TDispatcher Source
-		{
-			get
-			{
-				return (TDispatcher)source;
-			}
-		}
-
-		public new TDispatcher Sender
-		{
-			get
-			{
-				return (TDispatcher)sender;
-			}
-		}
-
-		virtual public void Initialize(string type, TDispatcher source, TDispatcher sender)
-		{
-			base.Initialize(type, source, sender);
-		}
-	}
-
-	class Message<TDispatcher, T1>:Message<TDispatcher>, IMessage<TDispatcher, T1>
-	{
-		protected T1 item1;
+		private T1 item1;
 
 		public Message()
 		{
 
 		}
 
-		public Message(string type, TDispatcher source, TDispatcher sender, T1 item1)
+		public Message(T1 item1)
 		{
-			Initialize(type, source, sender, item1);
+			Initialize(item1);
 		}
 
-		virtual public void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1)
+		public void Initialize(T1 item1)
 		{
-			Initialize(type, source, sender);
+			Initialize();
 			this.item1 = item1;
 		}
+
+		public T1 Item1
+		{
+			get
+			{
+				return item1;
+			}
+		}
 	}
 
-	class Message<TDispatcher, T1, T2>:Message<TDispatcher, T1>, IMessage<TDispatcher, T1, T2>
+	class Message<T1, T2>:Message<T1>, IMessage<T1, T2>
 	{
-		protected T2 item2;
+		private T2 item2;
 
 		public Message()
 		{
 
 		}
 
-		public Message(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2)
+		public Message(T1 item1, T2 item2)
 		{
-			Initialize(type, source, sender, item1, item2);
+			Initialize(item1, item2);
 		}
 
-		virtual public void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2)
+		public void Initialize(T1 item1, T2 item2)
 		{
-			Initialize(type, source, sender, item1);
+			Initialize(item1);
 			this.item2 = item2;
 		}
+
+		public T2 Item2
+		{
+			get
+			{
+				return item2;
+			}
+		}
 	}
 
-	class Message<TDispatcher, T1, T2, T3>:Message<TDispatcher, T1, T2>, IMessage<TDispatcher, T1, T2, T3>
+	class Message<T1, T2, T3>:Message<T1, T2>, IMessage<T1, T2, T3>
 	{
-		protected T3 item3;
+		private T3 item3;
 
 		public Message()
 		{
 
 		}
 
-		public Message(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3)
+		public Message(T1 item1, T2 item2, T3 item3)
 		{
-			Initialize(type, source, sender, item1, item2, item3);
+			Initialize(item1, item2, item3);
 		}
 
-		virtual public void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3)
+		public void Initialize(T1 item1, T2 item2, T3 item3)
 		{
-			Initialize(type, source, sender, item1, item2);
+			Initialize(item1, item2);
 			this.item3 = item3;
 		}
+
+		public T3 Item3
+		{
+			get
+			{
+				return item3;
+			}
+		}
 	}
 
-	class Message<TDispatcher, T1, T2, T3, T4>:Message<TDispatcher, T1, T2, T3>, IMessage<TDispatcher, T1, T2, T3, T4>
+	class Message<T1, T2, T3, T4>:Message<T1, T2, T3>, IMessage<T1, T2, T3, T4>
 	{
-		protected T4 item4;
+		private T4 item4;
 
 		public Message()
 		{
 
 		}
 
-		public Message(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3, T4 item4)
+		public Message(T1 item1, T2 item2, T3 item3, T4 item4)
 		{
-			Initialize(type, source, sender, item1, item2, item3, item4);
+			Initialize(item1, item2, item3, item4);
 		}
 
-		virtual public void Initialize(string type, TDispatcher source, TDispatcher sender, T1 item1, T2 item2, T3 item3, T4 item4)
+		public void Initialize(T1 item1, T2 item2, T3 item3, T4 item4)
 		{
-			Initialize(type, source, sender, item1, item2, item3);
+			Initialize(item1, item2, item3);
 			this.item4 = item4;
+		}
+
+		public T4 Item4
+		{
+			get
+			{
+				return item4;
+			}
+		}
+	}
+
+	class Message<T1, T2, T3, T4, T5>:Message<T1, T2, T3, T4>, IMessage<T1, T2, T3, T4, T5>
+	{
+		private T5 item5;
+
+		public Message()
+		{
+
+		}
+
+		public Message(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+		{
+			Initialize(item1, item2, item3, item4, item5);
+		}
+
+		public void Initialize(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5)
+		{
+			Initialize(item1, item2, item3, item4);
+			this.item5 = item5;
+		}
+
+		public T5 Item5
+		{
+			get
+			{
+				return item5;
+			}
 		}
 	}
 }

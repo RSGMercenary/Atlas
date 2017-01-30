@@ -57,7 +57,7 @@ namespace Atlas.Engine.Signals
 
 	class Signal<T1>:SignalBase<Slot<T1>, ISlot<T1>, Action<T1>>, ISignal<T1>, IDispatch<T1>
 	{
-		virtual public bool Dispatch(T1 item1)
+		public bool Dispatch(T1 item1)
 		{
 			if(DispatchStart())
 			{

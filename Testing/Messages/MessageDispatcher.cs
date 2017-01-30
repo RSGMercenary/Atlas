@@ -1,9 +1,5 @@
-﻿using Atlas.Engine.Signals;
-using System;
-using System.Collections.Generic;
-
-namespace Atlas.Testing.Messages
-{
+﻿namespace Atlas.Testing.Messages
+{/*
 	class MessageDispatcher<TSender>:IMessageDispatcher<TSender>
 	{
 		private Dictionary<string, Signal<IMessage<TSender>>> signals = new Dictionary<string, Signal<IMessage<TSender>>>();
@@ -105,5 +101,5 @@ namespace Atlas.Testing.Messages
 			}
 			return removed;
 		}
-	}
+	}*/
 }

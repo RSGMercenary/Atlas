@@ -1,23 +1,20 @@
-﻿using Atlas.Engine.Entities;
+﻿using Atlas.Engine.Components;
 using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem:ISystem
+	abstract class AtlasSystem : BaseObject<ISystem>, ISystem
 	{
 		IEngine engine;
 		private bool isUpdating = false;
 		private bool isUpdatingLocked = false;
 		private int priority = 0;
 		private int sleeping = 0;
-		private bool isDisposing = false;
-		private bool isDisposed = false;
 
 		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
 		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
 		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
 		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
-		private Signal<ISystem> disposed = new Signal<ISystem>();
 
 		public static implicit operator bool(AtlasSystem system)
 		{
@@ -29,47 +26,25 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		public void Dispose()
+		sealed public override void Dispose()
 		{
-			if(!isDisposing)
-			{
-				Engine = null;
-				if(Engine == null)
-				{
-					isDisposing = true;
-					Disposing();
-					isDisposing = false;
-				}
-			}
+			if (IsDisposing)
+				return;
+			Engine = null;
+			if (Engine == null)
+				base.Dispose();
 		}
 
-		protected virtual void Disposing()
+		protected override void Disposing()
 		{
 			engineChanged.Dispose();
 			isUpdatingChanged.Dispose();
 			priorityChanged.Dispose();
 			sleepingChanged.Dispose();
-			disposed.Dispatch(this);
-			disposed.Dispose();
+			base.Disposing();
 		}
 
-		public ISignal<ISystem> Disposed
-		{
-			get
-			{
-				return disposed;
-			}
-		}
-
-		public bool IsDisposing
-		{
-			get
-			{
-				return isDisposing;
-			}
-		}
-
-		public bool IsAutoDisposed
+		sealed public override bool AutoDispose
 		{
 			get
 			{
@@ -89,9 +64,9 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if(value != null)
+				if (value != null)
 				{
-					if(engine == null && value.HasSystem(this))
+					if (engine == null && value.HasSystem(this))
 					{
 						IEngine previous = engine;
 						engine = value;
@@ -101,7 +76,7 @@ namespace Atlas.Engine.Systems
 				}
 				else
 				{
-					if(engine != null && !engine.HasSystem(this))
+					if (engine != null && !engine.HasSystem(this))
 					{
 						IEngine previous = engine;
 						engine = value;
@@ -132,13 +107,13 @@ namespace Atlas.Engine.Systems
 
 		public void FixedUpdate(double deltaTime)
 		{
-			if(IsSleeping)
+			if (IsSleeping)
 				return;
-			if(engine == null)
+			if (engine == null)
 				return;
-			if(engine.CurrentFixedUpdateSystem != this)
+			if (engine.CurrentFixedUpdateSystem != this)
 				return;
-			if(!isUpdatingLocked)
+			if (!isUpdatingLocked)
 			{
 				isUpdatingLocked = true;
 				IsUpdating = true;
@@ -155,13 +130,13 @@ namespace Atlas.Engine.Systems
 
 		public void Update(double deltaTime)
 		{
-			if(IsSleeping)
+			if (IsSleeping)
 				return;
-			if(engine == null)
+			if (engine == null)
 				return;
-			if(engine.CurrentUpdateSystem != this)
+			if (engine.CurrentUpdateSystem != this)
 				return;
-			if(!isUpdatingLocked)
+			if (!isUpdatingLocked)
 			{
 				isUpdatingLocked = true;
 				IsUpdating = true;
@@ -184,7 +159,7 @@ namespace Atlas.Engine.Systems
 			}
 			private set
 			{
-				if(isUpdating == value)
+				if (isUpdating == value)
 					return;
 				bool previous = isUpdating;
 				isUpdating = value;
@@ -208,7 +183,7 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if(sleeping == value)
+				if (sleeping == value)
 					return;
 				int previous = sleeping;
 				sleeping = value;
@@ -240,7 +215,7 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if(priority == value)
+				if (priority == value)
 					return;
 				int previous = priority;
 				priority = value;

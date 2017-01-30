@@ -4,8 +4,13 @@ namespace Atlas.Engine.Signals
 {
 	class SlotBase:ISlotBase
 	{
-		protected SignalBase signal;
-		protected Delegate listener;
+		public static implicit operator bool(SlotBase slot)
+		{
+			return slot != null;
+		}
+
+		private SignalBase signal;
+		private Delegate listener;
 		private int priority = 0;
 
 		public SlotBase()
@@ -80,11 +85,11 @@ namespace Atlas.Engine.Signals
 		{
 			get
 			{
-				return signal as TSignal;
+				return base.Signal as TSignal;
 			}
 			set
 			{
-				signal = value as SignalBase;
+				base.Signal = value as SignalBase;
 			}
 		}
 
@@ -92,11 +97,11 @@ namespace Atlas.Engine.Signals
 		{
 			get
 			{
-				return listener as TDelegate;
+				return base.Listener as TDelegate;
 			}
 			set
 			{
-				listener = value as Delegate;
+				base.Listener = value as Delegate;
 			}
 		}
 	}

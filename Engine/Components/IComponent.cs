@@ -6,37 +6,29 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent:IReadOnlyEngineObject<IComponent>, IReset
+	interface IComponent : IReadOnlyEngineObject<IComponent>, IBaseObject<IComponent>, IReset
 	{
-		int GetEntityIndex(IEntity entity);
-		bool SetEntityIndex(IEntity entity, int index);
+		int GetManagerIndex(IEntity entity);
+		bool SetManagerIndex(IEntity entity, int index);
 
-		IEntity AddEntity(IEntity entity);
-		IEntity AddEntity(IEntity entity, Type type);
-		IEntity AddEntity(IEntity entity, int index);
-		IEntity AddEntity(IEntity entity, Type type = null, int index = int.MaxValue);
+		IEntity AddManager(IEntity entity);
+		IEntity AddManager(IEntity entity, Type type);
+		IEntity AddManager(IEntity entity, int index);
+		IEntity AddManager(IEntity entity, Type type = null, int index = int.MaxValue);
 
-		IEntity RemoveEntity(IEntity entity);
-		IEntity RemoveEntity(IEntity entity, Type type);
-		IEntity RemoveEntity(int index);
-		bool RemoveEntities();
+		IEntity RemoveManager(IEntity entity);
+		IEntity RemoveManager(IEntity entity, Type type);
+		IEntity RemoveManager(int index);
+		bool RemoveManagers();
 
-		ISignal<IComponent, IEntity, int> EntityAdded { get; }
-		ISignal<IComponent, IEntity, int> EntityRemoved { get; }
+		ISignal<IComponent, IEntity, int> ManagerAdded { get; }
+		ISignal<IComponent, IEntity, int> ManagerRemoved { get; }
 
-		IEntity Entity { get; }
-		IReadOnlyLinkList<IEntity> Entities { get; }
+		IEntity Manager { get; }
+		IReadOnlyLinkList<IEntity> Managers { get; }
 
 		bool IsShareable { get; }
 
 		string ToString(bool addEntities = true, int index = 0, string indent = "");
-	}
-
-	interface IComponent<TBaseAbstraction>:IComponent where TBaseAbstraction : IComponent
-	{
-		IEntity AddEntity<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
-		IEntity AddEntity<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction;
-
-		IEntity RemoveEntity<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction;
 	}
 }

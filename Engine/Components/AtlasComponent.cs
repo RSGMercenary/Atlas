@@ -6,12 +6,10 @@ using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent:IComponent
+	abstract class AtlasComponent : BaseObject<IComponent>, IComponent
 	{
 		private IEngine engine;
 		private readonly bool isShareable = false;
-		private bool isAutoDisposed = true;
-		private bool isDisposing = false;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 
 		private Signal<IComponent, IEngine, IEngine> engineChanged = new Signal<IComponent, IEngine, IEngine>();
@@ -34,24 +32,13 @@ namespace Atlas.Engine.Components
 			this.isShareable = isShareable;
 		}
 
-		public void Dispose()
-		{
-			if(!isDisposing)
-			{
-				isDisposing = true;
-				Disposing();
-				isDisposing = false;
-			}
-		}
-
-		protected virtual void Disposing()
+		protected override void Disposing()
 		{
 			Reset();
 			engineChanged.Dispose();
 			entityAdded.Dispose();
 			entityRemoved.Dispose();
-			disposed.Dispatch(this);
-			disposed.Dispose();
+			base.Disposing();
 		}
 
 		public void Reset()
@@ -61,40 +48,15 @@ namespace Atlas.Engine.Components
 
 		protected virtual void Resetting()
 		{
-			RemoveEntities();
-			IsAutoDisposed = true;
+			RemoveManagers();
+			AutoDispose = true;
 		}
 
-		public ISignal<IComponent> Disposed
+		protected override void ChangingAutoDispose()
 		{
-			get
-			{
-				return disposed;
-			}
-		}
-
-		public bool IsDisposing
-		{
-			get
-			{
-				return isDisposing;
-			}
-		}
-
-		public bool IsAutoDisposed
-		{
-			get
-			{
-				return isAutoDisposed;
-			}
-			set
-			{
-				if(isAutoDisposed == value)
-					return;
-				isAutoDisposed = value;
-				if(entities.IsEmpty && isAutoDisposed)
-					Dispose();
-			}
+			base.ChangingAutoDispose();
+			if (AutoDispose && entities.IsEmpty)
+				Dispose();
 		}
 
 		public bool IsShareable
@@ -105,7 +67,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public ISignal<IComponent, IEntity, int> EntityAdded
+		public ISignal<IComponent, IEntity, int> ManagerAdded
 		{
 			get
 			{
@@ -113,7 +75,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public ISignal<IComponent, IEntity, int> EntityRemoved
+		public ISignal<IComponent, IEntity, int> ManagerRemoved
 		{
 			get
 			{
@@ -121,7 +83,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public IEntity Entity
+		public IEntity Manager
 		{
 			get
 			{
@@ -129,7 +91,7 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public IReadOnlyLinkList<IEntity> Entities
+		public IReadOnlyLinkList<IEntity> Managers
 		{
 			get
 			{
@@ -137,12 +99,12 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public int GetEntityIndex(IEntity entity)
+		public int GetManagerIndex(IEntity entity)
 		{
 			return entities.GetIndex(entity);
 		}
 
-		public bool SetEntityIndex(IEntity entity, int index)
+		public bool SetManagerIndex(IEntity entity, int index)
 		{
 			return entities.SetIndex(entity, index);
 		}
@@ -157,34 +119,34 @@ namespace Atlas.Engine.Components
 			return entities.Swap(index1, index2);
 		}
 
-		public IEntity AddEntity(IEntity entity)
+		public IEntity AddManager(IEntity entity)
 		{
-			return AddEntity(entity, null);
+			return AddManager(entity, null);
 		}
 
-		public IEntity AddEntity(IEntity entity, Type type)
+		public IEntity AddManager(IEntity entity, Type type)
 		{
-			return AddEntity(entity, type, entities.Count);
+			return AddManager(entity, type, entities.Count);
 		}
 
-		public IEntity AddEntity(IEntity entity, int index)
+		public IEntity AddManager(IEntity entity, int index)
 		{
-			return AddEntity(entity, null, index);
+			return AddManager(entity, null, index);
 		}
 
-		public IEntity AddEntity(IEntity entity, Type type = null, int index = int.MaxValue)
+		public IEntity AddManager(IEntity entity, Type type = null, int index = int.MaxValue)
 		{
-			if(entity == null)
+			if (entity == null)
 				return null;
-			if(!entities.Contains(entity))
+			if (!entities.Contains(entity))
 			{
-				if(type == null)
+				if (type == null)
 					type = GetType();
-				else if(type == typeof(IComponent))
+				else if (type == typeof(IComponent))
 					return null;
-				else if(!type.IsInstanceOfType(this))
+				else if (!type.IsInstanceOfType(this))
 					return null;
-				if(entity.GetComponent(type) == this)
+				if (entity.GetComponent(type) == this)
 				{
 					index = Math.Max(0, Math.Min(index, entities.Count));
 					entities.Add(entity, index);
@@ -196,13 +158,13 @@ namespace Atlas.Engine.Components
 				else
 				{
 					//TO-DO Pass back null if the AddComponent() isn't successful.
-					if(entity.AddComponent(this, type, index) == null)
+					if (entity.AddComponent(this, type, index) == null)
 						return null;
 				}
 			}
 			else
 			{
-				SetEntityIndex(entity, index);
+				SetManagerIndex(entity, index);
 			}
 			return entity;
 		}
@@ -212,35 +174,35 @@ namespace Atlas.Engine.Components
 
 		}
 
-		public IEntity RemoveEntity(IEntity entity)
+		public IEntity RemoveManager(IEntity entity)
 		{
-			if(entity == null)
+			if (entity == null)
 				return null;
-			return RemoveEntity(entity, entity.GetComponentType(this));
+			return RemoveManager(entity, entity.GetComponentType(this));
 		}
 
-		public IEntity RemoveEntity(IEntity entity, Type type)
+		public IEntity RemoveManager(IEntity entity, Type type)
 		{
-			if(entity == null)
+			if (entity == null)
 				return null;
-			if(!entities.Contains(entity))
+			if (!entities.Contains(entity))
 				return null;
-			if(type == null)
+			if (type == null)
 				type = GetType();
-			else if(type == typeof(IComponent))
+			else if (type == typeof(IComponent))
 				return null;
-			else if(!type.IsInstanceOfType(this))
+			else if (!type.IsInstanceOfType(this))
 				return null;
-			if(entity.GetComponent(type) == null)
+			if (entity.GetComponent(type) == null)
 			{
 				int index = entities.GetIndex(entity);
 				entities.Remove(index);
 				entity.EngineChanged.Remove(EntityEngineChanged);
-				if(entities.IsEmpty)
+				if (entities.IsEmpty)
 					Engine = null;
 				RemovingManager(entity, index);
 				entityRemoved.Dispatch(this, entity, index);
-				if(entities.IsEmpty && isAutoDisposed)
+				if (AutoDispose && entities.IsEmpty)
 					Dispose();
 			}
 			else
@@ -250,13 +212,13 @@ namespace Atlas.Engine.Components
 			return entity;
 		}
 
-		public IEntity RemoveEntity(int index)
+		public IEntity RemoveManager(int index)
 		{
-			if(index < 0)
+			if (index < 0)
 				return null;
-			if(index > entities.Count - 1)
+			if (index > entities.Count - 1)
 				return null;
-			return RemoveEntity(entities[index]);
+			return RemoveManager(entities[index]);
 		}
 
 		protected virtual void RemovingManager(IEntity entity, int index)
@@ -264,36 +226,36 @@ namespace Atlas.Engine.Components
 
 		}
 
-		public bool RemoveEntities()
+		public bool RemoveManagers()
 		{
-			if(entities.IsEmpty)
+			if (entities.IsEmpty)
 				return false;
-			while(!entities.IsEmpty)
-				RemoveEntity(entities.Last.Value);
+			while (!entities.IsEmpty)
+				RemoveManager(entities.Last.Value);
 			return true;
 		}
 
 		private void EntityEngineChanged(IEntity entity, IEngine next = null, IEngine previous = null)
 		{
-			if(!isShareable) //One manager.
+			if (!isShareable) //One manager.
 			{
 				Engine = entity.Engine; //One engine.
 			}
 			else //Many managers.
 			{
-				if(engine != null)
+				if (engine != null)
 				{
-					if(engine != entity.Root)
+					if (engine != entity.Root)
 						Engine = null; //Different engines.
 				}
 				else
 				{
 					IEngine engine = entities.First.Value.Engine;
-					if(engine == null)
+					if (engine == null)
 						return;
-					for(var current = entities.First.Next; current != null; current = current.Next)
+					foreach (IEntity other in entities)
 					{
-						if(current.Value.Root != engine)
+						if (other.Root != engine)
 							return;
 					}
 					Engine = engine; //Same engines.
@@ -309,7 +271,7 @@ namespace Atlas.Engine.Components
 			}
 			private set
 			{
-				if(engine == value)
+				if (engine == value)
 					return;
 				IEngine previous = engine;
 				engine = value;
@@ -350,7 +312,7 @@ namespace Atlas.Engine.Components
 			StringBuilder text = new StringBuilder();
 
 			text.Append(indent + "Component");
-			if(index > 0)
+			if (index > 0)
 				text.Append(" " + index);
 			text.AppendLine();
 			/*Queue<KeyValuePair<string, string>> properties = new Queue<KeyValuePair<string, string>>();
@@ -362,49 +324,20 @@ namespace Atlas.Engine.Components
 			}*/
 			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
 			text.AppendLine(indent + "  Shareable    = " + isShareable);
-			text.AppendLine(indent + "  Auto Dispose = " + isAutoDisposed);
+			text.AppendLine(indent + "  Auto Dispose = " + AutoDispose);
 			text.AppendLine(indent + "  Entities (" + entities.Count + ")");
-			if(addEntities)
+			if (addEntities)
 			{
 				index = 0;
-				for(var current = entities.First; current != null; current = current.Next)
+				foreach (IEntity entity in entities)
 				{
-					IEntity manager = current.Value;
 					text.AppendLine(indent + "    Entity " + (++index));
-					text.AppendLine(indent + "      Abstraction = " + manager.GetComponentType(this).FullName);
-					text.AppendLine(indent + "      GlobalName  = " + manager.GlobalName);
-					text.AppendLine(indent + "      Hierarchy   = " + manager.HierarchyToString());
+					text.AppendLine(indent + "      Abstraction = " + entity.GetComponentType(this).FullName);
+					text.AppendLine(indent + "      GlobalName  = " + entity.GlobalName);
+					text.AppendLine(indent + "      Hierarchy   = " + entity.HierarchyToString());
 				}
 			}
 			return text.ToString();
-		}
-	}
-
-	abstract class AtlasComponent<TBaseAbstraction>:AtlasComponent, IComponent<TBaseAbstraction> where TBaseAbstraction : IComponent
-	{
-		public AtlasComponent()
-		{
-
-		}
-
-		public AtlasComponent(bool isShareable = false) : base(isShareable)
-		{
-
-		}
-
-		public IEntity AddEntity<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
-		{
-			return AddEntity(entity, typeof(TAbstraction));
-		}
-
-		public IEntity AddEntity<TAbstraction>(IEntity entity, int index) where TAbstraction : TBaseAbstraction
-		{
-			return AddEntity(entity, typeof(TAbstraction), index);
-		}
-
-		public IEntity RemoveEntity<TAbstraction>(IEntity entity) where TAbstraction : TBaseAbstraction
-		{
-			return RemoveEntity(entity, typeof(TAbstraction));
 		}
 	}
 }

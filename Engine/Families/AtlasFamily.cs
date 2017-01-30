@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Atlas.Engine.Families
 {
-	sealed class AtlasFamily:IFamily
+	sealed class AtlasFamily:BaseObject<IFamily>, IFamily
 	{
 		IEngine engine;
 		private Type familyType;
@@ -16,12 +16,10 @@ namespace Atlas.Engine.Families
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 		private List<Type> components = new List<Type>();
 		private HashSet<Type> componentsSet = new HashSet<Type>();
-		private bool isDisposing = false;
 
 		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
 		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
-		private Signal<IFamily> disposed = new Signal<IFamily>();
 
 		public static implicit operator bool(AtlasFamily nodelist)
 		{
@@ -38,45 +36,22 @@ namespace Atlas.Engine.Families
 		public ISignal<IFamily, IEntity> EntityAdded { get { return entityAdded; } }
 		public ISignal<IFamily, IEntity> EntityRemoved { get { return entityRemoved; } }
 
-
-		public void Dispose()
+		sealed public override void Dispose()
 		{
-			if(!isDisposing)
-			{
-				Engine = null;
-				if(Engine == null)
-				{
-					isDisposing = true;
-					Disposing();
-					isDisposing = false;
-				}
-			}
+			if(IsDisposing)
+				return;
+			Engine = null;
+			if(Engine == null)
+				base.Dispose();
 		}
 
-		private void Disposing()
+		protected override void Disposing()
 		{
 			SetFamilyType(null);
 			engineChanged.Dispose();
 			entityAdded.Dispose();
 			entityRemoved.Dispose();
-			disposed.Dispatch(this);
-			disposed.Dispose();
-		}
-
-		public ISignal<IFamily> Disposed
-		{
-			get
-			{
-				return disposed;
-			}
-		}
-
-		public bool IsDisposing
-		{
-			get
-			{
-				return isDisposing;
-			}
+			base.Disposing();
 		}
 
 		public IEngine Engine
@@ -225,7 +200,7 @@ namespace Atlas.Engine.Families
 			nodesPooled.Add(node);
 		}*/
 
-		public bool IsAutoDisposed
+		sealed public override bool AutoDispose
 		{
 			get
 			{

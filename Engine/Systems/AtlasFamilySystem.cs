@@ -1,4 +1,5 @@
-﻿using Atlas.Engine.Entities;
+﻿using Atlas.Engine.Components;
+using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using System;
 
@@ -7,6 +8,7 @@ namespace Atlas.Engine.Systems
 	abstract class AtlasFamilySystem<TFamilyType>:AtlasSystem
 	{
 		private IFamily family;
+		private SystemUpdateMode mode = SystemUpdateMode.Update;
 		private Action<double, IEntity> entityUpdate;
 		private Action<IFamily, IEntity> entityAdded;
 		private Action<IFamily, IEntity> entityRemoved;
@@ -39,7 +41,7 @@ namespace Atlas.Engine.Systems
 			this.entityRemoved = entityRemoved;
 		}
 
-		protected override void Disposing()
+		override protected void Disposing()
 		{
 			family = null;
 			entityUpdate = null;
@@ -48,15 +50,26 @@ namespace Atlas.Engine.Systems
 			base.Disposing();
 		}
 
-		protected void FamilyUpdate(double deltaTime)
+		override protected void Updating(double deltaTime)
+		{
+			if(mode == SystemUpdateMode.Update)
+				FamilyUpdate(deltaTime);
+		}
+
+		protected override void FixedUpdating(double deltaTime)
+		{
+			if(mode == SystemUpdateMode.FixedUpdate)
+				FamilyUpdate(deltaTime);
+		}
+
+		private void FamilyUpdate(double deltaTime)
 		{
 			if(entityUpdate == null)
 				return;
 			if(family == null)
 				return;
-			for(var current = family.Entities.First; current != null; current = current.Next)
+			foreach(IEntity entity in family.Entities)
 			{
-				IEntity entity = current.Value;
 				if(updateEntitiesSleeping || !entity.IsSleeping)
 					entityUpdate(deltaTime, entity);
 			}
@@ -77,9 +90,9 @@ namespace Atlas.Engine.Systems
 			if(entityAdded != null)
 			{
 				family.EntityAdded.Add(entityAdded);
-				for(var current = family.Entities.First; current != null; current = current.Next)
+				foreach(IEntity entity in family.Entities)
 				{
-					entityAdded(family, current.Value);
+					entityAdded(family, entity);
 				}
 			}
 			if(entityRemoved != null)
@@ -97,9 +110,9 @@ namespace Atlas.Engine.Systems
 			if(entityRemoved != null)
 			{
 				family.EntityRemoved.Remove(entityRemoved);
-				for(var current = family.Entities.First; current != null; current = current.Next)
+				foreach(IEntity entity in family.Entities)
 				{
-					entityRemoved(family, current.Value);
+					entityRemoved(family, entity);
 				}
 			}
 			engine.RemoveFamily<TFamilyType>();

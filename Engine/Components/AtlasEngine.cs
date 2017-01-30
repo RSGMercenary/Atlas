@@ -1,19 +1,36 @@
 ﻿using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Collections.LinkList;
-using Atlas.Engine.Components;
+using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 
-namespace Atlas.Engine.Entities
+namespace Atlas.Engine.Components
 {
-	sealed class AtlasEngine:AtlasEntity, IEngine
+	class AtlasEngine:AtlasComponent, IEngine
 	{
+		#region Static Singleton
+
 		private static AtlasEngine instance;
+
+		/// <summary>
+		/// Creates a singleton instance of the Engine. Only one
+		/// engine should exist at a time.
+		/// </summary>
+		public static AtlasEngine Instance
+		{
+			get
+			{
+				if(instance == null)
+					instance = new AtlasEngine();
+				return instance;
+			}
+		}
+
+		#endregion
 
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private LinkList<IFamily> families = new LinkList<IFamily>();
@@ -57,31 +74,28 @@ namespace Atlas.Engine.Entities
 
 		private AtlasEngine()
 		{
-			//Force the root's root through reflection.
-			//If this errors out, you probably changed the field name. You idiot.
-			Type type = GetType().BaseType; //Goes Engine->Entity, then you can get fields.
-			BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
-			FieldInfo info = type.GetField("root", flags);
-			info.SetValue(this, this);
 
-			//Add root to managed entities.
-			AddEntity(this);
 		}
 
-		public static AtlasEngine Instance
+		override protected void AddingManager(IEntity entity, int index)
 		{
-			get
-			{
-				if(instance == null)
-					instance = new AtlasEngine();
-				return instance;
-			}
+			base.AddingManager(entity, index);
+			AddEntity(entity);
+		}
+
+		override protected void RemovingManager(IEntity entity, int index)
+		{
+			RemoveEntity(entity);
+			base.RemovingManager(entity, index);
 		}
 
 		protected override void Disposing()
 		{
 			//Not sure about this one...
-			instance = null;
+			//Null out Engine singleton to allow
+			//anothjer top be instantiated.
+			if(instance == this)
+				instance = null;
 
 			entityAdded.Dispose();
 			entityRemoved.Dispose();
@@ -162,60 +176,60 @@ namespace Atlas.Engine.Entities
 				entities.Add(entity);
 
 				entity.ChildAdded.Add(EntityChildAdded, int.MinValue);
-				entity.AncestorChanged.Add(EntityAncestorChanged, int.MinValue);
+				entity.ParentChanged.Add(EntityAncestorChanged, int.MinValue);
 				entity.GlobalNameChanged.Add(EntityGlobalNameChanged, int.MinValue);
 				entity.ComponentAdded.Add(EntityComponentAdded, int.MinValue);
 				entity.ComponentRemoved.Add(EntityComponentRemoved, int.MinValue);
-				entity.SystemTypeAdded.Add(EntitySystemAdded, int.MinValue);
-				entity.SystemTypeRemoved.Add(EntitySystemRemoved, int.MinValue);
+				entity.SystemAdded.Add(EntitySystemAdded, int.MinValue);
+				entity.SystemRemoved.Add(EntitySystemRemoved, int.MinValue);
 
 				entity.Engine = this;
 
-				foreach(Type type in entity.SystemTypes)
+				foreach(Type type in entity.Systems)
 				{
 					EntitySystemAdded(entity, type);
 				}
 
-				for(var current = families.First; current != null; current = current.Next)
+				foreach(IFamily family in families)
 				{
-					current.Value.AddEntity(entity);
+					family.AddEntity(entity);
 				}
 
 				entityAdded.Dispatch(this, entity);
 
-				for(var current = entity.Children.First; current != null; current = current.Next)
+				foreach(IEntity child in entity.Children)
 				{
-					AddEntity(current.Value);
+					AddEntity(child);
 				}
 			}
 		}
 
 		private void RemoveEntity(IEntity entity)
 		{
-			for(var current = entity.Children.First; current != null; current = current.Next)
+			foreach(IEntity child in entity.Children)
 			{
-				RemoveEntity(current.Value);
+				RemoveEntity(child);
 			}
 
 			entitiesGlobalName.Remove(entity.GlobalName);
 			entities.Remove(entity);
 
 			entity.ChildAdded.Remove(EntityChildAdded);
-			entity.AncestorChanged.Remove(EntityAncestorChanged);
+			entity.ParentChanged.Remove(EntityAncestorChanged);
 			entity.GlobalNameChanged.Remove(EntityGlobalNameChanged);
 			entity.ComponentAdded.Remove(EntityComponentAdded);
 			entity.ComponentRemoved.Remove(EntityComponentRemoved);
-			entity.SystemTypeAdded.Remove(EntitySystemAdded);
-			entity.SystemTypeRemoved.Remove(EntitySystemRemoved);
+			entity.SystemAdded.Remove(EntitySystemAdded);
+			entity.SystemRemoved.Remove(EntitySystemRemoved);
 
-			foreach(Type type in entity.SystemTypes)
+			foreach(Type type in entity.Systems)
 			{
 				EntitySystemRemoved(entity, type);
 			}
 
-			for(var current = families.First; current != null; current = current.Next)
+			foreach(IFamily family in families)
 			{
-				current.Value.RemoveEntity(entity);
+				family.RemoveEntity(entity);
 			}
 
 			entity.Engine = null;
@@ -456,17 +470,20 @@ namespace Atlas.Engine.Entities
 
 		public bool HasSystem(ISystem system)
 		{
-			return systemsType.ContainsKey(system.GetType()) && systemsType[system.GetType()] == system;
+			if(system == null)
+				return false;
+			Type type = system.GetType();
+			return systemsType.ContainsKey(type) && systemsType[type] == system;
 		}
 
 		public bool HasSystem<TSystem>() where TSystem : ISystem
 		{
-			return HasSystemType(typeof(TSystem));
+			return HasSystem(typeof(TSystem));
 		}
 
-		public bool HasSystem(Type systemType)
+		public bool HasSystem(Type type)
 		{
-			return systemsType.ContainsKey(systemType);
+			return systemsType.ContainsKey(type);
 		}
 
 		public TSystem GetSystem<TSystem>() where TSystem : ISystem
@@ -509,20 +526,20 @@ namespace Atlas.Engine.Entities
 			float deltaFixedUpdateTime = this.deltaFixedUpdateTime;
 			while(TotalFixedUpdateTime < timer.Elapsed.TotalSeconds)
 			{
-				for(var current = systems.First; current != null; current = current.Next)
+				foreach(ISystem system in systems)
 				{
-					CurrentFixedUpdateSystem = current.Value;
-					current.Value.FixedUpdate(deltaFixedUpdateTime);
+					CurrentFixedUpdateSystem = system;
+					system.FixedUpdate(deltaFixedUpdateTime);
 					CurrentFixedUpdateSystem = null;
 				}
 				TotalFixedUpdateTime += deltaFixedUpdateTime;
 			}
 
 			DeltaUpdateTime = (float)timer.Elapsed.TotalSeconds - totalUpdateTime;
-			for(var current = systems.First; current != null; current = current.Next)
+			foreach(ISystem system in systems)
 			{
-				CurrentUpdateSystem = current.Value;
-				current.Value.Update(deltaUpdateTime);
+				CurrentUpdateSystem = system;
+				system.Update(deltaUpdateTime);
 				CurrentUpdateSystem = null;
 			}
 			TotalUpdateTime = (float)timer.Elapsed.TotalSeconds;
@@ -570,15 +587,16 @@ namespace Atlas.Engine.Entities
 				if(isRunning)
 				{
 					timer.Start();
-				}
-				else
-				{
-					timer.Reset();
 					DeltaUpdateTime = 0;
 					TotalUpdateTime = 0;
 					TotalFixedUpdateTime = 0;
 					DeltaEngineTime = 0;
 					TotalEngineTime = 0;
+				}
+				else
+				{
+					timer.Reset();
+					//Time resets could go here too.
 				}
 			}
 		}
@@ -589,7 +607,10 @@ namespace Atlas.Engine.Entities
 
 		public bool HasFamily(IFamily family)
 		{
-			return familiesType.ContainsKey(family.FamilyType.GetType()) && familiesType[family.FamilyType.GetType()] == family;
+			if(family == null)
+				return false;
+			Type type = family.FamilyType;
+			return familiesType.ContainsKey(type) && familiesType[type] == family;
 		}
 
 		public bool HasFamily<TFamilyType>()
@@ -628,9 +649,9 @@ namespace Atlas.Engine.Entities
 				family.FamilyType = type;
 				family.Engine = this;
 
-				for(var current = entities.First; current != null; current = current.Next)
+				foreach(IEntity entity in entities)
 				{
-					family.AddEntity(current.Value);
+					family.AddEntity(entity);
 				}
 
 				familyAdded.Dispatch(this, type);
@@ -711,9 +732,9 @@ namespace Atlas.Engine.Entities
 		{
 			if(entity != source)
 				return;
-			for(var current = families.First; current != null; current = current.Next)
+			foreach(IFamily family in families)
 			{
-				current.Value.AddEntity(entity, component, componentType);
+				family.AddEntity(entity, component, componentType);
 			}
 		}
 
@@ -721,9 +742,9 @@ namespace Atlas.Engine.Entities
 		{
 			if(entity != source)
 				return;
-			for(var current = families.First; current != null; current = current.Next)
+			foreach(IFamily family in families)
 			{
-				current.Value.RemoveEntity(entity, component, componentType);
+				family.RemoveEntity(entity, component, componentType);
 			}
 		}
 

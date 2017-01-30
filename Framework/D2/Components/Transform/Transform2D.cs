@@ -1,4 +1,5 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.Hierarchy;
+using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
@@ -46,7 +47,7 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 		}
 
-		public ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> AncestorChanged
+		public ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> ParentChanged
 		{
 			get
 			{
@@ -62,7 +63,7 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 		}
 
-		public ITransform2DManager Root
+		public ITransform2D Root
 		{
 			get
 			{
@@ -70,7 +71,7 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 		}
 
-		public ISignal<ITransform2D, ITransform2DManager, ITransform2DManager, ITransform2D> RootChanged
+		public ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> RootChanged
 		{
 			get
 			{
@@ -78,7 +79,36 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 		}
 
-		ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> IHierarchy<ITransform2D, ITransform2DManager>.AncestorChanged
+		ITransform2D IHierarchy<ITransform2D>.Root
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		public int ParentIndex
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+
+			set
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> IHierarchy<ITransform2D>.RootChanged
+		{
+			get
+			{
+				throw new NotImplementedException();
+			}
+		}
+
+		ISignal<ITransform2D, int, int, HierarchyChange> IHierarchy<ITransform2D>.ChildIndicesChanged
 		{
 			get
 			{
@@ -142,6 +172,16 @@ namespace Atlas.Framework.D2.Components.Transform
 		}
 
 		public bool SetParent(ITransform2D parent = null, int index = int.MaxValue)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool SwapChildren(ITransform2D child1, ITransform2D child2)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool SwapChildren(int index1, int index2)
 		{
 			throw new NotImplementedException();
 		}
