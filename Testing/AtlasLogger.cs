@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.Engine
+namespace Atlas.Testing
 {
 	static class AtlasLogger
 	{

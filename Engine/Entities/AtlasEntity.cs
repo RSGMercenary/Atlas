@@ -14,11 +14,6 @@ namespace Atlas.Engine.Entities
 	{
 		#region Static Singleton
 
-		public static implicit operator bool(AtlasEntity entity)
-		{
-			return entity != null;
-		}
-
 		private static AtlasEntity instance;
 
 		/// <summary>
@@ -605,9 +600,7 @@ namespace Atlas.Engine.Entities
 			if(children.IsEmpty)
 				return false;
 			while(!children.IsEmpty)
-			{
 				children.Last.Value.Dispose();
-			}
 			return true;
 		}
 
@@ -690,9 +683,7 @@ namespace Atlas.Engine.Entities
 		public bool HasDescendant(IEntity descendant)
 		{
 			while(descendant != null && descendant != this)
-			{
 				descendant = descendant.Parent;
-			}
 			return descendant == this;
 		}
 
@@ -753,7 +744,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(!children.Swap(index1, index2))
 				return false;
-			childIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), 0);
+			childIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), HierarchyChange.Swap);
 			return true;
 		}
 

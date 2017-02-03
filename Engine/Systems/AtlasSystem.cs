@@ -3,7 +3,7 @@ using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem : BaseObject<ISystem>, ISystem
+	abstract class AtlasSystem:BaseObject<ISystem>, ISystem
 	{
 		IEngine engine;
 		private bool isUpdating = false;
@@ -16,11 +16,6 @@ namespace Atlas.Engine.Systems
 		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
 		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
 
-		public static implicit operator bool(AtlasSystem system)
-		{
-			return system != null;
-		}
-
 		public AtlasSystem()
 		{
 
@@ -28,10 +23,10 @@ namespace Atlas.Engine.Systems
 
 		sealed public override void Dispose()
 		{
-			if (IsDisposing)
+			if(IsDisposing || IsDisposed)
 				return;
 			Engine = null;
-			if (Engine == null)
+			if(Engine == null)
 				base.Dispose();
 		}
 
@@ -64,9 +59,9 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if (value != null)
+				if(value != null)
 				{
-					if (engine == null && value.HasSystem(this))
+					if(engine == null && value.HasSystem(this))
 					{
 						IEngine previous = engine;
 						engine = value;
@@ -76,7 +71,7 @@ namespace Atlas.Engine.Systems
 				}
 				else
 				{
-					if (engine != null && !engine.HasSystem(this))
+					if(engine != null && !engine.HasSystem(this))
 					{
 						IEngine previous = engine;
 						engine = value;
@@ -107,13 +102,13 @@ namespace Atlas.Engine.Systems
 
 		public void FixedUpdate(double deltaTime)
 		{
-			if (IsSleeping)
+			if(IsSleeping)
 				return;
-			if (engine == null)
+			if(engine == null)
 				return;
-			if (engine.CurrentFixedUpdateSystem != this)
+			if(engine.CurrentFixedUpdateSystem != this)
 				return;
-			if (!isUpdatingLocked)
+			if(!isUpdatingLocked)
 			{
 				isUpdatingLocked = true;
 				IsUpdating = true;
@@ -130,13 +125,13 @@ namespace Atlas.Engine.Systems
 
 		public void Update(double deltaTime)
 		{
-			if (IsSleeping)
+			if(IsSleeping)
 				return;
-			if (engine == null)
+			if(engine == null)
 				return;
-			if (engine.CurrentUpdateSystem != this)
+			if(engine.CurrentUpdateSystem != this)
 				return;
-			if (!isUpdatingLocked)
+			if(!isUpdatingLocked)
 			{
 				isUpdatingLocked = true;
 				IsUpdating = true;
@@ -159,7 +154,7 @@ namespace Atlas.Engine.Systems
 			}
 			private set
 			{
-				if (isUpdating == value)
+				if(isUpdating == value)
 					return;
 				bool previous = isUpdating;
 				isUpdating = value;
@@ -183,7 +178,7 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if (sleeping == value)
+				if(sleeping == value)
 					return;
 				int previous = sleeping;
 				sleeping = value;
@@ -215,7 +210,7 @@ namespace Atlas.Engine.Systems
 			}
 			set
 			{
-				if (priority == value)
+				if(priority == value)
 					return;
 				int previous = priority;
 				priority = value;

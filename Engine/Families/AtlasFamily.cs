@@ -21,11 +21,6 @@ namespace Atlas.Engine.Families
 		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
-		public static implicit operator bool(AtlasFamily nodelist)
-		{
-			return nodelist != null;
-		}
-
 		public AtlasFamily()
 		{
 

@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Components
 {
-	class AtlasEngine:AtlasComponent, IEngine
+	sealed class AtlasEngine:AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -167,9 +167,8 @@ namespace Atlas.Engine.Components
 		private void AddEntity(IEntity entity)
 		{
 			if(entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] != entity)
-			{
 				entity.GlobalName = Guid.NewGuid().ToString("N");
-			}
+
 			if(!entitiesGlobalName.ContainsKey(entity.GlobalName))
 			{
 				entitiesGlobalName.Add(entity.GlobalName, entity);
@@ -186,30 +185,22 @@ namespace Atlas.Engine.Components
 				entity.Engine = this;
 
 				foreach(Type type in entity.Systems)
-				{
 					EntitySystemAdded(entity, type);
-				}
 
 				foreach(IFamily family in families)
-				{
 					family.AddEntity(entity);
-				}
 
 				entityAdded.Dispatch(this, entity);
 
 				foreach(IEntity child in entity.Children)
-				{
 					AddEntity(child);
-				}
 			}
 		}
 
 		private void RemoveEntity(IEntity entity)
 		{
 			foreach(IEntity child in entity.Children)
-			{
 				RemoveEntity(child);
-			}
 
 			entitiesGlobalName.Remove(entity.GlobalName);
 			entities.Remove(entity);
@@ -223,14 +214,10 @@ namespace Atlas.Engine.Components
 			entity.SystemRemoved.Remove(EntitySystemRemoved);
 
 			foreach(Type type in entity.Systems)
-			{
 				EntitySystemRemoved(entity, type);
-			}
 
 			foreach(IFamily family in families)
-			{
 				family.RemoveEntity(entity);
-			}
 
 			entity.Engine = null;
 

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.IO;
 
-namespace Atlas
+namespace Atlas.Testing
 {
 	class AtlasTraceListener:TextWriterTraceListener
 	{
