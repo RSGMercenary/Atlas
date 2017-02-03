@@ -27,7 +27,7 @@ namespace Atlas.Engine.Entities
 			{
 				if(!instance)
 				{
-					instance = new AtlasEntity();
+					instance = new AtlasEntity("Root", "Root");
 					Type type = instance.GetType();
 					BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
 					FieldInfo field = type.GetField("root", flags);
@@ -185,16 +185,35 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
-		public string HierarchyToString()
+		public string AncestorsToString(int depth = -1, bool localNames = true, string indent = "")
 		{
-			if(parent != null)
+			StringBuilder text = new StringBuilder();
+			if(parent != null && depth != 0)
 			{
-				return parent.HierarchyToString() + "/" + localName;
+				text.Append(parent.AncestorsToString(depth - 1, localNames, indent));
+				IEntity ancestor = parent;
+				while(ancestor != null && depth-- != 0)
+				{
+					text.Append("  ");
+					ancestor = ancestor.Parent;
+				}
 			}
-			else
+			text.Append(indent);
+			text.AppendLine(localNames ? localName : globalName);
+			return text.ToString();
+		}
+
+		public string DescendantsToString(int depth = -1, bool localNames = true, string indent = "")
+		{
+			StringBuilder text = new StringBuilder();
+			text.Append(indent);
+			text.AppendLine(localNames ? localName : globalName);
+			if(depth != 0)
 			{
-				return localName;
+				foreach(var child in children)
+					text.Append(child.DescendantsToString(depth - 1, localNames, indent + "  "));
 			}
+			return text.ToString();
 		}
 
 		public IEntity GetHierarchy(string hierarchy)

@@ -190,6 +190,8 @@ namespace Atlas.Engine.Entities
 
 		#endregion
 
+		#region Sleeping
+
 		/// <summary>
 		/// Return whether this Entity.FreeSleeping > 0;
 		/// </summary>
@@ -203,7 +205,11 @@ namespace Atlas.Engine.Entities
 
 		ISignal<IEntity, int, int> FreeSleepingChanged { get; }
 
-		string HierarchyToString();
+		#endregion
+
+		string AncestorsToString(int depth = -1, bool localNames = true, string indent = "");
+
+		string DescendantsToString(int depth = -1, bool localNames = true, string indent = "");
 
 		/// <summary>
 		/// Returns a formatted and indented string of the <see cref="IEntity"/> hierarchy.
