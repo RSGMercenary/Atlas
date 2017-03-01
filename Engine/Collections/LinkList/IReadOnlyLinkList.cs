@@ -31,5 +31,9 @@ namespace Atlas.Engine.Collections.LinkList
 		bool HasIterators { get; }
 
 		T this[int i] { get; }
+
+		IEnumerator<T> Forward();
+
+		IEnumerator<T> Backward();
 	}
 }

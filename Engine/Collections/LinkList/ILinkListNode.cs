@@ -2,7 +2,7 @@
 {
 	interface ILinkListNode<T>
 	{
-		ILinkList<T> NodeList { get; }
+		ILinkList<T> LinkList { get; }
 		ILinkListNode<T> Previous { get; }
 		ILinkListNode<T> Next { get; }
 		T Value { get; }

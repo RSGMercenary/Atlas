@@ -1,4 +1,5 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.Hierarchy;
+using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
 using System;
@@ -6,33 +7,31 @@ using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent:BaseObject<IComponent>, IComponent
+	abstract class AtlasComponent : EngineObject<IComponent>, IComponent
 	{
-		private IEngine engine;
 		private readonly bool isShareable = false;
-		private LinkList<IEntity> entities = new LinkList<IEntity>();
+		private LinkList<IEntity> managers = new LinkList<IEntity>();
 
-		private Signal<IComponent, IEngine, IEngine> engineChanged = new Signal<IComponent, IEngine, IEngine>();
-		private Signal<IComponent, IEntity, int> entityAdded = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, IEntity, int> entityRemoved = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
+		private Signal<IComponent, int, int, HierarchyChange> managerIndicesChanged = new Signal<IComponent, int, int, HierarchyChange>();
 
-		public AtlasComponent()
+		public AtlasComponent() : this(false)
 		{
 
 		}
 
-		public AtlasComponent(bool isShareable = false)
+		public AtlasComponent(bool isShareable)
 		{
 			this.isShareable = isShareable;
 		}
 
-		protected override void Disposing()
+		protected override void Destroying()
 		{
 			Reset();
-			engineChanged.Dispose();
-			entityAdded.Dispose();
-			entityRemoved.Dispose();
-			base.Disposing();
+			managerAdded.Dispose();
+			managerRemoved.Dispose();
+			base.Destroying();
 		}
 
 		public void Reset()
@@ -43,14 +42,14 @@ namespace Atlas.Engine.Components
 		protected virtual void Resetting()
 		{
 			RemoveManagers();
-			AutoDispose = true;
+			AutoDestroy = true;
 		}
 
-		protected override void ChangingAutoDispose()
+		protected override void ChangingAutoDispose(bool current, bool previous)
 		{
-			base.ChangingAutoDispose();
-			if(AutoDispose && entities.IsEmpty)
-				Dispose();
+			base.ChangingAutoDispose(current, previous);
+			if(current && managers.IsEmpty)
+				Destroy();
 		}
 
 		public bool IsShareable
@@ -65,7 +64,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return entityAdded;
+				return managerAdded;
 			}
 		}
 
@@ -73,7 +72,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return entityRemoved;
+				return managerRemoved;
 			}
 		}
 
@@ -81,7 +80,7 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return !isShareable ? entities.First?.Value : null;
+				return !isShareable ? managers.First?.Value : null;
 			}
 		}
 
@@ -89,28 +88,28 @@ namespace Atlas.Engine.Components
 		{
 			get
 			{
-				return entities;
+				return managers;
 			}
 		}
 
 		public int GetManagerIndex(IEntity entity)
 		{
-			return entities.GetIndex(entity);
+			return managers.GetIndex(entity);
 		}
 
 		public bool SetManagerIndex(IEntity entity, int index)
 		{
-			return entities.SetIndex(entity, index);
+			return managers.SetIndex(entity, index);
 		}
 
 		public bool SwapManagers(IEntity entity1, IEntity entity2)
 		{
-			return entities.Swap(entity1, entity2);
+			return managers.Swap(entity1, entity2);
 		}
 
 		public bool SwapManagers(int index1, int index2)
 		{
-			return entities.Swap(index1, index2);
+			return managers.Swap(index1, index2);
 		}
 
 		public IEntity AddManager<TIComponent>(IEntity entity)
@@ -144,7 +143,7 @@ namespace Atlas.Engine.Components
 		{
 			if(entity == null)
 				return null;
-			if(!entities.Contains(entity))
+			if(!managers.Contains(entity))
 			{
 				if(type == null)
 					type = GetType();
@@ -154,18 +153,18 @@ namespace Atlas.Engine.Components
 					return null;
 				if(entity.GetComponent(type) == this)
 				{
-					//Component is no longer considered disposed if it's adding Entities.
-					IsDisposed = false;
-					index = Math.Max(0, Math.Min(index, entities.Count));
-					entities.Add(entity, index);
+					//Component is no longer considered destroyed if it's adding Entities.
+					Construct();
+					index = Math.Max(0, Math.Min(index, managers.Count));
+					managers.Add(entity, index);
 					entity.EngineChanged.Add(EntityEngineChanged, int.MinValue);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
-					entityAdded.Dispatch(this, entity, index);
+					managerAdded.Dispatch(this, entity, index);
+					managerIndicesChanged.Dispatch(this, index, managers.Count - 1, HierarchyChange.Add);
 				}
 				else
 				{
-					//TO-DO Pass back null if the AddComponent() isn't successful.
 					if(entity.AddComponent(this, type, index) == null)
 						return null;
 				}
@@ -197,7 +196,7 @@ namespace Atlas.Engine.Components
 		{
 			if(entity == null)
 				return null;
-			if(!entities.Contains(entity))
+			if(!managers.Contains(entity))
 				return null;
 			if(type == null)
 				type = GetType();
@@ -207,15 +206,16 @@ namespace Atlas.Engine.Components
 				return null;
 			if(entity.GetComponent(type) == null)
 			{
-				int index = entities.GetIndex(entity);
-				entities.Remove(index);
+				int index = managers.GetIndex(entity);
+				managers.Remove(index);
 				entity.EngineChanged.Remove(EntityEngineChanged);
-				if(entities.IsEmpty)
+				if(managers.IsEmpty)
 					Engine = null;
 				RemovingManager(entity, index);
-				entityRemoved.Dispatch(this, entity, index);
-				if(AutoDispose && entities.IsEmpty)
-					Dispose();
+				managerRemoved.Dispatch(this, entity, index);
+				managerIndicesChanged.Dispatch(this, index, managers.Count - 1, HierarchyChange.Remove);
+				if(AutoDestroy && managers.IsEmpty)
+					Destroy();
 			}
 			else
 			{
@@ -228,9 +228,9 @@ namespace Atlas.Engine.Components
 		{
 			if(index < 0)
 				return null;
-			if(index > entities.Count - 1)
+			if(index > managers.Count - 1)
 				return null;
-			return RemoveManager(entities[index]);
+			return RemoveManager(managers[index]);
 		}
 
 		protected virtual void RemovingManager(IEntity entity, int index)
@@ -240,71 +240,45 @@ namespace Atlas.Engine.Components
 
 		public bool RemoveManagers()
 		{
-			if(entities.IsEmpty)
+			if(managers.IsEmpty)
 				return false;
-			while(!entities.IsEmpty)
-				RemoveManager(entities.Last.Value);
+			while(!managers.IsEmpty)
+				RemoveManager(managers.Last.Value);
 			return true;
 		}
 
 		private void EntityEngineChanged(IEntity entity, IEngine next = null, IEngine previous = null)
 		{
-			if(!isShareable) //One manager.
+			Engine = entity.Engine;
+		}
+
+		sealed override public IEngine Engine
+		{
+			get
 			{
-				Engine = entity.Engine; //One engine.
+				return base.Engine;
 			}
-			else //Many managers.
+			set
 			{
-				if(engine != null)
+				if(managers.IsEmpty)
 				{
-					if(engine != entity.Root)
-						Engine = null; //Different engines.
+					base.Engine = null;
 				}
 				else
 				{
-					IEngine engine = entities.First.Value.Engine;
-					if(engine == null)
-						return;
-					foreach(IEntity other in entities)
+					int same = 0;
+					foreach(var manager in managers)
 					{
-						if(other.Root != engine)
-							return;
+						if(manager.Engine == value)
+							++same;
 					}
-					Engine = engine; //Same engines.
+					if(managers.Count == same)
+						base.Engine = value;
+					else if(same > 0)
+						base.Engine = null;
 				}
 			}
 		}
-
-		public IEngine Engine
-		{
-			get
-			{
-				return engine;
-			}
-			private set
-			{
-				if(engine == value)
-					return;
-				IEngine previous = engine;
-				engine = value;
-				ChangingEngine(value, previous);
-				engineChanged.Dispatch(this, value, previous);
-			}
-		}
-
-		public ISignal<IComponent, IEngine, IEngine> EngineChanged
-		{
-			get
-			{
-				return engineChanged;
-			}
-		}
-
-		protected virtual void ChangingEngine(IEngine current, IEngine previous)
-		{
-
-		}
-
 
 		public override string ToString()
 		{
@@ -335,12 +309,12 @@ namespace Atlas.Engine.Components
 			}*/
 			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
 			text.AppendLine(indent + "  Shareable    = " + isShareable);
-			text.AppendLine(indent + "  Auto Dispose = " + AutoDispose);
-			text.AppendLine(indent + "  Entities (" + entities.Count + ")");
+			text.AppendLine(indent + "  Auto Dispose = " + AutoDestroy);
+			text.AppendLine(indent + "  Entities (" + managers.Count + ")");
 			if(addEntities)
 			{
 				index = 0;
-				foreach(IEntity entity in entities)
+				foreach(IEntity entity in managers)
 				{
 					text.AppendLine(indent + "    Entity " + (++index));
 					text.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);

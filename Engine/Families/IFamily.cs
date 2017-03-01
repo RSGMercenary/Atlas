@@ -1,13 +1,12 @@
 ﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Families
 {
-	interface IFamily:IEngineObject<IFamily>, IBaseObject<IFamily>
+	interface IFamily:IEngineObject<IFamily>
 	{
 		Type FamilyType { get; set; }
 

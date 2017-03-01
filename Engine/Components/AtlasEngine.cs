@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Components
 {
-	sealed class AtlasEngine:AtlasComponent, IEngine
+	sealed class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -89,7 +89,7 @@ namespace Atlas.Engine.Components
 			base.RemovingManager(entity, index);
 		}
 
-		protected override void Disposing()
+		protected override void Destroying()
 		{
 			//Not sure about this one...
 			//Null out Engine singleton to allow
@@ -104,7 +104,7 @@ namespace Atlas.Engine.Components
 			systemAdded.Dispose();
 			systemRemoved.Dispose();
 			isUpdatingChanged.Dispose();
-			base.Disposing();
+			base.Destroying();
 		}
 
 		protected override void Resetting()
@@ -142,7 +142,7 @@ namespace Atlas.Engine.Components
 			}
 			if(managed)
 			{
-				entity.Disposed.Add(EntityDisposed, int.MinValue);
+				entity.StateChanged.Add(EntityStateChanged, int.MinValue);
 			}
 			entity.GlobalName = globalName;
 			entity.LocalName = localName;
@@ -244,9 +244,11 @@ namespace Atlas.Engine.Components
 			entitiesGlobalName.Add(next, entity);
 		}
 
-		private void EntityDisposed(IEntity entity)
+		private void EntityStateChanged(IEntity entity, EngineObjectState current, EngineObjectState previous)
 		{
-			entity.Disposed.Remove(EntityDisposed);
+			if(current != EngineObjectState.Destroyed)
+				return;
+			entity.StateChanged.Remove(EntityStateChanged);
 			entityPool.Push(entity);
 		}
 
@@ -431,7 +433,7 @@ namespace Atlas.Engine.Components
 					}
 					else
 					{
-						DisposeSystem(system);
+						DestroySystem(system);
 					}
 				}
 			}
@@ -545,11 +547,11 @@ namespace Atlas.Engine.Components
 			{
 				ISystem system = systemsRemoved[0];
 				systemsRemoved.RemoveAt(0);
-				DisposeSystem(system);
+				DestroySystem(system);
 			}
 		}
 
-		private void DisposeSystem(ISystem system)
+		private void DestroySystem(ISystem system)
 		{
 			Type type = system.GetType();
 			system.PriorityChanged.Remove(SystemPriorityChanged);
@@ -557,7 +559,7 @@ namespace Atlas.Engine.Components
 			systemsType.Remove(type);
 			systemsCount.Remove(type);
 			systemRemoved.Dispatch(this, type);
-			system.Dispose();
+			system.Destroy();
 		}
 
 		public bool IsRunning
@@ -676,7 +678,7 @@ namespace Atlas.Engine.Components
 					}
 					else
 					{
-						DisposeFamily(family);
+						DestroyFamily(family);
 					}
 				}
 			}
@@ -690,18 +692,18 @@ namespace Atlas.Engine.Components
 			{
 				IFamily family = familiesRemoved[0];
 				familiesRemoved.RemoveAt(0);
-				DisposeFamily(family);
+				DestroyFamily(family);
 			}
 		}
 
-		private void DisposeFamily(IFamily family)
+		private void DestroyFamily(IFamily family)
 		{
 			Type type = family.FamilyType;
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesCount.Remove(type);
 			familyRemoved.Dispatch(this, type);
-			family.Dispose();
+			family.Destroy();
 			familyPool.Push(family);
 		}
 

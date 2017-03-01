@@ -12,7 +12,7 @@ namespace Atlas.Engine.Systems
 		private Action<double, IEntity> entityUpdate;
 		private Action<IFamily, IEntity> entityAdded;
 		private Action<IFamily, IEntity> entityRemoved;
-		private bool updateEntitiesSleeping = false;
+		private bool updateSleepingEntities = false;
 		private bool isInitialized = false;
 
 		public AtlasFamilySystem()
@@ -30,24 +30,24 @@ namespace Atlas.Engine.Systems
 			Initialize(null, false, entityAdded, entityRemoved);
 		}
 
-		protected void Initialize(Action<double, IEntity> entityUpdate, bool updateEntitiesSleeping, Action<IFamily, IEntity> entityAdded, Action<IFamily, IEntity> entityRemoved)
+		protected void Initialize(Action<double, IEntity> entityUpdate, bool updateSleepingEntities, Action<IFamily, IEntity> entityAdded, Action<IFamily, IEntity> entityRemoved)
 		{
 			if(isInitialized)
 				return;
 			isInitialized = true;
-			this.updateEntitiesSleeping = updateEntitiesSleeping;
+			this.updateSleepingEntities = updateSleepingEntities;
 			this.entityUpdate = entityUpdate;
 			this.entityAdded = entityAdded;
 			this.entityRemoved = entityRemoved;
 		}
 
-		override protected void Disposing()
+		override protected void Destroying()
 		{
 			family = null;
 			entityUpdate = null;
 			entityAdded = null;
 			entityRemoved = null;
-			base.Disposing();
+			base.Destroying();
 		}
 
 		override protected void Updating(double deltaTime)
@@ -70,16 +70,16 @@ namespace Atlas.Engine.Systems
 				return;
 			foreach(IEntity entity in family.Entities)
 			{
-				if(updateEntitiesSleeping || !entity.IsSleeping)
+				if(updateSleepingEntities || !entity.IsSleeping)
 					entityUpdate(deltaTime, entity);
 			}
 		}
 
-		public bool UpdateEntitiesSleeping
+		public bool UpdateSleepingEntities
 		{
 			get
 			{
-				return updateEntitiesSleeping;
+				return updateSleepingEntities;
 			}
 		}
 

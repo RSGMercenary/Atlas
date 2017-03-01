@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Systems
 {
-	interface ISystem:IEngineObject<ISystem>, IBaseObject<ISystem>, IPriority<ISystem>, ISleep<ISystem>
+	interface ISystem:IEngineObject<ISystem>, IPriority<ISystem>, ISleep<ISystem>
 	{
 		void FixedUpdate(double deltaFixedUpdateTime);
 		void Update(double deltaUpdateTime);

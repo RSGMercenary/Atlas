@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Atlas.Engine.Entities
 {
-	sealed class AtlasEntity:BaseObject<IEntity>, IEntity
+	sealed class AtlasEntity : EngineObject<IEntity>, IEntity
 	{
 		#region Static Singleton
 
@@ -39,7 +39,6 @@ namespace Atlas.Engine.Entities
 
 		#endregion
 
-		private IEngine engine;
 		private string globalName = Guid.NewGuid().ToString("N");
 		private string localName = Guid.NewGuid().ToString("N");
 		private int sleeping = 0;
@@ -52,7 +51,6 @@ namespace Atlas.Engine.Entities
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
 
-		private Signal<IEntity, IEngine, IEngine> engineChanged = new Signal<IEntity, IEngine, IEngine>();
 		private Signal<IEntity, string, string> globalNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, string, string> localNameChanged = new Signal<IEntity, string, string>();
 		private Signal<IEntity, IEntity, IEntity, IEntity> rootChanged = new Signal<IEntity, IEntity, IEntity, IEntity>();
@@ -79,13 +77,8 @@ namespace Atlas.Engine.Entities
 			LocalName = localName;
 		}
 
-		protected override void Disposing()
+		protected override void Destroying()
 		{
-			//If this is the root Entity, then we
-			//should allow another to be instantiated.
-			if(instance == this)
-				instance = null;
-
 			Reset();
 			Parent = null;
 			Sleeping = 0;
@@ -93,7 +86,6 @@ namespace Atlas.Engine.Entities
 			//Doing this for the Engine as it's self-referencing.
 			//If it's not nulled, GC might not pick it up.(?)
 			root = null;
-			engineChanged.Dispose();
 			globalNameChanged.Dispose();
 			localNameChanged.Dispose();
 			parentChanged.Dispose();
@@ -107,7 +99,13 @@ namespace Atlas.Engine.Entities
 			systemRemoved.Dispose();
 			sleepingChanged.Dispose();
 			freeSleepingChanged.Dispose();
-			base.Disposing();
+
+			//If this is the root Entity, then we
+			//should allow another to be instantiated.
+			if(instance == this)
+				instance = null;
+
+			base.Destroying();
 		}
 
 		public void Reset()
@@ -117,10 +115,9 @@ namespace Atlas.Engine.Entities
 			RemoveSystems();
 			GlobalName = Guid.NewGuid().ToString("N");
 			LocalName = Guid.NewGuid().ToString("N");
-			AutoDispose = true;
+			AutoDestroy = true;
 		}
 
-		public ISignal<IEntity, IEngine, IEngine> EngineChanged { get { return engineChanged; } }
 		public ISignal<IEntity, string, string> GlobalNameChanged { get { return globalNameChanged; } }
 		public ISignal<IEntity, string, string> LocalNameChanged { get { return localNameChanged; } }
 		public ISignal<IEntity, IEntity, IEntity, IEntity> RootChanged { get { return rootChanged; } }
@@ -136,11 +133,11 @@ namespace Atlas.Engine.Entities
 		public ISignal<IEntity, int, int, IEntity> SleepingChanged { get { return sleepingChanged; } }
 		public ISignal<IEntity, int, int> FreeSleepingChanged { get { return freeSleepingChanged; } }
 
-		protected override void ChangingAutoDispose()
+		protected override void ChangingAutoDispose(bool current, bool previous)
 		{
-			base.ChangingAutoDispose();
-			if(AutoDispose && parent == null)
-				Dispose();
+			base.ChangingAutoDispose(current, previous);
+			if(current && parent == null)
+				Destroy();
 		}
 
 		#region Entity
@@ -157,7 +154,7 @@ namespace Atlas.Engine.Entities
 					return;
 				if(globalName == value)
 					return;
-				if(engine != null && engine.HasEntity(value))
+				if(Engine != null && Engine.HasEntity(value))
 					return;
 				string previous = globalName;
 				globalName = value;
@@ -261,30 +258,26 @@ namespace Atlas.Engine.Entities
 
 		#region Engine
 
-		public IEngine Engine
+		sealed override public IEngine Engine
 		{
 			get
 			{
-				return engine;
+				return base.Engine;
 			}
 			set
 			{
 				if(value != null)
 				{
-					if(engine == null && value.HasEntity(this))
+					if(Engine == null && value.HasEntity(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
 				else
 				{
-					if(engine != null && !engine.HasEntity(this))
+					if(Engine != null && !Engine.HasEntity(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
 			}
@@ -409,6 +402,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(component == null)
 				return null;
+			//The component isn't shareable and it already has a manager.
 			if(component.Manager != null)
 				return null;
 			if(type == null)
@@ -419,6 +413,8 @@ namespace Atlas.Engine.Entities
 				return null;
 			if(!components.ContainsKey(type) || components[type] != component)
 			{
+				//Entity is no longer considered destroyed if it's adding Components.
+				Construct();
 				RemoveComponent(type);
 				components.Add(type, component);
 				component.AddManager(this, type, index);
@@ -509,7 +505,7 @@ namespace Atlas.Engine.Entities
 
 		private IEntity GetEntity(string globalName, string localName)
 		{
-			return engine != null ? engine.GetEntity(true, globalName, localName) : new AtlasEntity();
+			return Engine != null ? Engine.GetEntity(true, globalName, localName) : new AtlasEntity();
 		}
 
 		public IEntity AddChild(string globalName = "", string localName = "")
@@ -533,6 +529,22 @@ namespace Atlas.Engine.Entities
 			return children.Contains(child);
 		}
 
+		public bool AddChildren(int index, params IEntity[] children)
+		{
+			bool success = true;
+			foreach(var child in children)
+			{
+				if(AddChild(child, index++) == null)
+					success = false;
+			}
+			return success;
+		}
+
+		public bool AddChildren(params IEntity[] children)
+		{
+			return AddChildren(this.children.Count, children);
+		}
+
 		public IEntity AddChild(IEntity child)
 		{
 			return AddChild(child, children.Count);
@@ -550,6 +562,7 @@ namespace Atlas.Engine.Entities
 				}
 				if(!childrenLocalName.ContainsKey(child.LocalName))
 				{
+					Construct();
 					child.LocalNameChanged.Add(ChildLocalNameChanged, int.MinValue);
 					childrenLocalName.Add(child.LocalName, child);
 					children.Add(child, index);
@@ -619,7 +632,7 @@ namespace Atlas.Engine.Entities
 			if(children.IsEmpty)
 				return false;
 			while(!children.IsEmpty)
-				children.Last.Value.Dispose();
+				children.Last.Value.Destroy();
 			return true;
 		}
 
@@ -632,6 +645,7 @@ namespace Atlas.Engine.Entities
 			//Can't set a descendant of this as a parent.
 			if(HasDescendant(nextParent))
 				return false;
+			Construct();
 			IEntity previousParent = parent;
 			int sleeping = 0;
 			IEntity source = null;
@@ -676,8 +690,8 @@ namespace Atlas.Engine.Entities
 			SetParentIndex(index);
 			SetSleeping(this.sleeping + sleeping, source);
 
-			if(AutoDispose && parent == null)
-				Dispose();
+			if(AutoDestroy && parent == null)
+				Destroy();
 			return true;
 		}
 
@@ -732,18 +746,16 @@ namespace Atlas.Engine.Entities
 
 			index = Math.Max(0, Math.Min(index, children.Count - 1));
 
-			int next = index;
-
 			children.Remove(previous);
-			children.Add(child, next);
+			children.Add(child, index);
 
-			if(next > previous)
+			if(index > previous)
 			{
-				childIndicesChanged.Dispatch(this, previous, next, HierarchyChange.Up);
+				childIndicesChanged.Dispatch(this, previous, index, HierarchyChange.Up);
 			}
 			else
 			{
-				childIndicesChanged.Dispatch(this, next, previous, HierarchyChange.Down);
+				childIndicesChanged.Dispatch(this, index, previous, HierarchyChange.Down);
 			}
 			return true;
 		}
@@ -927,6 +939,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(!systems.Contains(type))
 			{
+				Construct();
 				systems.Add(type);
 				systemAdded.Dispatch(this, type);
 				return true;
@@ -979,7 +992,7 @@ namespace Atlas.Engine.Entities
 			text.AppendLine(indent + "  Local Name    = " + localName);
 			text.AppendLine(indent + "  Sleeping      = " + sleeping);
 			text.AppendLine(indent + "  Free Sleeping = " + freeSleeping);
-			text.AppendLine(indent + "  Auto Dispose  = " + AutoDispose);
+			text.AppendLine(indent + "  Auto Dispose  = " + AutoDestroy);
 
 			text.AppendLine(indent + "  Components (" + components.Count + ")");
 			if(addComponents)

@@ -3,15 +3,13 @@ using Atlas.Engine.Signals;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem:BaseObject<ISystem>, ISystem
+	abstract class AtlasSystem:EngineObject<ISystem>, ISystem
 	{
-		IEngine engine;
 		private bool isUpdating = false;
 		private bool isUpdatingLocked = false;
 		private int priority = 0;
 		private int sleeping = 0;
 
-		private Signal<ISystem, IEngine, IEngine> engineChanged = new Signal<ISystem, IEngine, IEngine>();
 		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
 		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
 		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
@@ -21,29 +19,29 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		sealed public override void Dispose()
+		sealed public override bool Destroy()
 		{
-			if(IsDisposing || IsDisposed)
-				return;
+			if(State != EngineObjectState.Constructed)
+				return false;
 			Engine = null;
 			if(Engine == null)
-				base.Dispose();
+				return base.Destroy();
+			return false;
 		}
 
-		protected override void Disposing()
+		protected override void Destroying()
 		{
-			engineChanged.Dispose();
 			isUpdatingChanged.Dispose();
 			priorityChanged.Dispose();
 			sleepingChanged.Dispose();
-			base.Disposing();
+			base.Destroying();
 		}
 
-		sealed public override bool AutoDispose
+		sealed public override bool AutoDestroy
 		{
 			get
 			{
-				return true;
+				return base.AutoDestroy;
 			}
 			set
 			{
@@ -51,42 +49,41 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		public IEngine Engine
+		sealed override public IEngine Engine
 		{
 			get
 			{
-				return engine;
+				return base.Engine;
 			}
 			set
 			{
 				if(value != null)
 				{
-					if(engine == null && value.HasSystem(this))
+					if(Engine == null && value.HasSystem(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						AddingEngine(value);
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
 				else
 				{
-					if(engine != null && !engine.HasSystem(this))
+					if(Engine != null && !Engine.HasSystem(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						RemovingEngine(previous);
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
 			}
 		}
 
-		public ISignal<ISystem, IEngine, IEngine> EngineChanged
+		protected override void ChangingEngine(IEngine current, IEngine previous)
 		{
-			get
+			base.ChangingEngine(current, previous);
+			if(current != null)
 			{
-				return engineChanged;
+				AddingEngine(current);
+			}
+			else if(previous != null)
+			{
+				RemovingEngine(previous);
 			}
 		}
 
@@ -104,9 +101,9 @@ namespace Atlas.Engine.Systems
 		{
 			if(IsSleeping)
 				return;
-			if(engine == null)
+			if(Engine == null)
 				return;
-			if(engine.CurrentFixedUpdateSystem != this)
+			if(Engine.CurrentFixedUpdateSystem != this)
 				return;
 			if(!isUpdatingLocked)
 			{
@@ -127,9 +124,9 @@ namespace Atlas.Engine.Systems
 		{
 			if(IsSleeping)
 				return;
-			if(engine == null)
+			if(Engine == null)
 				return;
-			if(engine.CurrentUpdateSystem != this)
+			if(Engine.CurrentUpdateSystem != this)
 				return;
 			if(!isUpdatingLocked)
 			{

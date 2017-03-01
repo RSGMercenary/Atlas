@@ -8,16 +8,14 @@ using System.Reflection;
 
 namespace Atlas.Engine.Families
 {
-	sealed class AtlasFamily:BaseObject<IFamily>, IFamily
+	sealed class AtlasFamily:EngineObject<IFamily>, IFamily
 	{
-		IEngine engine;
 		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 		private List<Type> components = new List<Type>();
 		private HashSet<Type> componentsSet = new HashSet<Type>();
 
-		private Signal<IFamily, IEngine, IEngine> engineChanged = new Signal<IFamily, IEngine, IEngine>();
 		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
 		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
@@ -31,58 +29,46 @@ namespace Atlas.Engine.Families
 		public ISignal<IFamily, IEntity> EntityAdded { get { return entityAdded; } }
 		public ISignal<IFamily, IEntity> EntityRemoved { get { return entityRemoved; } }
 
-		sealed public override void Dispose()
+		sealed public override bool Destroy()
 		{
-			if(IsDisposing)
-				return;
+			if(State != EngineObjectState.Constructed)
+				return false;
 			Engine = null;
 			if(Engine == null)
-				base.Dispose();
+				return base.Destroy();
+			return false;
 		}
 
-		protected override void Disposing()
+		protected override void Destroying()
 		{
 			SetFamilyType(null);
-			engineChanged.Dispose();
 			entityAdded.Dispose();
 			entityRemoved.Dispose();
-			base.Disposing();
+			base.Destroying();
 		}
 
-		public IEngine Engine
+		sealed override public IEngine Engine
 		{
 			get
 			{
-				return engine;
+				return base.Engine;
 			}
 			set
 			{
 				if(value != null)
 				{
-					if(engine == null && value.HasFamily(this))
+					if(Engine == null && value.HasFamily(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
 				else
 				{
-					if(engine != null && !engine.HasFamily(this))
+					if(Engine != null && !Engine.HasFamily(this))
 					{
-						IEngine previous = engine;
-						engine = value;
-						engineChanged.Dispatch(this, value, previous);
+						base.Engine = value;
 					}
 				}
-			}
-		}
-
-		public ISignal<IFamily, IEngine, IEngine> EngineChanged
-		{
-			get
-			{
-				return engineChanged;
 			}
 		}
 
@@ -165,41 +151,13 @@ namespace Atlas.Engine.Families
 			entities.Remove(entity);
 			entitySet.Remove(entity);
 			entityRemoved.Dispatch(this, entity);
-			//nodesRemoved.Add(node);
-		}
-		/*
-		public void DisposeNodes()
-		{
-			while(nodesRemoved.Count > 0)
-			{
-
-				Node node = nodesRemoved[nodesRemoved.Count - 1];
-				nodesRemoved.RemoveAt(nodesRemoved.Count - 1);
-				DisposeNode(node);
-			}
 		}
 
-		private void DisposeNode(Node node)
-		{
-			foreach(Type componentType in components.Keys)
-			{
-				FieldInfo field = componentType.GetField(components[componentType]);
-				field.SetValue(node, null);
-			}
-
-			//node.NodeList = null;
-			node.Entity = null;
-			node.Previous = null;
-			node.Next = null;
-
-			nodesPooled.Add(node);
-		}*/
-
-		sealed public override bool AutoDispose
+		sealed public override bool AutoDestroy
 		{
 			get
 			{
-				return true;
+				return base.AutoDestroy;
 			}
 			set
 			{

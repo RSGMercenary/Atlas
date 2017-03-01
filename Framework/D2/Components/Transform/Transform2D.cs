@@ -126,6 +126,16 @@ namespace Atlas.Framework.D2.Components.Transform
 			throw new NotImplementedException();
 		}
 
+		public bool AddChildren(params ITransform2D[] children)
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool AddChildren(int index, params ITransform2D[] children)
+		{
+			throw new NotImplementedException();
+		}
+
 		public ITransform2D GetChild(int index)
 		{
 			throw new NotImplementedException();

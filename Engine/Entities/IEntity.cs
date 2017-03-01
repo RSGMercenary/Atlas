@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity:IEngineObject<IEntity>, IBaseObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IAutoDispose, IReset
+	interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IReset
 	{
 		#region Entities
 

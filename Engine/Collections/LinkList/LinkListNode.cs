@@ -12,7 +12,7 @@
 		public LinkListNode<T> next;
 		public T value;
 
-		public ILinkList<T> NodeList
+		public ILinkList<T> LinkList
 		{
 			get
 			{
