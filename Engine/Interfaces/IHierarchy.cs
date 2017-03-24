@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.Hierarchy;
+﻿using Atlas.Engine.Collections;
 using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Signals;
 
@@ -52,7 +52,7 @@ namespace Atlas.Engine.Interfaces
 
 		ISignal<T, int, int> ParentIndexChanged { get; }
 
-		ISignal<T, int, int, HierarchyChange> ChildIndicesChanged { get; }
+		ISignal<T, int, int, CollectionChange> ChildIndicesChanged { get; }
 
 		ISignal<T, T, int> ChildAdded { get; }
 

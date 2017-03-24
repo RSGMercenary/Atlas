@@ -6,11 +6,11 @@ using System.Diagnostics;
 
 namespace Atlas.Testing.Systems
 {
-	class TestSystem : AtlasFamilySystem<TestFamily>, ITestSystem
+	class TestSystem2 : AtlasFamilySystem<TestFamily>, ITestSystem
 	{
 		private float updateCount = 0;
 
-		public TestSystem()
+		public TestSystem2()
 		{
 			UpdateMode = SystemUpdateMode.Update;
 			Initialize(UpdateEntity);

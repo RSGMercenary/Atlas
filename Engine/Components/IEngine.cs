@@ -80,6 +80,17 @@ namespace Atlas.Engine.Components
 		/// </summary>
 		ISignal<IEngine, IEntity> EntityRemoved { get; }
 
+		bool AddSystemType<TISystem, TSystem>()
+			where TISystem : ISystem
+			where TSystem : TISystem;
+
+		bool AddSystemType(Type type, Type instance);
+
+		bool RemoveSystemType<TISystem>()
+			where TISystem : ISystem;
+
+		bool RemoveSystemType(Type type);
+
 		/// <summary>
 		/// Returns if the Engine is managing a System with the given instance.
 		/// </summary>
@@ -126,12 +137,12 @@ namespace Atlas.Engine.Components
 		/// <summary>
 		/// A Signal dispatching when a System has been added to the Engine.
 		/// </summary>
-		ISignal<IEngine, Type> SystemAdded { get; }
+		ISignal<IEngine, ISystem, Type> SystemAdded { get; }
 
 		/// <summary>
 		/// A Signal dispatching when a System has been removed from the Engine.
 		/// </summary>
-		ISignal<IEngine, Type> SystemRemoved { get; }
+		ISignal<IEngine, ISystem, Type> SystemRemoved { get; }
 
 		ISystem CurrentUpdateSystem { get; }
 		ISystem CurrentFixedUpdateSystem { get; }

@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.Hierarchy;
+﻿using Atlas.Engine.Collections;
 using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Interfaces;
@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.Framework.D2.Components.Transform
 {
-	class Transform2D:AtlasComponent, ITransform2D
+	class Transform2D : AtlasComponent, ITransform2D
 	{
 		private LinkList<ITransform2D> children = new LinkList<ITransform2D>();
 		private ITransform2D parent;
@@ -108,7 +108,7 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 		}
 
-		ISignal<ITransform2D, int, int, HierarchyChange> IHierarchy<ITransform2D>.ChildIndicesChanged
+		ISignal<ITransform2D, int, int, CollectionChange> IHierarchy<ITransform2D>.ChildIndicesChanged
 		{
 			get
 			{

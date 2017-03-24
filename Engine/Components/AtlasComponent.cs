@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.Hierarchy;
+﻿using Atlas.Engine.Collections;
 using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
@@ -7,14 +7,14 @@ using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent : EngineObject<IComponent>, IComponent
+	abstract class AtlasComponent : AutoEngineObject<IComponent>, IComponent
 	{
 		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
 
 		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
 		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, int, int, HierarchyChange> managerIndicesChanged = new Signal<IComponent, int, int, HierarchyChange>();
+		private Signal<IComponent, int, int, CollectionChange> managerIndicesChanged = new Signal<IComponent, int, int, CollectionChange>();
 
 		public AtlasComponent() : this(false)
 		{
@@ -45,51 +45,36 @@ namespace Atlas.Engine.Components
 			AutoDestroy = true;
 		}
 
-		protected override void ChangingAutoDispose(bool current, bool previous)
+		protected override void ChangingAutoDestroy(bool current, bool previous)
 		{
-			base.ChangingAutoDispose(current, previous);
+			base.ChangingAutoDestroy(current, previous);
 			if(current && managers.IsEmpty)
 				Destroy();
 		}
 
 		public bool IsShareable
 		{
-			get
-			{
-				return isShareable;
-			}
+			get { return isShareable; }
 		}
 
 		public ISignal<IComponent, IEntity, int> ManagerAdded
 		{
-			get
-			{
-				return managerAdded;
-			}
+			get { return managerAdded; }
 		}
 
 		public ISignal<IComponent, IEntity, int> ManagerRemoved
 		{
-			get
-			{
-				return managerRemoved;
-			}
+			get { return managerRemoved; }
 		}
 
 		public IEntity Manager
 		{
-			get
-			{
-				return !isShareable ? managers.First?.Value : null;
-			}
+			get { return !isShareable ? managers.First?.Value : null; }
 		}
 
 		public IReadOnlyLinkList<IEntity> Managers
 		{
-			get
-			{
-				return managers;
-			}
+			get { return managers; }
 		}
 
 		public int GetManagerIndex(IEntity entity)
@@ -104,12 +89,21 @@ namespace Atlas.Engine.Components
 
 		public bool SwapManagers(IEntity entity1, IEntity entity2)
 		{
-			return managers.Swap(entity1, entity2);
+			if(entity1 == null)
+				return false;
+			if(entity2 == null)
+				return false;
+			int index1 = managers.GetIndex(entity1);
+			int index2 = managers.GetIndex(entity2);
+			return SwapManagers(index1, index2);
 		}
 
 		public bool SwapManagers(int index1, int index2)
 		{
-			return managers.Swap(index1, index2);
+			if(!managers.Swap(index1, index2))
+				return false;
+			managerIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), CollectionChange.Swap);
+			return true;
 		}
 
 		public IEntity AddManager<TIComponent>(IEntity entity)
@@ -161,7 +155,7 @@ namespace Atlas.Engine.Components
 					Engine = entity.Engine;
 					AddingManager(entity, index);
 					managerAdded.Dispatch(this, entity, index);
-					managerIndicesChanged.Dispatch(this, index, managers.Count - 1, HierarchyChange.Add);
+					managerIndicesChanged.Dispatch(this, index, managers.Count - 1, CollectionChange.Add);
 				}
 				else
 				{
@@ -176,6 +170,13 @@ namespace Atlas.Engine.Components
 			return entity;
 		}
 
+		/// <summary>
+		/// Called when an Entity has been added to this Component.
+		/// This is called after the add has occured and before any
+		/// Signals are dispatched.
+		/// </summary>
+		/// <param name="entity">The Entity that has been added.</param>
+		/// <param name="index">The current index of the Entity being added.</param>
 		protected virtual void AddingManager(IEntity entity, int index)
 		{
 
@@ -213,7 +214,7 @@ namespace Atlas.Engine.Components
 					Engine = null;
 				RemovingManager(entity, index);
 				managerRemoved.Dispatch(this, entity, index);
-				managerIndicesChanged.Dispatch(this, index, managers.Count - 1, HierarchyChange.Remove);
+				managerIndicesChanged.Dispatch(this, index, managers.Count - 1, CollectionChange.Remove);
 				if(AutoDestroy && managers.IsEmpty)
 					Destroy();
 			}
@@ -233,6 +234,13 @@ namespace Atlas.Engine.Components
 			return RemoveManager(managers[index]);
 		}
 
+		/// <summary>
+		/// Called when an Entity has been removed from this Component.
+		/// This is called after the remove has occured and before any
+		/// Signals are dispatched.
+		/// </summary>
+		/// <param name="entity">The Entity that has been removed.</param>
+		/// <param name="index">The previous index of the Entity being removed.</param>
 		protected virtual void RemovingManager(IEntity entity, int index)
 		{
 
@@ -267,9 +275,9 @@ namespace Atlas.Engine.Components
 				else
 				{
 					int same = 0;
-					foreach(var manager in managers)
+					foreach(var entity in managers)
 					{
-						if(manager.Engine == value)
+						if(entity.Engine == value)
 							++same;
 					}
 					if(managers.Count == same)
@@ -309,7 +317,7 @@ namespace Atlas.Engine.Components
 			}*/
 			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
 			text.AppendLine(indent + "  Shareable    = " + isShareable);
-			text.AppendLine(indent + "  Auto Dispose = " + AutoDestroy);
+			text.AppendLine(indent + "  Auto Destroy = " + AutoDestroy);
 			text.AppendLine(indent + "  Entities (" + managers.Count + ")");
 			if(addEntities)
 			{

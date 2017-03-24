@@ -42,6 +42,7 @@ namespace Atlas.Engine.Components
 
 		private FixedStack<IEntity> entityPool = new FixedStack<IEntity>();
 		private FixedStack<IFamily> familyPool = new FixedStack<IFamily>();
+		private Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
 
 		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
 		private Dictionary<Type, int> systemsCount = new Dictionary<Type, int>();
@@ -68,8 +69,8 @@ namespace Atlas.Engine.Components
 		private Signal<IEngine, IEntity> entityRemoved = new Signal<IEngine, IEntity>();
 		private Signal<IEngine, Type> familyAdded = new Signal<IEngine, Type>();
 		private Signal<IEngine, Type> familyRemoved = new Signal<IEngine, Type>();
-		private Signal<IEngine, Type> systemAdded = new Signal<IEngine, Type>();
-		private Signal<IEngine, Type> systemRemoved = new Signal<IEngine, Type>();
+		private Signal<IEngine, ISystem, Type> systemAdded = new Signal<IEngine, ISystem, Type>();
+		private Signal<IEngine, ISystem, Type> systemRemoved = new Signal<IEngine, ISystem, Type>();
 		private Signal<IEngine, bool> isUpdatingChanged = new Signal<IEngine, bool>();
 
 		private AtlasEngine()
@@ -112,12 +113,12 @@ namespace Atlas.Engine.Components
 			base.Resetting();
 		}
 
-		public ISignal<IEngine, IEntity> EntityAdded { get { return entityAdded; } }
-		public ISignal<IEngine, IEntity> EntityRemoved { get { return entityRemoved; } }
+		ISignal<IEngine, IEntity> IEngine.EntityAdded { get { return entityAdded; } }
+		ISignal<IEngine, IEntity> IEngine.EntityRemoved { get { return entityRemoved; } }
 		public ISignal<IEngine, Type> FamilyAdded { get { return familyAdded; } }
 		public ISignal<IEngine, Type> FamilyRemoved { get { return familyRemoved; } }
-		public ISignal<IEngine, Type> SystemAdded { get { return systemAdded; } }
-		public ISignal<IEngine, Type> SystemRemoved { get { return systemRemoved; } }
+		public ISignal<IEngine, ISystem, Type> SystemAdded { get { return systemAdded; } }
+		public ISignal<IEngine, ISystem, Type> SystemRemoved { get { return systemRemoved; } }
 		public ISignal<IEngine, bool> IsUpdatingChanged { get { return isUpdatingChanged; } }
 
 		public FixedStack<IEntity> EntityPool { get { return entityPool; } }
@@ -383,60 +384,109 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		private void EntitySystemAdded(IEntity entity, Type type)
+		public bool AddSystemType<TISystem, TSystem>()
+			where TISystem : ISystem
+			where TSystem : TISystem
+		{
+			return AddSystemType(typeof(TISystem), typeof(TSystem));
+		}
+
+		public bool AddSystemType(Type type, Type instance)
+		{
+			if(type == null)
+				return false;
+			if(instance == null)
+				return false;
+			if(!type.IsInterface)
+				return false;
+			if(!instance.IsClass)
+				return false;
+			if(!typeof(ISystem).IsAssignableFrom(type))
+				return false;
+			if(!type.IsAssignableFrom(instance))
+				return false;
+			if(systemsInstance.ContainsKey(type) && systemsInstance[type] == instance)
+				return false;
+			RemoveSystemType(type);
+			systemsInstance.Add(type, instance);
+			if(systemsCount.ContainsKey(type))
+				AddSystem(type);
+			return true;
+		}
+
+		public bool RemoveSystemType<TISystem>()
+			where TISystem : ISystem
+		{
+			return RemoveSystemType(typeof(TISystem));
+		}
+
+		public bool RemoveSystemType(Type type)
+		{
+			if(type == null)
+				return false;
+			if(!type.IsInterface)
+				return false;
+			if(!typeof(ISystem).IsAssignableFrom(type))
+				return false;
+			if(!systemsInstance.ContainsKey(type))
+				return false;
+			systemsInstance.Remove(type);
+			if(systemsCount.ContainsKey(type))
+				RemoveSystem(type);
+			return true;
+		}
+
+		private void AddSystem(Type type)
+		{
+			if(systemsType.ContainsKey(type))
+				return;
+			ISystem system;
+			try
+			{
+				system = Activator.CreateInstance(systemsInstance[type]) as ISystem;
+			}
+			catch(Exception e)
+			{
+				Debug.WriteLine(e);
+				return;
+			}
+			systemsType.Add(type, system);
+			system.PriorityChanged.Add(SystemPriorityChanged);
+			SystemPriorityChanged(system, system.Priority, 0);
+			system.Interface = type;
+			system.Engine = this;
+			systemAdded.Dispatch(this, system, type);
+		}
+
+		private void RemoveSystem(Type type)
 		{
 			if(!systemsType.ContainsKey(type))
-			{
-				ISystem system;
-				try
-				{
-					system = Activator.CreateInstance(type) as ISystem;
-				}
-				catch(Exception e)
-				{
-					Debug.WriteLine(e);
-					return;
-				}
+				return;
+			ISystem system = systemsType[type];
+			system.PriorityChanged.Remove(SystemPriorityChanged);
+			systems.Remove(system);
+			systemsType.Remove(type);
+			systemRemoved.Dispatch(this, system, type);
+			system.Destroy();
+		}
 
-				systemsType.Add(type, system);
-				systemsCount.Add(type, 1);
-				system.PriorityChanged.Add(SystemPriorityChanged);
-				SystemPriorityChanged(system, system.Priority, 0);
-
-				system.Engine = this;
-
-				systemAdded.Dispatch(this, type);
-			}
-			else
-			{
-				//System was marked for removal, but was requested again during update.
-				if(systemsCount[type] == 0)
-					systemsRemoved.Remove(systemsType[type]);
-				++systemsCount[type];
-			}
+		private void EntitySystemAdded(IEntity entity, Type type)
+		{
+			if(!systemsCount.ContainsKey(type))
+				systemsCount.Add(type, 0);
+			++systemsCount[type];
+			AddSystem(type);
 		}
 
 		private void EntitySystemRemoved(IEntity entity, Type type)
 		{
-			if(!systemsType.ContainsKey(type))
+			if(!systemsCount.ContainsKey(type))
 				return;
-
+			--systemsCount[type];
 			if(systemsCount[type] > 0)
-			{
-				if(--systemsCount[type] == 0)
-				{
-					ISystem system = systemsType[type];
-
-					if(IsUpdating)
-					{
-						systemsRemoved.Add(system);
-					}
-					else
-					{
-						DestroySystem(system);
-					}
-				}
-			}
+				return;
+			systemsCount.Remove(type);
+			RemoveSystem(type);
 		}
 
 		private void SystemPriorityChanged(ISystem system, int next, int previous)
@@ -461,13 +511,14 @@ namespace Atlas.Engine.Components
 		{
 			if(system == null)
 				return false;
-			Type type = system.GetType();
-			return systemsType.ContainsKey(type) && systemsType[type] == system;
+			if(system.Interface == null)
+				return false;
+			return systemsType.ContainsKey(system.Interface) && systemsType[system.Interface] == system;
 		}
 
-		public bool HasSystem<TSystem>() where TSystem : ISystem
+		public bool HasSystem<TISystem>() where TISystem : ISystem
 		{
-			return HasSystem(typeof(TSystem));
+			return HasSystem(typeof(TISystem));
 		}
 
 		public bool HasSystem(Type type)
@@ -475,9 +526,9 @@ namespace Atlas.Engine.Components
 			return systemsType.ContainsKey(type);
 		}
 
-		public TSystem GetSystem<TSystem>() where TSystem : ISystem
+		public TISystem GetSystem<TISystem>() where TISystem : ISystem
 		{
-			return (TSystem)GetSystem(typeof(TSystem));
+			return (TISystem)GetSystem(typeof(TISystem));
 		}
 
 		public ISystem GetSystem(Type type)
@@ -558,7 +609,7 @@ namespace Atlas.Engine.Components
 			systems.Remove(system);
 			systemsType.Remove(type);
 			systemsCount.Remove(type);
-			systemRemoved.Dispatch(this, type);
+			systemRemoved.Dispatch(this, system, type);
 			system.Destroy();
 		}
 
@@ -723,7 +774,7 @@ namespace Atlas.Engine.Components
 				return;
 			foreach(IFamily family in families)
 			{
-				family.AddEntity(entity, component, componentType);
+				family.AddEntity(entity, componentType);
 			}
 		}
 
@@ -733,7 +784,7 @@ namespace Atlas.Engine.Components
 				return;
 			foreach(IFamily family in families)
 			{
-				family.RemoveEntity(entity, component, componentType);
+				family.RemoveEntity(entity, componentType);
 			}
 		}
 

@@ -6,7 +6,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent : IEngineObject<IComponent>, IReset
+	interface IComponent : IAutoEngineObject<IComponent>, IReset
 	{
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity

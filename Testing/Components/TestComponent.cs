@@ -2,7 +2,7 @@
 
 namespace Atlas.Testing.Components
 {
-	class TestComponent:AtlasComponent
+	class TestComponent : AtlasComponent, ITestComponent
 	{
 		/*
 		protected override void SetToStringProperties(Queue<KeyValuePair<string, string>> properties)

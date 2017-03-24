@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IReset
+	interface IEntity : IAutoEngineObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IReset
 	{
 		#region Entities
 
@@ -48,6 +48,10 @@ namespace Atlas.Engine.Entities
 
 		IEntity GetChild(string localName);
 
+		IEntity GetDescendant(string localName, int depth = -1);
+
+		List<IEntity> GetDescendants(string localName, int depth = -1);
+
 		IEntity RemoveChild(string localName);
 
 		#endregion
@@ -75,6 +79,8 @@ namespace Atlas.Engine.Entities
 		IComponent GetComponent(Type type);
 
 		Type GetComponentType(IComponent component);
+
+		List<Type> GetComponentTypes(IComponent component);
 
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
@@ -126,21 +132,21 @@ namespace Atlas.Engine.Entities
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance.
 		/// </summary>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent>(TComponent component)
-			where TComponent : IComponent;
+		TIComponent AddComponent<TIComponent>(IComponent component)
+			where TIComponent : IComponent;
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance and index.
 		/// </summary>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
 		/// <param name="component">The instance of the Component.</param>
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent>(TComponent component, int index)
-			where TComponent : IComponent;
+		TIComponent AddComponent<TIComponent>(IComponent component, int index)
+			where TIComponent : IComponent;
 
 		IComponent AddComponent(IComponent component);
 		IComponent AddComponent(IComponent component, Type type);

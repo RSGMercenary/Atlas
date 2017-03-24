@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasFamilySystem<TFamilyType>:AtlasSystem
+	abstract class AtlasFamilySystem<TFamilyType> : AtlasSystem
 	{
 		private IFamily family;
 		private SystemUpdateMode mode = SystemUpdateMode.Update;
@@ -48,6 +48,12 @@ namespace Atlas.Engine.Systems
 			entityAdded = null;
 			entityRemoved = null;
 			base.Destroying();
+		}
+
+		public SystemUpdateMode UpdateMode
+		{
+			get { return mode; }
+			set { mode = value; }
 		}
 
 		override protected void Updating(double deltaTime)

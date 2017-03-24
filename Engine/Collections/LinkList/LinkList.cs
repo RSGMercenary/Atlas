@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Atlas.Engine.Collections.LinkList
 {
-	class LinkList<T>:ILinkList<T>
+	class LinkList<T> : ILinkList<T>
 	{
 		private Stack<LinkListNode<T>> pooled = new Stack<LinkListNode<T>>();
 		private Stack<LinkListNode<T>> removed = new Stack<LinkListNode<T>>();
@@ -103,8 +103,10 @@ namespace Atlas.Engine.Collections.LinkList
 
 		public int GetIndex(T item)
 		{
+			if(item == null)
+				return -1;
 			int index = 0;
-			for(LinkListNode<T> current = first; current != null; current = current.next)
+			for(LinkListNode<T> current = first; current; current = current.next)
 			{
 				if(current.value.Equals(item))
 				{

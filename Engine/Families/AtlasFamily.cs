@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Atlas.Engine.Families
 {
-	sealed class AtlasFamily:EngineObject<IFamily>, IFamily
+	sealed class AtlasFamily : EngineObject<IFamily>, IFamily
 	{
 		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();
@@ -114,7 +114,7 @@ namespace Atlas.Engine.Families
 			Remove(entity);
 		}
 
-		public void AddEntity(IEntity entity, IComponent component, Type componentType)
+		public void AddEntity(IEntity entity, Type componentType)
 		{
 			if(componentsSet.Contains(componentType))
 			{
@@ -122,7 +122,7 @@ namespace Atlas.Engine.Families
 			}
 		}
 
-		public void RemoveEntity(IEntity entity, IComponent component, Type componentType)
+		public void RemoveEntity(IEntity entity, Type componentType)
 		{
 			if(componentsSet.Contains(componentType))
 			{
@@ -151,18 +151,6 @@ namespace Atlas.Engine.Families
 			entities.Remove(entity);
 			entitySet.Remove(entity);
 			entityRemoved.Dispatch(this, entity);
-		}
-
-		sealed public override bool AutoDestroy
-		{
-			get
-			{
-				return base.AutoDestroy;
-			}
-			set
-			{
-				//Families are always auto disposed.
-			}
 		}
 	}
 }

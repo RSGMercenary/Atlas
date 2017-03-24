@@ -1,12 +1,11 @@
 ﻿using Atlas.Engine.Collections.LinkList;
-using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Families
 {
-	interface IFamily:IEngineObject<IFamily>
+	interface IFamily : IEngineObject<IFamily>
 	{
 		Type FamilyType { get; set; }
 
@@ -15,8 +14,8 @@ namespace Atlas.Engine.Families
 		void AddEntity(IEntity entity);
 		void RemoveEntity(IEntity entity);
 
-		void AddEntity(IEntity entity, IComponent component, Type type);
-		void RemoveEntity(IEntity entity, IComponent component, Type type);
+		void AddEntity(IEntity entity, Type type);
+		void RemoveEntity(IEntity entity, Type type);
 
 		ISignal<IFamily, IEntity> EntityAdded { get; }
 		ISignal<IFamily, IEntity> EntityRemoved { get; }

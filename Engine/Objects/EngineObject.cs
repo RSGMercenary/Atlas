@@ -3,7 +3,7 @@ using Atlas.Engine.Signals;
 
 namespace Atlas.Engine
 {
-	abstract class EngineObject<T>:IEngineObject<T>
+	abstract class EngineObject<T> : IEngineObject<T>
 		where T : class, IEngineObject<T>
 	{
 		public static implicit operator bool(EngineObject<T> engineObject)
@@ -13,7 +13,6 @@ namespace Atlas.Engine
 
 		private IEngine engine;
 		private EngineObjectState state = EngineObjectState.Destroyed;
-		private bool autoDispose = true;
 
 		private Signal<T, IEngine, IEngine> engineChanged = new Signal<T, IEngine, IEngine>();
 		private Signal<T, EngineObjectState, EngineObjectState> stateChanged = new Signal<T, EngineObjectState, EngineObjectState>();
@@ -48,28 +47,6 @@ namespace Atlas.Engine
 		public ISignal<T, IEngine, IEngine> EngineChanged
 		{
 			get { return engineChanged; }
-		}
-
-		public virtual bool AutoDestroy
-		{
-			get
-			{
-				return autoDispose;
-			}
-			set
-			{
-				if(autoDispose == value)
-					return;
-				var previous = autoDispose;
-				autoDispose = value;
-				ChangingAutoDispose(value, previous);
-				//Didn't find a need for this Signal. Could add later.
-			}
-		}
-
-		protected virtual void ChangingAutoDispose(bool current, bool previous)
-		{
-
 		}
 
 		public EngineObjectState State

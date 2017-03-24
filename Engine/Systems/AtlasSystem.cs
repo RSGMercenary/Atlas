@@ -1,10 +1,12 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Signals;
+using System;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem:EngineObject<ISystem>, ISystem
+	abstract class AtlasSystem : EngineObject<ISystem>, ISystem
 	{
+		private Type type;
 		private bool isUpdating = false;
 		private bool isUpdatingLocked = false;
 		private int priority = 0;
@@ -37,15 +39,17 @@ namespace Atlas.Engine.Systems
 			base.Destroying();
 		}
 
-		sealed public override bool AutoDestroy
+		public Type Interface
 		{
 			get
 			{
-				return base.AutoDestroy;
+				return type;
 			}
 			set
 			{
-				//Systems are always auto disposed.
+				if(Engine != null)
+					return;
+				type = value;
 			}
 		}
 

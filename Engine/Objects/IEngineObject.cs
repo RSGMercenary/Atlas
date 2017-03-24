@@ -11,8 +11,6 @@ namespace Atlas.Engine
 
 		bool Destroy();
 
-		bool AutoDestroy { get; set; }
-
 		EngineObjectState State { get; }
 
 		ISignal<T, EngineObjectState, EngineObjectState> StateChanged { get; }

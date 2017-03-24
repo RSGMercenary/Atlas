@@ -4,6 +4,6 @@ namespace Atlas.Testing.Families
 {
 	class TestFamily
 	{
-		public TestComponent test;
+		public ITestComponent test;
 	}
 }
