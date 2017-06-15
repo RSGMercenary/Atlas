@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
@@ -35,7 +36,7 @@ namespace Atlas.Engine.Signals
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot slot in SlotsCopy)
+				foreach(Slot slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{
@@ -61,7 +62,8 @@ namespace Atlas.Engine.Signals
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot<T1> slot in SlotsCopy)
+				//Copy the list for each unique dispatch.
+				foreach(Slot<T1> slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{
@@ -87,7 +89,8 @@ namespace Atlas.Engine.Signals
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot<T1, T2> slot in SlotsCopy)
+				//Copy the list for each unique dispatch.
+				foreach(Slot<T1, T2> slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{
@@ -113,7 +116,8 @@ namespace Atlas.Engine.Signals
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot<T1, T2, T3> slot in SlotsCopy)
+				//Copy the list for each unique dispatch.
+				foreach(Slot<T1, T2, T3> slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{
@@ -139,7 +143,8 @@ namespace Atlas.Engine.Signals
 		{
 			if(DispatchStart())
 			{
-				foreach(Slot<T1, T2, T3, T4> slot in SlotsCopy)
+				//Copy the list for each unique dispatch.
+				foreach(Slot<T1, T2, T3, T4> slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{

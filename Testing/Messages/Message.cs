@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Testing.Messages
 {
-	class Message:IMessage
+	class Message : IMessage
 	{
 		protected bool isInitialized = false;
 
@@ -20,7 +20,7 @@
 		}
 	}
 
-	class Message<T1>:Message, IMessage<T1>
+	class Message<T1> : Message, IMessage<T1>
 	{
 		private T1 item1;
 
@@ -49,7 +49,7 @@
 		}
 	}
 
-	class Message<T1, T2>:Message<T1>, IMessage<T1, T2>
+	class Message<T1, T2> : Message<T1>, IMessage<T1, T2>
 	{
 		private T2 item2;
 
@@ -78,7 +78,7 @@
 		}
 	}
 
-	class Message<T1, T2, T3>:Message<T1, T2>, IMessage<T1, T2, T3>
+	class Message<T1, T2, T3> : Message<T1, T2>, IMessage<T1, T2, T3>
 	{
 		private T3 item3;
 
@@ -107,7 +107,7 @@
 		}
 	}
 
-	class Message<T1, T2, T3, T4>:Message<T1, T2, T3>, IMessage<T1, T2, T3, T4>
+	class Message<T1, T2, T3, T4> : Message<T1, T2, T3>, IMessage<T1, T2, T3, T4>
 	{
 		private T4 item4;
 
@@ -136,7 +136,7 @@
 		}
 	}
 
-	class Message<T1, T2, T3, T4, T5>:Message<T1, T2, T3, T4>, IMessage<T1, T2, T3, T4, T5>
+	class Message<T1, T2, T3, T4, T5> : Message<T1, T2, T3, T4>, IMessage<T1, T2, T3, T4, T5>
 	{
 		private T5 item5;
 

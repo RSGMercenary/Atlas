@@ -7,13 +7,11 @@ namespace Atlas.Engine.Signals
 	{
 		int Dispatching { get; }
 		bool IsDispatching { get; }
-
-		int NumSlots { get; }
+		
 		bool HasListeners { get; }
 
 		IReadOnlyList<ISlotBase> Slots { get; }
-		List<ISlotBase> SlotsCopy { get; }
-
+		
 		ISlotBase Get(Delegate listener);
 		ISlotBase Get(int index);
 		int GetIndex(Delegate listener);

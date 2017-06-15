@@ -144,10 +144,7 @@ namespace Atlas.Engine.Entities
 
 		public string GlobalName
 		{
-			get
-			{
-				return globalName;
-			}
+			get { return globalName; }
 			set
 			{
 				if(string.IsNullOrWhiteSpace(value))
@@ -164,10 +161,7 @@ namespace Atlas.Engine.Entities
 
 		public string LocalName
 		{
-			get
-			{
-				return localName;
-			}
+			get { return localName;	}
 			set
 			{
 				if(string.IsNullOrWhiteSpace(value))
@@ -373,10 +367,7 @@ namespace Atlas.Engine.Entities
 
 		public IReadOnlyDictionary<Type, IComponent> Components
 		{
-			get
-			{
-				return components;
-			}
+			get { return components; }
 		}
 
 		//New component with Type
@@ -503,9 +494,7 @@ namespace Atlas.Engine.Entities
 			if(components.Count <= 0)
 				return false;
 			//Can't Remove() from a Dictionary while iterating its Keys.
-			Type[] types = new Type[components.Count];
-			components.Keys.CopyTo(types, 0);
-			foreach(Type type in types)
+			foreach(Type type in new List<Type>(components.Keys))
 			{
 				RemoveComponent(type);
 			}
@@ -528,10 +517,7 @@ namespace Atlas.Engine.Entities
 
 		public IEntity Root
 		{
-			get
-			{
-				return root;
-			}
+			get { return root; }
 		}
 
 		private void OnRootChanged(IEntity entity, IEntity next, IEntity previous, IEntity source)
@@ -549,7 +535,7 @@ namespace Atlas.Engine.Entities
 
 		private IEntity GetEntity(string globalName, string localName)
 		{
-			return Engine != null ? Engine.GetEntity(true, globalName, localName) : new AtlasEntity();
+			return Engine != null ? Engine.GetEntity(true, globalName, localName) : new AtlasEntity(globalName, localName);
 		}
 
 		public IEntity AddChild(string globalName = "", string localName = "")
@@ -746,10 +732,7 @@ namespace Atlas.Engine.Entities
 
 		public int ParentIndex
 		{
-			get
-			{
-				return parentIndex;
-			}
+			get { return parentIndex; }
 			set
 			{
 				if(parent != null)
@@ -874,14 +857,8 @@ namespace Atlas.Engine.Entities
 
 		public int Sleeping
 		{
-			get
-			{
-				return sleeping;
-			}
-			set
-			{
-				SetSleeping(value, this);
-			}
+			get { return sleeping; }
+			set { SetSleeping(value, this); }
 		}
 
 		private void SetSleeping(int value, IEntity source)
@@ -896,60 +873,46 @@ namespace Atlas.Engine.Entities
 		private void ParentSleepingChanged(IEntity parent, int next, int previous, IEntity source)
 		{
 			if(next > 0 && previous <= 0)
-			{
 				SetSleeping(sleeping + 1, source);
-			}
 			else if(next <= 0 && previous > 0)
-			{
 				SetSleeping(sleeping - 1, source);
-			}
 		}
 
 		public bool IsSleeping
 		{
-			get
-			{
-				return sleeping > 0;
-			}
+			get { return sleeping > 0; }
 		}
 
 		public int FreeSleeping
 		{
-			get
-			{
-				return freeSleeping;
-			}
+			get { return freeSleeping; }
 			set
 			{
-				if(freeSleeping != value)
+				if(freeSleeping == value)
+					return;
+				int previous = freeSleeping;
+				freeSleeping = value;
+				freeSleepingChanged.Dispatch(this, value, previous);
+				if(parent == null)
+					return;
+				if(value > 0 && previous <= 0)
 				{
-					int previous = freeSleeping;
-					freeSleeping = value;
-					freeSleepingChanged.Dispatch(this, value, previous);
-					if(parent == null)
-						return;
-					if(value > 0 && previous <= 0)
-					{
-						parent.SleepingChanged.Remove(ParentSleepingChanged);
-						if(parent.IsSleeping)
-							SetSleeping(sleeping - 1, parent);
-					}
-					else if(value <= 0 && previous > 0)
-					{
-						parent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + parentIndex);
-						if(parent.IsSleeping)
-							SetSleeping(sleeping + 1, parent);
-					}
+					parent.SleepingChanged.Remove(ParentSleepingChanged);
+					if(parent.IsSleeping)
+						SetSleeping(sleeping - 1, parent);
+				}
+				else if(value <= 0 && previous > 0)
+				{
+					parent.SleepingChanged.Add(ParentSleepingChanged, int.MinValue + parentIndex);
+					if(parent.IsSleeping)
+						SetSleeping(sleeping + 1, parent);
 				}
 			}
 		}
 
 		public bool IsFreeSleeping
 		{
-			get
-			{
-				return freeSleeping > 0;
-			}
+			get { return freeSleeping > 0; }
 		}
 
 		#endregion
@@ -958,10 +921,7 @@ namespace Atlas.Engine.Entities
 
 		public IReadOnlyCollection<Type> Systems
 		{
-			get
-			{
-				return (IReadOnlyCollection<Type>)systems;
-			}
+			get { return (IReadOnlyCollection<Type>)systems; }
 		}
 
 		public bool HasSystem<TSystem>() where TSystem : ISystem
@@ -1006,7 +966,7 @@ namespace Atlas.Engine.Entities
 				return false;
 			if(!type.IsInterface)
 				return false;
-			if(!typeof(ISystem).IsInstanceOfType(type))
+			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!systems.Contains(type))
 				return false;
@@ -1019,12 +979,8 @@ namespace Atlas.Engine.Entities
 		{
 			if(systems.Count <= 0)
 				return false;
-			Type[] types = new Type[systems.Count];
-			systems.CopyTo(types, 0);
-			foreach(Type system in types)
-			{
+			foreach(var system in new List<Type>(systems))
 				RemoveSystem(system);
-			}
 			return true;
 		}
 
@@ -1040,40 +996,32 @@ namespace Atlas.Engine.Entities
 			StringBuilder text = new StringBuilder();
 
 			text.AppendLine(indent + "Child " + (parentIndex + 1));
-			text.AppendLine(indent + "  Global Name   = " + globalName);
-			text.AppendLine(indent + "  Local Name    = " + localName);
-			text.AppendLine(indent + "  Sleeping      = " + sleeping);
-			text.AppendLine(indent + "  Free Sleeping = " + freeSleeping);
-			text.AppendLine(indent + "  Auto Destroy  = " + AutoDestroy);
+			text.AppendLine(indent + "  " + nameof(GlobalName) + "   = " + GlobalName);
+			text.AppendLine(indent + "  " + nameof(LocalName) + "    = " + LocalName);
+			text.AppendLine(indent + "  " + nameof(AutoDestroy) + "  = " + AutoDestroy);
+			text.AppendLine(indent + "  " + nameof(Sleeping) + "     = " + Sleeping);
+			text.AppendLine(indent + "  " + nameof(FreeSleeping) + " = " + FreeSleeping);
 
 			text.AppendLine(indent + "  Components (" + components.Count + ")");
 			if(addComponents)
 			{
 				int index = 0;
-				foreach(Type type in components.Keys)
-				{
-					IComponent component = components[type];
-					text.Append(component.ToString(addEntities, ++index, indent + "    "));
-				}
+				foreach(var type in components.Keys)
+					text.Append(components[type].ToString(addEntities, ++index, indent + "    "));
 			}
 
 			text.AppendLine(indent + "  Systems    (" + systems.Count + ")");
 			if(addSystems)
 			{
-				int index = 0;
-				foreach(Type type in systems)
-				{
-					text.AppendLine(indent + "    System " + (++index) + " " + type.FullName);
-				}
+				foreach(var type in systems)
+					text.AppendLine(indent + "    " + type.FullName);
 			}
 
 			text.AppendLine(indent + "  Children   (" + children.Count + ")");
 			if(depth != 0)
 			{
-				foreach(IEntity child in children)
-				{
+				foreach(var child in children)
 					text.Append(child.ToString(depth - 1, addComponents, addSystems, addEntities, indent + "    "));
-				}
 			}
 			return text.ToString();
 		}

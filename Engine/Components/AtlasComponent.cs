@@ -315,18 +315,24 @@ namespace Atlas.Engine.Components
 				KeyValuePair<string, string> property = properties.Dequeue();
 				text.AppendLine(indent + "  " + property.Key.PadRight(20, '.') + property.Value);
 			}*/
-			text.AppendLine(indent + "  Instance     = " + GetType().FullName);
-			text.AppendLine(indent + "  Shareable    = " + isShareable);
-			text.AppendLine(indent + "  Auto Destroy = " + AutoDestroy);
-			text.AppendLine(indent + "  Entities (" + managers.Count + ")");
-			if(addEntities)
+
+			text.AppendLine(indent + "  Instance    = " + GetType().FullName);
+			if(!IsShareable && Manager != null)
+				text.AppendLine(indent + "  Interface   = " + Manager.GetComponentType(this).FullName);
+			text.AppendLine(indent + "  " + nameof(AutoDestroy) + " = " + AutoDestroy);
+			text.AppendLine(indent + "  " + nameof(IsShareable) + " = " + IsShareable);
+			if(IsShareable)
 			{
-				index = 0;
-				foreach(IEntity entity in managers)
+				text.AppendLine(indent + "  Entities (" + managers.Count + ")");
+				if(addEntities)
 				{
-					text.AppendLine(indent + "    Entity " + (++index));
-					text.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);
-					text.AppendLine(indent + "      GlobalName = " + entity.GlobalName);
+					index = 0;
+					foreach(IEntity entity in managers)
+					{
+						text.AppendLine(indent + "    Entity " + (++index));
+						text.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);
+						text.AppendLine(indent + "      " + nameof(entity.GlobalName) + " = " + entity.GlobalName);
+					}
 				}
 			}
 			return text.ToString();

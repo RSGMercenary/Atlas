@@ -12,13 +12,13 @@ namespace Atlas
 		{
 			IEntity root = AtlasEntity.Instance;
 			IEngine engine = root.AddComponent<IEngine>(AtlasEngine.Instance);
-
+			
 			engine.AddSystemType<ITestSystem, TestSystem>();
 
 			root.AddSystem<ITestSystem>();
 
 			engine.AddSystemType<ITestSystem, TestSystem2>();
-
+			
 			for(int index1 = 1; index1 <= 5; ++index1)
 			{
 				string name1 = "0-" + index1 + "-0";
@@ -32,9 +32,9 @@ namespace Atlas
 				}
 			}
 
-			Debug.WriteLine(root.ToString(-1, true, false, false));
+			Debug.WriteLine(root.ToString(-1, true, false, true));
 
-			engine.Run();
+			//engine.Run();
 		}
 	}
 }

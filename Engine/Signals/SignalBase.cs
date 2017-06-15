@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalBase:ISignalBase, IDisposable
+	class SignalBase : ISignalBase, IDisposable
 	{
 		public static implicit operator bool(SignalBase signal)
 		{
@@ -14,59 +14,34 @@ namespace Atlas.Engine.Signals
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 		private int dispatching = 0;
-		private bool isDisposing = false;
 		private bool isDisposed = false;
 
 		/// <summary>
 		/// Cleans up the Signal by removing and disposing all listeners,
-		/// and unpooling allocated SlotsCopy.
+		/// and unpooling allocated Slots.
 		/// </summary>
 		public void Dispose()
 		{
-			if(isDisposed || isDisposing)
+			if(isDisposed)
 				return;
-			isDisposing = true;
-			Disposing();
-			isDisposing = false;
 			isDisposed = true;
-		}
-
-		protected virtual void Disposing()
-		{
 			slotsPooled.Clear();
 			RemoveAll();
 		}
-
+		
 		public bool IsDisposed
 		{
-			get
-			{
-				return isDisposed;
-			}
-		}
-
-		public bool IsDisposing
-		{
-			get
-			{
-				return isDisposing;
-			}
+			get { return isDisposed; }
 		}
 
 		public bool HasListeners
 		{
-			get
-			{
-				return slots.Count > 0;
-			}
+			get { return slots.Count > 0; }
 		}
 
 		public bool IsDispatching
 		{
-			get
-			{
-				return dispatching > 0;
-			}
+			get { return dispatching > 0; }
 		}
 
 		protected bool DispatchStart()
@@ -81,7 +56,7 @@ namespace Atlas.Engine.Signals
 
 		protected bool DispatchStop()
 		{
-			if(dispatching == 0)
+			if(dispatching <= 0)
 				return false;
 			if(--dispatching == 0)
 			{
@@ -100,48 +75,19 @@ namespace Atlas.Engine.Signals
 		/// </summary>
 		public int Dispatching
 		{
-			get
-			{
-				return dispatching;
-			}
-		}
-
-		/// <summary>
-		/// The number of SlotsCopy/listeners attached to this Signal.
-		/// </summary>
-		public int NumSlots
-		{
-			get
-			{
-				return slots.Count;
-			}
+			get { return dispatching; }
 		}
 
 		public IReadOnlyList<ISlotBase> Slots
 		{
-			get
-			{
-				return slots;
-			}
-		}
-
-		/// <summary>
-		/// Returns a copy of the Slots being processed by this Signal in order of
-		/// how they're prioritized.
-		/// </summary>
-		public List<ISlotBase> SlotsCopy
-		{
-			get
-			{
-				return new List<ISlotBase>(slots);
-			}
+			get { return slots; }
 		}
 
 		private void DisposeSlot(SlotBase slot)
 		{
 			slot.Signal = null;
 			slot.Dispose();
-			if(!(isDisposed || isDisposing))
+			if(!isDisposed)
 				slotsPooled.Push(slot);
 		}
 
@@ -286,7 +232,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class SignalBase<TSlot, TISlot, TDelegate>:SignalBase, ISignalBase<TISlot, TDelegate>
+	class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : class
