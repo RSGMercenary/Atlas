@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Collections.Fixed
 {
-	class FixedStack<T>:Stack<T>
+	public class FixedStack<T> : Stack<T>
 	{
 		private int capacity = 0;
 

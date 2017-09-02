@@ -1,20 +1,30 @@
-﻿using Atlas.Engine.Collections;
-using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Signals;
+using Atlas.Engine.Messages;
 using System;
 using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	abstract class AtlasComponent : AutoEngineObject<IComponent>, IComponent
+	public enum ComponentEntityRelationship
+	{
+		OneToOne = 1,
+		ManyToOne = 2,
+		OneToMany = 4,
+		ManyToMany = 8,
+	}
+
+	//TO-DO Not sure if this is right. Might be AtlasComponent<IComponent<T>>?
+	public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
+	{
+
+	}
+
+	public abstract class AtlasComponent<T> : AutoEngineObject<T>, IComponent<T>
+		where T : class, IComponent<T>
 	{
 		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
-
-		private Signal<IComponent, IEntity, int> managerAdded = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, IEntity, int> managerRemoved = new Signal<IComponent, IEntity, int>();
-		private Signal<IComponent, int, int, CollectionChange> managerIndicesChanged = new Signal<IComponent, int, int, CollectionChange>();
 
 		public AtlasComponent() : this(false)
 		{
@@ -29,8 +39,6 @@ namespace Atlas.Engine.Components
 		protected override void Destroying()
 		{
 			Reset();
-			managerAdded.Dispose();
-			managerRemoved.Dispose();
 			base.Destroying();
 		}
 
@@ -45,26 +53,9 @@ namespace Atlas.Engine.Components
 			AutoDestroy = true;
 		}
 
-		protected override void ChangingAutoDestroy(bool current, bool previous)
-		{
-			base.ChangingAutoDestroy(current, previous);
-			if(current && managers.IsEmpty)
-				Destroy();
-		}
-
 		public bool IsShareable
 		{
 			get { return isShareable; }
-		}
-
-		public ISignal<IComponent, IEntity, int> ManagerAdded
-		{
-			get { return managerAdded; }
-		}
-
-		public ISignal<IComponent, IEntity, int> ManagerRemoved
-		{
-			get { return managerRemoved; }
 		}
 
 		public IEntity Manager
@@ -84,7 +75,10 @@ namespace Atlas.Engine.Components
 
 		public bool SetManagerIndex(IEntity entity, int index)
 		{
-			return managers.SetIndex(entity, index);
+			if(!managers.SetIndex(entity, index))
+				return false;
+			Message(new Message<T>(AtlasMessage.Managers));
+			return true;
 		}
 
 		public bool SwapManagers(IEntity entity1, IEntity entity2)
@@ -102,7 +96,7 @@ namespace Atlas.Engine.Components
 		{
 			if(!managers.Swap(index1, index2))
 				return false;
-			managerIndicesChanged.Dispatch(this, Math.Min(index1, index2), Math.Max(index1, index2), CollectionChange.Swap);
+			Message(new Message<T>(AtlasMessage.Managers));
 			return true;
 		}
 
@@ -141,7 +135,7 @@ namespace Atlas.Engine.Components
 			{
 				if(type == null)
 					type = GetType();
-				else if(type == typeof(IComponent))
+				else if(type == typeof(IComponent<T>))
 					return null;
 				else if(!type.IsInstanceOfType(this))
 					return null;
@@ -151,11 +145,11 @@ namespace Atlas.Engine.Components
 					Construct();
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Add(entity, index);
-					entity.EngineChanged.Add(EntityEngineChanged, int.MinValue);
+					entity.AddListener(AtlasMessage.Engine, EntityEngineChanged);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
-					managerAdded.Dispatch(this, entity, index);
-					managerIndicesChanged.Dispatch(this, index, managers.Count - 1, CollectionChange.Add);
+					Message(new KeyValueMessage<T, int, IEntity>(AtlasMessage.AddManager, index, entity));
+					Message(new Message<T>(AtlasMessage.Managers));
 				}
 				else
 				{
@@ -205,16 +199,16 @@ namespace Atlas.Engine.Components
 				return null;
 			else if(!type.IsInstanceOfType(this))
 				return null;
-			if(entity.GetComponent(type) == null)
+			if(entity.GetComponent(type) != this)
 			{
 				int index = managers.GetIndex(entity);
 				managers.Remove(index);
-				entity.EngineChanged.Remove(EntityEngineChanged);
+				entity.RemoveListener(AtlasMessage.Engine, EntityEngineChanged);
 				if(managers.IsEmpty)
 					Engine = null;
 				RemovingManager(entity, index);
-				managerRemoved.Dispatch(this, entity, index);
-				managerIndicesChanged.Dispatch(this, index, managers.Count - 1, CollectionChange.Remove);
+				Message(new KeyValueMessage<T, int, IEntity>(AtlasMessage.RemoveManager, index, entity));
+				Message(new Message<T>(AtlasMessage.Managers));
 				if(AutoDestroy && managers.IsEmpty)
 					Destroy();
 			}
@@ -255,17 +249,16 @@ namespace Atlas.Engine.Components
 			return true;
 		}
 
-		private void EntityEngineChanged(IEntity entity, IEngine next = null, IEngine previous = null)
+		private void EntityEngineChanged(IMessage<IEntity> message)
 		{
-			Engine = entity.Engine;
+			if(!message.AtTarget)
+				return;
+			Engine = message.Target.Engine;
 		}
 
 		sealed override public IEngine Engine
 		{
-			get
-			{
-				return base.Engine;
-			}
+			get { return base.Engine; }
 			set
 			{
 				if(managers.IsEmpty)
@@ -275,9 +268,9 @@ namespace Atlas.Engine.Components
 				else
 				{
 					int same = 0;
-					foreach(var entity in managers)
+					foreach(var manager in managers)
 					{
-						if(entity.Engine == value)
+						if(manager.Engine == value)
 							++same;
 					}
 					if(managers.Count == same)
@@ -288,34 +281,24 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public override string ToString()
+		protected override void Messaging(IMessage<T> message)
 		{
-			return ToString(true);
+			if(message.Type == AtlasMessage.AutoDestroy)
+			{
+				var cast = message as IPropertyMessage<IComponent, bool>;
+				if(cast.Current && managers.IsEmpty)
+					Destroy();
+			}
+			base.Messaging(message);
 		}
 
-		/*
-		virtual protected void SetToStringProperties(Queue<KeyValuePair<string, string>> properties, string indent = "")
-		{
-			properties.Enqueue(new KeyValuePair<string, string>("Instance", GetType().FullName));
-			properties.Enqueue(new KeyValuePair<string, string>("Shareable", isShareable.ToString()));
-			properties.Enqueue(new KeyValuePair<string, string>("Audio Dispose", isAutoDisposed.ToString()));
-		}
-		*/
-		public string ToString(bool addEntities, int index = 0, string indent = "")
+		public string ToInfoString(bool addEntities, int index = 0, string indent = "")
 		{
 			StringBuilder text = new StringBuilder();
 			text.Append(indent + "Component");
 			if(index > 0)
 				text.Append(" " + index);
 			text.AppendLine();
-			/*Queue<KeyValuePair<string, string>> properties = new Queue<KeyValuePair<string, string>>();
-			SetToStringProperties(properties, indent + "  ");
-			while(properties.Count > 0)
-			{
-				KeyValuePair<string, string> property = properties.Dequeue();
-				text.AppendLine(indent + "  " + property.Key.PadRight(20, '.') + property.Value);
-			}*/
-
 			text.AppendLine(indent + "  Instance    = " + GetType().FullName);
 			if(!IsShareable && Manager != null)
 				text.AppendLine(indent + "  Interface   = " + Manager.GetComponentType(this).FullName);

@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine
 {
-	enum EngineObjectState
+	public enum EngineObjectState
 	{
 		Constructed,
 		Destroyed,

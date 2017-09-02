@@ -1,12 +1,9 @@
 ﻿using Atlas.Engine.Interfaces;
-using System;
 
 namespace Atlas.Engine.Systems
 {
-	interface ISystem : IEngineObject<ISystem>, IPriority<ISystem>, ISleep<ISystem>
+	public interface ISystem : IEngineObject<ISystem>, IPriority, ISleep, IEngineUpdate
 	{
-		Type Interface { get; set; }
-		void FixedUpdate(double deltaFixedUpdateTime);
-		void Update(double deltaUpdateTime);
+
 	}
 }

@@ -1,5 +1,4 @@
-﻿using Atlas.Engine.Collections;
-using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
@@ -95,22 +94,6 @@ namespace Atlas.Framework.D2.Components.Transform
 			}
 
 			set
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		ISignal<ITransform2D, ITransform2D, ITransform2D, ITransform2D> IHierarchy<ITransform2D>.RootChanged
-		{
-			get
-			{
-				throw new NotImplementedException();
-			}
-		}
-
-		ISignal<ITransform2D, int, int, CollectionChange> IHierarchy<ITransform2D>.ChildIndicesChanged
-		{
-			get
 			{
 				throw new NotImplementedException();
 			}

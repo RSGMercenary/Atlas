@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	interface ISignalBase
+	public interface ISignalBase
 	{
 		int Dispatching { get; }
 		bool IsDispatching { get; }
-		
+
 		bool HasListeners { get; }
 
 		IReadOnlyList<ISlotBase> Slots { get; }
-		
+
 		ISlotBase Get(Delegate listener);
 		ISlotBase Get(int index);
 		int GetIndex(Delegate listener);
@@ -25,7 +25,7 @@ namespace Atlas.Engine.Signals
 		bool RemoveAll();
 	}
 
-	interface ISignalBase<TSlot, TDelegate>:ISignalBase
+	public interface ISignalBase<TSlot, TDelegate> : ISignalBase
 		where TSlot : class, ISlotBase
 		where TDelegate : class
 	{
@@ -39,32 +39,32 @@ namespace Atlas.Engine.Signals
 		bool Remove(TDelegate listener);
 	}
 
-	interface ISignalDynamic:ISignalBase<ISlotBase, Delegate>
+	public interface ISignalDynamic : ISignalBase<ISlotBase, Delegate>
 	{
 
 	}
 
-	interface ISignal:ISignalBase<ISlot, Action>
+	public interface ISignal : ISignalBase<ISlot, Action>
 	{
 
 	}
 
-	interface ISignal<T1>:ISignalBase<ISlot<T1>, Action<T1>>
+	public interface ISignal<T1> : ISignalBase<ISlot<T1>, Action<T1>>
 	{
 
 	}
 
-	interface ISignal<T1, T2>:ISignalBase<ISlot<T1, T2>, Action<T1, T2>>
+	public interface ISignal<T1, T2> : ISignalBase<ISlot<T1, T2>, Action<T1, T2>>
 	{
 
 	}
 
-	interface ISignal<T1, T2, T3>:ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>>
+	public interface ISignal<T1, T2, T3> : ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>>
 	{
 
 	}
 
-	interface ISignal<T1, T2, T3, T4>:ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
+	public interface ISignal<T1, T2, T3, T4> : ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
 	{
 
 	}

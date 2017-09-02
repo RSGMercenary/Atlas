@@ -12,7 +12,7 @@ namespace Atlas.Testing.Systems
 
 		public TestSystem()
 		{
-			UpdateMode = SystemUpdateMode.Update;
+			UpdateMode = UpdatePhase.Update;
 			Initialize(UpdateEntity);
 		}
 

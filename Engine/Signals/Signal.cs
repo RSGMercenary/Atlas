@@ -4,13 +4,13 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalDynamic:SignalBase<SlotBase, ISlotBase, Delegate>, ISignalDynamic
+	class SignalDynamic : SignalBase<SlotBase, ISlotBase, Delegate>, ISignalDynamic
 	{
 		public bool Dispatch(params object[] items)
 		{
 			if(DispatchStart())
 			{
-				foreach(SlotBase slot in SlotsCopy)
+				foreach(SlotBase slot in new List<ISlotBase>(Slots))
 				{
 					try
 					{
@@ -30,7 +30,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Signal:SignalBase<Slot, ISlot, Action>, ISignal, IDispatch
+	class Signal : SignalBase<Slot, ISlot, Action>, ISignal, IDispatch
 	{
 		public bool Dispatch()
 		{
@@ -56,7 +56,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Signal<T1>:SignalBase<Slot<T1>, ISlot<T1>, Action<T1>>, ISignal<T1>, IDispatch<T1>
+	class Signal<T1> : SignalBase<Slot<T1>, ISlot<T1>, Action<T1>>, ISignal<T1>, IDispatch<T1>
 	{
 		public bool Dispatch(T1 item1)
 		{
@@ -83,7 +83,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Signal<T1, T2>:SignalBase<Slot<T1, T2>, ISlot<T1, T2>, Action<T1, T2>>, ISignal<T1, T2>, IDispatch<T1, T2>
+	class Signal<T1, T2> : SignalBase<Slot<T1, T2>, ISlot<T1, T2>, Action<T1, T2>>, ISignal<T1, T2>, IDispatch<T1, T2>
 	{
 		public bool Dispatch(T1 item1, T2 item2)
 		{
@@ -110,7 +110,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Signal<T1, T2, T3>:SignalBase<Slot<T1, T2, T3>, ISlot<T1, T2, T3>, Action<T1, T2, T3>>, ISignal<T1, T2, T3>, IDispatch<T1, T2, T3>
+	class Signal<T1, T2, T3> : SignalBase<Slot<T1, T2, T3>, ISlot<T1, T2, T3>, Action<T1, T2, T3>>, ISignal<T1, T2, T3>, IDispatch<T1, T2, T3>
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3)
 		{
@@ -137,7 +137,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Signal<T1, T2, T3, T4>:SignalBase<Slot<T1, T2, T3, T4>, ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISignal<T1, T2, T3, T4>, IDispatch<T1, T2, T3, T4>
+	class Signal<T1, T2, T3, T4> : SignalBase<Slot<T1, T2, T3, T4>, ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISignal<T1, T2, T3, T4>, IDispatch<T1, T2, T3, T4>
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3, T4 item4)
 		{

@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Collections.LinkList
 {
-	interface IReadOnlyLinkList<T>:IReadOnlyCollection<T>
+	public interface IReadOnlyLinkList<T> : IReadOnlyCollection<T>
 	{
 		/// <summary>
 		/// When attempting to iterate, call <see cref="IterateStart"/> first, and
@@ -26,14 +26,10 @@ namespace Atlas.Engine.Collections.LinkList
 
 		void IterateStop();
 
-		int Iterators { get; }
-
-		bool HasIterators { get; }
-
 		T this[int i] { get; }
 
-		IEnumerator<T> Forward();
+		IEnumerable<T> Backward();
 
-		IEnumerator<T> Backward();
+		IEnumerable<T> Forward();
 	}
 }

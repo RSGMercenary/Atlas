@@ -1,13 +1,12 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Interfaces;
-using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	interface IEntity : IAutoEngineObject<IEntity>, IHierarchy<IEntity>, ISleepHierarchy<IEntity>, IReset
+	public interface IEntity : IAutoEngineObject<IEntity>, IHierarchy<IEntity>, ISleep, IReset
 	{
 		#region Entities
 
@@ -24,10 +23,6 @@ namespace Atlas.Engine.Entities
 		/// exists, then this Entity's local name will be changed.
 		/// </summary>
 		string LocalName { get; set; }
-
-		ISignal<IEntity, string, string> GlobalNameChanged { get; }
-
-		ISignal<IEntity, string, string> LocalNameChanged { get; }
 
 		IEntity AddChild(string globalName = "", string localName = "");
 		IEntity AddChild(int index, string globalName = "", string localName = "");
@@ -47,10 +42,6 @@ namespace Atlas.Engine.Entities
 		bool SetHierarchy(string hierarchy, int index);
 
 		IEntity GetChild(string localName);
-
-		IEntity GetDescendant(string localName, int depth = -1);
-
-		List<IEntity> GetDescendants(string localName, int depth = -1);
 
 		IEntity RemoveChild(string localName);
 
@@ -172,9 +163,6 @@ namespace Atlas.Engine.Entities
 
 		#endregion
 
-		ISignal<IEntity, IComponent, Type, IEntity> ComponentAdded { get; }
-		ISignal<IEntity, IComponent, Type, IEntity> ComponentRemoved { get; }
-
 		#endregion
 
 		#region Systems
@@ -191,9 +179,6 @@ namespace Atlas.Engine.Entities
 
 		IReadOnlyCollection<Type> Systems { get; }
 
-		ISignal<IEntity, Type> SystemAdded { get; }
-		ISignal<IEntity, Type> SystemRemoved { get; }
-
 		#endregion
 
 		#region Sleeping
@@ -208,8 +193,6 @@ namespace Atlas.Engine.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; set; }
-
-		ISignal<IEntity, int, int> FreeSleepingChanged { get; }
 
 		#endregion
 
@@ -226,6 +209,6 @@ namespace Atlas.Engine.Entities
 		/// <param name="addSystems">Adds systems to the output.</param>
 		/// <param name="indent"></param>
 		/// <returns></returns>
-		string ToString(int depth = -1, bool addComponents = true, bool addManagers = false, bool addSystems = true, string indent = "");
+		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, bool addSystems = true, string indent = "");
 	}
 }

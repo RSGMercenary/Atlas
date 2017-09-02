@@ -1,11 +1,7 @@
-﻿using Atlas.Engine.Signals;
-
-namespace Atlas.Engine.Interfaces
+﻿namespace Atlas.Engine.Interfaces
 {
-	interface IPriority<T>
+	public interface IPriority
 	{
 		int Priority { get; set; }
-
-		ISignal<T, int, int> PriorityChanged { get; }
 	}
 }

@@ -2,16 +2,17 @@
 using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
-using Atlas.Engine.Signals;
 using Atlas.Engine.Systems;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IEngine : IComponent
+	public interface IEngine : IComponent<IEngine>, IEngineUpdate
+
 	{
+		#region Entities
+
 		FixedStack<IEntity> EntityPool { get; }
-		FixedStack<IFamily> FamilyPool { get; }
 
 		/// <summary>
 		/// A collection of all Entities managed by this Engine.
@@ -21,21 +22,6 @@ namespace Atlas.Engine.Components
 		/// to it, and then adding children to that hierarchy.</para>
 		/// </summary>
 		IReadOnlyLinkList<IEntity> Entities { get; }
-
-		/// <summary>
-		/// A collection of all Systems managed by this Engine.
-		/// <para>Systems are added to and removed from the Engine by being managed
-		/// as a Type to an Entity already in the Entity hierarchy.</para>
-		/// </summary>
-		IReadOnlyLinkList<ISystem> Systems { get; }
-
-		/// <summary>
-		/// A collection of all Families managed by this Engine.
-		/// 
-		/// <para>Families of Entities are added to and removed from the Engine by
-		/// being managed by a System intent on updating that Family.</para>
-		/// </summary>
-		IReadOnlyLinkList<IFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing an Entity with the given global name.
@@ -70,15 +56,16 @@ namespace Atlas.Engine.Components
 		/// <returns></returns>
 		IEntity GetEntity(string globalName);
 
-		/// <summary>
-		/// A Signal dispatching when an Entity has been added to the Engine.
-		/// </summary>
-		ISignal<IEngine, IEntity> EntityAdded { get; }
+		#endregion
+
+		#region Systems
 
 		/// <summary>
-		/// A Signal dispatching when an Entity has been removed from the Engine.
+		/// A collection of all Systems managed by this Engine.
+		/// <para>Systems are added to and removed from the Engine by being managed
+		/// as a Type to an Entity already in the Entity hierarchy.</para>
 		/// </summary>
-		ISignal<IEngine, IEntity> EntityRemoved { get; }
+		IReadOnlyLinkList<ISystem> Systems { get; }
 
 		bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
@@ -134,18 +121,19 @@ namespace Atlas.Engine.Components
 		/// <returns></returns>
 		ISystem GetSystem(int index);
 
-		/// <summary>
-		/// A Signal dispatching when a System has been added to the Engine.
-		/// </summary>
-		ISignal<IEngine, ISystem, Type> SystemAdded { get; }
+		#endregion
+
+		#region Families
+
+		FixedStack<IFamily> FamilyPool { get; }
 
 		/// <summary>
-		/// A Signal dispatching when a System has been removed from the Engine.
+		/// A collection of all Families managed by this Engine.
+		/// 
+		/// <para>Families of Entities are added to and removed from the Engine by
+		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		ISignal<IEngine, ISystem, Type> SystemRemoved { get; }
-
-		ISystem CurrentUpdateSystem { get; }
-		ISystem CurrentFixedUpdateSystem { get; }
+		IReadOnlyLinkList<IFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.
@@ -188,60 +176,39 @@ namespace Atlas.Engine.Components
 		IFamily RemoveFamily<TFamilyType>();
 		IFamily RemoveFamily(Type type);
 
-		ISignal<IEngine, Type> FamilyAdded { get; }
-		ISignal<IEngine, Type> FamilyRemoved { get; }
+		#endregion
 
 		/// <summary>
 		/// The delta time between <see cref="ISystem.Update"/> loops.
 		/// </summary>
-		float DeltaUpdateTime { get; }
+		double DeltaUpdateTime { get; }
 
 		/// <summary>
 		/// The total time spent running <see cref="ISystem.Update"/> loops.
 		/// </summary>
-		float TotalUpdateTime { get; }
+		double TotalUpdateTime { get; }
 
 		/// <summary>
 		/// The fixed delta time between <see cref="ISystem.FixedUpdate"/> loops.
 		/// </summary>
-		float DeltaFixedUpdateTime { get; set; }
+		double DeltaFixedUpdateTime { get; set; }
 
 		/// <summary>
 		/// The total time spent running <see cref="ISystem.FixedUpdate"/> loops.
 		/// </summary>
-		float TotalFixedUpdateTime { get; }
-
-		/// <summary>
-		/// The delta time between <see cref="ISystem.FixedUpdate"/> and
-		/// <see cref="ISystem.Update"/> loops.
-		/// </summary>
-		float DeltaEngineTime { get; }
-
-		/// <summary>
-		/// The total time spent running <see cref="ISystem.FixedUpdate"/> and
-		/// <see cref="ISystem.Update"/> loops.
-		/// </summary>
-		float TotalEngineTime { get; }
+		double TotalFixedUpdateTime { get; }
 
 		/// <summary>
 		/// Returns if the Engine is currently running. This is true
 		/// if the Engine is running, regardless of whether the Engine is
 		/// currently engaged in an update cycle.
 		/// </summary>
-		bool IsRunning { get; }
+		bool IsRunning { get; set; }
 
 		/// <summary>
-		/// Begins running the Engine once all manual Engine/Entity initialization
-		/// has been completed. Once this is called, the Engine and its
-		/// Entities, Systems, and Families should run itself.
+		/// The current System that's about to undergo a FixedUpdate() or Update().
+		/// Use UpdatePhase to check what phase of an update the Engine is in.
 		/// </summary>
-		void Run();
-
-		/// <summary>
-		/// Returns if the Engine is currently engaged in an update cycle.
-		/// </summary>
-		bool IsUpdating { get; }
-
-		ISignal<IEngine, bool> IsUpdatingChanged { get; }
+		ISystem CurrentSystem { get; }
 	}
 }

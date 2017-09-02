@@ -8,7 +8,7 @@ namespace Atlas.Engine.Systems
 	abstract class AtlasFamilySystem<TFamilyType> : AtlasSystem
 	{
 		private IFamily family;
-		private SystemUpdateMode mode = SystemUpdateMode.Update;
+		private UpdatePhase mode = UpdatePhase.Update;
 		private Action<double, IEntity> entityUpdate;
 		private Action<IFamily, IEntity> entityAdded;
 		private Action<IFamily, IEntity> entityRemoved;
@@ -50,7 +50,7 @@ namespace Atlas.Engine.Systems
 			base.Destroying();
 		}
 
-		public SystemUpdateMode UpdateMode
+		public UpdatePhase UpdateMode
 		{
 			get { return mode; }
 			set { mode = value; }
@@ -58,13 +58,13 @@ namespace Atlas.Engine.Systems
 
 		override protected void Updating(double deltaTime)
 		{
-			if(mode == SystemUpdateMode.Update)
+			if(mode == UpdatePhase.Update)
 				FamilyUpdate(deltaTime);
 		}
 
 		protected override void FixedUpdating(double deltaTime)
 		{
-			if(mode == SystemUpdateMode.FixedUpdate)
+			if(mode == UpdatePhase.FixedUpdate)
 				FamilyUpdate(deltaTime);
 		}
 

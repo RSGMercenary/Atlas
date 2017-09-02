@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Atlas.Testing
 {
-	class AtlasTraceListener:TextWriterTraceListener
+	class AtlasTraceListener : TextWriterTraceListener
 	{
 		private string filePath = "";
 		private bool append = false;

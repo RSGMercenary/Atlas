@@ -1,6 +1,7 @@
 ﻿namespace Atlas.Engine
 {
-	interface IAutoEngineObject<T> : IEngineObject<T>
+	public interface IAutoEngineObject<T> : IEngineObject<T>
+		where T : IAutoEngineObject<T>
 	{
 		bool AutoDestroy { get; set; }
 	}

@@ -2,6 +2,7 @@
 using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Signals;
+using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -32,6 +33,9 @@ namespace Atlas.Engine.Families
 		sealed public override bool Destroy()
 		{
 			if(State != EngineObjectState.Constructed)
+				return false;
+			//Can't destroy Family mid-update.
+			if(Engine == null || Engine.UpdatePhase != UpdatePhase.None)
 				return false;
 			Engine = null;
 			if(Engine == null)

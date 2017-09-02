@@ -2,14 +2,14 @@
 
 namespace Atlas.Engine.Signals
 {
-	interface ISlotBase:IDisposable
+	public interface ISlotBase : IDisposable
 	{
 		ISignalBase Signal { get; }
 		Delegate Listener { get; }
 		int Priority { get; set; }
 	}
 
-	interface ISlotBase<TSignal, TDelegate>:ISlotBase
+	public interface ISlotBase<TSignal, TDelegate> : ISlotBase
 		where TSignal : class, ISignalBase
 		where TDelegate : class
 	{
@@ -17,27 +17,27 @@ namespace Atlas.Engine.Signals
 		new TDelegate Listener { get; }
 	}
 
-	interface ISlot:ISlotBase<ISignal, Action>
+	public interface ISlot : ISlotBase<ISignal, Action>
 	{
 
 	}
 
-	interface ISlot<T1>:ISlotBase<ISignal<T1>, Action<T1>>
+	public interface ISlot<T1> : ISlotBase<ISignal<T1>, Action<T1>>
 	{
 
 	}
 
-	interface ISlot<T1, T2>:ISlotBase<ISignal<T1, T2>, Action<T1, T2>>
+	public interface ISlot<T1, T2> : ISlotBase<ISignal<T1, T2>, Action<T1, T2>>
 	{
 
 	}
 
-	interface ISlot<T1, T2, T3>:ISlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>
+	public interface ISlot<T1, T2, T3> : ISlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>
 	{
 
 	}
 
-	interface ISlot<T1, T2, T3, T4>:ISlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
+	public interface ISlot<T1, T2, T3, T4> : ISlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
 	{
 
 	}

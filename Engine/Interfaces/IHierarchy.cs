@@ -1,10 +1,8 @@
-﻿using Atlas.Engine.Collections;
-using Atlas.Engine.Collections.LinkList;
-using Atlas.Engine.Signals;
+﻿using Atlas.Engine.Collections.LinkList;
 
 namespace Atlas.Engine.Interfaces
 {
-	interface IHierarchy<T>
+	public interface IHierarchy<T>
 	{
 		T Root { get; }
 
@@ -45,17 +43,5 @@ namespace Atlas.Engine.Interfaces
 		T RemoveChild(int index);
 
 		bool RemoveChildren();
-
-		ISignal<T, T, T, T> RootChanged { get; }
-
-		ISignal<T, T, T, T> ParentChanged { get; }
-
-		ISignal<T, int, int> ParentIndexChanged { get; }
-
-		ISignal<T, int, int, CollectionChange> ChildIndicesChanged { get; }
-
-		ISignal<T, T, int> ChildAdded { get; }
-
-		ISignal<T, T, int> ChildRemoved { get; }
 	}
 }

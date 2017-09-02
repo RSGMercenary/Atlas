@@ -1,20 +1,15 @@
 ﻿using Atlas.Engine.Components;
-using Atlas.Engine.Signals;
+using Atlas.Engine.Messages;
 using System;
 
 namespace Atlas.Engine.Systems
 {
 	abstract class AtlasSystem : EngineObject<ISystem>, ISystem
 	{
-		private Type type;
-		private bool isUpdating = false;
-		private bool isUpdatingLocked = false;
 		private int priority = 0;
 		private int sleeping = 0;
-
-		private Signal<ISystem, bool> isUpdatingChanged = new Signal<ISystem, bool>();
-		private Signal<ISystem, int, int> priorityChanged = new Signal<ISystem, int, int>();
-		private Signal<ISystem, int, int> sleepingChanged = new Signal<ISystem, int, int>();
+		private UpdatePhase updatePhase = UpdatePhase.None;
+		private bool updateLock = false;
 
 		public AtlasSystem()
 		{
@@ -25,6 +20,9 @@ namespace Atlas.Engine.Systems
 		{
 			if(State != EngineObjectState.Constructed)
 				return false;
+			//Can't destroy System mid-update.
+			if(Engine == null || Engine.UpdatePhase != UpdatePhase.None)
+				return false;
 			Engine = null;
 			if(Engine == null)
 				return base.Destroy();
@@ -33,32 +31,14 @@ namespace Atlas.Engine.Systems
 
 		protected override void Destroying()
 		{
-			isUpdatingChanged.Dispose();
-			priorityChanged.Dispose();
-			sleepingChanged.Dispose();
+			Priority = 0;
+			Sleeping = 0;
 			base.Destroying();
-		}
-
-		public Type Interface
-		{
-			get
-			{
-				return type;
-			}
-			set
-			{
-				if(Engine != null)
-					return;
-				type = value;
-			}
 		}
 
 		sealed override public IEngine Engine
 		{
-			get
-			{
-				return base.Engine;
-			}
+			get { return base.Engine; }
 			set
 			{
 				if(value != null)
@@ -78,17 +58,21 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		protected override void ChangingEngine(IEngine current, IEngine previous)
+		protected override void Messaging(IMessage<ISystem> message)
 		{
-			base.ChangingEngine(current, previous);
-			if(current != null)
+			if(message.Type == AtlasMessage.Engine)
 			{
-				AddingEngine(current);
+				var cast = message as IPropertyMessage<ISystem, IEngine>;
+				if(cast.Previous != null)
+				{
+					RemovingEngine(cast.Previous);
+				}
+				if(cast.Current != null)
+				{
+					AddingEngine(cast.Current);
+				}
 			}
-			else if(previous != null)
-			{
-				RemovingEngine(previous);
-			}
+			base.Messaging(message);
 		}
 
 		protected virtual void AddingEngine(IEngine engine)
@@ -103,20 +87,29 @@ namespace Atlas.Engine.Systems
 
 		public void FixedUpdate(double deltaTime)
 		{
+			Updater(FixedUpdating, deltaTime, UpdatePhase.FixedUpdate);
+		}
+
+		public void Update(double deltaTime)
+		{
+			Updater(Updating, deltaTime, UpdatePhase.Update);
+		}
+
+		private void Updater(Action<double> method, double deltaTime, UpdatePhase phase)
+		{
 			if(IsSleeping)
 				return;
 			if(Engine == null)
 				return;
-			if(Engine.CurrentFixedUpdateSystem != this)
+			if(Engine.CurrentSystem != this)
 				return;
-			if(!isUpdatingLocked)
-			{
-				isUpdatingLocked = true;
-				IsUpdating = true;
-				FixedUpdating(deltaTime);
-				IsUpdating = false;
-				isUpdatingLocked = false;
-			}
+			if(updateLock)
+				return;
+			updateLock = true;
+			UpdatePhase = phase;
+			method.Invoke(deltaTime);
+			UpdatePhase = UpdatePhase.None;
+			updateLock = false;
 		}
 
 		protected virtual void FixedUpdating(double deltaTime)
@@ -124,106 +117,52 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		public void Update(double deltaTime)
-		{
-			if(IsSleeping)
-				return;
-			if(Engine == null)
-				return;
-			if(Engine.CurrentUpdateSystem != this)
-				return;
-			if(!isUpdatingLocked)
-			{
-				isUpdatingLocked = true;
-				IsUpdating = true;
-				Updating(deltaTime);
-				IsUpdating = false;
-				isUpdatingLocked = false;
-			}
-		}
-
 		protected virtual void Updating(double deltaTime)
 		{
 
 		}
 
-		public bool IsUpdating
+		public UpdatePhase UpdatePhase
 		{
-			get
-			{
-				return isUpdating;
-			}
+			get { return updatePhase; }
 			private set
 			{
-				if(isUpdating == value)
+				if(updatePhase == value)
 					return;
-				bool previous = isUpdating;
-				isUpdating = value;
-				isUpdatingChanged.Dispatch(this, value);
-			}
-		}
-
-		public ISignal<ISystem, bool> IsUpdatingChanged
-		{
-			get
-			{
-				return isUpdatingChanged;
+				var previous = updatePhase;
+				updatePhase = value;
+				Message(new PropertyMessage<ISystem, UpdatePhase>(AtlasMessage.UpdatePhase, value, previous));
 			}
 		}
 
 		public int Sleeping
 		{
-			get
-			{
-				return sleeping;
-			}
+			get { return sleeping; }
 			set
 			{
 				if(sleeping == value)
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				sleepingChanged.Dispatch(this, value, previous);
-			}
-		}
-
-		public ISignal<ISystem, int, int> SleepingChanged
-		{
-			get
-			{
-				return sleepingChanged;
+				Message(new PropertyMessage<ISystem, int>(AtlasMessage.Sleeping, value, previous));
 			}
 		}
 
 		public bool IsSleeping
 		{
-			get
-			{
-				return sleeping > 0;
-			}
+			get { return sleeping > 0; }
 		}
 
 		public int Priority
 		{
-			get
-			{
-				return priority;
-			}
+			get { return priority; }
 			set
 			{
 				if(priority == value)
 					return;
 				int previous = priority;
 				priority = value;
-				priorityChanged.Dispatch(this, value, previous);
-			}
-		}
-
-		public ISignal<ISystem, int, int> PriorityChanged
-		{
-			get
-			{
-				return priorityChanged;
+				Message(new PropertyMessage<ISystem, int>(AtlasMessage.Priority, value, previous));
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Interfaces
 {
-	interface IReset
+	public interface IReset
 	{
 		void Reset();
 	}

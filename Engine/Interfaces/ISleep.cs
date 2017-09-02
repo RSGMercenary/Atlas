@@ -1,9 +1,8 @@
-﻿using Atlas.Engine.Signals;
-
-namespace Atlas.Engine.Interfaces
+﻿namespace Atlas.Engine.Interfaces
 {
-	interface ISleep<T>:ISleepBase
+	public interface ISleep
 	{
-		ISignal<T, int, int> SleepingChanged { get; }
+		bool IsSleeping { get; }
+		int Sleeping { get; set; }
 	}
 }

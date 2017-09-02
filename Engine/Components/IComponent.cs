@@ -1,12 +1,17 @@
 ﻿using Atlas.Engine.Collections.LinkList;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Interfaces;
-using Atlas.Engine.Signals;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	interface IComponent : IAutoEngineObject<IComponent>, IReset
+	public interface IComponent<T> : IAutoEngineObject<T>, IComponent, IReset
+		where T : IComponent<T>
+	{
+
+	}
+
+	public interface IComponent
 	{
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity
@@ -148,16 +153,6 @@ namespace Atlas.Engine.Components
 		bool RemoveManagers();
 
 		/// <summary>
-		/// A Signal dispatching when an Entity manager has been added to this Component.
-		/// </summary>
-		ISignal<IComponent, IEntity, int> ManagerAdded { get; }
-
-		/// <summary>
-		/// A Signal dispatching when an Entity manager has been removed from this Component.
-		/// </summary>
-		ISignal<IComponent, IEntity, int> ManagerRemoved { get; }
-
-		/// <summary>
 		/// The Entity managing this Component. This is always null if
 		/// the Component is shareable, or only null if no Entity has been
 		/// added yet.
@@ -185,6 +180,6 @@ namespace Atlas.Engine.Components
 		/// <param name="index">The index of this Component when being printed with an Entity's ToString().</param>
 		/// <param name="indent">Indentation used for formatting the ToString() correctly.</param>
 		/// <returns></returns>
-		string ToString(bool addManagers = true, int index = 0, string indent = "");
+		string ToInfoString(bool addManagers = true, int index = 0, string indent = "");
 	}
 }

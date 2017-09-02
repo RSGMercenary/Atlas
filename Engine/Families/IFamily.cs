@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.Engine.Families
 {
-	interface IFamily : IEngineObject<IFamily>
+	public interface IFamily : IEngineObject<IFamily>
 	{
 		Type FamilyType { get; set; }
 

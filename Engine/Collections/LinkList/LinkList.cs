@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -25,23 +26,19 @@ namespace Atlas.Engine.Collections.LinkList
 			if(!isDisposed)
 			{
 				IsDisposed = true;
+				Clear();
 				pooled.Clear();
-				DisposeNodes();
 			}
 		}
 
 		public bool IsDisposed
 		{
-			get
-			{
-				return isDisposed;
-			}
+			get { return isDisposed; }
 			private set
 			{
-				if(isDisposed != value)
-				{
-					isDisposed = value;
-				}
+				if(isDisposed == value)
+					return;
+				isDisposed = value;
 			}
 		}
 
@@ -49,56 +46,46 @@ namespace Atlas.Engine.Collections.LinkList
 		{
 			get
 			{
-				return GetNode(i).value;
+				return i >= 0 && i < count ? GetNode(i).Value : default(T);
 			}
 			set
 			{
-				GetNode(i).value = value;
+				if(i >= 0 && i < count)
+					GetNode(i).value = value;
 			}
 		}
 
 		public ILinkListNode<T> First
 		{
-			get
-			{
-				return first;
-			}
+			get { return first; }
 		}
 
 		public ILinkListNode<T> Last
 		{
-			get
-			{
-				return last;
-			}
+			get { return last; }
 		}
 
 		public int Count
 		{
-			get
-			{
-				return count;
-			}
+			get { return count; }
 		}
 
 		public bool Contains(T item)
 		{
 			if(item == null)
 				return false;
-			for(LinkListNode<T> current = first; current != null; current = current.next)
+			foreach(var current in this)
 			{
-				if(current.value.Equals(item))
-				{
+				if(current.Equals(item))
 					return true;
-				}
 			}
 			return false;
 		}
 
 		public T Get(int index)
 		{
-			LinkListNode<T> node = GetNode(index);
-			return node != null ? node.value : default(T);
+			var node = GetNode(index);
+			return node != null ? node.Value : default(T);
 		}
 
 		public int GetIndex(T item)
@@ -106,12 +93,10 @@ namespace Atlas.Engine.Collections.LinkList
 			if(item == null)
 				return -1;
 			int index = 0;
-			for(LinkListNode<T> current = first; current; current = current.next)
+			foreach(var current in this)
 			{
-				if(current.value.Equals(item))
-				{
+				if(current.Equals(item))
 					return index;
-				}
 				++index;
 			}
 			return -1;
@@ -119,7 +104,7 @@ namespace Atlas.Engine.Collections.LinkList
 
 		public bool SetIndex(T item, int index)
 		{
-			LinkListNode<T> node = GetNode(item);
+			var node = GetNode(item);
 			if(node == null)
 				return false;
 			TempRemove(node);
@@ -143,7 +128,7 @@ namespace Atlas.Engine.Collections.LinkList
 			if(item == null)
 				return default(T);
 			IsDisposed = false;
-			LinkListNode<T> node;
+			var node = default(LinkListNode<T>);
 			if(pooled.Count > 0)
 			{
 				node = pooled.Pop();
@@ -152,7 +137,7 @@ namespace Atlas.Engine.Collections.LinkList
 			{
 				node = new LinkListNode<T>();
 			}
-			node.linklist = this;
+			node.nodelist = this;
 			node.value = item;
 
 			TempAdd(node, index);
@@ -178,15 +163,15 @@ namespace Atlas.Engine.Collections.LinkList
 
 		public bool Swap(int index1, int index2)
 		{
-			LinkListNode<T> node1 = GetNode(index1);
-			LinkListNode<T> node2 = GetNode(index2);
+			var node1 = GetNode(index1);
+			var node2 = GetNode(index2);
 			return Swap(node1, node2);
 		}
 
 		public bool Swap(T item1, T item2)
 		{
-			LinkListNode<T> node1 = GetNode(item1);
-			LinkListNode<T> node2 = GetNode(item2);
+			var node1 = GetNode(item1);
+			var node2 = GetNode(item2);
 			return Swap(node1, node2);
 		}
 
@@ -196,68 +181,70 @@ namespace Atlas.Engine.Collections.LinkList
 				return false;
 			if(node2 == null)
 				return false;
-			if(node1.LinkList != this)
+			if(node1.NodeList != this)
 				return false;
-			if(node2.LinkList != this)
+			if(node2.NodeList != this)
 				return false;
+			Swap(node1 as LinkListNode<T>, node2 as LinkListNode<T>);
+			return true;
+		}
 
-			LinkListNode<T> node01 = (LinkListNode<T>)node1;
-			LinkListNode<T> node02 = (LinkListNode<T>)node2;
-
-			if(node01.previous == node02)
+		private bool Swap(LinkListNode<T> node1, LinkListNode<T> node2)
+		{
+			if(node1.Previous == node2)
 			{
-				node01.previous = node02.previous;
-				node02.previous = node01;
-				node02.next = node01.next;
-				node01.next = node02;
+				node1.previous = node2.previous;
+				node2.previous = node1;
+				node2.next = node1.next;
+				node1.next = node2;
 			}
-			else if(node02.previous == node01)
+			else if(node2.previous == node1)
 			{
-				node02.previous = node01.previous;
-				node01.previous = node02;
-				node01.next = node02.next;
-				node02.next = node01;
+				node2.previous = node1.previous;
+				node1.previous = node2;
+				node1.next = node2.next;
+				node2.next = node1;
 			}
 			else
 			{
-				LinkListNode<T> temp = node01.previous;
-				node01.previous = node02.previous;
-				node02.previous = temp;
-				temp = node01.next;
-				node01.next = node02.next;
-				node02.next = temp;
+				var temp = node1.previous;
+				node1.previous = node2.previous;
+				node2.previous = temp;
+				temp = node1.next;
+				node1.next = node2.next;
+				node2.next = temp;
 			}
-			if(first == node01)
+			if(first == node1)
 			{
-				first = node02;
+				first = node2;
 			}
-			else if(first == node02)
+			else if(First == node2)
 			{
-				first = node01;
+				first = node1;
 			}
-			if(last == node01)
+			if(last == node1)
 			{
-				last = node02;
+				last = node2;
 			}
-			else if(last == node02)
+			else if(last == node2)
 			{
-				last = node01;
+				last = node1;
 			}
-			if(node01.previous)
+			if(node1.previous)
 			{
-				node01.previous.next = node01;
+				node1.previous.next = node1;
 			}
-			if(node02.previous)
+			if(node2.previous)
 			{
-				node02.previous.next = node02;
+				node2.previous.next = node2;
 			}
-			if(node01.next)
+			if(node1.next)
 			{
-				node01.next.previous = node01;
+				node1.next.previous = node1;
 			}
-			if(node02.next)
+			if(node2.next)
 			{
-				node02.next.previous = node02;
+				node2.next.previous = node2;
 			}
 			return true;
 		}
@@ -273,7 +260,7 @@ namespace Atlas.Engine.Collections.LinkList
 				return first;
 			if(index == count - 1)
 				return last;
-			LinkListNode<T> current = first;
+			var current = first;
 			while(index > 0)
 			{
 				current = current.next;
@@ -288,16 +275,12 @@ namespace Atlas.Engine.Collections.LinkList
 				return null;
 			if(item == null)
 				return null;
-			if(first.value.Equals(item))
-				return first;
-			if(last.value.Equals(item))
-				return last;
-			for(LinkListNode<T> current = first.next; current && current != last; current = current.next)
+			var current = first;
+			while(current != null)
 			{
 				if(current.value.Equals(item))
-				{
 					return current;
-				}
+				current = current.next;
 			}
 			return null;
 		}
@@ -306,11 +289,22 @@ namespace Atlas.Engine.Collections.LinkList
 		{
 			if(node == null)
 				return default(T);
-			if(node.linklist != this)
-				return default(T);
 			T item = node.value;
 			TempRemove(node);
-			if(HasIterators)
+			//Enmuerators could be on 'current' at the time of removal.
+			//Make sure 'current' doesn't point at another node being removed.
+			foreach(var current in removed)
+			{
+				if(current.next == node)
+				{
+					current.next = node.next;
+				}
+				if(current.previous == node)
+				{
+					current.previous = node.previous;
+				}
+			}
+			if(iterators > 0)
 			{
 				removed.Push(node);
 			}
@@ -323,6 +317,7 @@ namespace Atlas.Engine.Collections.LinkList
 
 		private void TempRemove(LinkListNode<T> node)
 		{
+
 			if(node == first)
 				first = first.next;
 			if(node == last)
@@ -336,7 +331,7 @@ namespace Atlas.Engine.Collections.LinkList
 
 		private void TempAdd(LinkListNode<T> node, int index)
 		{
-			if(first == null)
+			if(!first)
 			{
 				first = node;
 				last = node;
@@ -361,7 +356,7 @@ namespace Atlas.Engine.Collections.LinkList
 				}
 				else
 				{
-					LinkListNode<T> current = GetNode(index);
+					var current = GetNode(index);
 					node.next = current;
 					node.previous = current.previous;
 					current.previous.next = node;
@@ -371,7 +366,7 @@ namespace Atlas.Engine.Collections.LinkList
 			++count;
 		}
 
-		public void DisposeNodes()
+		private void DisposeNodes()
 		{
 			while(removed.Count > 0)
 			{
@@ -381,10 +376,15 @@ namespace Atlas.Engine.Collections.LinkList
 
 		private void DisposeNode(LinkListNode<T> node)
 		{
-			node.linklist = null;
+			node.nodelist = null;
 			node.value = default(T);
+			if(node.previous)
+				node.previous.next = node.next;
+			if(node.next)
+				node.next.previous = node.previous;
 			node.previous = null;
 			node.next = null;
+
 			if(!isDisposed)
 				pooled.Push(node);
 		}
@@ -393,7 +393,7 @@ namespace Atlas.Engine.Collections.LinkList
 		{
 			StringBuilder text = new StringBuilder();
 			text.Append('[');
-			if(first)
+			if(First != null)
 			{
 				foreach(var item in this)
 				{
@@ -408,14 +408,14 @@ namespace Atlas.Engine.Collections.LinkList
 
 		public IEnumerator<T> GetEnumerator()
 		{
-			return Forward();
+			return Forward().GetEnumerator();
 		}
 
-		public IEnumerator<T> Forward()
+		public IEnumerable<T> Forward()
 		{
 			IterateStart();
-			LinkListNode<T> current = first;
-			while(current)
+			var current = first;
+			while(current != null)
 			{
 				yield return current.value;
 				current = current.next;
@@ -423,11 +423,11 @@ namespace Atlas.Engine.Collections.LinkList
 			IterateStop();
 		}
 
-		public IEnumerator<T> Backward()
+		public IEnumerable<T> Backward()
 		{
 			IterateStart();
-			LinkListNode<T> current = last;
-			while(current)
+			var current = last;
+			while(current != null)
 			{
 				yield return current.value;
 				current = current.previous;
@@ -452,22 +452,6 @@ namespace Atlas.Engine.Collections.LinkList
 			if(--iterators == 0)
 			{
 				DisposeNodes();
-			}
-		}
-
-		public int Iterators
-		{
-			get
-			{
-				return iterators;
-			}
-		}
-
-		public bool HasIterators
-		{
-			get
-			{
-				return iterators > 0;
 			}
 		}
 
@@ -511,6 +495,14 @@ namespace Atlas.Engine.Collections.LinkList
 			{
 				return true;
 			}
+		}
+
+		public T Get(Func<T, bool> method)
+		{
+			foreach(var item in this)
+				if(method(item))
+					return item;
+			return default(T);
 		}
 	}
 }

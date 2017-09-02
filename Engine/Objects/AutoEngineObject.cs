@@ -1,6 +1,8 @@
-﻿namespace Atlas.Engine
+﻿using Atlas.Engine.Messages;
+
+namespace Atlas.Engine
 {
-	class AutoEngineObject<T> : EngineObject<T>
+	public abstract class AutoEngineObject<T> : EngineObject<T>
 		where T : class, IAutoEngineObject<T>
 	{
 		private bool autoDestroy = true;
@@ -12,24 +14,15 @@
 
 		public bool AutoDestroy
 		{
-			get
-			{
-				return autoDestroy;
-			}
+			get { return autoDestroy; }
 			set
 			{
 				if(autoDestroy == value)
 					return;
 				var previous = autoDestroy;
 				autoDestroy = value;
-				ChangingAutoDestroy(value, previous);
-				//Didn't find a need for this Signal. Could add later.
+				Message(new PropertyMessage<T, bool>(AtlasMessage.AutoDestroy, value, previous));
 			}
-		}
-
-		protected virtual void ChangingAutoDestroy(bool current, bool previous)
-		{
-
 		}
 	}
 }

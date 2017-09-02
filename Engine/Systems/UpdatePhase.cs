@@ -1,9 +1,9 @@
 ﻿namespace Atlas.Engine.Systems
 {
-	enum SystemUpdateMode
+	public enum UpdatePhase
 	{
+		None,
 		Update,
-		FixedUpdate,
-		Manual
+		FixedUpdate
 	}
 }
