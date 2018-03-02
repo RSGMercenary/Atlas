@@ -8,7 +8,7 @@
 		public object Target
 		{
 			get { return target; }
-			set { target = target == null ? value : target; }
+			set { target = target ?? value; }
 		}
 
 		public object CurrentTarget

@@ -295,7 +295,7 @@ namespace Atlas.Engine.Components
 				if(addEntities)
 				{
 					index = 0;
-					foreach(IEntity entity in managers)
+					foreach(var entity in managers)
 					{
 						text.AppendLine(indent + "    Entity " + (++index));
 						text.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);
