@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Atlas.Engine.Signals;
+using System;
 using System.Collections.Generic;
-using Atlas.Engine.Signals;
 
 namespace Atlas.Testing.CAT
 {
@@ -29,8 +29,9 @@ namespace Atlas.Testing.CAT
 			{
 				return actions.Exists(action => { return action.IsRunning; });
 			}
+			set { throw new NotImplementedException(); }
 		}
-		
+
 		public RunMode RunMode
 		{
 			get { return runMode; }
@@ -44,8 +45,9 @@ namespace Atlas.Testing.CAT
 			}
 		}
 
-		bool IAction.IsRunning { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-		public ISignal<IReadOnlyAction, bool> IsRunningChanged => throw new NotImplementedException();
+		public ISignal<IReadOnlyAction, bool> IsRunningChanged
+		{
+			get { throw new NotImplementedException(); }
+		}
 	}
 }

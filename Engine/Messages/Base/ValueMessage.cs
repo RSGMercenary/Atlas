@@ -4,7 +4,7 @@
 	{
 		private readonly TValue value;
 
-		public ValueMessage(string type, TValue value) : base(type)
+		public ValueMessage(TValue value)
 		{
 			this.value = value;
 		}

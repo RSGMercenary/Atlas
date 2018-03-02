@@ -5,6 +5,14 @@ using System.Diagnostics;
 
 namespace Atlas
 {
+	public static class Extension
+	{
+		public static T Cast<T>(this object obj)
+		{
+			return (T)obj;
+		}
+	}
+
 	class Program
 	{
 		static void Main(string[] args)
@@ -22,7 +30,7 @@ namespace Atlas
 			{
 				string name = index1.ToString();
 				var depth1 = root.AddChild(name, name);
-				depth1.AddListener(AtlasMessage.RemoveChild, OnRemove);
+				depth1.AddListener<IChildRemoveMessage>(OnRemove);
 				for(int index2 = 1; index2 <= 5; ++index2)
 				{
 					name = index1 + "-" + index2;
@@ -35,7 +43,7 @@ namespace Atlas
 					}*/
 				}
 			}
-
+			Debug.WriteLine(root.ToInfoString(-1, false, false, false));
 			var ent = engine.GetEntity("1");
 			ent.RemoveChild("1-2");
 
@@ -44,12 +52,11 @@ namespace Atlas
 			engine.IsRunning = true;
 		}
 
-		private static void OnRemove(IMessage<IEntity> message)
+		private static void OnRemove(IChildRemoveMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IKeyValueMessage<IEntity, int, IEntity>)message;
-			if(cast.Value.LocalName == "1-2")
+			if(message.Value.LocalName == "1-2")
 				message.Target.Parent = null;
 		}
 	}

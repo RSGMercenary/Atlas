@@ -5,13 +5,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	public interface IComponent<T> : IAutoEngineObject<T>, IComponent, IReset
-		where T : IComponent<T>
-	{
-
-	}
-
-	public interface IComponent
+	public interface IComponent : IAutoEngineObject, IReset
 	{
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity

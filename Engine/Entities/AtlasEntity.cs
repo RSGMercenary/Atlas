@@ -4,13 +4,12 @@ using Atlas.Engine.Messages;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 
 namespace Atlas.Engine.Entities
 {
-	sealed class AtlasEntity : AutoEngineObject<IEntity>, IEntity
+	sealed class AtlasEntity : AutoEngineObject, IEntity
 	{
 		#region Static Singleton
 
@@ -37,10 +36,15 @@ namespace Atlas.Engine.Entities
 			}
 		}
 
+		public static string UniqueName
+		{
+			get { return Guid.NewGuid().ToString("N"); }
+		}
+
 		#endregion
 
-		private string globalName = Guid.NewGuid().ToString("N");
-		private string localName = Guid.NewGuid().ToString("N");
+		private string globalName = UniqueName;
+		private string localName = UniqueName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private IEntity root;
@@ -84,8 +88,8 @@ namespace Atlas.Engine.Entities
 			RemoveChildren();
 			RemoveComponents();
 			RemoveSystems();
-			//GlobalName = Guid.NewGuid().ToString("N");
-			//LocalName = Guid.NewGuid().ToString("N");
+			GlobalName = UniqueName;
+			LocalName = UniqueName;
 			AutoDestroy = true;
 		}
 
@@ -104,7 +108,7 @@ namespace Atlas.Engine.Entities
 					return;
 				string previous = globalName;
 				globalName = value;
-				Message(new PropertyMessage<IEntity, string>(AtlasMessage.GlobalName, value, previous));
+				Message<IGlobalNameMessage>(new GlobalNameMessage(value, previous));
 			}
 		}
 
@@ -121,7 +125,7 @@ namespace Atlas.Engine.Entities
 					return;
 				string previous = localName;
 				localName = value;
-				Message(new PropertyMessage<IEntity, string>(AtlasMessage.LocalName, value, previous));
+				Message<ILocalNameMessage>(new LocalNameMessage(value, previous));
 			}
 		}
 
@@ -350,7 +354,7 @@ namespace Atlas.Engine.Entities
 			if(component == null)
 				return null;
 			//The component isn't shareable and it already has a manager.
-			if(component.Manager != null)
+			if(component.Manager != null || component.Managers.Contains(this))
 				return null;
 			if(type == null)
 				type = component.GetType();
@@ -368,7 +372,7 @@ namespace Atlas.Engine.Entities
 				RemoveComponent(type);
 				components.Add(type, component);
 				component.AddManager(this, type, index);
-				Message(new KeyValueMessage<IEntity, Type, IComponent>(AtlasMessage.AddComponent, type, component));
+				Message<IComponentAddMessage>(new ComponentAddMessage(type, component));
 			}
 			return component;
 		}
@@ -393,7 +397,7 @@ namespace Atlas.Engine.Entities
 			if(!components.ContainsKey(type))
 				return null;
 			IComponent component = components[type];
-			Message(new KeyValueMessage<IEntity, Type, IComponent>(AtlasMessage.RemoveComponent, type, component));
+			Message<IComponentRemoveMessage>(new ComponentRemoveMessage(type, component));
 			components.Remove(type);
 			component.RemoveManager(this, type);
 			return component;
@@ -429,7 +433,7 @@ namespace Atlas.Engine.Entities
 					return;
 				var previous = root;
 				root = value;
-				Message(new PropertyMessage<IEntity, IEntity>(AtlasMessage.Root, value, previous));
+				Message<IRootMessage>(new RootMessage(value, previous));
 			}
 		}
 
@@ -488,11 +492,11 @@ namespace Atlas.Engine.Entities
 				if(!HasChild(child))
 				{
 					if(HasChild(child.LocalName))
-						child.LocalName = Guid.NewGuid().ToString("N");
+						child.LocalName = UniqueName;
 					Construct();
 					children.Add(child, index);
-					Message(new KeyValueMessage<IEntity, int, IEntity>(AtlasMessage.AddChild, index, child));
-					Message(new Message<IEntity>(AtlasMessage.Children));
+					Message<IChildAddMessage>(new ChildAddMessage(index, child));
+					Message<IChildrenMessage>(new ChildrenMessage());
 				}
 				else
 				{
@@ -515,15 +519,12 @@ namespace Atlas.Engine.Entities
 			{
 				if(!HasChild(child))
 					return null;
-				Debug.WriteLine(GlobalName + " removing " + child.GlobalName);
 				int index = children.GetIndex(child);
-				Message(new KeyValueMessage<IEntity, int, IEntity>(AtlasMessage.RemoveChild, index, child));
-				Message(new Message<IEntity>(AtlasMessage.Children));
+				Message<IChildRemoveMessage>(new ChildRemoveMessage(index, child));
+				Message<IChildrenMessage>(new ChildrenMessage());
+				//Could've been readded suring messaging?
 				if(child.Parent != this)
-				{
-					Debug.WriteLine(GlobalName + " removed " + child.GlobalName);
 					children.Remove(child);
-				}
 			}
 			else
 			{
@@ -569,14 +570,18 @@ namespace Atlas.Engine.Entities
 			Construct();
 			IEntity previous = parent;
 			parent = next;
+			Message<IParentMessage>(new ParentMessage(next, previous));
+
 			int sleeping = 0;
-			if(previous != null)
+			//Extra previous and next checks against parent
+			//in case an event changes the parent mid dispatch.
+			if(previous != null && parent != previous)
 			{
 				previous.RemoveChild(this);
 				if(!IsFreeSleeping && previous.IsSleeping)
 					--sleeping;
 			}
-			if(next != null)
+			if(next != null && parent == next)
 			{
 				index = Math.Max(0, Math.Min(index, next.Children.Count));
 				next.AddChild(this, index);
@@ -586,7 +591,8 @@ namespace Atlas.Engine.Entities
 			//If parent becomes null, this won't get sent to anyone below...
 			//...Which might really be intended/expected behavior.
 			//Might still need to listen for parent changes in AtlasEngine.
-			Message(new PropertyMessage<IEntity, IEntity>(AtlasMessage.Parent, next, previous));
+			//Message<IParentMessage>(new ParentMessage(next, previous));
+
 			SetParentIndex(index);
 			Sleeping += sleeping;
 			Root = next?.Root;
@@ -644,7 +650,7 @@ namespace Atlas.Engine.Entities
 
 			children.Remove(previous);
 			children.Add(child, index);
-			Message(new Message<IEntity>(AtlasMessage.Children));
+			Message<IChildrenMessage>(new ChildrenMessage());
 			return true;
 		}
 
@@ -663,7 +669,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(!children.Swap(index1, index2))
 				return false;
-			Message(new Message<IEntity>(AtlasMessage.Children));
+			Message<IChildrenMessage>(new ChildrenMessage());
 			return true;
 		}
 
@@ -678,7 +684,7 @@ namespace Atlas.Engine.Entities
 				return;
 			int previous = parentIndex;
 			parentIndex = value;
-			Message(new PropertyMessage<IEntity, int>(AtlasMessage.ParentIndex, value, previous));
+			Message<IParentIndexMessage>(new ParentIndexMessage(value, previous));
 		}
 
 		#endregion
@@ -694,7 +700,7 @@ namespace Atlas.Engine.Entities
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message(new PropertyMessage<IEntity, int>(AtlasMessage.Sleeping, value, previous));
+				Message<ISleepMessage>(new SleepMessage(value, previous));
 			}
 		}
 
@@ -712,7 +718,7 @@ namespace Atlas.Engine.Entities
 					return;
 				int previous = freeSleeping;
 				freeSleeping = value;
-				Message(new PropertyMessage<IEntity, int>(AtlasMessage.FreeSleeping, value, previous));
+				Message<IFreeSleepMessage>(new FreeSleepMessage(value, previous));
 				if(parent == null)
 					return;
 				if(value > 0 && previous <= 0)
@@ -769,7 +775,7 @@ namespace Atlas.Engine.Entities
 				return false;
 			Construct();
 			systems.Add(type);
-			Message(new ValueMessage<IEntity, Type>(AtlasMessage.AddSystemType, type));
+			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(type));
 			return true;
 		}
 
@@ -789,7 +795,7 @@ namespace Atlas.Engine.Entities
 			if(!systems.Contains(type))
 				return false;
 			systems.Remove(type);
-			Message(new ValueMessage<IEntity, Type>(AtlasMessage.RemoveSystemType, type));
+			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(type));
 			return true;
 		}
 
@@ -804,7 +810,7 @@ namespace Atlas.Engine.Entities
 
 		#endregion
 
-		sealed override public void Message(IMessage<IEntity> message)
+		sealed override public void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
 			var previousTarget = message.CurrentTarget;
@@ -822,7 +828,7 @@ namespace Atlas.Engine.Entities
 				child.Message(message);
 				//Reset CurrentTarget back to this so
 				//the next child (and parent) can block messaging from its original source.
-				(message as IMessageBase<IEntity>).CurrentTarget = this;
+				((IMessageBase)message).CurrentTarget = this;
 			}
 
 			//Send Message to parent.
@@ -831,38 +837,39 @@ namespace Atlas.Engine.Entities
 				Parent.Message(message);
 		}
 
-		protected override void Messaging(IMessage<IEntity> message)
+		protected override void Messaging(IMessage message)
 		{
-			if(message.Type == AtlasMessage.Sleeping)
+			if(message is ISleepMessage)
 			{
 				if(message.Target != Parent)
 					return;
 				if(IsFreeSleeping)
 					return;
-				var cast = (IPropertyMessage<IEntity, int>)message;
-				if(cast.Current > 0 && cast.Previous <= 0)
+				var cast = message as ISleepMessage;
+				if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
 					++Sleeping;
-				else if(cast.Current <= 0 && cast.Previous > 0)
+				else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)
 					--Sleeping;
 			}
-			else if(message.Type == AtlasMessage.Root)
+			else if(message is IRootMessage)
 			{
 				if(message.Target != Parent)
 					return;
-				Root = message.Target.Root;
+				var cast = message as IRootMessage;
+				Root = cast.Target.Root;
 			}
-			else if(message.Type == AtlasMessage.Children)
+			else if(message is IChildrenMessage)
 			{
 				if(message.Target != Parent)
 					return;
 				SetParentIndex(Parent.GetChildIndex(this));
 			}
-			else if(message.Type == AtlasMessage.AutoDestroy)
+			else if(message is IAutoDestroyMessage)
 			{
 				if(!message.AtTarget)
 					return;
-				var cast = message as IPropertyMessage<IEntity, bool>;
-				if(cast.Current && parent == null)
+				var cast = message as IAutoDestroyMessage;
+				if(cast.CurrentValue && parent == null)
 					Destroy();
 			}
 			base.Messaging(message);

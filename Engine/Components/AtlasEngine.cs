@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Components
 {
-	sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
+	sealed class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -65,26 +65,26 @@ namespace Atlas.Engine.Components
 		override protected void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
-			entity.AddListener(AtlasMessage.AddChild, EntityChildAdded, int.MinValue);
-			entity.AddListener(AtlasMessage.RemoveChild, EntityChildRemoved, int.MinValue);
-			entity.AddListener(AtlasMessage.GlobalName, EntityGlobalNameChanged, int.MinValue);
-			entity.AddListener(AtlasMessage.AddComponent, EntityComponentAdded, int.MinValue);
-			entity.AddListener(AtlasMessage.RemoveComponent, EntityComponentRemoved, int.MinValue);
-			entity.AddListener(AtlasMessage.AddSystemType, EntitySystemAdded, int.MinValue);
-			entity.AddListener(AtlasMessage.RemoveSystemType, EntitySystemRemoved, int.MinValue);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue);
+			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue);
+			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue);
+			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue);
 			AddEntity(entity);
 		}
 
 		override protected void RemovingManager(IEntity entity, int index)
 		{
 			RemoveEntity(entity);
-			entity.RemoveListener(AtlasMessage.AddChild, EntityChildAdded);
-			entity.RemoveListener(AtlasMessage.RemoveChild, EntityChildRemoved);
-			entity.RemoveListener(AtlasMessage.GlobalName, EntityGlobalNameChanged);
-			entity.RemoveListener(AtlasMessage.AddComponent, EntityComponentAdded);
-			entity.RemoveListener(AtlasMessage.RemoveComponent, EntityComponentRemoved);
-			entity.RemoveListener(AtlasMessage.AddSystemType, EntitySystemAdded);
-			entity.RemoveListener(AtlasMessage.RemoveSystemType, EntitySystemRemoved);
+			entity.RemoveListener<IChildAddMessage>(EntityChildAdded);
+			entity.RemoveListener<IChildRemoveMessage>(EntityChildRemoved);
+			entity.RemoveListener<IGlobalNameMessage>(EntityGlobalNameChanged);
+			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
+			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
+			entity.RemoveListener<ISystemTypeAddMessage>(EntitySystemAdded);
+			entity.RemoveListener<ISystemTypeRemoveMessage>(EntitySystemRemoved);
 			base.RemovingManager(entity, index);
 		}
 
@@ -125,21 +125,21 @@ namespace Atlas.Engine.Components
 			}
 			if(managed)
 			{
-				entity.AddListener(AtlasMessage.State, EntityStateChanged, int.MinValue);
+				entity.AddListener<IEngineStateMessage>(EntityStateChanged, int.MinValue);
 			}
 			entity.GlobalName = globalName;
 			entity.LocalName = localName;
 			return entity;
 		}
 
-		private void EntityStateChanged(IMessage<IEntity> message)
+		private void EntityStateChanged(IEngineStateMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var entity = message.Target;
+			IEntity entity = message.Target as IEntity;
 			if(entity.State != EngineObjectState.Destroyed)
 				return;
-			entity.RemoveListener(AtlasMessage.State, EntityStateChanged);
+			entity.RemoveListener<IEngineStateMessage>(EntityStateChanged);
 			entityPool.Push(entity);
 		}
 
@@ -166,7 +166,7 @@ namespace Atlas.Engine.Components
 					//A child added at the end of Entity.Children and signaled
 					//in mid-iteration of AddEntity() is already handled.
 					return;
-				entity.GlobalName = Guid.NewGuid().ToString("N");
+				entity.GlobalName = AtlasEntity.UniqueName;
 			}
 
 			entitiesGlobalName.Add(entity.GlobalName, entity);
@@ -179,7 +179,7 @@ namespace Atlas.Engine.Components
 			foreach(var family in families)
 				family.AddEntity(entity);
 
-			Message(new ValueMessage<IEngine, IEntity>(AtlasMessage.AddEntity, entity));
+			Message<IEntityAddMessage>(new EntityAddMessage(entity));
 
 			foreach(var child in entity.Children.Forward())
 				AddEntity(child);
@@ -190,7 +190,7 @@ namespace Atlas.Engine.Components
 			foreach(IEntity child in entity.Children.Backward())
 				RemoveEntity(child);
 
-			Message(new ValueMessage<IEngine, IEntity>(AtlasMessage.RemoveEntity, entity));
+			Message<IEntityRemoveMessage>(new EntityRemoveMessage(entity));
 
 			foreach(var type in entity.Systems)
 				RemoveSystem(type);
@@ -211,26 +211,23 @@ namespace Atlas.Engine.Components
 			entity.Engine = null;
 		}
 
-		private void EntityChildAdded(IMessage<IEntity> message)
+		private void EntityChildAdded(IChildAddMessage message)
 		{
-			var cast = (IKeyValueMessage<IEntity, int, IEntity>)message;
-			AddEntity(cast.Value);
+			AddEntity(message.Value);
 		}
 
-		private void EntityChildRemoved(IMessage<IEntity> message)
+		private void EntityChildRemoved(IChildRemoveMessage message)
 		{
-			var cast = (IKeyValueMessage<IEntity, int, IEntity>)message;
-			if(cast.Value.Parent == null)
-				RemoveEntity(cast.Value);
+			if(message.Value.Parent == null)
+				RemoveEntity(message.Value);
 		}
 
-		private void EntityGlobalNameChanged(IMessage<IEntity> message)
+		private void EntityGlobalNameChanged(IGlobalNameMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IPropertyMessage<IEntity, string>)message;
-			entitiesGlobalName.Remove(cast.Previous);
-			entitiesGlobalName.Add(cast.Current, message.Target);
+			entitiesGlobalName.Remove(message.PreviousValue);
+			entitiesGlobalName.Add(message.CurrentValue, message.Target);
 		}
 
 		#endregion
@@ -288,8 +285,9 @@ namespace Atlas.Engine.Components
 			{
 				if(updatePhase == value)
 					return;
+				var previous = updatePhase;
 				updatePhase = value;
-				Message(new ValueMessage<IEngine, UpdatePhase>(AtlasMessage.Update, value));
+				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
 			}
 		}
 
@@ -376,10 +374,10 @@ namespace Atlas.Engine.Components
 				}
 				systemsCount.Add(type, count);
 				systemsType.Add(type, system);
-				system.AddListener(AtlasMessage.Priority, SystemPriorityChanged);
+				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system, system.Priority, 0);
 				system.Engine = this;
-				Message(new KeyValueMessage<IEngine, ISystem, Type>(AtlasMessage.AddSystem, system, type));
+				Message<ISystemAddMessage>(new SystemAddMessage(type, system));
 			}
 			else
 			{
@@ -393,11 +391,11 @@ namespace Atlas.Engine.Components
 			if(systemsCount[type] > 0)
 				return;
 			var system = systemsType[type];
-			system.RemoveListener(AtlasMessage.Priority, SystemPriorityChanged);
+			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 			systems.Remove(system);
 			systemsType.Remove(type);
 			systemsCount.Remove(type);
-			Message(new KeyValueMessage<IEngine, Type, ISystem>(AtlasMessage.RemoveSystem, type, system));
+			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
 			if(UpdatePhase != UpdatePhase.None)
 			{
 				systemsRemoved.Add(system);
@@ -408,23 +406,21 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		private void EntitySystemAdded(IMessage<IEntity> message)
+		private void EntitySystemAdded(ISystemTypeAddMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IValueMessage<IEntity, Type>)message;
-			AddSystem(cast.Value);
+			AddSystem(message.Value);
 		}
 
-		private void EntitySystemRemoved(IMessage<IEntity> message)
+		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IValueMessage<IEntity, Type>)message;
-			RemoveSystem(cast.Value);
+			RemoveSystem(message.Value);
 		}
 
-		private void SystemPriorityChanged(IMessage<ISystem> message)
+		private void SystemPriorityChanged(IPriorityMessage message)
 		{
 			SystemPriorityChanged(message.Target, message.Target.Priority, -1);
 		}
@@ -643,7 +639,7 @@ namespace Atlas.Engine.Components
 
 				foreach(var entity in entities)
 					family.AddEntity(entity);
-				Message(new KeyValueMessage<IEngine, Type, IFamily>(AtlasMessage.AddFamily, type, family));
+				Message<IFamilyAddMessage>(new FamilyAddMessage(type, family));
 				return family;
 			}
 			else
@@ -668,7 +664,7 @@ namespace Atlas.Engine.Components
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesCount.Remove(type);
-			Message(new KeyValueMessage<IEngine, Type, IFamily>(AtlasMessage.RemoveFamily, type, family));
+			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
 			if(UpdatePhase != UpdatePhase.None)
 			{
 				familiesRemoved.Add(family);
@@ -706,22 +702,20 @@ namespace Atlas.Engine.Components
 			return familiesType.ContainsKey(type) ? familiesType[type] : null;
 		}
 
-		private void EntityComponentAdded(IMessage<IEntity> message)
+		private void EntityComponentAdded(IComponentAddMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IKeyValueMessage<IEntity, Type, IComponent>)message;
 			foreach(IFamily family in families)
-				family.AddEntity(cast.Target, cast.Key);
+				family.AddEntity(message.Target, message.Key);
 		}
 
-		private void EntityComponentRemoved(IMessage<IEntity> message)
+		private void EntityComponentRemoved(IComponentRemoveMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			var cast = (IKeyValueMessage<IEntity, Type, IComponent>)message;
 			foreach(IFamily family in families)
-				family.RemoveEntity(cast.Target, cast.Key);
+				family.RemoveEntity(message.Target, message.Key);
 		}
 
 		#endregion

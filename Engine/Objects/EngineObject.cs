@@ -6,15 +6,14 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine
 {
-	public abstract class EngineObject<T> : IEngineObject<T>
-		where T : class, IEngineObject<T>
+	public abstract class EngineObject : IEngineObject
 	{
-		public static implicit operator bool(EngineObject<T> engineObject)
+		public static implicit operator bool(EngineObject engineObject)
 		{
 			return engineObject != null;
 		}
 
-		private Dictionary<string, SignalBase> messages = new Dictionary<string, SignalBase>();
+		private Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 		private IEngine engine;
 		private EngineObjectState state = EngineObjectState.Destroyed;
 
@@ -37,7 +36,7 @@ namespace Atlas.Engine
 					return;
 				var previous = engine;
 				engine = value;
-				Message(new PropertyMessage<T, IEngine>(AtlasMessage.Engine, value, previous));
+				Message<IEngineMessage>(new EngineMessage(value, previous));
 			}
 		}
 
@@ -50,7 +49,7 @@ namespace Atlas.Engine
 					return;
 				var previous = state;
 				state = value;
-				Message(new PropertyMessage<T, EngineObjectState>(AtlasMessage.State, value, previous));
+				Message<IEngineStateMessage>(new EngineStateMessage(value, previous));
 			}
 		}
 
@@ -90,39 +89,47 @@ namespace Atlas.Engine
 
 		}
 
-		public void AddListener(string type, Action<IMessage<T>> listener, int priority = 0)
+		virtual public void Message<TMessage>(TMessage message)
+			where TMessage : IMessage
 		{
+			((IMessageBase)message).Target = this;
+			//Set current target and send event here.
+			((IMessageBase)message).CurrentTarget = this;
+			//Pass around message internally...
+			Messaging(message);
+			//...before dispatching externally.
+			Type type = typeof(TMessage);
+			if(messages.ContainsKey(type))
+				((Signal<TMessage>)messages[type]).Dispatch(message);
+		}
+
+		virtual protected void Messaging(IMessage message)
+		{
+
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority = 0)
+			where TMessage : IMessage
+		{
+			Type type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
-				messages.Add(type, new Signal<IMessage<T>>());
-			Signal<IMessage<T>> signal = messages[type] as Signal<IMessage<T>>;
+				messages.Add(type, new Signal<TMessage>());
+			var signal = messages[type];
 			signal.Add(listener, priority);
 		}
 
-		public void RemoveListener(string type, Action<IMessage<T>> listener)
+		public void RemoveListener<TMessage>(Action<TMessage> listener)
+			where TMessage : IMessage
 		{
+			Type type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
 				return;
-			Signal<IMessage<T>> signal = messages[type] as Signal<IMessage<T>>;
+			var signal = messages[type];
 			signal.Remove(listener);
 			if(signal.HasListeners)
 				return;
 			messages.Remove(type);
 			signal.Dispose();
-		}
-
-		virtual public void Message(IMessage<T> message)
-		{
-			(message as IMessageBase<T>).Target = this as T;
-			//Set current target and send event here.
-			(message as IMessageBase<T>).CurrentTarget = this as T;
-			Messaging(message);
-			if(messages.ContainsKey(message.Type))
-				(messages[message.Type] as Signal<IMessage<T>>).Dispatch(message);
-		}
-
-		virtual protected void Messaging(IMessage<T> message)
-		{
-
 		}
 	}
 }

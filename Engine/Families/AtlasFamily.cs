@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace Atlas.Engine.Families
 {
-	sealed class AtlasFamily : EngineObject<IFamily>, IFamily
+	sealed class AtlasFamily : EngineObject, IFamily
 	{
 		private Type familyType;
 		private LinkList<IEntity> entities = new LinkList<IEntity>();

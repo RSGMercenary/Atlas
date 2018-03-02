@@ -1,22 +1,22 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	class PropertyMessage<TSender, TProperty> : Message<TSender>, IPropertyMessage<TSender, TProperty>
+	public class PropertyMessage<TSender, TProperty> : Message<TSender>, IPropertyMessage<TSender, TProperty>
 	{
 		private readonly TProperty current;
 		private readonly TProperty previous;
 
-		public PropertyMessage(string type, TProperty current, TProperty previous) : base(type)
+		public PropertyMessage(TProperty current, TProperty previous)
 		{
 			this.current = current;
 			this.previous = previous;
 		}
 
-		public TProperty Current
+		public TProperty CurrentValue
 		{
 			get { return current; }
 		}
 
-		public TProperty Previous
+		public TProperty PreviousValue
 		{
 			get { return previous; }
 		}

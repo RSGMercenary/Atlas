@@ -2,8 +2,7 @@
 
 namespace Atlas.Engine
 {
-	public abstract class AutoEngineObject<T> : EngineObject<T>
-		where T : class, IAutoEngineObject<T>
+	public abstract class AutoEngineObject : EngineObject
 	{
 		private bool autoDestroy = true;
 
@@ -21,7 +20,7 @@ namespace Atlas.Engine
 					return;
 				var previous = autoDestroy;
 				autoDestroy = value;
-				Message(new PropertyMessage<T, bool>(AtlasMessage.AutoDestroy, value, previous));
+				Message<IAutoDestroyMessage>(new AutoDestroyMessage(value, previous));
 			}
 		}
 	}

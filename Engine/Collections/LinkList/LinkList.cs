@@ -191,7 +191,7 @@ namespace Atlas.Engine.Collections.LinkList
 
 		private bool Swap(LinkListNode<T> node1, LinkListNode<T> node2)
 		{
-			if(node1.Previous == node2)
+			if(node1.previous == node2)
 			{
 				node1.previous = node2.previous;
 				node2.previous = node1;
@@ -291,7 +291,7 @@ namespace Atlas.Engine.Collections.LinkList
 				return default(T);
 			T item = node.value;
 			TempRemove(node);
-			//Enmuerators could be on 'current' at the time of removal.
+			//Enumerators could be on 'current' at the time of removal.
 			//Make sure 'current' doesn't point at another node being removed.
 			foreach(var current in removed)
 			{

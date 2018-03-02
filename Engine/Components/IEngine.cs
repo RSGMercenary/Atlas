@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	public interface IEngine : IComponent<IEngine>, IEngineUpdate
+	public interface IEngine : IComponent, IEngineUpdate
 
 	{
 		#region Entities

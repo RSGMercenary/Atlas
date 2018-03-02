@@ -6,22 +6,7 @@ using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	public enum ComponentEntityRelationship
-	{
-		OneToOne = 1,
-		ManyToOne = 2,
-		OneToMany = 4,
-		ManyToMany = 8,
-	}
-
-	//TO-DO Not sure if this is right. Might be AtlasComponent<IComponent<T>>?
-	public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
-	{
-
-	}
-
-	public abstract class AtlasComponent<T> : AutoEngineObject<T>, IComponent<T>
-		where T : class, IComponent<T>
+	public abstract class AtlasComponent : AutoEngineObject, IComponent
 	{
 		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
@@ -77,7 +62,7 @@ namespace Atlas.Engine.Components
 		{
 			if(!managers.SetIndex(entity, index))
 				return false;
-			Message(new Message<T>(AtlasMessage.Managers));
+			Message<IManagerMessage>(new ManagerMessage());
 			return true;
 		}
 
@@ -96,7 +81,7 @@ namespace Atlas.Engine.Components
 		{
 			if(!managers.Swap(index1, index2))
 				return false;
-			Message(new Message<T>(AtlasMessage.Managers));
+			Message<IManagerMessage>(new ManagerMessage());
 			return true;
 		}
 
@@ -135,7 +120,7 @@ namespace Atlas.Engine.Components
 			{
 				if(type == null)
 					type = GetType();
-				else if(type == typeof(IComponent<T>))
+				else if(type == typeof(IComponent))
 					return null;
 				else if(!type.IsInstanceOfType(this))
 					return null;
@@ -145,11 +130,11 @@ namespace Atlas.Engine.Components
 					Construct();
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Add(entity, index);
-					entity.AddListener(AtlasMessage.Engine, EntityEngineChanged);
+					entity.AddListener<IEngineMessage>(EntityEngineChanged);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
-					Message(new KeyValueMessage<T, int, IEntity>(AtlasMessage.AddManager, index, entity));
-					Message(new Message<T>(AtlasMessage.Managers));
+					Message<IManagerAddMessage>(new ManagerAddMessage(index, entity));
+					Message<IManagerMessage>(new ManagerMessage());
 				}
 				else
 				{
@@ -203,12 +188,12 @@ namespace Atlas.Engine.Components
 			{
 				int index = managers.GetIndex(entity);
 				managers.Remove(index);
-				entity.RemoveListener(AtlasMessage.Engine, EntityEngineChanged);
+				entity.RemoveListener<IEngineMessage>(EntityEngineChanged);
 				if(managers.IsEmpty)
 					Engine = null;
 				RemovingManager(entity, index);
-				Message(new KeyValueMessage<T, int, IEntity>(AtlasMessage.RemoveManager, index, entity));
-				Message(new Message<T>(AtlasMessage.Managers));
+				Message<IManagerRemoveMessage>(new ManagerRemoveMessage(index, entity));
+				Message<IManagerMessage>(new ManagerMessage());
 				if(AutoDestroy && managers.IsEmpty)
 					Destroy();
 			}
@@ -249,11 +234,11 @@ namespace Atlas.Engine.Components
 			return true;
 		}
 
-		private void EntityEngineChanged(IMessage<IEntity> message)
+		private void EntityEngineChanged(IEngineMessage message)
 		{
 			if(!message.AtTarget)
 				return;
-			Engine = message.Target.Engine;
+			Engine = message.CurrentValue;
 		}
 
 		sealed override public IEngine Engine
@@ -281,12 +266,12 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		protected override void Messaging(IMessage<T> message)
+		protected override void Messaging(IMessage message)
 		{
-			if(message.Type == AtlasMessage.AutoDestroy)
+			if(message is IAutoDestroyMessage)
 			{
-				var cast = message as IPropertyMessage<IComponent, bool>;
-				if(cast.Current && managers.IsEmpty)
+				var cast = message as IAutoDestroyMessage;
+				if(cast.CurrentValue && managers.IsEmpty)
 					Destroy();
 			}
 			base.Messaging(message);

@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem : EngineObject<ISystem>, ISystem
+	abstract class AtlasSystem : EngineObject, ISystem
 	{
 		private int priority = 0;
 		private int sleeping = 0;
@@ -58,18 +58,18 @@ namespace Atlas.Engine.Systems
 			}
 		}
 
-		protected override void Messaging(IMessage<ISystem> message)
+		protected override void Messaging(IMessage message)
 		{
-			if(message.Type == AtlasMessage.Engine)
+			if(message is IEngineMessage)
 			{
-				var cast = message as IPropertyMessage<ISystem, IEngine>;
-				if(cast.Previous != null)
+				var cast = message as IEngineMessage;
+				if(cast.PreviousValue != null)
 				{
-					RemovingEngine(cast.Previous);
+					RemovingEngine(cast.PreviousValue);
 				}
-				if(cast.Current != null)
+				if(cast.CurrentValue != null)
 				{
-					AddingEngine(cast.Current);
+					AddingEngine(cast.CurrentValue);
 				}
 			}
 			base.Messaging(message);
@@ -131,7 +131,7 @@ namespace Atlas.Engine.Systems
 					return;
 				var previous = updatePhase;
 				updatePhase = value;
-				Message(new PropertyMessage<ISystem, UpdatePhase>(AtlasMessage.UpdatePhase, value, previous));
+				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace Atlas.Engine.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message(new PropertyMessage<ISystem, int>(AtlasMessage.Sleeping, value, previous));
+				Message<ISleepMessage>(new SleepMessage(value, previous));
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace Atlas.Engine.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message(new PropertyMessage<ISystem, int>(AtlasMessage.Priority, value, previous));
+				Message<IPriorityMessage>(new PriorityMessage(value, previous));
 			}
 		}
 	}
