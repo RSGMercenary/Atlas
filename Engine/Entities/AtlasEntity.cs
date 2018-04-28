@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Atlas.Engine.Entities
 {
-	sealed class AtlasEntity : AutoEngineObject, IEntity
+	sealed class AtlasEntity : EngineObject, IEntity
 	{
 		#region Static Singleton
 
@@ -53,6 +53,7 @@ namespace Atlas.Engine.Entities
 		private LinkList<IEntity> children = new LinkList<IEntity>();
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
+		private bool autoDestroy = true;
 
 		public AtlasEntity()
 		{
@@ -71,8 +72,6 @@ namespace Atlas.Engine.Entities
 			Parent = null;
 			Sleeping = 0;
 			FreeSleeping = 0;
-			//Doing this for the Engine as it's self-referencing.
-			//If it's not nulled, GC might not pick it up.(?)
 			Root = null;
 
 			//If this is the root Entity, then we
@@ -809,6 +808,19 @@ namespace Atlas.Engine.Entities
 		}
 
 		#endregion
+
+		public bool AutoDestroy
+		{
+			get { return autoDestroy; }
+			set
+			{
+				if(autoDestroy == value)
+					return;
+				var previous = autoDestroy;
+				autoDestroy = value;
+				Message<IAutoDestroyMessage>(new AutoDestroyMessage(value, previous));
+			}
+		}
 
 		sealed override public void Message<TMessage>(TMessage message)
 		{

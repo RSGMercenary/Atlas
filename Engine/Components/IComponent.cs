@@ -1,11 +1,12 @@
 ﻿using Atlas.Engine.Collections.LinkList;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Interfaces;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	public interface IComponent : IAutoEngineObject, IReset
+	public interface IComponent : IAutoDestroyEngineObject, IReset
 	{
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity

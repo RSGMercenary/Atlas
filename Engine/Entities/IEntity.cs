@@ -1,4 +1,5 @@
 ﻿using Atlas.Engine.Components;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.Systems;
 using System;
@@ -6,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	public interface IEntity : IAutoEngineObject, IHierarchy<IEntity>, ISleep, IReset
+	public interface IEntity : IAutoDestroyEngineObject, IHierarchy<IEntity>, ISleep, IReset
 	{
 		#region Entities
 

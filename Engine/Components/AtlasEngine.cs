@@ -224,8 +224,8 @@ namespace Atlas.Engine.Components
 
 		private void EntityGlobalNameChanged(IGlobalNameMessage message)
 		{
-			if(!message.AtTarget)
-				return;
+			//if(!message.AtTarget)
+			//return;
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Target);
 		}

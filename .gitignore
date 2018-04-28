@@ -27,8 +27,10 @@
 *.out
 *.app
 
-#C Sharp files
+# Visual Studio files
 *.sln
 *.config
 *.csproj
+.vs/
 obj/
+bin/

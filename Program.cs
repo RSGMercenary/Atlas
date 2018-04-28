@@ -5,59 +5,50 @@ using System.Diagnostics;
 
 namespace Atlas
 {
-	public static class Extension
-	{
-		public static T Cast<T>(this object obj)
-		{
-			return (T)obj;
-		}
-	}
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            IEntity root = AtlasEntity.Instance;
+            IEngine engine = root.AddComponent<IEngine>(AtlasEngine.Instance);
 
-	class Program
-	{
-		static void Main(string[] args)
-		{
-			IEntity root = AtlasEntity.Instance;
-			IEngine engine = root.AddComponent<IEngine>(AtlasEngine.Instance);
+            //engine.AddSystemType<ITestSystem, TestSystem>();
 
-			//engine.AddSystemType<ITestSystem, TestSystem>();
+            //root.AddSystem<ITestSystem>();
 
-			//root.AddSystem<ITestSystem>();
+            //engine.AddSystemType<ITestSystem, TestSystem2>();
 
-			//engine.AddSystemType<ITestSystem, TestSystem2>();
+            for(int index1 = 1; index1 <= 5; ++index1)
+            {
+                string name = index1.ToString();
+                var depth1 = root.AddChild(name, name);
+                for(int index2 = 1; index2 <= 5; ++index2)
+                {
+                    name = index1 + "-" + index2;
+                    var depth2 = depth1.AddChild(name, name);
 
-			for(int index1 = 1; index1 <= 5; ++index1)
-			{
-				string name = index1.ToString();
-				var depth1 = root.AddChild(name, name);
-				depth1.AddListener<IChildRemoveMessage>(OnRemove);
-				for(int index2 = 1; index2 <= 5; ++index2)
-				{
-					name = index1 + "-" + index2;
-					var depth2 = depth1.AddChild(name, name);
-
-					/*for(int index3 = 1; index3 <= 5; ++index3)
+                    /*for(int index3 = 1; index3 <= 5; ++index3)
 					{
 						name = index1 + "-" + index2 + "-" + index3;
 						var depth3 = depth2.AddChild(name, name);
 					}*/
-				}
-			}
-			Debug.WriteLine(root.ToInfoString(-1, false, false, false));
-			var ent = engine.GetEntity("1");
-			ent.RemoveChild("1-2");
+                }
+            }
+            Debug.WriteLine(root.ToInfoString(-1, false, false, false));
+            var ent = engine.GetEntity("1");
+            ent.RemoveChild("1-2");
 
-			Debug.WriteLine(engine.Entities);
+            Debug.WriteLine(engine.Entities);
 
-			engine.IsRunning = true;
-		}
+            engine.IsRunning = true;
+        }
 
-		private static void OnRemove(IChildRemoveMessage message)
-		{
-			if(!message.AtTarget)
-				return;
-			if(message.Value.LocalName == "1-2")
-				message.Target.Parent = null;
-		}
-	}
+        private static void OnRemove(IChildRemoveMessage message)
+        {
+            if(!message.AtTarget)
+                return;
+            if(message.Value.LocalName == "1-2")
+                message.Target.Parent = null;
+        }
+    }
 }

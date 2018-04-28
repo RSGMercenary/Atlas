@@ -6,10 +6,11 @@ using System.Text;
 
 namespace Atlas.Engine.Components
 {
-	public abstract class AtlasComponent : AutoEngineObject, IComponent
+	public abstract class AtlasComponent : EngineObject, IComponent
 	{
 		private readonly bool isShareable = false;
 		private LinkList<IEntity> managers = new LinkList<IEntity>();
+		private bool autoDestroy = true;
 
 		public AtlasComponent() : this(false)
 		{
@@ -41,6 +42,19 @@ namespace Atlas.Engine.Components
 		public bool IsShareable
 		{
 			get { return isShareable; }
+		}
+
+		public bool AutoDestroy
+		{
+			get { return autoDestroy; }
+			set
+			{
+				if(autoDestroy == value)
+					return;
+				var previous = autoDestroy;
+				autoDestroy = value;
+				Message<IAutoDestroyMessage>(new AutoDestroyMessage(value, previous));
+			}
 		}
 
 		public IEntity Manager
