@@ -445,7 +445,9 @@ namespace Atlas.Engine.Entities
 
 		private IEntity GetEntity(string globalName, string localName)
 		{
-			return Engine != null ? Engine.GetEntity(true, globalName, localName) : new AtlasEntity(globalName, localName);
+			//TO-DO
+			//Add pooling tot the framework and pull from their.
+			return new AtlasEntity(globalName, localName);
 		}
 
 		public IEntity AddChild(string globalName = "", string localName = "")
@@ -744,9 +746,9 @@ namespace Atlas.Engine.Entities
 			get { return (IReadOnlyCollection<Type>)systems; }
 		}
 
-		public bool HasSystem<TSystem>() where TSystem : ISystem
+		public bool HasSystem<TISystem>() where TISystem : ISystem
 		{
-			return HasSystem(typeof(TSystem));
+			return HasSystem(typeof(TISystem));
 		}
 
 		public bool HasSystem(Type type)
@@ -754,20 +756,20 @@ namespace Atlas.Engine.Entities
 			return systems.Contains(type);
 		}
 
-		public bool AddSystem<TSystem>() where TSystem : ISystem
+		public bool AddSystem<TISystem>() where TISystem : ISystem
 		{
-			return AddSystem(typeof(TSystem));
+			return AddSystem(typeof(TISystem));
 		}
 
 		public bool AddSystem(Type type)
 		{
 			if(type == null)
 				return false;
-			if(!type.IsInterface)
+			if(!type.IsInterface) //Type must be an interface.
 				return false;
-			if(type == typeof(ISystem))
+			if(type == typeof(ISystem)) //Type can't directly be ISystem.
 				return false;
-			if(!typeof(ISystem).IsAssignableFrom(type))
+			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
 				return false;
 			if(systems.Contains(type))
 				return false;
@@ -785,10 +787,6 @@ namespace Atlas.Engine.Entities
 		public bool RemoveSystem(Type type)
 		{
 			if(type == null)
-				return false;
-			if(!type.IsInterface)
-				return false;
-			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!systems.Contains(type))
 				return false;

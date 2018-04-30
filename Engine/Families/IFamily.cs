@@ -1,16 +1,10 @@
-﻿using Atlas.Engine.Entities;
-using System;
+﻿using Atlas.Engine.Collections.EngineList;
 
 namespace Atlas.Engine.Families
 {
-	public interface IFamily : IFamilyBase
+	public interface IFamily<TFamilyMember> : IFamily
+		where TFamilyMember : IFamilyMember, new()
 	{
-		Type FamilyType { get; set; }
-
-		void AddEntity(IEntity entity);
-		void RemoveEntity(IEntity entity);
-
-		void AddEntity(IEntity entity, Type type);
-		void RemoveEntity(IEntity entity, Type type);
+		new IReadOnlyEngineList<TFamilyMember> Members { get; }
 	}
 }

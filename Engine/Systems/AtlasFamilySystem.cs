@@ -1,14 +1,14 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
-using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Messages;
 
 namespace Atlas.Engine.Systems
 {
-	public abstract class AtlasFamilySystem<TFamilyType> : AtlasSystem, IFamilySystem
+	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem
+		where TFamilyMember : IFamilyMember, new()
 	{
-		private IFamily family;
+		private IFamily<TFamilyMember> family;
 		private UpdatePhase updateMode = UpdatePhase.Update;
 		private bool updateSleepingEntities = false;
 
@@ -17,96 +17,98 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		override protected void Destroying()
-		{
-			family = null;
-			base.Destroying();
-		}
-
 		public UpdatePhase UpdateMode
 		{
 			get { return updateMode; }
-			set { updateMode = value; }
-		}
-
-		override protected void Updating(double deltaTime)
-		{
-			if(updateMode == UpdatePhase.Update)
-				FamilyUpdate(deltaTime);
-		}
-
-		protected override void FixedUpdating(double deltaTime)
-		{
-			if(updateMode == UpdatePhase.FixedUpdate)
-				FamilyUpdate(deltaTime);
-		}
-
-		private void FamilyUpdate(double deltaTime)
-		{
-			if(family == null)
-				return;
-			var updateSleepingEntities = UpdateSleepingEntities;
-			foreach(var entity in family.Entities)
+			set
 			{
-				if(updateSleepingEntities || !entity.IsSleeping)
-					EntityUpdate(deltaTime, entity);
+				if(value == updateMode)
+					return;
+				updateMode = value;
 			}
-		}
-
-		virtual protected void EntityUpdate(double deltaTime, IEntity entity)
-		{
-
-		}
-
-		virtual protected void EntityAdded(IFamily family, IEntity entity)
-		{
-
-		}
-
-		virtual protected void EntityRemoved(IFamily family, IEntity entity)
-		{
-
 		}
 
 		public bool UpdateSleepingEntities
 		{
 			get { return updateSleepingEntities; }
-			set { updateSleepingEntities = value; }
+			set
+			{
+				if(value == updateSleepingEntities)
+					return;
+				updateSleepingEntities = value;
+			}
+		}
+
+		sealed override protected void Updating(double deltaTime)
+		{
+			if(updateMode == UpdatePhase.Update)
+				FamilyUpdate(deltaTime);
+		}
+
+		sealed protected override void FixedUpdating(double deltaTime)
+		{
+			if(updateMode == UpdatePhase.FixedUpdate)
+				FamilyUpdate(deltaTime);
+		}
+
+		virtual protected void FamilyUpdate(double deltaTime)
+		{
+			var updateSleepingEntities = UpdateSleepingEntities;
+			foreach(var member in family.Members)
+			{
+				if(updateSleepingEntities || !member.Entity.IsSleeping)
+					MemberUpdate(deltaTime, member);
+			}
+		}
+
+		virtual protected void MemberUpdate(double deltaTime, TFamilyMember member)
+		{
+
+		}
+
+		virtual protected void MemberAdded(IFamily family, TFamilyMember member)
+		{
+
+		}
+
+		virtual protected void MemberRemoved(IFamily family, TFamilyMember member)
+		{
+
 		}
 
 		override protected void AddingEngine(IEngine engine)
 		{
 			base.AddingEngine(engine);
-			family = engine.AddFamily<TFamilyType>();
+			family = engine.AddFamily<TFamilyMember>();
 			family.AddListener<IFamilyEntityAddMessage>(EntityAdded);
-			family.AddListener<IFamilyEntityRemoveMessage>(EntityRemoved);
-			foreach(IEntity entity in family.Entities)
+			family.AddListener<IFamilyMemberRemoveMessage>(EntityRemoved);
+			foreach(var member in family.Members)
 			{
-				EntityAdded(family, entity);
+				MemberAdded(family, member);
 			}
 		}
 
 		override protected void RemovingEngine(IEngine engine)
 		{
 			family.RemoveListener<IFamilyEntityAddMessage>(EntityAdded);
-			family.RemoveListener<IFamilyEntityRemoveMessage>(EntityRemoved);
-			foreach(IEntity entity in family.Entities)
+			family.RemoveListener<IFamilyMemberRemoveMessage>(EntityRemoved);
+			foreach(var member in family.Members)
 			{
-				EntityRemoved(family, entity);
+				MemberRemoved(family, member);
 			}
-			engine.RemoveFamily<TFamilyType>();
+			engine.RemoveFamily<TFamilyMember>();
 			family = null; //TO-DO Pretty sure this is safe.
 			base.RemovingEngine(engine);
 		}
 
 		private void EntityAdded(IFamilyEntityAddMessage message)
 		{
-			EntityAdded(message.Messenger, message.Value);
+			MemberAdded(message.Messenger, (TFamilyMember)message.Value);
 		}
 
-		private void EntityRemoved(IFamilyEntityRemoveMessage message)
+		private void EntityRemoved(IFamilyMemberRemoveMessage message)
 		{
-			EntityRemoved(message.Messenger, message.Value);
+			MemberRemoved(message.Messenger, (TFamilyMember)message.Value);
 		}
 	}
 }

@@ -213,13 +213,13 @@ namespace Atlas.Engine.Entities
 		#region Systems
 
 		bool HasSystem(Type type);
-		bool HasSystem<TSystem>() where TSystem : ISystem;
+		bool HasSystem<TISystem>() where TISystem : ISystem;
 
 		bool AddSystem(Type type);
-		bool AddSystem<TSystem>() where TSystem : ISystem;
+		bool AddSystem<TISystem>() where TISystem : ISystem;
 
 		bool RemoveSystem(Type type);
-		bool RemoveSystem<TSystem>() where TSystem : ISystem;
+		bool RemoveSystem<TISystem>() where TISystem : ISystem;
 		bool RemoveSystems();
 
 		IReadOnlyCollection<Type> Systems { get; }

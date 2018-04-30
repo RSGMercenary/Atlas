@@ -1,9 +1,8 @@
-﻿using Atlas.Engine.Entities;
-using Atlas.Engine.Families;
+﻿using Atlas.Engine.Families;
 
 namespace Atlas.Engine.Messages
 {
-	public interface IFamilyEntityRemoveMessage : IValueMessage<IFamily, IEntity>
+	public interface IFamilyMemberRemoveMessage : IValueMessage<IFamily, IFamilyMember>
 	{
 
 	}

@@ -1,5 +1,4 @@
 ﻿using Atlas.Engine.Collections.EngineList;
-using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
@@ -36,8 +35,6 @@ namespace Atlas.Engine.Components
 		private Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
 		private Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
-		private FixedStack<IEntity> entityPool = new FixedStack<IEntity>();
-		private FixedStack<IFamily> familyPool = new FixedStack<IFamily>();
 		private Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
 
 		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
@@ -48,14 +45,14 @@ namespace Atlas.Engine.Components
 
 		private bool isRunning = false;
 		private Stopwatch timer = new Stopwatch();
-		private UpdatePhase updatePhase = UpdatePhase.None;
+		private UpdatePhase updateState = UpdatePhase.None;
 		private bool updateLock = true;
 		private ISystem currentSystem;
 
 		private double deltaUpdateTime = 0;
 		private double totalUpdateTime = 0;
 
-		private double deltaFixedUpdateTime = (double)1 / 60;
+		private double deltaFixedUpdateTime = 1d / 60d;
 		private double totalFixedUpdateTime = 0;
 
 		private AtlasEngine()
@@ -98,45 +95,11 @@ namespace Atlas.Engine.Components
 			base.Destroying();
 		}
 
-		public FixedStack<IEntity> EntityPool { get { return entityPool; } }
-		public FixedStack<IFamily> FamilyPool { get { return familyPool; } }
-
 		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
-		public IReadOnlyEngineList<IFamilyBase> Families { get { return families as IReadOnlyEngineList<IFamilyBase>; } }
+		public IReadOnlyEngineList<IFamily> Families { get { return families as IReadOnlyEngineList<IFamily>; } }
 		public IReadOnlyEngineList<ISystemBase> Systems { get { return systems as IReadOnlyEngineList<ISystemBase>; } }
 
 		#region Entities
-
-		public IEntity GetEntity(bool managed = true, string globalName = "", string localName = "")
-		{
-			IEntity entity;
-			if(entityPool.Count > 0)
-			{
-				entity = entityPool.Pop();
-			}
-			else
-			{
-				entity = new AtlasEntity();
-			}
-			if(managed)
-			{
-				entity.AddListener<IEngineStateMessage>(EntityStateChanged, int.MinValue);
-			}
-			entity.GlobalName = globalName;
-			entity.LocalName = localName;
-			return entity;
-		}
-
-		private void EntityStateChanged(IEngineStateMessage message)
-		{
-			if(!message.AtMessenger)
-				return;
-			IEntity entity = message.Messenger as IEntity;
-			if(entity.State != EngineObjectState.Destroyed)
-				return;
-			entity.RemoveListener<IEngineStateMessage>(EntityStateChanged);
-			entityPool.Push(entity);
-		}
 
 		public bool HasEntity(string globalName)
 		{
@@ -267,15 +230,15 @@ namespace Atlas.Engine.Components
 			}
 		}
 
-		public UpdatePhase UpdatePhase
+		public UpdatePhase UpdateState
 		{
-			get { return updatePhase; }
+			get { return updateState; }
 			private set
 			{
-				if(updatePhase == value)
+				if(updateState == value)
 					return;
-				var previous = updatePhase;
-				updatePhase = value;
+				var previous = updateState;
+				updateState = value;
 				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
 			}
 		}
@@ -295,7 +258,7 @@ namespace Atlas.Engine.Components
 
 		public bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
-			where TSystem : TISystem
+			where TSystem : TISystem, new()
 		{
 			return AddSystemType(typeof(TISystem), typeof(TSystem));
 		}
@@ -315,6 +278,8 @@ namespace Atlas.Engine.Components
 			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!type.IsAssignableFrom(instance))
+				return false;
+			if(instance.GetConstructor(Type.EmptyTypes) == null)
 				return false;
 			if(systemsInstance.ContainsKey(type) && systemsInstance[type] == instance)
 				return false;
@@ -381,13 +346,13 @@ namespace Atlas.Engine.Components
 			systems.Remove(system);
 			systemsType.Remove(type);
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
-			if(UpdatePhase != UpdatePhase.None)
+			if(UpdateState == UpdatePhase.None)
 			{
-				systemsRemoved.Push(system);
+				system.Destroy();
 			}
 			else
 			{
-				system.Destroy();
+				systemsRemoved.Push(system);
 			}
 		}
 
@@ -526,7 +491,7 @@ namespace Atlas.Engine.Components
 				++fixedUpdates;
 			}
 
-			UpdatePhase = UpdatePhase.FixedUpdate;
+			UpdateState = UpdatePhase.FixedUpdate;
 
 			while(fixedUpdates-- > 0)
 			{
@@ -538,7 +503,7 @@ namespace Atlas.Engine.Components
 				}
 			}
 
-			UpdatePhase = UpdatePhase.None;
+			UpdateState = UpdatePhase.None;
 
 			TotalFixedUpdateTime = totalFixedUpdateTime;
 		}
@@ -549,7 +514,7 @@ namespace Atlas.Engine.Components
 				return;
 			updateLock = true;
 
-			UpdatePhase = UpdatePhase.Update;
+			UpdateState = UpdatePhase.Update;
 
 			foreach(var system in systems)
 			{
@@ -558,7 +523,7 @@ namespace Atlas.Engine.Components
 				CurrentSystem = null;
 			}
 
-			UpdatePhase = UpdatePhase.None;
+			UpdateState = UpdatePhase.None;
 
 			TotalUpdateTime += deltaTime;
 		}
@@ -575,15 +540,13 @@ namespace Atlas.Engine.Components
 
 		public bool HasFamily(IFamily family)
 		{
-			if(family == null)
-				return false;
-			Type type = family.FamilyType;
-			return familiesType.ContainsKey(type) && familiesType[type] == family;
+			return familiesType.ContainsValue(family);
 		}
 
-		public bool HasFamily<TFamilyType>()
+		public bool HasFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			return HasFamily(typeof(TFamilyType));
+			return HasFamily(typeof(TFamilyMember));
 		}
 
 		public bool HasFamily(Type type)
@@ -591,29 +554,17 @@ namespace Atlas.Engine.Components
 			return familiesType.ContainsKey(type);
 		}
 
-		public IFamily AddFamily<TFamilyType>()
+		public IFamily<TFamilyMember> AddFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			return AddFamily(typeof(TFamilyType));
-		}
-
-		public IFamily AddFamily(Type type)
-		{
+			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
 			{
-				IFamily family;
-				if(familyPool.Count > 0)
-				{
-					family = familyPool.Pop();
-				}
-				else
-				{
-					family = new AtlasFamily();
-				}
+				var family = new AtlasFamily<TFamilyMember>();
 
 				families.Add(family);
 				familiesType.Add(type, family);
 				familiesCount.Add(type, 1);
-				family.FamilyType = type;
 				family.Engine = this;
 
 				foreach(var entity in entities)
@@ -624,52 +575,44 @@ namespace Atlas.Engine.Components
 			else
 			{
 				++familiesCount[type];
-				return familiesType[type];
+				return familiesType[type] as IFamily<TFamilyMember>;
 			}
 		}
 
-		public IFamily RemoveFamily<TFamilyType>()
+		public IFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			return RemoveFamily(typeof(TFamilyType));
-		}
-
-		public IFamily RemoveFamily(Type type)
-		{
+			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
 				return null;
-			IFamily family = familiesType[type];
+			var family = familiesType[type];
 			if(--familiesCount[type] > 0)
-				return family;
+				return family as IFamily<TFamilyMember>;
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesCount.Remove(type);
 			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
-			if(UpdatePhase != UpdatePhase.None)
+			if(UpdateState == UpdatePhase.None)
 			{
-				familiesRemoved.Push(family);
+				family.Destroy();
 			}
 			else
 			{
-				DestroyFamily(family);
+				familiesRemoved.Push(family);
 			}
-			return family;
+			return family as IFamily<TFamilyMember>;
 		}
 
 		private void DestroyFamilies()
 		{
 			while(familiesRemoved.Count > 0)
-				DestroyFamily(familiesRemoved.Pop());
+				familiesRemoved.Pop().Destroy();
 		}
 
-		private void DestroyFamily(IFamily family)
+		public IFamily<TFamilyMember> GetFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			family.Destroy();
-			familyPool.Push(family);
-		}
-
-		public IFamily GetFamily<TFamilyType>()
-		{
-			return GetFamily(typeof(TFamilyType));
+			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
 		}
 
 		public IFamily GetFamily(Type type)

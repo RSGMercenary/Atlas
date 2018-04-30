@@ -2,6 +2,6 @@
 {
 	public interface IUpdatePhaseEngineObject : IEngineObject
 	{
-		UpdatePhase UpdatePhase { get; }
+		UpdatePhase UpdateState { get; }
 	}
 }

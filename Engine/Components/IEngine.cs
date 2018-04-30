@@ -1,5 +1,4 @@
 ﻿using Atlas.Engine.Collections.EngineList;
-using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
@@ -12,8 +11,6 @@ namespace Atlas.Engine.Components
 
 	{
 		#region Entities
-
-		FixedStack<IEntity> EntityPool { get; }
 
 		/// <summary>
 		/// A collection of all Entities managed by this Engine.
@@ -40,16 +37,6 @@ namespace Atlas.Engine.Components
 		bool HasEntity(IEntity entity);
 
 		/// <summary>
-		/// Returns a new or unpooled Entity to be used in the Engine.
-		/// </summary>
-		/// <param name="managed">Whether the Entity should be managed.
-		/// Managed Entities are returned to the pool once they've been destroyed.</param>
-		/// <param name="globalName">The global name that will be given to the Entity.</param>
-		/// <param name="localName">The local name the will be given to the Entity.</param>
-		/// <returns></returns>
-		IEntity GetEntity(bool managed = true, string globalName = "", string localName = "");
-
-		/// <summary>
 		/// Returns the Entity with the given global name.
 		/// Every Entity has its own unique global name that can't be duplicated.
 		/// </summary>
@@ -70,7 +57,7 @@ namespace Atlas.Engine.Components
 
 		bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
-			where TSystem : TISystem;
+			where TSystem : TISystem, new();
 
 		bool AddSystemType(Type type, Type instance);
 
@@ -126,15 +113,13 @@ namespace Atlas.Engine.Components
 
 		#region Families
 
-		FixedStack<IFamily> FamilyPool { get; }
-
 		/// <summary>
 		/// A collection of all Families managed by this Engine.
 		/// 
 		/// <para>Families of Entities are added to and removed from the Engine by
 		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		IReadOnlyEngineList<IFamilyBase> Families { get; }
+		IReadOnlyEngineList<IFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.
@@ -148,7 +133,8 @@ namespace Atlas.Engine.Components
 		/// </summary>
 		/// <typeparam name="TFamilyType"></typeparam>
 		/// <returns></returns>
-		bool HasFamily<TFamilyType>();
+		bool HasFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new();
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given Type.
@@ -160,9 +146,10 @@ namespace Atlas.Engine.Components
 		/// <summary>
 		/// Returns the Family with the given Type.
 		/// </summary>
-		/// <typeparam name="TFamilyType"></typeparam>
+		/// <typeparam name="TFamilyMember"></typeparam>
 		/// <returns></returns>
-		IFamily GetFamily<TFamilyType>();
+		IFamily<TFamilyMember> GetFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new();
 
 		/// <summary>
 		/// Returns the Family with the given Type.
@@ -171,11 +158,11 @@ namespace Atlas.Engine.Components
 		/// <returns></returns>
 		IFamily GetFamily(Type type);
 
-		IFamily AddFamily<TFamilyType>();
-		IFamily AddFamily(Type type);
+		IFamily<TFamilyMember> AddFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new();
 
-		IFamily RemoveFamily<TFamilyType>();
-		IFamily RemoveFamily(Type type);
+		IFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new();
 
 		#endregion
 

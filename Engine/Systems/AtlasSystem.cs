@@ -9,7 +9,7 @@ namespace Atlas.Engine.Systems
 	{
 		private int priority = 0;
 		private int sleeping = 0;
-		private UpdatePhase updatePhase = UpdatePhase.None;
+		private UpdatePhase updateState = UpdatePhase.None;
 		private bool updateLock = false;
 
 		public AtlasSystem()
@@ -22,7 +22,7 @@ namespace Atlas.Engine.Systems
 			if(State != EngineObjectState.Constructed)
 				return false;
 			//Can't destroy System mid-update.
-			if(Engine == null || Engine.UpdatePhase != UpdatePhase.None)
+			if(Engine == null || Engine.UpdateState != UpdatePhase.None)
 				return false;
 			Engine = null;
 			if(Engine == null)
@@ -107,9 +107,9 @@ namespace Atlas.Engine.Systems
 			if(updateLock)
 				return;
 			updateLock = true;
-			UpdatePhase = phase;
+			UpdateState = phase;
 			method.Invoke(deltaTime);
-			UpdatePhase = UpdatePhase.None;
+			UpdateState = UpdatePhase.None;
 			updateLock = false;
 		}
 
@@ -123,15 +123,15 @@ namespace Atlas.Engine.Systems
 
 		}
 
-		public UpdatePhase UpdatePhase
+		public UpdatePhase UpdateState
 		{
-			get { return updatePhase; }
+			get { return updateState; }
 			private set
 			{
-				if(updatePhase == value)
+				if(updateState == value)
 					return;
-				var previous = updatePhase;
-				updatePhase = value;
+				var previous = updateState;
+				updateState = value;
 				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
 			}
 		}
