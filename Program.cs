@@ -1,54 +1,61 @@
-﻿using Atlas.Engine.Components;
+﻿using Atlas.Engine.Collections.EngineList;
+using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Messages;
+using Atlas.Testing.Systems;
 using System.Diagnostics;
 
 namespace Atlas
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            IEntity root = AtlasEntity.Instance;
-            IEngine engine = root.AddComponent<IEngine>(AtlasEngine.Instance);
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			IEntity root = AtlasEntity.Instance;
+			IEngine engine = root.AddComponent<IEngine>(AtlasEngine.Instance);
+			new EngineList<int>();
 
-            //engine.AddSystemType<ITestSystem, TestSystem>();
+			//engine.AddSystemType<ITestSystem, TestSystem>();
 
-            //root.AddSystem<ITestSystem>();
+			var fam = engine.Families;
 
-            //engine.AddSystemType<ITestSystem, TestSystem2>();
+			root.AddSystem<ITestSystem>();
 
-            for(int index1 = 1; index1 <= 5; ++index1)
-            {
-                string name = index1.ToString();
-                var depth1 = root.AddChild(name, name);
-                for(int index2 = 1; index2 <= 5; ++index2)
-                {
-                    name = index1 + "-" + index2;
-                    var depth2 = depth1.AddChild(name, name);
+			engine.AddSystemType<ITestSystem, TestSystem2>();
 
-                    /*for(int index3 = 1; index3 <= 5; ++index3)
+			engine.AddListener<IEntityAddMessage>(ListenFor1_1);
+
+			for(int index1 = 1; index1 <= 5; ++index1)
+			{
+				string name = index1.ToString();
+				var depth1 = new AtlasEntity(name, name);
+				for(int index2 = 1; index2 <= 5; ++index2)
+				{
+					name = index1 + "-" + index2;
+					var depth2 = depth1.AddChild(name, name);
+
+					/*for(int index3 = 1; index3 <= 5; ++index3)
 					{
 						name = index1 + "-" + index2 + "-" + index3;
 						var depth3 = depth2.AddChild(name, name);
 					}*/
-                }
-            }
-            Debug.WriteLine(root.ToInfoString(-1, false, false, false));
-            var ent = engine.GetEntity("1");
-            ent.RemoveChild("1-2");
+				}
+				root.AddChild(depth1);
+			}
 
-            Debug.WriteLine(engine.Entities);
+			//Make sure these values are always the same.
+			Debug.WriteLine(engine.Entities);
+			Debug.WriteLine(root.DescendantsToString());
 
-            engine.IsRunning = true;
-        }
+			engine.IsRunning = true;
+		}
 
-        private static void OnRemove(IChildRemoveMessage message)
-        {
-            if(!message.AtTarget)
-                return;
-            if(message.Value.LocalName == "1-2")
-                message.Target.Parent = null;
-        }
-    }
+		static private void ListenFor1_1(IEntityAddMessage message)
+		{
+			if(message.Value.GlobalName == "1-1")
+			{
+				message.Value.Parent.RemoveChild("1-3");
+			}
+		}
+	}
 }

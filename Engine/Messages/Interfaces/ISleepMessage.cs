@@ -1,8 +1,8 @@
-﻿using Atlas.Engine.Interfaces;
+﻿using Atlas.Engine.Engine;
 
 namespace Atlas.Engine.Messages
 {
-	interface ISleepMessage : IPropertyMessage<ISleep, int>
+	interface ISleepMessage : IPropertyMessage<ISleepEngineObject, int>
 	{
 	}
 }

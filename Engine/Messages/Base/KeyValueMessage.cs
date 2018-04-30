@@ -1,7 +1,6 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	class KeyValueMessage<TSender, TKey, TValue> : Message<TSender>, IKeyValueMessage<TSender, TKey, TValue>
-	where TSender : IMessageDispatcher
+	public class KeyValueMessage<TMessenger, TKey, TValue> : Message<TMessenger>, IKeyValueMessage<TMessenger, TKey, TValue>
 	{
 		private readonly TKey key;
 		private readonly TValue value;

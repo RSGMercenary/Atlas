@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	class AtlasEntityBuilder : AtlasComponent, IEntityBuilder
+	public abstract class AtlasEntityBuilder : AtlasComponent, IEntityBuilder
 	{
 		private Builder<IEntityBuilder> builder;
 

@@ -92,8 +92,8 @@ namespace Atlas.Engine
         virtual public void Message<TMessage>(TMessage message)
             where TMessage : IMessage
         {
-            ((IMessageBase)message).Target = this;
-            ((IMessageBase)message).CurrentTarget = this;
+            ((IMessageBase)message).Messenger = this;
+            ((IMessageBase)message).CurrentMessenger = this;
             //Pass around message internally...
             Messaging(message);
             //...before dispatching externally.

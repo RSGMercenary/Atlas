@@ -1,6 +1,7 @@
 ﻿using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
+using Atlas.Engine.Messages;
 using System;
 
 namespace Atlas.Engine.Systems
@@ -95,7 +96,7 @@ namespace Atlas.Engine.Systems
 			family = engine.AddFamily<TFamilyType>();
 			if(entityAdded != null)
 			{
-				family.EntityAdded.Add(entityAdded);
+				family.AddListener<IFamilyEntityAddMessage>(EntityAdded);
 				foreach(IEntity entity in family.Entities)
 				{
 					entityAdded(family, entity);
@@ -103,7 +104,7 @@ namespace Atlas.Engine.Systems
 			}
 			if(entityRemoved != null)
 			{
-				family.EntityRemoved.Add(entityRemoved);
+				family.AddListener<IFamilyEntityRemoveMessage>(EntityRemoved);
 			}
 		}
 
@@ -111,11 +112,11 @@ namespace Atlas.Engine.Systems
 		{
 			if(entityAdded != null)
 			{
-				family.EntityAdded.Remove(entityAdded);
+				family.RemoveListener<IFamilyEntityAddMessage>(EntityAdded);
 			}
 			if(entityRemoved != null)
 			{
-				family.EntityRemoved.Remove(entityRemoved);
+				family.RemoveListener<IFamilyEntityRemoveMessage>(EntityRemoved);
 				foreach(IEntity entity in family.Entities)
 				{
 					entityRemoved(family, entity);
@@ -123,6 +124,16 @@ namespace Atlas.Engine.Systems
 			}
 			engine.RemoveFamily<TFamilyType>();
 			base.RemovingEngine(engine);
+		}
+
+		private void EntityAdded(IFamilyEntityAddMessage message)
+		{
+			entityAdded(message.Messenger, message.Value);
+		}
+
+		private void EntityRemoved(IFamilyEntityRemoveMessage message)
+		{
+			entityRemoved(message.Messenger, message.Value);
 		}
 	}
 }

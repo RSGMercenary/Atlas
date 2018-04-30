@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Components
 {
-	interface IEntityBuilder : IComponent, IReadOnlyBuilder<IEntityBuilder>
+	public interface IEntityBuilder : IComponent, IReadOnlyBuilder<IEntityBuilder>
 	{
 
 	}

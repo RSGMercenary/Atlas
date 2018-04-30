@@ -2,38 +2,38 @@
 {
 	public class Message
 	{
-		private object target;
-		private object currentTarget;
+		private object messenger;
+		private object currentMessenger;
 
-		public object Target
+		public object Messenger
 		{
-			get { return target; }
-			set { target = target ?? value; }
+			get { return messenger; }
+			set { messenger = messenger ?? value; }
 		}
 
-		public object CurrentTarget
+		public object CurrentMessenger
 		{
-			get { return currentTarget; }
-			set { currentTarget = value; }
+			get { return currentMessenger; }
+			set { currentMessenger = value; }
 		}
 
-		public bool AtTarget
+		public bool AtMessenger
 		{
-			get { return (bool)target?.Equals(currentTarget); }
+			get { return (bool)messenger?.Equals(currentMessenger); }
 		}
 	}
 
-	public class Message<TSender> : Message, IMessage<TSender>
+	public class Message<TMessenger> : Message, IMessage<TMessenger>
 	{
 		public Message()
 		{
 
 		}
 
-		new public TSender Target
+		new public TMessenger Messenger
 		{
-			get { return (TSender)base.Target; }
-			set { base.Target = value; }
+			get { return (TMessenger)base.Messenger; }
+			set { base.Messenger = value; }
 		}
 	}
 }

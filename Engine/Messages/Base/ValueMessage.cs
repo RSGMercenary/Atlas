@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	class ValueMessage<TSender, TValue> : Message<TSender>, IValueMessage<TSender, TValue>
+	public class ValueMessage<TMessenger, TValue> : Message<TMessenger>, IValueMessage<TMessenger, TValue>
 	{
 		private readonly TValue value;
 

@@ -1,12 +1,11 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Interfaces;
 using System;
 
 namespace Atlas.Engine.Components
 {
-	public interface IComponent : IAutoDestroyEngineObject, IReset
+	public interface IComponent : IAutoDestroyEngineObject
 	{
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity
@@ -158,7 +157,7 @@ namespace Atlas.Engine.Components
 		/// The Entities managing this Component. This will return all Entities
 		/// regardless of the Component's shareable status.
 		/// </summary>
-		IReadOnlyLinkList<IEntity> Managers { get; }
+		IReadOnlyEngineList<IEntity> Managers { get; }
 
 		/// <summary>
 		/// A Boolean of whether this Component is shareable. Shareable Components

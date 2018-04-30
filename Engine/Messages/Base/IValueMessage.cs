@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	interface IValueMessage<TSender, TValue> : IMessage<TSender>
+	interface IValueMessage<TMessenger, TValue> : IMessage<TMessenger>
 	{
 		TValue Value { get; }
 	}

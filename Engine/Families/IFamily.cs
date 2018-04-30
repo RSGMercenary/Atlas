@@ -1,23 +1,16 @@
-﻿using Atlas.Engine.Collections.LinkList;
-using Atlas.Engine.Entities;
-using Atlas.Engine.Signals;
+﻿using Atlas.Engine.Entities;
 using System;
 
 namespace Atlas.Engine.Families
 {
-	public interface IFamily : IEngineObject
+	public interface IFamily : IReadOnlyFamily
 	{
 		Type FamilyType { get; set; }
-
-		IReadOnlyLinkList<IEntity> Entities { get; }
 
 		void AddEntity(IEntity entity);
 		void RemoveEntity(IEntity entity);
 
 		void AddEntity(IEntity entity, Type type);
 		void RemoveEntity(IEntity entity, Type type);
-
-		ISignal<IFamily, IEntity> EntityAdded { get; }
-		ISignal<IFamily, IEntity> EntityRemoved { get; }
 	}
 }

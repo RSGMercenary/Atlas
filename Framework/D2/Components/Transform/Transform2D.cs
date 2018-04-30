@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Interfaces;
 using Atlas.Engine.Signals;
@@ -8,7 +8,7 @@ namespace Atlas.Framework.D2.Components.Transform
 {
 	class Transform2D : AtlasComponent, ITransform2D
 	{
-		private LinkList<ITransform2D> children = new LinkList<ITransform2D>();
+		private EngineList<ITransform2D> children = new EngineList<ITransform2D>();
 		private ITransform2D parent;
 		private int parentIndex = -1;
 
@@ -26,7 +26,7 @@ namespace Atlas.Framework.D2.Components.Transform
 		public ISignal<ITransform2D, ITransform2D, int> ChildRemoved { get { return childRemoved; } }
 		public ISignal<ITransform2D, int, int, bool> ChildIndicesChanged { get { return childIndicesChanged; } }
 
-		public IReadOnlyLinkList<ITransform2D> Children
+		public IReadOnlyEngineList<ITransform2D> Children
 		{
 			get
 			{

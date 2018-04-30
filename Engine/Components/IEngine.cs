@@ -1,5 +1,5 @@
-﻿using Atlas.Engine.Collections.Fixed;
-using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
+using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Systems;
@@ -21,7 +21,7 @@ namespace Atlas.Engine.Components
 		/// This is done by creating a root Entity, adding an Engine Component
 		/// to it, and then adding children to that hierarchy.</para>
 		/// </summary>
-		IReadOnlyLinkList<IEntity> Entities { get; }
+		IReadOnlyEngineList<IEntity> Entities { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing an Entity with the given global name.
@@ -65,7 +65,7 @@ namespace Atlas.Engine.Components
 		/// <para>Systems are added to and removed from the Engine by being managed
 		/// as a Type to an Entity already in the Entity hierarchy.</para>
 		/// </summary>
-		IReadOnlyLinkList<ISystem> Systems { get; }
+		IReadOnlyEngineList<ISystem> Systems { get; }
 
 		bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
@@ -133,7 +133,7 @@ namespace Atlas.Engine.Components
 		/// <para>Families of Entities are added to and removed from the Engine by
 		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		IReadOnlyLinkList<IFamily> Families { get; }
+		IReadOnlyEngineList<IReadOnlyFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.

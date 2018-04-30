@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Builders
 {
-	class Builder<T> : IBuilder<T>
+	public class Builder<T> : IBuilder<T>
 		where T : class
 	{
 		private Stack<Action> builders = new Stack<Action>();

@@ -1,7 +1,7 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Entities;
-using Atlas.Engine.Signals;
+using Atlas.Engine.Messages;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
@@ -12,23 +12,17 @@ namespace Atlas.Engine.Families
 	sealed class AtlasFamily : EngineObject, IFamily
 	{
 		private Type familyType;
-		private LinkList<IEntity> entities = new LinkList<IEntity>();
+		private EngineList<IEntity> entities = new EngineList<IEntity>();
 		private HashSet<IEntity> entitySet = new HashSet<IEntity>();
 		private List<Type> components = new List<Type>();
 		private HashSet<Type> componentsSet = new HashSet<Type>();
-
-		private Signal<IFamily, IEntity> entityAdded = new Signal<IFamily, IEntity>();
-		private Signal<IFamily, IEntity> entityRemoved = new Signal<IFamily, IEntity>();
 
 		public AtlasFamily()
 		{
 
 		}
 
-		public IReadOnlyLinkList<IEntity> Entities { get { return entities; } }
-
-		public ISignal<IFamily, IEntity> EntityAdded { get { return entityAdded; } }
-		public ISignal<IFamily, IEntity> EntityRemoved { get { return entityRemoved; } }
+		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
 
 		sealed public override bool Destroy()
 		{
@@ -46,8 +40,6 @@ namespace Atlas.Engine.Families
 		protected override void Destroying()
 		{
 			SetFamilyType(null);
-			entityAdded.Dispose();
-			entityRemoved.Dispose();
 			base.Destroying();
 		}
 
@@ -145,7 +137,7 @@ namespace Atlas.Engine.Families
 			}
 			entities.Add(entity);
 			entitySet.Add(entity);
-			entityAdded.Dispatch(this, entity);
+			Message<IFamilyEntityAddMessage>(new FamilyEntityAddMessage(entity));
 		}
 
 		private void Remove(IEntity entity)
@@ -154,7 +146,7 @@ namespace Atlas.Engine.Families
 				return;
 			entities.Remove(entity);
 			entitySet.Remove(entity);
-			entityRemoved.Dispatch(this, entity);
+			Message<IFamilyEntityRemoveMessage>(new FamilyEntityRemoveMessage(entity));
 		}
 	}
 }

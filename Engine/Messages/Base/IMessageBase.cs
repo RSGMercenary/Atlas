@@ -2,13 +2,13 @@
 {
 	public interface IMessageBase
 	{
-		object Target { get; set; }
-		object CurrentTarget { get; set; }
-		bool AtTarget { get; }
+		object Messenger { get; set; }
+		object CurrentMessenger { get; set; }
+		bool AtMessenger { get; }
 	}
 
-	public interface IMessageBase<TSender> : IMessageBase
+	public interface IMessageBase<TMessenger> : IMessageBase
 	{
-		new TSender Target { get; set; }
+		new TMessenger Messenger { get; set; }
 	}
 }

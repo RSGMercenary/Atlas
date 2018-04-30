@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 
 namespace Atlas.Engine.Interfaces
 {
@@ -10,7 +10,7 @@ namespace Atlas.Engine.Interfaces
 
 		int ParentIndex { get; set; }
 
-		IReadOnlyLinkList<T> Children { get; }
+		IReadOnlyEngineList<T> Children { get; }
 
 		bool SetParent(T parent = default(T), int index = int.MaxValue);
 

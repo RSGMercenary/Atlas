@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Messages;
 using System;
@@ -8,8 +8,7 @@ namespace Atlas.Engine.Components
 {
 	public abstract class AtlasComponent : EngineObject, IComponent
 	{
-		private readonly bool isShareable = false;
-		private LinkList<IEntity> managers = new LinkList<IEntity>();
+		private EngineList<IEntity> managers = new EngineList<IEntity>();
 		private bool autoDestroy = true;
 
 		public AtlasComponent() : this(false)
@@ -19,30 +18,17 @@ namespace Atlas.Engine.Components
 
 		public AtlasComponent(bool isShareable)
 		{
-			this.isShareable = isShareable;
+			IsShareable = isShareable;
 		}
 
 		protected override void Destroying()
 		{
-			Reset();
+			RemoveManagers();
+			AutoDestroy = true;
 			base.Destroying();
 		}
 
-		public void Reset()
-		{
-			Resetting();
-		}
-
-		protected virtual void Resetting()
-		{
-			RemoveManagers();
-			AutoDestroy = true;
-		}
-
-		public bool IsShareable
-		{
-			get { return isShareable; }
-		}
+		public bool IsShareable { get; } = false;
 
 		public bool AutoDestroy
 		{
@@ -59,17 +45,17 @@ namespace Atlas.Engine.Components
 
 		public IEntity Manager
 		{
-			get { return !isShareable ? managers.First?.Value : null; }
+			get { return !IsShareable && managers.Count > 0 ? managers[0] : null; }
 		}
 
-		public IReadOnlyLinkList<IEntity> Managers
+		public IReadOnlyEngineList<IEntity> Managers
 		{
 			get { return managers; }
 		}
 
 		public int GetManagerIndex(IEntity entity)
 		{
-			return managers.GetIndex(entity);
+			return managers.IndexOf(entity);
 		}
 
 		public bool SetManagerIndex(IEntity entity, int index)
@@ -86,8 +72,8 @@ namespace Atlas.Engine.Components
 				return false;
 			if(entity2 == null)
 				return false;
-			int index1 = managers.GetIndex(entity1);
-			int index2 = managers.GetIndex(entity2);
+			int index1 = managers.IndexOf(entity1);
+			int index2 = managers.IndexOf(entity2);
 			return SwapManagers(index1, index2);
 		}
 
@@ -143,7 +129,7 @@ namespace Atlas.Engine.Components
 					//Component is no longer considered destroyed if it's adding Entities.
 					Construct();
 					index = Math.Max(0, Math.Min(index, managers.Count));
-					managers.Add(entity, index);
+					managers.Insert(index, entity);
 					entity.AddListener<IEngineMessage>(EntityEngineChanged);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
@@ -200,15 +186,15 @@ namespace Atlas.Engine.Components
 				return null;
 			if(entity.GetComponent(type) != this)
 			{
-				int index = managers.GetIndex(entity);
-				managers.Remove(index);
+				int index = managers.IndexOf(entity);
+				managers.RemoveAt(index);
 				entity.RemoveListener<IEngineMessage>(EntityEngineChanged);
-				if(managers.IsEmpty)
+				if(managers.Count <= 0)
 					Engine = null;
 				RemovingManager(entity, index);
 				Message<IManagerRemoveMessage>(new ManagerRemoveMessage(index, entity));
 				Message<IManagerMessage>(new ManagerMessage());
-				if(AutoDestroy && managers.IsEmpty)
+				if(AutoDestroy && managers.Count <= 0)
 					Destroy();
 			}
 			else
@@ -241,16 +227,16 @@ namespace Atlas.Engine.Components
 
 		public bool RemoveManagers()
 		{
-			if(managers.IsEmpty)
+			if(managers.Count <= 0)
 				return false;
-			while(!managers.IsEmpty)
-				RemoveManager(managers.Last.Value);
+			while(managers.Count > 0)
+				RemoveManager(managers[managers.Count - 1]);
 			return true;
 		}
 
 		private void EntityEngineChanged(IEngineMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
 			Engine = message.CurrentValue;
 		}
@@ -260,7 +246,7 @@ namespace Atlas.Engine.Components
 			get { return base.Engine; }
 			set
 			{
-				if(managers.IsEmpty)
+				if(managers.Count <= 0)
 				{
 					base.Engine = null;
 				}
@@ -285,7 +271,7 @@ namespace Atlas.Engine.Components
 			if(message is IAutoDestroyMessage)
 			{
 				var cast = message as IAutoDestroyMessage;
-				if(cast.CurrentValue && managers.IsEmpty)
+				if(cast.CurrentValue && managers.Count <= 0)
 					Destroy();
 			}
 			base.Messaging(message);

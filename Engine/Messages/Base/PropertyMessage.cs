@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	public class PropertyMessage<TSender, TProperty> : Message<TSender>, IPropertyMessage<TSender, TProperty>
+	public class PropertyMessage<TMessenger, TProperty> : Message<TMessenger>, IPropertyMessage<TMessenger, TProperty>
 	{
 		private readonly TProperty current;
 		private readonly TProperty previous;

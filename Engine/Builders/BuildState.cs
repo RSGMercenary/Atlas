@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Builders
 {
-	enum BuildState
+	public enum BuildState
 	{
 		Built,
 		Building,

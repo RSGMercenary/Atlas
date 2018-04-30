@@ -1,4 +1,4 @@
-﻿using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Components;
 using Atlas.Engine.Messages;
 using Atlas.Engine.Systems;
@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Atlas.Engine.Entities
 {
-	sealed class AtlasEntity : EngineObject, IEntity
+	public sealed class AtlasEntity : EngineObject, IEntity
 	{
 		#region Static Singleton
 
@@ -18,7 +18,8 @@ namespace Atlas.Engine.Entities
 		/// <summary>
 		/// Creates a singleton instance of the root Entity. The root Entity
 		/// gets its Entity.Root value set to itself through reflection. Only
-		/// one root should exist at a time.
+		/// one root should exist at a time. Once the root Entity is destroyed,
+		/// this singleton will be null again.
 		/// </summary>
 		public static AtlasEntity Instance
 		{
@@ -50,7 +51,7 @@ namespace Atlas.Engine.Entities
 		private IEntity root;
 		private IEntity parent;
 		private int parentIndex = -1;
-		private LinkList<IEntity> children = new LinkList<IEntity>();
+		private EngineList<IEntity> children = new EngineList<IEntity>();
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
 		private bool autoDestroy = true;
@@ -68,7 +69,12 @@ namespace Atlas.Engine.Entities
 
 		protected override void Destroying()
 		{
-			Reset();
+			RemoveChildren();
+			RemoveComponents();
+			RemoveSystems();
+			GlobalName = UniqueName;
+			LocalName = UniqueName;
+			AutoDestroy = true;
 			Parent = null;
 			Sleeping = 0;
 			FreeSleeping = 0;
@@ -80,16 +86,6 @@ namespace Atlas.Engine.Entities
 				instance = null;
 
 			base.Destroying();
-		}
-
-		public void Reset()
-		{
-			RemoveChildren();
-			RemoveComponents();
-			RemoveSystems();
-			GlobalName = UniqueName;
-			LocalName = UniqueName;
-			AutoDestroy = true;
 		}
 
 		#region Entity
@@ -193,7 +189,7 @@ namespace Atlas.Engine.Entities
 
 		public IEntity GetChild(string localName)
 		{
-			return children.Get((IEntity entity) => entity.LocalName == localName);
+			return children.Find((IEntity entity) => entity.LocalName == localName);
 		}
 
 		#endregion
@@ -493,7 +489,7 @@ namespace Atlas.Engine.Entities
 					if(HasChild(child.LocalName))
 						child.LocalName = UniqueName;
 					Construct();
-					children.Add(child, index);
+					children.Insert(index, child);
 					Message<IChildAddMessage>(new ChildAddMessage(index, child));
 					Message<IChildrenMessage>(new ChildrenMessage());
 				}
@@ -518,7 +514,7 @@ namespace Atlas.Engine.Entities
 			{
 				if(!HasChild(child))
 					return null;
-				int index = children.GetIndex(child);
+				int index = children.IndexOf(child);
 				Message<IChildRemoveMessage>(new ChildRemoveMessage(index, child));
 				Message<IChildrenMessage>(new ChildrenMessage());
 				//Could've been readded suring messaging?
@@ -534,7 +530,7 @@ namespace Atlas.Engine.Entities
 
 		public IEntity RemoveChild(int index)
 		{
-			return RemoveChild(children.Get(index));
+			return RemoveChild(children[index]);
 		}
 
 		public IEntity RemoveChild(string localName)
@@ -544,7 +540,7 @@ namespace Atlas.Engine.Entities
 
 		public bool RemoveChildren()
 		{
-			if(children.IsEmpty)
+			if(children.Count <= 0)
 				return false;
 			foreach(var child in children.Backward())
 				child.Destroy();
@@ -628,17 +624,17 @@ namespace Atlas.Engine.Entities
 
 		public IEntity GetChild(int index)
 		{
-			return children.Get(index);
+			return children[index];
 		}
 
 		public int GetChildIndex(IEntity child)
 		{
-			return children.GetIndex(child);
+			return children.IndexOf(child);
 		}
 
 		public bool SetChildIndex(IEntity child, int index)
 		{
-			int previous = children.GetIndex(child);
+			int previous = children.IndexOf(child);
 
 			if(previous == index)
 				return true;
@@ -647,8 +643,8 @@ namespace Atlas.Engine.Entities
 
 			index = Math.Max(0, Math.Min(index, children.Count - 1));
 
-			children.Remove(previous);
-			children.Add(child, index);
+			children.RemoveAt(previous);
+			children.Insert(index, child);
 			Message<IChildrenMessage>(new ChildrenMessage());
 			return true;
 		}
@@ -659,8 +655,8 @@ namespace Atlas.Engine.Entities
 				return false;
 			if(child2 == null)
 				return false;
-			int index1 = children.GetIndex(child1);
-			int index2 = children.GetIndex(child2);
+			int index1 = children.IndexOf(child1);
+			int index2 = children.IndexOf(child2);
 			return SwapChildren(index1, index2);
 		}
 
@@ -672,7 +668,7 @@ namespace Atlas.Engine.Entities
 			return true;
 		}
 
-		public IReadOnlyLinkList<IEntity> Children
+		public IReadOnlyEngineList<IEntity> Children
 		{
 			get { return children; }
 		}
@@ -825,7 +821,7 @@ namespace Atlas.Engine.Entities
 		sealed override public void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
-			var previousTarget = message.CurrentTarget;
+			var previousTarget = message.CurrentMessenger;
 
 			//Standard Message() call.
 			//Set Target if null and Dispatch() event by type;
@@ -840,7 +836,7 @@ namespace Atlas.Engine.Entities
 				child.Message(message);
 				//Reset CurrentTarget back to this so
 				//the next child (and parent) can block messaging from its original source.
-				((IMessageBase)message).CurrentTarget = this;
+				((IMessageBase)message).CurrentMessenger = this;
 			}
 
 			//Send Message to parent.
@@ -853,7 +849,7 @@ namespace Atlas.Engine.Entities
 		{
 			if(message is ISleepMessage)
 			{
-				if(message.Target != Parent)
+				if(message.Messenger != Parent)
 					return;
 				if(IsFreeSleeping)
 					return;
@@ -865,20 +861,20 @@ namespace Atlas.Engine.Entities
 			}
 			else if(message is IRootMessage)
 			{
-				if(message.Target != Parent)
+				if(message.Messenger != Parent)
 					return;
 				var cast = message as IRootMessage;
-				Root = cast.Target.Root;
+				Root = cast.Messenger.Root;
 			}
 			else if(message is IChildrenMessage)
 			{
-				if(message.Target != Parent)
+				if(message.Messenger != Parent)
 					return;
 				SetParentIndex(Parent.GetChildIndex(this));
 			}
 			else if(message is IAutoDestroyMessage)
 			{
-				if(!message.AtTarget)
+				if(!message.AtMessenger)
 					return;
 				var cast = message as IAutoDestroyMessage;
 				if(cast.CurrentValue && parent == null)

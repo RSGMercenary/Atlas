@@ -1,5 +1,5 @@
-﻿using Atlas.Engine.Collections.Fixed;
-using Atlas.Engine.Collections.LinkList;
+﻿using Atlas.Engine.Collections.EngineList;
+using Atlas.Engine.Collections.Fixed;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Messages;
@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace Atlas.Engine.Components
 {
-	sealed class AtlasEngine : AtlasComponent, IEngine
+	sealed public class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -27,9 +27,9 @@ namespace Atlas.Engine.Components
 
 		#endregion
 
-		private LinkList<IEntity> entities = new LinkList<IEntity>();
-		private LinkList<IFamily> families = new LinkList<IFamily>();
-		private LinkList<ISystem> systems = new LinkList<ISystem>();
+		private EngineList<IEntity> entities = new EngineList<IEntity>();
+		private EngineList<IFamily> families = new EngineList<IFamily>();
+		private EngineList<ISystem> systems = new EngineList<ISystem>();
 
 		private Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
 		private Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
@@ -42,8 +42,8 @@ namespace Atlas.Engine.Components
 		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
 		private Dictionary<Type, int> systemsCount = new Dictionary<Type, int>();
 
-		private List<IFamily> familiesRemoved = new List<IFamily>();
-		private List<ISystem> systemsRemoved = new List<ISystem>();
+		private Stack<IFamily> familiesRemoved = new Stack<IFamily>();
+		private Stack<ISystem> systemsRemoved = new Stack<ISystem>();
 
 		private bool isRunning = false;
 		private Stopwatch timer = new Stopwatch();
@@ -90,7 +90,6 @@ namespace Atlas.Engine.Components
 
 		protected override void Destroying()
 		{
-			//Not sure about this one...
 			//Null out Engine singleton to allow
 			//another to be instantiated.
 			if(instance == this)
@@ -98,17 +97,12 @@ namespace Atlas.Engine.Components
 			base.Destroying();
 		}
 
-		protected override void Resetting()
-		{
-			base.Resetting();
-		}
-
 		public FixedStack<IEntity> EntityPool { get { return entityPool; } }
 		public FixedStack<IFamily> FamilyPool { get { return familyPool; } }
 
-		public IReadOnlyLinkList<IEntity> Entities { get { return entities; } }
-		public IReadOnlyLinkList<IFamily> Families { get { return families; } }
-		public IReadOnlyLinkList<ISystem> Systems { get { return systems; } }
+		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
+		public IReadOnlyEngineList<IReadOnlyFamily> Families { get { return families as IReadOnlyEngineList<IReadOnlyFamily>; } }
+		public IReadOnlyEngineList<ISystem> Systems { get { return systems; } }
 
 		#region Entities
 
@@ -134,9 +128,9 @@ namespace Atlas.Engine.Components
 
 		private void EntityStateChanged(IEngineStateMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
-			IEntity entity = message.Target as IEntity;
+			IEntity entity = message.Messenger as IEntity;
 			if(entity.State != EngineObjectState.Destroyed)
 				return;
 			entity.RemoveListener<IEngineStateMessage>(EntityStateChanged);
@@ -160,14 +154,9 @@ namespace Atlas.Engine.Components
 
 		private void AddEntity(IEntity entity)
 		{
+			//Change the global name of an incoming Entity if it already exists.
 			if(entitiesGlobalName.ContainsKey(entity.GlobalName))
-			{
-				if(entitiesGlobalName[entity.GlobalName] == entity)
-					//A child added at the end of Entity.Children and signaled
-					//in mid-iteration of AddEntity() is already handled.
-					return;
 				entity.GlobalName = AtlasEntity.UniqueName;
-			}
 
 			entitiesGlobalName.Add(entity.GlobalName, entity);
 			entities.Add(entity);
@@ -187,6 +176,11 @@ namespace Atlas.Engine.Components
 
 		private void RemoveEntity(IEntity entity)
 		{
+			//Protect against parents signaling a child being removed which never got to be added.
+			if(!entitiesGlobalName.ContainsKey(entity.GlobalName) ||
+				entitiesGlobalName[entity.GlobalName] != entity)
+				return;
+
 			foreach(IEntity child in entity.Children.Backward())
 				RemoveEntity(child);
 
@@ -198,15 +192,7 @@ namespace Atlas.Engine.Components
 			foreach(var family in families)
 				family.RemoveEntity(entity);
 
-			//Double check that Entity wasn't removed during message/event.
-			//Don't want to remove a different Entity that now has the same name.
-			//...But what if it gets added back with the same name? Hmmm...
-			if(entitiesGlobalName.ContainsKey(entity.GlobalName))
-				if(entitiesGlobalName[entity.GlobalName] != entity)
-					return;
-
 			entitiesGlobalName.Remove(entity.GlobalName);
-			Debug.WriteLine("Engine removing " + entity.GlobalName);
 			entities.Remove(entity);
 			entity.Engine = null;
 		}
@@ -227,7 +213,7 @@ namespace Atlas.Engine.Components
 			//if(!message.AtTarget)
 			//return;
 			entitiesGlobalName.Remove(message.PreviousValue);
-			entitiesGlobalName.Add(message.CurrentValue, message.Target);
+			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
 		}
 
 		#endregion
@@ -327,8 +313,12 @@ namespace Atlas.Engine.Components
 				return false;
 			if(systemsInstance.ContainsKey(type) && systemsInstance[type] == instance)
 				return false;
-			int count = systemsCount[type];
-			RemoveSystem(type, count);
+			int count = 0;
+			if(systemsCount.ContainsKey(type))
+			{
+				count = systemsCount[type];
+				RemoveSystem(type, count);
+			}
 			systemsInstance.Add(type, instance);
 			//We only add a system instance if there is a count of Entities requesting it.
 			if(systemsCount.ContainsKey(type))
@@ -362,6 +352,9 @@ namespace Atlas.Engine.Components
 		{
 			if(!systemsCount.ContainsKey(type))
 			{
+				systemsCount.Add(type, count);
+				if(!systemsInstance.ContainsKey(type))
+					return;
 				ISystem system;
 				try
 				{
@@ -372,7 +365,7 @@ namespace Atlas.Engine.Components
 					Debug.WriteLine(e);
 					return;
 				}
-				systemsCount.Add(type, count);
+
 				systemsType.Add(type, system);
 				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system, system.Priority, 0);
@@ -390,57 +383,57 @@ namespace Atlas.Engine.Components
 			systemsCount[type] -= count;
 			if(systemsCount[type] > 0)
 				return;
+			systemsCount.Remove(type);
+			if(!systemsType.ContainsKey(type))
+				return;
 			var system = systemsType[type];
 			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 			systems.Remove(system);
 			systemsType.Remove(type);
-			systemsCount.Remove(type);
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
 			if(UpdatePhase != UpdatePhase.None)
 			{
-				systemsRemoved.Add(system);
+				systemsRemoved.Push(system);
 			}
 			else
 			{
-				DestroySystem(system);
+				system.Destroy();
 			}
 		}
 
 		private void EntitySystemAdded(ISystemTypeAddMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
 			AddSystem(message.Value);
 		}
 
 		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
 			RemoveSystem(message.Value);
 		}
 
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
-			SystemPriorityChanged(message.Target, message.Target.Priority, -1);
+			SystemPriorityChanged(message.Messenger, message.Messenger.Priority, -1);
 		}
 
 		private void SystemPriorityChanged(ISystem system, int next, int previous)
 		{
 			systems.Remove(system);
 
-			int index = systems.Count;
-			for(var current = systems.Last; current != null; current = current.Previous)
+			for(var index = systems.Count; index > 0; --index)
 			{
-				if(current.Value.Priority <= next)
+				if(systems[index - 1].Priority <= next)
 				{
-					systems.Add(system, index);
+					systems.Insert(index, system);
 					return;
 				}
-				--index;
 			}
 
-			systems.Add(system, 0);
+			systems.Insert(0, system);
 		}
 
 		public bool HasSystem(ISystem system)
@@ -578,16 +571,7 @@ namespace Atlas.Engine.Components
 		private void DestroySystems()
 		{
 			while(systemsRemoved.Count > 0)
-			{
-				var system = systemsRemoved[systemsRemoved.Count - 1];
-				systemsRemoved.RemoveAt(systemsRemoved.Count - 1);
-				DestroySystem(system);
-			}
-		}
-
-		private void DestroySystem(ISystem system)
-		{
-			system.Destroy();
+				systemsRemoved.Pop().Destroy();
 		}
 
 		#endregion
@@ -667,7 +651,7 @@ namespace Atlas.Engine.Components
 			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
 			if(UpdatePhase != UpdatePhase.None)
 			{
-				familiesRemoved.Add(family);
+				familiesRemoved.Push(family);
 			}
 			else
 			{
@@ -679,11 +663,7 @@ namespace Atlas.Engine.Components
 		private void DestroyFamilies()
 		{
 			while(familiesRemoved.Count > 0)
-			{
-				var family = familiesRemoved[familiesRemoved.Count - 1];
-				familiesRemoved.RemoveAt(familiesRemoved.Count - 1);
-				DestroyFamily(family);
-			}
+				DestroyFamily(familiesRemoved.Pop());
 		}
 
 		private void DestroyFamily(IFamily family)
@@ -704,18 +684,18 @@ namespace Atlas.Engine.Components
 
 		private void EntityComponentAdded(IComponentAddMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
 			foreach(IFamily family in families)
-				family.AddEntity(message.Target, message.Key);
+				family.AddEntity(message.Messenger, message.Key);
 		}
 
 		private void EntityComponentRemoved(IComponentRemoveMessage message)
 		{
-			if(!message.AtTarget)
+			if(!message.AtMessenger)
 				return;
 			foreach(IFamily family in families)
-				family.RemoveEntity(message.Target, message.Key);
+				family.RemoveEntity(message.Messenger, message.Key);
 		}
 
 		#endregion

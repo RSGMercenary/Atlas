@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Builders
 {
-	interface IReadOnlyBuilder<T>
+	public interface IReadOnlyBuilder<T>
 	{
 		/// <summary>
 		/// The current state of the build process. This can be

@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Engine.Messages
 {
-	public interface IPropertyMessage<TSender, TProperty> : IMessage<TSender>
+	public interface IPropertyMessage<TMessenger, TProperty> : IMessage<TMessenger>
 	{
 		TProperty CurrentValue { get; }
 		TProperty PreviousValue { get; }
