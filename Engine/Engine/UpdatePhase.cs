@@ -1,4 +1,4 @@
-﻿namespace Atlas.Engine.Systems
+﻿namespace Atlas.Engine.Engine
 {
 	public enum UpdatePhase
 	{

@@ -1,5 +1,6 @@
 ﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Collections.Fixed;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Systems;
@@ -7,7 +8,7 @@ using System;
 
 namespace Atlas.Engine.Components
 {
-	public interface IEngine : IComponent, IEngineUpdate
+	public interface IEngine : IComponent, IUpdatePhaseEngineObject
 
 	{
 		#region Entities
@@ -65,7 +66,7 @@ namespace Atlas.Engine.Components
 		/// <para>Systems are added to and removed from the Engine by being managed
 		/// as a Type to an Entity already in the Entity hierarchy.</para>
 		/// </summary>
-		IReadOnlyEngineList<ISystem> Systems { get; }
+		IReadOnlyEngineList<ISystemBase> Systems { get; }
 
 		bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
@@ -133,7 +134,7 @@ namespace Atlas.Engine.Components
 		/// <para>Families of Entities are added to and removed from the Engine by
 		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		IReadOnlyEngineList<IReadOnlyFamily> Families { get; }
+		IReadOnlyEngineList<IFamilyBase> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.

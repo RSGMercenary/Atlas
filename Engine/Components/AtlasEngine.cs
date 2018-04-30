@@ -1,5 +1,6 @@
 ﻿using Atlas.Engine.Collections.EngineList;
 using Atlas.Engine.Collections.Fixed;
+using Atlas.Engine.Engine;
 using Atlas.Engine.Entities;
 using Atlas.Engine.Families;
 using Atlas.Engine.Messages;
@@ -101,8 +102,8 @@ namespace Atlas.Engine.Components
 		public FixedStack<IFamily> FamilyPool { get { return familyPool; } }
 
 		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
-		public IReadOnlyEngineList<IReadOnlyFamily> Families { get { return families as IReadOnlyEngineList<IReadOnlyFamily>; } }
-		public IReadOnlyEngineList<ISystem> Systems { get { return systems; } }
+		public IReadOnlyEngineList<IFamilyBase> Families { get { return families as IReadOnlyEngineList<IFamilyBase>; } }
+		public IReadOnlyEngineList<ISystemBase> Systems { get { return systems as IReadOnlyEngineList<ISystemBase>; } }
 
 		#region Entities
 
@@ -162,6 +163,8 @@ namespace Atlas.Engine.Components
 			entities.Add(entity);
 			entity.Engine = this;
 
+			//TO-DO
+			//entity.Systems isn't an EngineList, so it might screw up.
 			foreach(var type in entity.Systems)
 				AddSystem(type);
 
@@ -186,6 +189,8 @@ namespace Atlas.Engine.Components
 
 			Message<IEntityRemoveMessage>(new EntityRemoveMessage(entity));
 
+			//TO-DO
+			//entity.Systems isn't an EngineList, so it might screw up.
 			foreach(var type in entity.Systems)
 				RemoveSystem(type);
 

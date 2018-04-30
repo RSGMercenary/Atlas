@@ -1,4 +1,6 @@
-﻿namespace Atlas.Engine.Messages
+﻿using Atlas.Engine.Engine;
+
+namespace Atlas.Engine.Messages
 {
 	class EngineStateMessage : PropertyMessage<IEngineObject, EngineObjectState>, IEngineStateMessage
 	{

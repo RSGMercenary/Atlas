@@ -1,8 +1,8 @@
-﻿using Atlas.Engine.Systems;
+﻿using Atlas.Engine.Engine;
 
 namespace Atlas.Engine.Messages
 {
-	public interface IUpdatePhaseMessage : IPropertyMessage<IEngineUpdate, UpdatePhase>
+	public interface IUpdatePhaseMessage : IPropertyMessage<IUpdatePhaseEngineObject, UpdatePhase>
 	{
 	}
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace Atlas.Engine.Families
 {
-	public interface IFamily : IReadOnlyFamily
+	public interface IFamily : IFamilyBase
 	{
 		Type FamilyType { get; set; }
 

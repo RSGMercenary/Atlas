@@ -1,4 +1,4 @@
-﻿namespace Atlas.Engine
+﻿namespace Atlas.Engine.Engine
 {
 	public enum EngineObjectState
 	{

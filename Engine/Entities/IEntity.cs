@@ -1,13 +1,13 @@
-﻿using Atlas.Engine.Components;
+﻿using Atlas.Engine.Collections.EngineList;
+using Atlas.Engine.Components;
 using Atlas.Engine.Engine;
-using Atlas.Engine.Interfaces;
 using Atlas.Engine.Systems;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Engine.Entities
 {
-	public interface IEntity : IAutoDestroyEngineObject, IHierarchy<IEntity>, ISleepEngineObject
+	public interface IEntity : IAutoDestroyEngineObject, ISleepEngineObject
 	{
 		#region Entities
 
@@ -45,6 +45,50 @@ namespace Atlas.Engine.Entities
 		IEntity GetChild(string localName);
 
 		IEntity RemoveChild(string localName);
+
+		#region Hierarchy
+
+		IEntity Root { get; }
+
+		IEntity Parent { get; set; }
+
+		int ParentIndex { get; set; }
+
+		IReadOnlyEngineList<IEntity> Children { get; }
+
+		bool SetParent(IEntity parent = null, int index = int.MaxValue);
+
+		bool HasDescendant(IEntity descendant);
+
+		bool HasAncestor(IEntity ancestor);
+
+		bool HasChild(IEntity child);
+
+		int GetChildIndex(IEntity child);
+
+		bool SetChildIndex(IEntity child, int index);
+
+		bool SwapChildren(IEntity child1, IEntity child2);
+
+		bool SwapChildren(int index1, int index2);
+
+		IEntity GetChild(int index);
+
+		IEntity AddChild(IEntity child);
+
+		IEntity AddChild(IEntity child, int index);
+
+		bool AddChildren(params IEntity[] children);
+
+		bool AddChildren(int index, params IEntity[] children);
+
+		IEntity RemoveChild(IEntity child);
+
+		IEntity RemoveChild(int index);
+
+		bool RemoveChildren();
+
+		#endregion
 
 		#endregion
 
