@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface IEntityAddMessage : IValueMessage<IEntity, IEntity>
+	public interface IEntityAddMessage : IValueMessage<IEntity, IEntity>
 	{
 
 	}

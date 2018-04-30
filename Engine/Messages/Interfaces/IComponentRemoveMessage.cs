@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.Engine.Messages
 {
-	interface IComponentRemoveMessage : IKeyValueMessage<IEntity, Type, IComponent>
+	public interface IComponentRemoveMessage : IKeyValueMessage<IEntity, Type, IComponent>
 	{
 
 	}

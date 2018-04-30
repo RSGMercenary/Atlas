@@ -3,7 +3,7 @@ using Atlas.Engine.Interfaces;
 
 namespace Atlas.Engine.Systems
 {
-	public interface ISystem : IEngineObject, IPriority, ISleepEngineObject, IEngineUpdate
+	public interface ISystem : IReadOnlySystem, IPriority, ISleepEngineObject, IEngineUpdate
 	{
 
 	}

@@ -6,10 +6,10 @@ using System;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasFamilySystem<TFamilyType> : AtlasSystem
+	public abstract class AtlasFamilySystem<TFamilyType> : AtlasSystem
 	{
 		private IFamily family;
-		private UpdatePhase mode = UpdatePhase.Update;
+		private UpdatePhase updateMode = UpdatePhase.Update;
 		private Action<double, IEntity> entityUpdate;
 		private Action<IFamily, IEntity> entityAdded;
 		private Action<IFamily, IEntity> entityRemoved;
@@ -53,19 +53,19 @@ namespace Atlas.Engine.Systems
 
 		public UpdatePhase UpdateMode
 		{
-			get { return mode; }
-			set { mode = value; }
+			get { return updateMode; }
+			set { updateMode = value; }
 		}
 
 		override protected void Updating(double deltaTime)
 		{
-			if(mode == UpdatePhase.Update)
+			if(updateMode == UpdatePhase.Update)
 				FamilyUpdate(deltaTime);
 		}
 
 		protected override void FixedUpdating(double deltaTime)
 		{
-			if(mode == UpdatePhase.FixedUpdate)
+			if(updateMode == UpdatePhase.FixedUpdate)
 				FamilyUpdate(deltaTime);
 		}
 

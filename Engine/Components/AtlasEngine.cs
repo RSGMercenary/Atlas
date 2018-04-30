@@ -210,8 +210,6 @@ namespace Atlas.Engine.Components
 
 		private void EntityGlobalNameChanged(IGlobalNameMessage message)
 		{
-			//if(!message.AtTarget)
-			//return;
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
 		}
@@ -307,22 +305,17 @@ namespace Atlas.Engine.Components
 				return false;
 			if(!instance.IsClass)
 				return false;
+			if(type == typeof(ISystem))
+				return false;
 			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!type.IsAssignableFrom(instance))
 				return false;
 			if(systemsInstance.ContainsKey(type) && systemsInstance[type] == instance)
 				return false;
-			int count = 0;
-			if(systemsCount.ContainsKey(type))
-			{
-				count = systemsCount[type];
-				RemoveSystem(type, count);
-			}
+			RemoveSystemType(type);
 			systemsInstance.Add(type, instance);
-			//We only add a system instance if there is a count of Entities requesting it.
-			if(systemsCount.ContainsKey(type))
-				AddSystem(type, count);
+			AddSystem(type);
 			return true;
 		}
 
@@ -338,52 +331,44 @@ namespace Atlas.Engine.Components
 				return false;
 			if(!type.IsInterface)
 				return false;
+			if(type == typeof(ISystem))
+				return false;
 			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!systemsInstance.ContainsKey(type))
 				return false;
 			systemsInstance.Remove(type);
-			if(systemsCount.ContainsKey(type))
-				RemoveSystem(type);
+			RemoveSystem(type);
 			return true;
 		}
 
-		private void AddSystem(Type type, int count = 1)
+		private void AddSystem(Type type)
 		{
 			if(!systemsCount.ContainsKey(type))
+				return;
+			//There's no system instance class assigned.
+			if(!systemsInstance.ContainsKey(type))
+				return;
+			ISystem system;
+			try
 			{
-				systemsCount.Add(type, count);
-				if(!systemsInstance.ContainsKey(type))
-					return;
-				ISystem system;
-				try
-				{
-					system = Activator.CreateInstance(systemsInstance[type]) as ISystem;
-				}
-				catch(Exception e)
-				{
-					Debug.WriteLine(e);
-					return;
-				}
+				system = Activator.CreateInstance(systemsInstance[type]) as ISystem;
+			}
+			catch(Exception e)
+			{
+				Debug.WriteLine(e);
+				return;
+			}
 
-				systemsType.Add(type, system);
-				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
-				SystemPriorityChanged(system, system.Priority, 0);
-				system.Engine = this;
-				Message<ISystemAddMessage>(new SystemAddMessage(type, system));
-			}
-			else
-			{
-				systemsCount[type] += count;
-			}
+			systemsType.Add(type, system);
+			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
+			SystemPriorityChanged(system, system.Priority, 0);
+			system.Engine = this;
+			Message<ISystemAddMessage>(new SystemAddMessage(type, system));
 		}
 
-		private void RemoveSystem(Type type, int count = 1)
+		private void RemoveSystem(Type type)
 		{
-			systemsCount[type] -= count;
-			if(systemsCount[type] > 0)
-				return;
-			systemsCount.Remove(type);
 			if(!systemsType.ContainsKey(type))
 				return;
 			var system = systemsType[type];
@@ -403,15 +388,20 @@ namespace Atlas.Engine.Components
 
 		private void EntitySystemAdded(ISystemTypeAddMessage message)
 		{
-			if(!message.AtMessenger)
-				return;
-			AddSystem(message.Value);
+			if(!systemsCount.ContainsKey(message.Value))
+			{
+				systemsCount.Add(message.Value, 1);
+				AddSystem(message.Value);
+			}
+			else
+				++systemsCount[message.Value];
 		}
 
 		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
 		{
-			if(!message.AtMessenger)
+			if(--systemsCount[message.Value] > 0)
 				return;
+			systemsCount.Remove(message.Value);
 			RemoveSystem(message.Value);
 		}
 
@@ -684,16 +674,12 @@ namespace Atlas.Engine.Components
 
 		private void EntityComponentAdded(IComponentAddMessage message)
 		{
-			if(!message.AtMessenger)
-				return;
 			foreach(IFamily family in families)
 				family.AddEntity(message.Messenger, message.Key);
 		}
 
 		private void EntityComponentRemoved(IComponentRemoveMessage message)
 		{
-			if(!message.AtMessenger)
-				return;
 			foreach(IFamily family in families)
 				family.RemoveEntity(message.Messenger, message.Key);
 		}

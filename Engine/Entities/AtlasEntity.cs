@@ -764,6 +764,8 @@ namespace Atlas.Engine.Entities
 				return false;
 			if(!type.IsInterface)
 				return false;
+			if(type == typeof(ISystem))
+				return false;
 			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(systems.Contains(type))

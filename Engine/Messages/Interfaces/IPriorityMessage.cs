@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface IPriorityMessage : IPropertyMessage<ISystem, int>
+	public interface IPriorityMessage : IPropertyMessage<ISystem, int>
 	{
 	}
 }

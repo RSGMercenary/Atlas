@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.Engine.Systems
 {
-	abstract class AtlasSystem : EngineObject, ISystem
+	public abstract class AtlasSystem : EngineObject, ISystem
 	{
 		private int priority = 0;
 		private int sleeping = 0;

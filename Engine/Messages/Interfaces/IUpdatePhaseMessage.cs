@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface IUpdatePhaseMessage : IPropertyMessage<IEngineUpdate, UpdatePhase>
+	public interface IUpdatePhaseMessage : IPropertyMessage<IEngineUpdate, UpdatePhase>
 	{
 	}
 }

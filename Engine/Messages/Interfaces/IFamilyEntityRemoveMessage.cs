@@ -3,7 +3,7 @@ using Atlas.Engine.Families;
 
 namespace Atlas.Engine.Messages
 {
-	interface IFamilyEntityRemoveMessage : IValueMessage<IFamily, IEntity>
+	public interface IFamilyEntityRemoveMessage : IValueMessage<IFamily, IEntity>
 	{
 
 	}

@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface IManagerRemoveMessage : IKeyValueMessage<IEntity, int, IEntity>
+	public interface IManagerRemoveMessage : IKeyValueMessage<IEntity, int, IEntity>
 	{
 
 	}

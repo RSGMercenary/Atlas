@@ -29,8 +29,8 @@
 
 # Visual Studio files
 *.sln
-*.config
-*.csproj
+*.config*
+*.csproj*
 .vs/
 obj/
 bin/

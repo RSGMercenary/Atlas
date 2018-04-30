@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Atlas.Engine.Collections.EngineList
 {
-	class EngineList<T> : IEngineList<T>
+	public class EngineList<T> : IEngineList<T>
 	{
 		private class EngineListItem
 		{

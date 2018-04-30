@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Signals
 {
-	class SlotBase : ISlotBase
+	public class SlotBase : ISlotBase
 	{
 		public static implicit operator bool(SlotBase slot)
 		{
@@ -77,7 +77,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class SlotBase<TSignal, TDelegate> : SlotBase
+	public class SlotBase<TSignal, TDelegate> : SlotBase
 		where TSignal : class, ISignalBase
 		where TDelegate : class
 	{
@@ -106,27 +106,27 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class Slot : SlotBase<ISignal, Action>, ISlot
+	public class Slot : SlotBase<ISignal, Action>, ISlot
 	{
 
 	}
 
-	class Slot<T1> : SlotBase<ISignal<T1>, Action<T1>>, ISlot<T1>
+	public class Slot<T1> : SlotBase<ISignal<T1>, Action<T1>>, ISlot<T1>
 	{
 
 	}
 
-	class Slot<T1, T2> : SlotBase<ISignal<T1, T2>, Action<T1, T2>>, ISlot<T1, T2>
+	public class Slot<T1, T2> : SlotBase<ISignal<T1, T2>, Action<T1, T2>>, ISlot<T1, T2>
 	{
 
 	}
 
-	class Slot<T1, T2, T3> : SlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>, ISlot<T1, T2, T3>
+	public class Slot<T1, T2, T3> : SlotBase<ISignal<T1, T2, T3>, Action<T1, T2, T3>>, ISlot<T1, T2, T3>
 	{
 
 	}
 
-	class Slot<T1, T2, T3, T4> : SlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISlot<T1, T2, T3, T4>
+	public class Slot<T1, T2, T3, T4> : SlotBase<ISignal<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>, ISlot<T1, T2, T3, T4>
 	{
 
 	}

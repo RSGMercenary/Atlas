@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface IAutoDestroyMessage : IPropertyMessage<IAutoDestroyEngineObject, bool>
+	public interface IAutoDestroyMessage : IPropertyMessage<IAutoDestroyEngineObject, bool>
 	{
 	}
 }

@@ -3,7 +3,7 @@ using System;
 
 namespace Atlas.Engine.Messages
 {
-	interface ISystemTypeAddMessage : IValueMessage<IEntity, Type>
+	public interface ISystemTypeAddMessage : IValueMessage<IEntity, Type>
 	{
 
 	}

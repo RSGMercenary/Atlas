@@ -2,7 +2,7 @@
 
 namespace Atlas.Engine.Messages
 {
-	interface ISleepMessage : IPropertyMessage<ISleepEngineObject, int>
+	public interface ISleepMessage : IPropertyMessage<ISleepEngineObject, int>
 	{
 	}
 }

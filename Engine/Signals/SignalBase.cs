@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Engine.Signals
 {
-	class SignalBase : ISignalBase, IDisposable
+	public class SignalBase : ISignalBase, IDisposable
 	{
 		public static implicit operator bool(SignalBase signal)
 		{
@@ -28,7 +28,7 @@ namespace Atlas.Engine.Signals
 			slotsPooled.Clear();
 			RemoveAll();
 		}
-		
+
 		public bool IsDisposed
 		{
 			get { return isDisposed; }
@@ -232,7 +232,7 @@ namespace Atlas.Engine.Signals
 		}
 	}
 
-	class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
+	public class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : class
