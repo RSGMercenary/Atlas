@@ -7,4 +7,10 @@ namespace Atlas.ECS.Objects
 		bool IsSleeping { get; set; }
 		int Sleeping { get; }
 	}
+
+	public interface ISleepObject<T> : ISleepObject, IObject<T>
+		where T : ISleepObject<T>
+	{
+
+	}
 }

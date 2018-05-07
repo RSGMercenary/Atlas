@@ -6,4 +6,10 @@ namespace Atlas.ECS.Objects
 	{
 		UpdatePhase UpdateState { get; }
 	}
+
+	public interface IUpdatePhaseObject<T> : IUpdatePhaseObject, IObject<T>
+		where T : IUpdatePhaseObject<T>
+	{
+
+	}
 }

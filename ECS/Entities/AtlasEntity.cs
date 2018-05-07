@@ -78,11 +78,6 @@ namespace Atlas.ECS.Entities
 			base.Dispose();
 		}
 
-		protected override void Initializing()
-		{
-			base.Initializing();
-		}
-
 		protected override void Disposing(bool finalizer)
 		{
 			RemoveChildren();

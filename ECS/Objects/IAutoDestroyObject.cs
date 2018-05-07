@@ -6,4 +6,10 @@ namespace Atlas.ECS.Objects
 	{
 		bool AutoDestroy { get; set; }
 	}
+
+	public interface IAutoDestroyObject<T> : IAutoDestroyObject, IObject<T>
+		where T : IAutoDestroyObject<T>
+	{
+
+	}
 }

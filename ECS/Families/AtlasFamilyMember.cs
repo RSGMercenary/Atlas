@@ -2,7 +2,7 @@
 
 namespace Atlas.ECS.Families
 {
-	public class FamilyMember : IFamilyMember
+	public class AtlasFamilyMember : IFamilyMember
 	{
 		public IEntity Entity { get; set; }
 	}

@@ -7,4 +7,10 @@ namespace Atlas.Framework.Objects
 	{
 		ObjectState State { get; }
 	}
+
+	public interface IObject<T> : IObject, IMessageDispatcher<T>
+		where T : IObject<T>
+	{
+
+	}
 }

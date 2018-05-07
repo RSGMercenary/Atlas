@@ -14,7 +14,7 @@ namespace Atlas.Framework.Objects
 
 		public AtlasObject()
 		{
-			Initialize();
+			Initialize(true);
 		}
 
 		~AtlasObject()
@@ -37,10 +37,15 @@ namespace Atlas.Framework.Objects
 
 		internal void Initialize()
 		{
+			Initialize(false);
+		}
+
+		private void Initialize(bool constructor)
+		{
 			if(state != ObjectState.Disposed)
 				return;
 			State = ObjectState.Initializing;
-			Initializing();
+			Initializing(constructor);
 			State = ObjectState.Initialized;
 			GC.ReRegisterForFinalize(this);
 		}
@@ -50,7 +55,7 @@ namespace Atlas.Framework.Objects
 			Dispose(false);
 		}
 
-		internal void Dispose(bool finalizer)
+		private void Dispose(bool finalizer)
 		{
 			if(state != ObjectState.Initialized)
 				return;
@@ -63,7 +68,7 @@ namespace Atlas.Framework.Objects
 		/// <summary>
 		/// Called when this instance is being constructed. Should not be called manually.
 		/// </summary>
-		virtual protected void Initializing()
+		virtual protected void Initializing(bool constructor)
 		{
 
 		}

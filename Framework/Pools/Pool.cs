@@ -3,56 +3,6 @@ using System.Collections.Generic;
 
 namespace Atlas.Framework.Pools
 {
-	public static class Pool
-	{
-		private static Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
-
-		public static bool Has<T>()
-		{
-			return pools.ContainsKey(typeof(T));
-		}
-
-		public static T GetOrDefault<T>()
-		{
-			var type = typeof(T);
-			if(pools.ContainsKey(type))
-				return (pools[type] as IPool<T>).Remove();
-			return default(T);
-		}
-
-		public static T GetOrNew<T>() where T : new()
-		{
-			var type = typeof(T);
-			if(pools.ContainsKey(type))
-				return (pools[type] as IPool<T>).Remove();
-			return new T();
-		}
-
-		public static IReadOnlyPool<T> Get<T>(IPool<T> pool)
-		{
-			var type = typeof(T);
-			if(!pools.ContainsKey(type))
-				pools.Add(type, pool);
-			return pools[type] as IReadOnlyPool<T>;
-		}
-
-		public static IReadOnlyPool<T> Get<T>() where T : new()
-		{
-			var type = typeof(T);
-			if(!pools.ContainsKey(type))
-				pools.Add(type, new Pool<T>(() => new T()));
-			return pools[type] as IReadOnlyPool<T>;
-		}
-
-		public static IPool<T> Get<T>(Func<T> creator) where T : class
-		{
-			var type = typeof(T);
-			if(!pools.ContainsKey(type))
-				pools.Add(type, new Pool<T>(creator));
-			return pools[type] as IPool<T>;
-		}
-	}
-
 	public class Pool<T> : IPool<T>
 	{
 		private readonly Stack<T> stack = new Stack<T>();
