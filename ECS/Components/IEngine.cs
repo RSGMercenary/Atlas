@@ -8,7 +8,6 @@ using System;
 namespace Atlas.ECS.Components
 {
 	public interface IEngine : IComponent, IUpdateObject
-
 	{
 		#region Entities
 

@@ -15,7 +15,7 @@ namespace Atlas.Framework.Messages
 	}
 
 	public interface IMessageDispatcher<TMessenger> : IMessageDispatcher
-		where TMessenger : IMessageDispatcher<TMessenger>
+		where TMessenger : IMessageDispatcher
 	{
 		new void AddListener<TMessage>(Action<TMessage> listener, int priority = 0)
 			where TMessage : IMessage<TMessenger>;
