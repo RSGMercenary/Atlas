@@ -2,7 +2,7 @@
 using Atlas.ECS.Objects;
 using Atlas.Framework.Messages;
 using Atlas.Framework.Objects;
-using System;
+using System.Diagnostics;
 
 namespace Atlas.ECS.Systems
 {
@@ -10,8 +10,24 @@ namespace Atlas.ECS.Systems
 	{
 		private int priority = 0;
 		private int sleeping = 0;
-		private UpdatePhase updateState = UpdatePhase.None;
+		private bool isUpdating = false;
+		private bool isFixed = false;
 		private bool updateLock = false;
+
+		private double deltaIntervalTime = 0;
+		private double totalIntervalTime = 0;
+
+		public bool IsFixed
+		{
+			get { return isFixed; }
+			protected set
+			{
+				if(isFixed == value)
+					return;
+				var previous = isFixed;
+				isFixed = value;
+			}
+		}
 
 		public AtlasSystem()
 		{
@@ -23,7 +39,7 @@ namespace Atlas.ECS.Systems
 			if(State != ObjectState.Initialized)
 				return;
 			//Can't destroy System mid-update.
-			if(Engine == null || Engine.UpdateState != UpdatePhase.None)
+			if(Engine == null || Engine.IsUpdating)
 				return;
 			Engine = null;
 			if(Engine == null)
@@ -76,27 +92,11 @@ namespace Atlas.ECS.Systems
 			base.Messaging(message);
 		}
 
-		protected virtual void AddingEngine(IEngine engine)
-		{
+		protected virtual void AddingEngine(IEngine engine) { }
 
-		}
-
-		protected virtual void RemovingEngine(IEngine engine)
-		{
-
-		}
-
-		public void FixedUpdate(double deltaTime)
-		{
-			Updater(FixedUpdating, deltaTime, UpdatePhase.FixedUpdate);
-		}
+		protected virtual void RemovingEngine(IEngine engine) { }
 
 		public void Update(double deltaTime)
-		{
-			Updater(Updating, deltaTime, UpdatePhase.Update);
-		}
-
-		private void Updater(Action<double> method, double deltaTime, UpdatePhase phase)
 		{
 			if(IsSleeping)
 				return;
@@ -107,32 +107,50 @@ namespace Atlas.ECS.Systems
 			if(updateLock)
 				return;
 			updateLock = true;
-			UpdateState = phase;
-			method.Invoke(deltaTime);
-			UpdateState = UpdatePhase.None;
+			IsUpdating = true;
+			Debug.WriteLine("AtlasSystem." + GetType().Name + ".Update()");
+			if(deltaIntervalTime > 0)
+			{
+				totalIntervalTime += deltaTime;
+
+				while(totalIntervalTime >= deltaIntervalTime)
+				{
+					totalIntervalTime -= deltaIntervalTime;
+					Updating(deltaIntervalTime);
+				}
+			}
+			else
+			{
+				Updating(deltaTime);
+			}
+
+			IsUpdating = false;
 			updateLock = false;
 		}
 
-		protected virtual void FixedUpdating(double deltaTime)
+		protected virtual void Updating(double deltaTime) { }
+
+		public bool IsUpdating
 		{
-
-		}
-
-		protected virtual void Updating(double deltaTime)
-		{
-
-		}
-
-		public UpdatePhase UpdateState
-		{
-			get { return updateState; }
+			get { return isUpdating; }
 			private set
 			{
-				if(updateState == value)
+				if(isUpdating == value)
 					return;
-				var previous = updateState;
-				updateState = value;
-				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
+				var previous = isUpdating;
+				isUpdating = value;
+				Message<IUpdateMessage>(new UpdateMessage(value, previous));
+			}
+		}
+
+		public double DeltaIntervalTime
+		{
+			get { return deltaIntervalTime; }
+			protected set
+			{
+				if(deltaIntervalTime == value)
+					return;
+				deltaIntervalTime = value;
 			}
 		}
 

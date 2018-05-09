@@ -7,10 +7,4 @@ namespace Atlas.ECS.Objects
 	{
 		IEngine Engine { get; set; }
 	}
-
-	public interface IEngineObject<T> : IEngineObject, IObject<T>
-		where T : IEngineObject<T>
-	{
-
-	}
 }

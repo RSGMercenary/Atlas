@@ -1,6 +1,5 @@
 ﻿using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
-using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using Atlas.Framework.Collections.EngineList;
 using Atlas.Framework.Messages;
@@ -37,23 +36,23 @@ namespace Atlas.ECS.Components
 
 		private Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
 
-		private Dictionary<Type, int> familiesCount = new Dictionary<Type, int>();
-		private Dictionary<Type, int> systemsCount = new Dictionary<Type, int>();
+		private Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
+		private Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
 		private Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
 		private Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
 
-		private bool isRunning = false;
 		private Stopwatch timer = new Stopwatch();
-		private UpdatePhase updateState = UpdatePhase.None;
-		private bool updateLock = true;
 		private IReadOnlySystem currentSystem;
 
-		private double deltaUpdateTime = 0;
-		private double totalUpdateTime = 0;
+		private bool isRunning = false;
+		private bool isUpdating = false;
 
-		private double deltaFixedUpdateTime = 1d / 60d;
-		private double totalFixedUpdateTime = 0;
+		private double deltaTime = 0;
+		private double totalTime = 0;
+
+		private double deltaFixedTime = 1d / 60d;
+		private double totalFixedTime = 0;
 
 		private AtlasEngine()
 		{
@@ -88,7 +87,7 @@ namespace Atlas.ECS.Components
 
 		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
 		public IReadOnlyEngineList<IReadOnlyFamily> Families { get { return families; } }
-		public IReadOnlyEngineList<IReadOnlySystem> Systems { get { return systems as IReadOnlyEngineList<IReadOnlySystem>; } }
+		public IReadOnlyEngineList<IReadOnlySystem> Systems { get { return systems; } }
 
 		#region Entities
 
@@ -177,78 +176,8 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
-		public double DeltaUpdateTime
-		{
-			get { return deltaUpdateTime; }
-			private set
-			{
-				if(deltaUpdateTime == value)
-					return;
-				deltaUpdateTime = value;
-			}
-		}
-
-		public double TotalUpdateTime
-		{
-			get { return totalUpdateTime; }
-			private set
-			{
-				if(totalUpdateTime == value)
-					return;
-				totalUpdateTime = value;
-			}
-		}
-
-		public double DeltaFixedUpdateTime
-		{
-			get { return deltaFixedUpdateTime; }
-			set
-			{
-				if(deltaFixedUpdateTime == value)
-					return;
-				deltaFixedUpdateTime = value;
-			}
-		}
-
-		public double TotalFixedUpdateTime
-		{
-			get { return totalFixedUpdateTime; }
-			private set
-			{
-				if(totalFixedUpdateTime == value)
-					return;
-				totalFixedUpdateTime = value;
-			}
-		}
-
-		public UpdatePhase UpdateState
-		{
-			get { return updateState; }
-			private set
-			{
-				if(updateState == value)
-					return;
-				var previous = updateState;
-				updateState = value;
-				Message<IUpdatePhaseMessage>(new UpdatePhaseMessage(value, previous));
-			}
-		}
-
-		public IReadOnlySystem CurrentSystem
-		{
-			get { return currentSystem; }
-			private set
-			{
-				if(currentSystem == value)
-					return;
-				//If a Signal/Message were toever be put here, do it before the set.
-				//Prevents System.Update() or System.FixedUpdate() from being mis-called.
-				currentSystem = value;
-			}
-		}
-
 		public bool AddSystemType<TISystem, TSystem>()
-			where TISystem : IReadOnlySystem
+			where TISystem : ISystem
 			where TSystem : TISystem, new()
 		{
 			return AddSystemType(typeof(TISystem), typeof(TSystem));
@@ -264,9 +193,9 @@ namespace Atlas.ECS.Components
 				return false;
 			if(!instance.IsClass)
 				return false;
-			if(type == typeof(IReadOnlySystem))
+			if(type == typeof(ISystem))
 				return false;
-			if(!typeof(IReadOnlySystem).IsAssignableFrom(type))
+			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(!type.IsAssignableFrom(instance))
 				return false;
@@ -305,7 +234,7 @@ namespace Atlas.ECS.Components
 
 		private void AddSystem(Type type)
 		{
-			if(!systemsCount.ContainsKey(type))
+			if(!systemsReference.ContainsKey(type))
 				return;
 			//There's no system instance class assigned.
 			if(!systemsInstance.ContainsKey(type))
@@ -323,7 +252,7 @@ namespace Atlas.ECS.Components
 
 			systemsType.Add(type, system);
 			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
-			SystemPriorityChanged(system, system.Priority, 0);
+			SystemPriorityChanged(system);
 			system.Engine = this;
 			Message<ISystemAddMessage>(new SystemAddMessage(type, system));
 		}
@@ -337,47 +266,47 @@ namespace Atlas.ECS.Components
 			systems.Remove(system);
 			systemsType.Remove(type);
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
-			if(UpdateState == UpdatePhase.None)
+			if(isUpdating)
 			{
-				system.Dispose();
+				systemsRemoved.Push(system);
 			}
 			else
 			{
-				systemsRemoved.Push(system);
+				system.Dispose();
 			}
 		}
 
 		private void EntitySystemAdded(ISystemTypeAddMessage message)
 		{
-			if(!systemsCount.ContainsKey(message.Value))
+			if(!systemsReference.ContainsKey(message.Value))
 			{
-				systemsCount.Add(message.Value, 1);
+				systemsReference.Add(message.Value, 1);
 				AddSystem(message.Value);
 			}
 			else
-				++systemsCount[message.Value];
+				++systemsReference[message.Value];
 		}
 
 		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
 		{
-			if(--systemsCount[message.Value] > 0)
+			if(--systemsReference[message.Value] > 0)
 				return;
-			systemsCount.Remove(message.Value);
+			systemsReference.Remove(message.Value);
 			RemoveSystem(message.Value);
 		}
 
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
-			SystemPriorityChanged(message.Messenger, message.Messenger.Priority, -1);
+			SystemPriorityChanged(message.Messenger);
 		}
 
-		private void SystemPriorityChanged(IReadOnlySystem system, int next, int previous)
+		private void SystemPriorityChanged(IReadOnlySystem system)
 		{
 			systems.Remove(system);
 
 			for(var index = systems.Count; index > 0; --index)
 			{
-				if(systems[index - 1].Priority <= next)
+				if(systems[index - 1].Priority <= system.Priority)
 				{
 					systems.Insert(index, system);
 					return;
@@ -417,6 +346,80 @@ namespace Atlas.ECS.Components
 			return systems[index];
 		}
 
+		#endregion
+
+		#region Updates
+
+		public double DeltaTime
+		{
+			get { return deltaTime; }
+			private set
+			{
+				if(deltaTime == value)
+					return;
+				deltaTime = value;
+			}
+		}
+
+		public double TotalTime
+		{
+			get { return totalTime; }
+			private set
+			{
+				if(totalTime == value)
+					return;
+				totalTime = value;
+			}
+		}
+
+		public double DeltaFixedTime
+		{
+			get { return deltaFixedTime; }
+			set
+			{
+				if(deltaFixedTime == value)
+					return;
+				deltaFixedTime = value;
+			}
+		}
+
+		public double TotalFixedTime
+		{
+			get { return totalFixedTime; }
+			private set
+			{
+				if(totalFixedTime == value)
+					return;
+				totalFixedTime = value;
+			}
+		}
+
+		public bool IsUpdating
+		{
+			get { return isUpdating; }
+			private set
+			{
+				if(isUpdating == value)
+					return;
+				var previous = isUpdating;
+				isUpdating = value;
+				Message<IUpdateMessage>(new UpdateMessage(value, previous));
+			}
+		}
+
+		public IReadOnlySystem CurrentSystem
+		{
+			get { return currentSystem; }
+			private set
+			{
+				if(currentSystem == value)
+					return;
+				//If a Signal/Message were to ever be put here, do it before the set.
+				//Prevents System.Update() from being mis-called.
+				currentSystem = value;
+			}
+		}
+
 		public bool IsRunning
 		{
 			get { return isRunning; }
@@ -435,7 +438,7 @@ namespace Atlas.ECS.Components
 					while(isRunning)
 					{
 						var currentTime = timer.Elapsed.TotalSeconds;
-
+#if DEBUG
 						//This is mainly for debugging.
 						//Stopwatch is accurate, but doesn't stop for breakpoints.
 						if(currentTime - previousTime > 1)
@@ -443,80 +446,47 @@ namespace Atlas.ECS.Components
 							previousTime = currentTime;
 							continue;
 						}
+#endif
+						DeltaTime = currentTime - previousTime;
 
-						DeltaUpdateTime = currentTime - previousTime;
+						var deltaFixedTime = DeltaFixedTime;
+						var totalFixedTime = TotalFixedTime;
+						var totalUpdateTime = TotalTime + deltaTime;
 
-						updateLock = false;
-						FixedUpdate(DeltaUpdateTime);
+						var fixedUpdates = 0;
+						while(totalFixedTime + deltaFixedTime < totalUpdateTime)
+						{
+							totalFixedTime += deltaFixedTime;
+							++fixedUpdates;
+						}
 
-						updateLock = false;
-						Update(DeltaUpdateTime);
+						IsUpdating = true;
+
+						foreach(ISystem system in systems)
+						{
+							CurrentSystem = system;
+							if(system.IsFixed)
+								for(var i = fixedUpdates; i > 0; --i)
+									system.Update(deltaFixedTime);
+							else
+								system.Update(deltaTime);
+							CurrentSystem = null;
+						}
+
+						IsUpdating = false;
+
+						TotalTime += deltaTime;
+						TotalFixedTime = totalFixedTime;
 
 						DestroySystems();
 						DestroyFamilies();
 
 						previousTime = currentTime;
 					}
-					DeltaUpdateTime = 0;
-					TotalUpdateTime = 0;
-					TotalFixedUpdateTime = 0;
+					DeltaTime = 0;
 					timer.Stop();
 				}
 			}
-		}
-
-		private void FixedUpdate(double deltaTime)
-		{
-			if(updateLock)
-				return;
-			updateLock = true;
-
-			var deltaFixedUpdateTime = DeltaFixedUpdateTime;
-			var totalFixedUpdateTime = TotalFixedUpdateTime;
-			var totalUpdateTime = TotalUpdateTime + deltaTime;
-
-			var fixedUpdates = 0;
-			while(totalFixedUpdateTime + deltaFixedUpdateTime < totalUpdateTime)
-			{
-				totalFixedUpdateTime += deltaFixedUpdateTime;
-				++fixedUpdates;
-			}
-
-			UpdateState = UpdatePhase.FixedUpdate;
-
-			while(fixedUpdates-- > 0)
-			{
-				foreach(ISystem system in systems)
-				{
-					CurrentSystem = system;
-					system.FixedUpdate(deltaFixedUpdateTime);
-					CurrentSystem = null;
-				}
-			}
-
-			UpdateState = UpdatePhase.None;
-
-			TotalFixedUpdateTime = totalFixedUpdateTime;
-		}
-
-		private void Update(double deltaTime)
-		{
-			if(updateLock)
-				return;
-			updateLock = true;
-
-			UpdateState = UpdatePhase.Update;
-
-			foreach(ISystem system in systems)
-			{
-				CurrentSystem = system;
-				system.Update(deltaTime);
-				CurrentSystem = null;
-			}
-
-			UpdateState = UpdatePhase.None;
-
-			TotalUpdateTime += deltaTime;
 		}
 
 		private void DestroySystems()
@@ -555,7 +525,7 @@ namespace Atlas.ECS.Components
 
 				families.Add(family);
 				familiesType.Add(type, family);
-				familiesCount.Add(type, 1);
+				familiesReference.Add(type, 1);
 				family.Engine = this;
 
 				foreach(var entity in entities)
@@ -565,7 +535,7 @@ namespace Atlas.ECS.Components
 			}
 			else
 			{
-				++familiesCount[type];
+				++familiesReference[type];
 				return familiesType[type] as IFamily<TFamilyMember>;
 			}
 		}
@@ -577,19 +547,19 @@ namespace Atlas.ECS.Components
 			if(!familiesType.ContainsKey(type))
 				return null;
 			var family = familiesType[type];
-			if(--familiesCount[type] > 0)
+			if(--familiesReference[type] > 0)
 				return family as IReadOnlyFamily<TFamilyMember>;
 			families.Remove(family);
 			familiesType.Remove(type);
-			familiesCount.Remove(type);
+			familiesReference.Remove(type);
 			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
-			if(UpdateState == UpdatePhase.None)
+			if(isUpdating)
 			{
-				family.Dispose();
+				familiesRemoved.Push(family);
 			}
 			else
 			{
-				familiesRemoved.Push(family);
+				family.Dispose();
 			}
 			return family as IReadOnlyFamily<TFamilyMember>;
 		}

@@ -43,7 +43,7 @@ namespace Atlas.ECS.Families
 			if(State != ObjectState.Initialized)
 				return;
 			//Can't destroy Family mid-update.
-			if(Engine == null || Engine.UpdateState != UpdatePhase.None)
+			if(Engine == null || Engine.IsUpdating)
 				return;
 			Engine = null;
 			if(Engine == null)
@@ -135,24 +135,24 @@ namespace Atlas.ECS.Families
 			members.Remove(member);
 			Message<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(member));
 
-			if(Engine == null || Engine.UpdateState == UpdatePhase.None)
+			if(Engine == null || !Engine.IsUpdating)
 			{
 				DisposeMember(member);
 			}
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdatePhaseMessage>(PoolMembers);
+				Engine.AddListener<IUpdateMessage>(PoolMembers);
 			}
 		}
 
-		private void PoolMembers(IUpdatePhaseMessage message)
+		private void PoolMembers(IUpdateMessage message)
 		{
 			//Only listen when it comes form the source.
 			if(!message.AtMessenger)
 				return;
 			//Clean up update listener.
-			message.Messenger.RemoveListener<IUpdatePhaseMessage>(PoolMembers);
+			message.Messenger.RemoveListener<IUpdateMessage>(PoolMembers);
 			while(removed.Count > 0)
 			{
 				DisposeMember(removed.Pop());

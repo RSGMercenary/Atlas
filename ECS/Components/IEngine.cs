@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent, IUpdatePhaseObject
+	public interface IEngine : IComponent, IUpdateObject
 
 	{
 		#region Entities
@@ -56,7 +56,7 @@ namespace Atlas.ECS.Components
 		IReadOnlyEngineList<IReadOnlySystem> Systems { get; }
 
 		bool AddSystemType<TISystem, TSystem>()
-			where TISystem : IReadOnlySystem
+			where TISystem : ISystem
 			where TSystem : TISystem, new();
 
 		bool AddSystemType(Type type, Type instance);
@@ -169,22 +169,22 @@ namespace Atlas.ECS.Components
 		/// <summary>
 		/// The delta time between <see cref="IReadOnlySystem.Update"/> loops.
 		/// </summary>
-		double DeltaUpdateTime { get; }
+		double DeltaTime { get; }
 
 		/// <summary>
 		/// The total time spent running <see cref="IReadOnlySystem.Update"/> loops.
 		/// </summary>
-		double TotalUpdateTime { get; }
+		double TotalTime { get; }
 
 		/// <summary>
 		/// The fixed delta time between <see cref="IReadOnlySystem.FixedUpdate"/> loops.
 		/// </summary>
-		double DeltaFixedUpdateTime { get; set; }
+		double DeltaFixedTime { get; set; }
 
 		/// <summary>
 		/// The total time spent running <see cref="IReadOnlySystem.FixedUpdate"/> loops.
 		/// </summary>
-		double TotalFixedUpdateTime { get; }
+		double TotalFixedTime { get; }
 
 		/// <summary>
 		/// Returns if the Engine is currently running. This is true

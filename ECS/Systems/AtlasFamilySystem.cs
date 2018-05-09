@@ -1,6 +1,5 @@
 ﻿using Atlas.ECS.Components;
 using Atlas.ECS.Families;
-using Atlas.ECS.Objects;
 using Atlas.Framework.Messages;
 
 namespace Atlas.ECS.Systems
@@ -9,7 +8,6 @@ namespace Atlas.ECS.Systems
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		private IReadOnlyFamily<TFamilyMember> family;
-		public UpdatePhase UpdateMode { get; protected set; } = UpdatePhase.Update;
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
 		public AtlasFamilySystem()
@@ -19,14 +17,7 @@ namespace Atlas.ECS.Systems
 
 		sealed override protected void Updating(double deltaTime)
 		{
-			if(UpdateMode == UpdatePhase.Update)
-				FamilyUpdate(deltaTime);
-		}
-
-		sealed protected override void FixedUpdating(double deltaTime)
-		{
-			if(UpdateMode == UpdatePhase.FixedUpdate)
-				FamilyUpdate(deltaTime);
+			FamilyUpdate(deltaTime);
 		}
 
 		virtual protected void FamilyUpdate(double deltaTime)
@@ -39,7 +30,7 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		abstract protected void MemberUpdate(double deltaTime, TFamilyMember member);
+		virtual protected void MemberUpdate(double deltaTime, TFamilyMember member) { }
 
 		virtual protected void MemberAdded(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
