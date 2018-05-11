@@ -366,6 +366,7 @@ namespace Atlas.ECS.Entities
 			if(component == null)
 				return null;
 			//The component isn't shareable and it already has a manager.
+			//Or this Entity alreay manages this Component.
 			if(component.Manager != null || component.Managers.Contains(this))
 				return null;
 			if(type == null)
