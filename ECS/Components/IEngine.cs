@@ -4,6 +4,7 @@ using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using Atlas.Framework.Collections.EngineList;
 using System;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
@@ -166,24 +167,19 @@ namespace Atlas.ECS.Components
 		#endregion
 
 		/// <summary>
-		/// The delta time between <see cref="IReadOnlySystem.Update"/> loops.
+		/// The delta time between update loops. This is updated every loop.
 		/// </summary>
 		double DeltaTime { get; }
 
 		/// <summary>
-		/// The total time spent running <see cref="IReadOnlySystem.Update"/> loops.
+		/// The total time spent running update loops. This is updated every loop.
 		/// </summary>
 		double TotalTime { get; }
 
 		/// <summary>
-		/// The fixed delta time between <see cref="IReadOnlySystem.FixedUpdate"/> loops.
+		/// A Dictionary of fixed times and fixed time update totals.
 		/// </summary>
-		double DeltaFixedTime { get; set; }
-
-		/// <summary>
-		/// The total time spent running <see cref="IReadOnlySystem.FixedUpdate"/> loops.
-		/// </summary>
-		double TotalFixedTime { get; }
+		IReadOnlyDictionary<double, double> FixedTimes { get; }
 
 		/// <summary>
 		/// Returns if the Engine is currently running. This is true
@@ -193,8 +189,7 @@ namespace Atlas.ECS.Components
 		bool IsRunning { get; set; }
 
 		/// <summary>
-		/// The current System that's about to undergo a FixedUpdate() or Update().
-		/// Use UpdatePhase to check what phase of an update the Engine is in.
+		/// The current System that's undergoing an Update().
 		/// </summary>
 		IReadOnlySystem CurrentSystem { get; }
 	}

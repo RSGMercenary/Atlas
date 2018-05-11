@@ -11,10 +11,10 @@ namespace Atlas.ECS.Systems
 		int Priority { get; }
 
 		/// <summary>
-		/// Determines whether a System receives an Update(deltaFixedTime)
-		/// or Update(deltaTime) during an update loop.
+		/// The fixed time of this System in seconds (1/60, 1/30, 5, etc). Systems with a fixed time get their
+		/// Update(FixedTime) method called the number of times a fixed update is need for a given update loop.
 		/// </summary>
-		bool IsFixed { get; }
+		double FixedTime { get; }
 	}
 
 	public interface ISystem : IReadOnlySystem

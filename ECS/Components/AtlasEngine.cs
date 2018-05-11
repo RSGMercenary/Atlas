@@ -42,6 +42,10 @@ namespace Atlas.ECS.Components
 		private Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
 		private Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
 
+		private Dictionary<double, int> fixedTimesReference = new Dictionary<double, int>();
+		private Dictionary<double, double> fixedTimesTotal = new Dictionary<double, double>();
+		private Dictionary<double, int> fixedTimesUpdate = new Dictionary<double, int>();
+
 		private Stopwatch timer = new Stopwatch();
 		private IReadOnlySystem currentSystem;
 
@@ -50,9 +54,6 @@ namespace Atlas.ECS.Components
 
 		private double deltaTime = 0;
 		private double totalTime = 0;
-
-		private double deltaFixedTime = 1d / 60d;
-		private double totalFixedTime = 0;
 
 		private AtlasEngine()
 		{
@@ -251,8 +252,13 @@ namespace Atlas.ECS.Components
 			}
 
 			systemsType.Add(type, system);
+
 			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 			SystemPriorityChanged(system);
+
+			system.AddListener<IFixedTimeMessage>(SystemFixedTimeChanged);
+			AddFixedTime(system.FixedTime);
+
 			system.Engine = this;
 			Message<ISystemAddMessage>(new SystemAddMessage(type, system));
 		}
@@ -262,8 +268,13 @@ namespace Atlas.ECS.Components
 			if(!systemsType.ContainsKey(type))
 				return;
 			var system = systemsType[type];
+
+			system.RemoveListener<IFixedTimeMessage>(SystemFixedTimeChanged);
+			RemoveFixedTime(system.FixedTime);
+
 			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 			systems.Remove(system);
+
 			systemsType.Remove(type);
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
 			if(isUpdating)
@@ -314,6 +325,40 @@ namespace Atlas.ECS.Components
 			}
 
 			systems.Insert(0, system);
+		}
+
+		private void SystemFixedTimeChanged(IFixedTimeMessage message)
+		{
+			RemoveFixedTime(message.PreviousValue);
+			AddFixedTime(message.CurrentValue);
+		}
+
+		private void AddFixedTime(double fixedTime)
+		{
+			if(fixedTime <= 0)
+				return;
+			if(!fixedTimesReference.ContainsKey(fixedTime))
+			{
+				fixedTimesReference.Add(fixedTime, 1);
+				fixedTimesTotal.Add(fixedTime, 0);
+				//Get the total time in sync with the rest of the engine.
+				while(fixedTimesTotal[fixedTime] + fixedTime < totalTime)
+					fixedTimesTotal[fixedTime] += fixedTime;
+				fixedTimesUpdate.Add(fixedTime, 0);
+			}
+			else
+			{
+				++fixedTimesReference[fixedTime];
+			}
+		}
+
+		private void RemoveFixedTime(double fixedTime)
+		{
+			if(--fixedTimesReference[fixedTime] > 0)
+				return;
+			fixedTimesReference.Remove(fixedTime);
+			fixedTimesTotal.Remove(fixedTime);
+			fixedTimesUpdate.Remove(fixedTime);
 		}
 
 		public bool HasSystem(IReadOnlySystem system)
@@ -372,26 +417,9 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public double DeltaFixedTime
+		public IReadOnlyDictionary<double, double> FixedTimes
 		{
-			get { return deltaFixedTime; }
-			set
-			{
-				if(deltaFixedTime == value)
-					return;
-				deltaFixedTime = value;
-			}
-		}
-
-		public double TotalFixedTime
-		{
-			get { return totalFixedTime; }
-			private set
-			{
-				if(totalFixedTime == value)
-					return;
-				totalFixedTime = value;
-			}
+			get { return fixedTimesTotal; }
 		}
 
 		public bool IsUpdating
@@ -440,43 +468,60 @@ namespace Atlas.ECS.Components
 						var currentTime = timer.Elapsed.TotalSeconds;
 #if DEBUG
 						//This is mainly for debugging.
-						//Stopwatch is accurate, but doesn't stop for breakpoints.
+						//Stopwatch is constant and doesn't stop for breakpoints.
 						if(currentTime - previousTime > 1)
 						{
+							//Ignore the elapsed time while breakpoints were active.
 							previousTime = currentTime;
 							continue;
 						}
 #endif
+						//Update delta time and total time.
 						DeltaTime = currentTime - previousTime;
+						TotalTime += deltaTime;
 
-						var deltaFixedTime = DeltaFixedTime;
-						var totalFixedTime = TotalFixedTime;
-						var totalUpdateTime = TotalTime + deltaTime;
-
-						var fixedUpdates = 0;
-						while(totalFixedTime + deltaFixedTime < totalUpdateTime)
+						//Update fixed total times and calculate number of fixed updates for this loop.
+						//Have to copy the keys, or you get modification exceptions.
+						foreach(var fixedTime in new List<double>(fixedTimesUpdate.Keys))
 						{
-							totalFixedTime += deltaFixedTime;
-							++fixedUpdates;
+							fixedTimesUpdate[fixedTime] = 0;
+							while(fixedTimesTotal[fixedTime] + fixedTime < totalTime)
+							{
+								fixedTimesTotal[fixedTime] += fixedTime;
+								++fixedTimesUpdate[fixedTime];
+							}
 						}
 
 						IsUpdating = true;
 
 						foreach(ISystem system in systems)
 						{
-							CurrentSystem = system;
-							if(system.IsFixed)
-								for(var i = fixedUpdates; i > 0; --i)
-									system.Update(deltaFixedTime);
+							//System is reactive/listens for messages and does not receive time-related updates.
+							if(system.FixedTime == 0)
+								continue;
+							//System receives updates.
+							if(system.FixedTime > 0)
+							{
+								//Store system.FixedTime locally in case updates alter the fixed time.
+								//Probably an extremely rare exception, but still.
+								var fixedTime = system.FixedTime;
+
+								//Update System based on fixed time.
+								CurrentSystem = system;
+								for(var i = fixedTimesUpdate[fixedTime]; i > 0; --i)
+									system.Update(fixedTime);
+								CurrentSystem = null;
+							}
 							else
+							{
+								//Update System based on delta time.
+								CurrentSystem = system;
 								system.Update(deltaTime);
-							CurrentSystem = null;
+								CurrentSystem = null;
+							}
 						}
 
 						IsUpdating = false;
-
-						TotalTime += deltaTime;
-						TotalFixedTime = totalFixedTime;
 
 						DestroySystems();
 						DestroyFamilies();

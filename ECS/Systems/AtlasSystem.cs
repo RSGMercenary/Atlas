@@ -2,7 +2,6 @@
 using Atlas.ECS.Objects;
 using Atlas.Framework.Messages;
 using Atlas.Framework.Objects;
-using System.Diagnostics;
 
 namespace Atlas.ECS.Systems
 {
@@ -10,24 +9,9 @@ namespace Atlas.ECS.Systems
 	{
 		private int priority = 0;
 		private int sleeping = 0;
+		private double fixedTime = -1;
 		private bool isUpdating = false;
-		private bool isFixed = false;
 		private bool updateLock = false;
-
-		private double deltaIntervalTime = 0;
-		private double totalIntervalTime = 0;
-
-		public bool IsFixed
-		{
-			get { return isFixed; }
-			protected set
-			{
-				if(isFixed == value)
-					return;
-				var previous = isFixed;
-				isFixed = value;
-			}
-		}
 
 		public AtlasSystem()
 		{
@@ -108,22 +92,7 @@ namespace Atlas.ECS.Systems
 				return;
 			updateLock = true;
 			IsUpdating = true;
-			Debug.WriteLine("AtlasSystem." + GetType().Name + ".Update()");
-			if(deltaIntervalTime > 0)
-			{
-				totalIntervalTime += deltaTime;
-
-				while(totalIntervalTime >= deltaIntervalTime)
-				{
-					totalIntervalTime -= deltaIntervalTime;
-					Updating(deltaIntervalTime);
-				}
-			}
-			else
-			{
-				Updating(deltaTime);
-			}
-
+			Updating(deltaTime);
 			IsUpdating = false;
 			updateLock = false;
 		}
@@ -143,14 +112,16 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		public double DeltaIntervalTime
+		public double FixedTime
 		{
-			get { return deltaIntervalTime; }
+			get { return fixedTime; }
 			protected set
 			{
-				if(deltaIntervalTime == value)
+				if(fixedTime == value)
 					return;
-				deltaIntervalTime = value;
+				var previous = fixedTime;
+				fixedTime = value;
+				Message<IFixedTimeMessage>(new FixedTimeMessage(value, previous));
 			}
 		}
 
