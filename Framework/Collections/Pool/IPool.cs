@@ -1,4 +1,4 @@
-﻿namespace Atlas.Framework.Pools
+﻿namespace Atlas.Framework.Collections.Pool
 {
 	public interface IReadOnlyPool
 	{
