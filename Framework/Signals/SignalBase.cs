@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Atlas.Framework.Collections.EngineList;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Atlas.Framework.Signals
 {
@@ -10,11 +12,12 @@ namespace Atlas.Framework.Signals
 			return signal != null;
 		}
 
-		private List<SlotBase> slots = new List<SlotBase>();
+		private EngineList<SlotBase> slots = new EngineList<SlotBase>();
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
-		private int dispatching = 0;
-		private bool isDisposed = false;
+
+		public int Dispatching { get; private set; } = 0;
+		public bool IsDisposed { get; private set; } = false;
 
 		/// <summary>
 		/// Cleans up the Signal by removing and disposing all listeners,
@@ -22,55 +25,16 @@ namespace Atlas.Framework.Signals
 		/// </summary>
 		public void Dispose()
 		{
-			if(isDisposed)
+			if(IsDisposed)
 				return;
-			isDisposed = true;
+			IsDisposed = true;
 			slotsPooled.Clear();
 			RemoveAll();
 		}
 
-		public bool IsDisposed
-		{
-			get { return isDisposed; }
-		}
-
 		public bool IsDispatching
 		{
-			get { return dispatching > 0; }
-		}
-
-		protected bool DispatchStart()
-		{
-			if(slots.Count > 0)
-			{
-				++dispatching;
-				return true;
-			}
-			return false;
-		}
-
-		protected bool DispatchStop()
-		{
-			if(dispatching <= 0)
-				return false;
-			if(--dispatching == 0)
-			{
-				while(slotsRemoved.Count > 0)
-				{
-					DisposeSlot(slotsRemoved.Pop());
-				}
-				return true;
-			}
-			return false;
-		}
-
-		/// <summary>
-		/// The number of concurrent dispatches. During a dispatch, it's possible that external
-		/// code could require another dispatch on the same Signal.
-		/// </summary>
-		public int Dispatching
-		{
-			get { return dispatching; }
+			get { return Dispatching > 0; }
 		}
 
 		public IReadOnlyList<ISlotBase> Slots
@@ -82,7 +46,7 @@ namespace Atlas.Framework.Signals
 		{
 			slot.Signal = null;
 			slot.Dispose();
-			if(!isDisposed)
+			if(!IsDisposed)
 				slotsPooled.Push(slot);
 		}
 
@@ -142,12 +106,12 @@ namespace Atlas.Framework.Signals
 			}
 
 			slot.Signal = this;
-			slot.Listener = listener as Delegate;
+			slot.Listener = listener;
 			slot.Priority = priority;
 
 			PriorityChanged(slot, 0, 0);
 
-			isDisposed = false;
+			IsDisposed = false;
 
 			return slot;
 		}
@@ -201,7 +165,7 @@ namespace Atlas.Framework.Signals
 				return false;
 			SlotBase slot = slots[index];
 			slots.RemoveAt(index);
-			if(dispatching > 0)
+			if(Dispatching > 0)
 			{
 				slotsRemoved.Push(slot);
 			}
@@ -212,9 +176,6 @@ namespace Atlas.Framework.Signals
 			return true;
 		}
 
-		/// <summary>
-		/// Removes all SlotsCopy/listeners.
-		/// </summary>
 		public bool RemoveAll()
 		{
 			if(slots.Count <= 0)
@@ -225,12 +186,42 @@ namespace Atlas.Framework.Signals
 			}
 			return true;
 		}
+
+		protected bool Dispatch<TISlot>(Action<TISlot> dispatcher)
+			where TISlot : ISlotBase
+		{
+			if(slots.Count > 0)
+			{
+				++Dispatching;
+				foreach(TISlot slot in Slots)
+				{
+					try
+					{
+						dispatcher.Invoke(slot);
+					}
+					catch(Exception e)
+					{
+						Debug.WriteLine(e);
+						//We remove the Slot so the Error doesn't inevitably happen again.
+						//TO-DO Might not wanna do this.
+						Remove(slot.Listener);
+					}
+				}
+				if(--Dispatching == 0)
+				{
+					while(slotsRemoved.Count > 0)
+						DisposeSlot(slotsRemoved.Pop());
+				}
+				return true;
+			}
+			return false;
+		}
 	}
 
 	public class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
-		where TDelegate : class
+		where TDelegate : Delegate
 	{
 		public SignalBase()
 		{
@@ -239,27 +230,27 @@ namespace Atlas.Framework.Signals
 
 		public TISlot Add(TDelegate listener)
 		{
-			return Add(listener as Delegate) as TISlot;
+			return base.Add(listener) as TISlot;
 		}
 
 		public TISlot Add(TDelegate listener, int priority = 0)
 		{
-			return Add(listener as Delegate) as TISlot;
+			return base.Add(listener) as TISlot;
 		}
 
 		public TISlot Get(TDelegate listener)
 		{
-			return Get(listener as Delegate) as TISlot;
+			return base.Get(listener) as TISlot;
 		}
 
 		public int GetIndex(TDelegate listener)
 		{
-			return GetIndex(listener as Delegate);
+			return base.GetIndex(listener);
 		}
 
 		public bool Remove(TDelegate listener)
 		{
-			return Remove(listener as Delegate);
+			return base.Remove(listener);
 		}
 
 		public new TISlot Get(int index)
@@ -270,6 +261,11 @@ namespace Atlas.Framework.Signals
 		sealed protected override SlotBase CreateSlot()
 		{
 			return new TSlot();
+		}
+
+		protected bool Dispatch(Action<TISlot> dispatcher)
+		{
+			return Dispatch<TISlot>(slot => dispatcher.Invoke(slot));
 		}
 	}
 }

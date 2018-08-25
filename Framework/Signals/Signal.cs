@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Atlas.Framework.Signals
 {
@@ -8,25 +6,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(params object[] items)
 		{
-			if(DispatchStart())
-			{
-				foreach(SlotBase slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.DynamicInvoke(items);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.DynamicInvoke(items));
 		}
 	}
 
@@ -34,25 +14,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch()
 		{
-			if(DispatchStart())
-			{
-				foreach(Slot slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.Invoke();
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.Invoke());
 		}
 	}
 
@@ -60,26 +22,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1)
 		{
-			if(DispatchStart())
-			{
-				//Copy the list for each unique dispatch.
-				foreach(Slot<T1> slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.Invoke(item1);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.Invoke(item1));
 		}
 	}
 
@@ -87,26 +30,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2)
 		{
-			if(DispatchStart())
-			{
-				//Copy the list for each unique dispatch.
-				foreach(Slot<T1, T2> slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.Invoke(item1, item2);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.Invoke(item1, item2));
 		}
 	}
 
@@ -114,26 +38,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3)
 		{
-			if(DispatchStart())
-			{
-				//Copy the list for each unique dispatch.
-				foreach(Slot<T1, T2, T3> slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.Invoke(item1, item2, item3);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.Invoke(item1, item2, item3));
 		}
 	}
 
@@ -141,26 +46,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3, T4 item4)
 		{
-			if(DispatchStart())
-			{
-				//Copy the list for each unique dispatch.
-				foreach(Slot<T1, T2, T3, T4> slot in new List<ISlotBase>(Slots))
-				{
-					try
-					{
-						slot.Listener.Invoke(item1, item2, item3, item4);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						Remove(slot.Listener);
-					}
-				}
-				DispatchStop();
-				return true;
-			}
-			return false;
+			return Dispatch(slot => slot.Listener.Invoke(item1, item2, item3, item4));
 		}
 	}
 }

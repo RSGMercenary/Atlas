@@ -12,6 +12,8 @@ namespace Atlas.ECS.Entities
 {
 	public sealed class AtlasEntity : EngineObject, IEntity
 	{
+		public const string RootName = "Root";
+
 		#region Static Singleton
 
 		private static Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity(), entity => entity.Initialize());
@@ -38,8 +40,8 @@ namespace Atlas.ECS.Entities
 				if(!instance)
 				{
 					var root = new AtlasEntity();
-					root.GlobalName = "Root";
-					root.LocalName = "Root";
+					root.GlobalName = RootName;
+					root.LocalName = RootName;
 					root.Root = root;
 					instance = root;
 				}
@@ -184,17 +186,11 @@ namespace Atlas.ECS.Entities
 				if(string.IsNullOrWhiteSpace(localName))
 					continue;
 				if(localName == "..")
-				{
 					entity = entity.Parent;
-				}
 				else
-				{
 					entity = entity.GetChild(localName);
-				}
 				if(entity == null)
-				{
 					break;
-				}
 			}
 			return entity;
 		}
@@ -206,7 +202,12 @@ namespace Atlas.ECS.Entities
 
 		public IEntity GetChild(string localName)
 		{
-			return children.Find((IEntity entity) => entity.LocalName == localName);
+			foreach(var child in children)
+			{
+				if(child.LocalName == localName)
+					return child;
+			}
+			return null;
 		}
 
 		#endregion
@@ -215,25 +216,18 @@ namespace Atlas.ECS.Entities
 
 		sealed override public IEngine Engine
 		{
-			get
-			{
-				return base.Engine;
-			}
+			get { return base.Engine; }
 			set
 			{
 				if(value != null)
 				{
 					if(Engine == null && value.HasEntity(this))
-					{
 						base.Engine = value;
-					}
 				}
 				else
 				{
 					if(Engine != null && !Engine.HasEntity(this))
-					{
 						base.Engine = value;
-					}
 				}
 			}
 		}

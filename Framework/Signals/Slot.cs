@@ -9,9 +9,9 @@ namespace Atlas.Framework.Signals
 			return slot != null;
 		}
 
-		private SignalBase signal;
-		private Delegate listener;
 		private int priority = 0;
+		public ISignalBase Signal { get; internal set; }
+		public Delegate Listener { get; internal set; }
 
 		public SlotBase()
 		{
@@ -20,58 +20,31 @@ namespace Atlas.Framework.Signals
 
 		public void Dispose()
 		{
-			if(signal != null)
+			if(Signal != null)
 			{
-				signal.Remove(listener);
+				Signal.Remove(Listener);
 			}
 			else
 			{
-				signal = null;
-				listener = null;
+				Signal = null;
+				Listener = null;
 				priority = 0;
 			}
 		}
 
-		public ISignalBase Signal
-		{
-			get
-			{
-				return signal;
-			}
-			set
-			{
-				signal = value as SignalBase;
-			}
-		}
 
-		public Delegate Listener
-		{
-			get
-			{
-				return listener;
-			}
-			set
-			{
-				listener = value;
-			}
-		}
 
 		public int Priority
 		{
-			get
-			{
-				return priority;
-			}
+			get { return priority; }
 			set
 			{
 				if(priority != value)
 				{
 					int previous = priority;
 					priority = value;
-					if(signal != null)
-					{
-						signal.PriorityChanged(this, value, previous);
-					}
+					if(Signal != null)
+						(Signal as SignalBase).PriorityChanged(this, value, previous);
 				}
 			}
 		}
@@ -79,30 +52,18 @@ namespace Atlas.Framework.Signals
 
 	public class SlotBase<TSignal, TDelegate> : SlotBase
 		where TSignal : class, ISignalBase
-		where TDelegate : class
+		where TDelegate : Delegate
 	{
 		public new TSignal Signal
 		{
-			get
-			{
-				return base.Signal as TSignal;
-			}
-			set
-			{
-				base.Signal = value as SignalBase;
-			}
+			get { return base.Signal as TSignal; }
+			set { base.Signal = value; }
 		}
 
 		public new TDelegate Listener
 		{
-			get
-			{
-				return base.Listener as TDelegate;
-			}
-			set
-			{
-				base.Listener = value as Delegate;
-			}
+			get { return base.Listener as TDelegate; }
+			set { base.Listener = value; }
 		}
 	}
 

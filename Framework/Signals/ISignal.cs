@@ -25,7 +25,7 @@ namespace Atlas.Framework.Signals
 
 	public interface ISignalBase<TSlot, TDelegate> : ISignalBase
 		where TSlot : class, ISlotBase
-		where TDelegate : class
+		where TDelegate : Delegate
 	{
 		TSlot Get(TDelegate listener);
 		new TSlot Get(int index);

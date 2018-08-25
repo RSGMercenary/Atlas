@@ -11,7 +11,7 @@ namespace Atlas.Framework.Signals
 
 	public interface ISlotBase<TSignal, TDelegate> : ISlotBase
 		where TSignal : class, ISignalBase
-		where TDelegate : class
+		where TDelegate : Delegate
 	{
 		new TSignal Signal { get; }
 		new TDelegate Listener { get; }

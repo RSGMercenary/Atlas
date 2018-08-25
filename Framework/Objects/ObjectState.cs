@@ -2,7 +2,6 @@
 
 namespace Atlas.Framework.Objects
 {
-
 	[Flags]
 	public enum ObjectState
 	{
