@@ -51,7 +51,7 @@ namespace Atlas.ECS.Entities
 
 		public static string UniqueName
 		{
-			get { return Guid.NewGuid().ToString("N"); }
+			get { return $"Entity-{Guid.NewGuid().ToString("N")}"; }
 		}
 
 		#endregion
