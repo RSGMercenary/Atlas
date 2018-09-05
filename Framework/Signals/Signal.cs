@@ -2,11 +2,11 @@
 
 namespace Atlas.Framework.Signals
 {
-	public class SignalDynamic : SignalBase<SlotBase, ISlotBase, Delegate>, ISignalDynamic
+	public class SignalDynamic : SignalBase<SlotDynamic, ISlotDynamic, Delegate>, ISignalDynamic, IDispatchDynamic
 	{
 		public bool Dispatch(params object[] items)
 		{
-			return Dispatch(slot => slot.Listener.DynamicInvoke(items));
+			return Dispatch(slot => slot.Dispatch(items));
 		}
 	}
 
@@ -14,7 +14,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch()
 		{
-			return Dispatch(slot => slot.Listener.Invoke());
+			return Dispatch(slot => slot.Dispatch());
 		}
 	}
 
@@ -22,7 +22,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1)
 		{
-			return Dispatch(slot => slot.Listener.Invoke(item1));
+			return Dispatch(slot => slot.Dispatch(item1));
 		}
 	}
 
@@ -30,7 +30,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2)
 		{
-			return Dispatch(slot => slot.Listener.Invoke(item1, item2));
+			return Dispatch(slot => slot.Dispatch(item1, item2));
 		}
 	}
 
@@ -38,7 +38,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3)
 		{
-			return Dispatch(slot => slot.Listener.Invoke(item1, item2, item3));
+			return Dispatch(slot => slot.Dispatch(item1, item2, item3));
 		}
 	}
 
@@ -46,7 +46,7 @@ namespace Atlas.Framework.Signals
 	{
 		public bool Dispatch(T1 item1, T2 item2, T3 item3, T4 item4)
 		{
-			return Dispatch(slot => slot.Listener.Invoke(item1, item2, item3, item4));
+			return Dispatch(slot => slot.Dispatch(item1, item2, item3, item4));
 		}
 	}
 }

@@ -17,6 +17,11 @@ namespace Atlas.Framework.Signals
 		new TDelegate Listener { get; }
 	}
 
+	public interface ISlotDynamic : ISlotBase<ISignal, Action>
+	{
+
+	}
+
 	public interface ISlot : ISlotBase<ISignal, Action>
 	{
 

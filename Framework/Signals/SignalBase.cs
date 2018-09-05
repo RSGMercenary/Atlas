@@ -187,13 +187,13 @@ namespace Atlas.Framework.Signals
 			return true;
 		}
 
-		protected bool Dispatch<TISlot>(Action<TISlot> dispatcher)
-			where TISlot : ISlotBase
+		protected bool Dispatch<TSlot>(Action<TSlot> dispatcher)
+			where TSlot : ISlotBase
 		{
 			if(slots.Count > 0)
 			{
 				++Dispatching;
-				foreach(TISlot slot in Slots)
+				foreach(TSlot slot in Slots)
 				{
 					try
 					{
@@ -258,14 +258,14 @@ namespace Atlas.Framework.Signals
 			return base.Get(index) as TISlot;
 		}
 
-		sealed protected override SlotBase CreateSlot()
+		protected override SlotBase CreateSlot()
 		{
 			return new TSlot();
 		}
 
-		protected bool Dispatch(Action<TISlot> dispatcher)
+		protected bool Dispatch(Action<TSlot> dispatcher)
 		{
-			return Dispatch<TISlot>(slot => dispatcher.Invoke(slot));
+			return Dispatch<TSlot>(slot => dispatcher.Invoke(slot));
 		}
 	}
 }
