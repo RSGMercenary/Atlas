@@ -900,7 +900,7 @@ namespace Atlas.ECS.Entities
 			}
 			else if(message is IAutoDestroyMessage)
 			{
-				if(!message.AtMessenger)
+				if(message.CurrentMessenger != message.Messenger)
 					return;
 				var cast = message as IAutoDestroyMessage;
 				if(cast.CurrentValue && parent == null)
@@ -918,33 +918,32 @@ namespace Atlas.ECS.Entities
 		{
 			var info = new StringBuilder();
 
-			info.AppendLine(indent + "Child " + (parentIndex + 1));
-			info.AppendLine(indent + "  " + nameof(GlobalName) + "   = " + GlobalName);
-			info.AppendLine(indent + "  " + nameof(LocalName) + "    = " + LocalName);
-			info.AppendLine(indent + "  " + nameof(AutoDestroy) + "  = " + AutoDestroy);
-			info.AppendLine(indent + "  " + nameof(Sleeping) + "     = " + Sleeping);
-			info.AppendLine(indent + "  " + nameof(FreeSleeping) + " = " + FreeSleeping);
+			info.AppendLine($"{indent}Child {parentIndex + 1}");
+			info.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
+			info.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
+			info.AppendLine($"{indent}  {nameof(AutoDestroy)}  = {AutoDestroy}");
+			info.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
+			info.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
 
-			info.AppendLine(indent + "  Components (" + components.Count + ")");
+			info.AppendLine($"{indent}  {nameof(Components)} ({components.Count})");
 			if(addComponents)
 			{
 				int index = 0;
 				foreach(var type in components.Keys)
 					info.Append(components[type].ToInfoString(addEntities, ++index, indent + "    "));
 			}
-
-			info.AppendLine(indent + "  Systems    (" + systems.Count + ")");
+			info.AppendLine($"{indent}  {nameof(Systems)}    ({systems.Count})");
 			if(addSystems)
 			{
 				foreach(var type in systems)
 					info.AppendLine(indent + "    " + type.FullName);
 			}
 
-			info.AppendLine(indent + "  Children   (" + children.Count + ")");
+			info.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
 			if(depth != 0)
 			{
 				foreach(var child in children)
-					info.Append(child.ToInfoString(depth - 1, addComponents, addSystems, addEntities, indent + "    "));
+					info.Append(child.ToInfoString(depth - 1, addComponents, addSystems, addEntities, $"{indent}    "));
 			}
 			return info.ToString();
 		}
