@@ -8,7 +8,7 @@ namespace Atlas.Framework.Messages
 	{
 		private Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
-		virtual public void Message<TMessage>(TMessage message)
+		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage
 		{
 			Message(message, false);
@@ -31,7 +31,7 @@ namespace Atlas.Framework.Messages
 			}
 		}
 
-		virtual protected void Messaging(IMessage message)
+		protected virtual void Messaging(IMessage message)
 		{
 
 		}
@@ -49,7 +49,7 @@ namespace Atlas.Framework.Messages
 		public void RemoveListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage
 		{
-			Type type = typeof(TMessage);
+			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
 				return;
 			var signal = messages[type];

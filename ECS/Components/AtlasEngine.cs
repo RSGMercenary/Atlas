@@ -60,7 +60,7 @@ namespace Atlas.ECS.Components
 
 		}
 
-		override protected void AddingManager(IEntity entity, int index)
+		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue);

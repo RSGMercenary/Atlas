@@ -835,7 +835,7 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		sealed override public void Message<TMessage>(TMessage message)
+		public sealed override void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
 			var previousTarget = message.CurrentMessenger;

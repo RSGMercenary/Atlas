@@ -54,7 +54,7 @@ namespace Atlas.Framework.Signals
 		{
 			if(listener == null)
 				return null;
-			foreach(SlotBase slot in slots)
+			foreach(var slot in slots)
 			{
 				if(slot.Listener == listener)
 					return slot;

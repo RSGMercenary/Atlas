@@ -192,7 +192,7 @@ namespace Atlas.Framework.Collections.EngineList
 
 		override public string ToString()
 		{
-			StringBuilder text = new StringBuilder();
+			var text = new StringBuilder();
 			text.Append('[');
 			if(items.Count > 0)
 			{
