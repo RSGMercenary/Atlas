@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Atlas.ECS.Components
 {
-	sealed public class AtlasEngine : AtlasComponent, IEngine
+	public sealed class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -73,7 +73,7 @@ namespace Atlas.ECS.Components
 			AddEntity(entity);
 		}
 
-		override protected void RemovingManager(IEntity entity, int index)
+		protected override void RemovingManager(IEntity entity, int index)
 		{
 			RemoveEntity(entity);
 			entity.RemoveListener<IChildAddMessage>(EntityChildAdded);

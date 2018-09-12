@@ -26,13 +26,13 @@
 
 		}
 
-		new public TMessenger Messenger
+		public new TMessenger Messenger
 		{
 			get { return (TMessenger)base.Messenger; }
 			set { base.Messenger = value; }
 		}
 
-		new public TMessenger CurrentMessenger
+		public new TMessenger CurrentMessenger
 		{
 			get { return (TMessenger)base.CurrentMessenger; }
 			set { base.CurrentMessenger = value; }

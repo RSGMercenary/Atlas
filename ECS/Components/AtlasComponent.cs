@@ -1,8 +1,8 @@
 ﻿using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using Atlas.Framework.Collections.EngineList;
-using Atlas.Framework.Messages;
 using Atlas.Framework.Collections.Pool;
+using Atlas.Framework.Messages;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,6 +32,7 @@ namespace Atlas.ECS.Components
 
 		private EngineList<IEntity> managers = new EngineList<IEntity>();
 		private bool autoDestroy = true;
+		public bool IsShareable { get; } = false;
 
 		public AtlasComponent() : this(false)
 		{
@@ -56,8 +57,6 @@ namespace Atlas.ECS.Components
 
 			base.Disposing(finalizer);
 		}
-
-		public bool IsShareable { get; } = false;
 
 		public bool AutoDestroy
 		{
@@ -268,7 +267,7 @@ namespace Atlas.ECS.Components
 			Engine = message.CurrentValue;
 		}
 
-		sealed override public IEngine Engine
+		public sealed override IEngine Engine
 		{
 			get { return base.Engine; }
 			set
@@ -306,31 +305,31 @@ namespace Atlas.ECS.Components
 
 		public string ToInfoString(bool addEntities, int index = 0, string indent = "")
 		{
-			StringBuilder text = new StringBuilder();
-			text.Append(indent + "Component");
+			var info = new StringBuilder();
+			info.Append(indent + "Component");
 			if(index > 0)
-				text.Append(" " + index);
-			text.AppendLine();
-			text.AppendLine(indent + "  Instance    = " + GetType().FullName);
+				info.Append(" " + index);
+			info.AppendLine();
+			info.AppendLine(indent + "  Instance    = " + GetType().FullName);
 			if(Manager != null)
-				text.AppendLine(indent + "  Interface   = " + Manager.GetComponentType(this).FullName);
-			text.AppendLine(indent + "  " + nameof(AutoDestroy) + " = " + AutoDestroy);
-			text.AppendLine(indent + "  " + nameof(IsShareable) + " = " + IsShareable);
+				info.AppendLine(indent + "  Interface   = " + Manager.GetComponentType(this).FullName);
+			info.AppendLine(indent + "  " + nameof(AutoDestroy) + " = " + AutoDestroy);
+			info.AppendLine(indent + "  " + nameof(IsShareable) + " = " + IsShareable);
 			if(IsShareable)
 			{
-				text.AppendLine(indent + "  Entities (" + managers.Count + ")");
+				info.AppendLine(indent + "  Entities (" + managers.Count + ")");
 				if(addEntities)
 				{
 					index = 0;
 					foreach(var entity in managers)
 					{
-						text.AppendLine(indent + "    Entity " + (++index));
-						text.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);
-						text.AppendLine(indent + "      " + nameof(entity.GlobalName) + " = " + entity.GlobalName);
+						info.AppendLine(indent + "    Entity " + (++index));
+						info.AppendLine(indent + "      Interface  = " + entity.GetComponentType(this).FullName);
+						info.AppendLine(indent + "      " + nameof(entity.GlobalName) + " = " + entity.GlobalName);
 					}
 				}
 			}
-			return text.ToString();
+			return info.ToString();
 		}
 	}
 }

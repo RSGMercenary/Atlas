@@ -116,7 +116,7 @@ namespace Atlas.Framework.Signals
 			return slot;
 		}
 
-		virtual protected SlotBase CreateSlot()
+		protected virtual SlotBase CreateSlot()
 		{
 			return new SlotBase();
 		}
@@ -163,7 +163,7 @@ namespace Atlas.Framework.Signals
 				return false;
 			if(index >= slots.Count)
 				return false;
-			SlotBase slot = slots[index];
+			var slot = slots[index];
 			slots.RemoveAt(index);
 			if(Dispatching > 0)
 			{
@@ -233,9 +233,9 @@ namespace Atlas.Framework.Signals
 			return base.Add(listener) as TISlot;
 		}
 
-		public TISlot Add(TDelegate listener, int priority = 0)
+		public TISlot Add(TDelegate listener, int priority)
 		{
-			return base.Add(listener) as TISlot;
+			return base.Add(listener, priority) as TISlot;
 		}
 
 		public TISlot Get(TDelegate listener)

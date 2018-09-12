@@ -2,9 +2,9 @@
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using Atlas.Framework.Collections.EngineList;
+using Atlas.Framework.Collections.Pool;
 using Atlas.Framework.Messages;
 using Atlas.Framework.Objects;
-using Atlas.Framework.Collections.Pool;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -38,7 +38,7 @@ namespace Atlas.ECS.Families
 			get { return members as IReadOnlyEngineList<IFamilyMember>; }
 		}
 
-		sealed public override void Dispose()
+		public sealed override void Dispose()
 		{
 			if(State != ObjectState.Initialized)
 				return;
@@ -57,7 +57,7 @@ namespace Atlas.ECS.Families
 			base.Disposing(finalizer);
 		}
 
-		sealed override public IEngine Engine
+		public sealed override IEngine Engine
 		{
 			get { return base.Engine; }
 			set

@@ -15,7 +15,7 @@ namespace Atlas.Framework.Signals
 		int GetIndex(Delegate listener);
 
 		ISlotBase Add(Delegate listener);
-		ISlotBase Add(Delegate listener, int priority = 0);
+		ISlotBase Add(Delegate listener, int priority);
 
 		bool Remove(Delegate listener);
 

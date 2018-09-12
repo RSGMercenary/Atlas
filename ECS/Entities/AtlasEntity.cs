@@ -22,7 +22,7 @@ namespace Atlas.ECS.Entities
 
 		public static AtlasEntity Get(string globalName = "", string localName = "")
 		{
-			AtlasEntity entity = pool.Remove();
+			var entity = pool.Remove();
 			entity.GlobalName = globalName;
 			entity.localName = localName;
 			return entity;
@@ -73,7 +73,7 @@ namespace Atlas.ECS.Entities
 
 		}
 
-		sealed public override void Dispose()
+		public sealed override void Dispose()
 		{
 			if(this == instance)
 				return;
@@ -145,7 +145,7 @@ namespace Atlas.ECS.Entities
 
 		public string AncestorsToString(int depth = -1, bool localNames = true, string indent = "")
 		{
-			StringBuilder text = new StringBuilder();
+			var text = new StringBuilder();
 			if(Parent != null && depth != 0)
 			{
 				text.Append(Parent.AncestorsToString(depth - 1, localNames, indent));
@@ -164,7 +164,7 @@ namespace Atlas.ECS.Entities
 
 		public string DescendantsToString(int depth = -1, bool localNames = true, string indent = "")
 		{
-			StringBuilder text = new StringBuilder();
+			var text = new StringBuilder();
 			text.Append(indent);
 			text.AppendLine(localNames ? localName : globalName);
 			if(depth != 0)
@@ -214,7 +214,7 @@ namespace Atlas.ECS.Entities
 
 		#region Engine
 
-		sealed override public IEngine Engine
+		public sealed override IEngine Engine
 		{
 			get { return base.Engine; }
 			set
@@ -916,7 +916,7 @@ namespace Atlas.ECS.Entities
 
 		public string ToInfoString(int depth, bool addComponents, bool addEntities, bool addSystems, string indent = "")
 		{
-			StringBuilder info = new StringBuilder();
+			var info = new StringBuilder();
 
 			info.AppendLine(indent + "Child " + (parentIndex + 1));
 			info.AppendLine(indent + "  " + nameof(GlobalName) + "   = " + GlobalName);

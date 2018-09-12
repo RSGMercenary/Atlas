@@ -68,7 +68,7 @@ namespace Atlas.Framework.Objects
 		/// <summary>
 		/// Called when this instance is being constructed. Should not be called manually.
 		/// </summary>
-		virtual protected void Initializing(bool constructor)
+		protected virtual void Initializing(bool constructor)
 		{
 
 		}
@@ -76,7 +76,7 @@ namespace Atlas.Framework.Objects
 		/// <summary>
 		/// Called when this instance is being destroyed. Should not be called manually.
 		/// </summary>
-		virtual protected void Disposing(bool finalizer)
+		protected virtual void Disposing(bool finalizer)
 		{
 
 		}
