@@ -1,5 +1,4 @@
-﻿using Atlas.Framework.Collections.Hierarchy;
-using System;
+﻿using System;
 
 namespace Atlas.Framework.Messages
 {
@@ -9,12 +8,6 @@ namespace Atlas.Framework.Messages
 			where TMessage : IMessage;
 
 		void AddListener<TMessage>(Action<TMessage> listener, int priority)
-			where TMessage : IMessage;
-
-		void AddListener<TMessage>(Action<TMessage> listener, Hierarchy hierarchy)
-			where TMessage : IMessage;
-
-		void AddListener<TMessage>(Action<TMessage> listener, int priority, Hierarchy hierarchy)
 			where TMessage : IMessage;
 
 		void RemoveListener<TMessage>(Action<TMessage> listener)

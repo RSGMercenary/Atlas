@@ -11,24 +11,13 @@ namespace Atlas.Framework.Messages
 		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage
 		{
-			Message(message, false);
-		}
-
-		protected void Message<TMessage>(TMessage message, bool hierarchy)
-			where TMessage : IMessage
-		{
-			((IMessageBase)message).Messenger = this;
-			((IMessageBase)message).CurrentMessenger = this;
+			message.CurrentMessenger = this;
 			//Pass around message internally...
 			Messaging(message);
 			//...before dispatching externally.
 			var type = typeof(TMessage);
 			if(messages.ContainsKey(type))
 				((Signal<TMessage>)messages[type]).Dispatch(message);
-			if(!hierarchy)
-			{
-				//PoolManager.Push(message);
-			}
 		}
 
 		protected virtual void Messaging(IMessage message)
@@ -36,14 +25,31 @@ namespace Atlas.Framework.Messages
 
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority = 0)
+		public void AddListener<TMessage>(Action<TMessage> listener)
+			where TMessage : IMessage
+		{
+			AddListenerSlot(listener, 0);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
+			where TMessage : IMessage
+		{
+			AddListenerSlot(listener, priority);
+		}
+
+		protected ISlotBase AddListenerSlot<TMessage>(Action<TMessage> listener, int priority)
 			where TMessage : IMessage
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
-				messages.Add(type, new Signal<TMessage>());
-			var signal = (Signal<TMessage>)messages[type];
-			signal.Add(listener, priority);
+				messages.Add(type, GetSignal<TMessage>());
+			return messages[type].Add(listener, priority);
+		}
+
+		protected virtual Signal<TMessage> GetSignal<TMessage>()
+			where TMessage : IMessage
+		{
+			return new Signal<TMessage>();
 		}
 
 		public void RemoveListener<TMessage>(Action<TMessage> listener)

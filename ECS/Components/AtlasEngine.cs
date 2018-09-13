@@ -2,7 +2,6 @@
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using Atlas.Framework.Collections.EngineList;
-using Atlas.Framework.Collections.Hierarchy;
 using Atlas.Framework.Messages;
 using System;
 using System.Collections.Generic;
@@ -64,13 +63,13 @@ namespace Atlas.ECS.Components
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Hierarchy.All);
-			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue, Hierarchy.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Hierarchy.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Hierarchy.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Hierarchy.All);
-			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, Hierarchy.All);
-			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, Hierarchy.All);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, EntityHierarchy.All);
 			AddEntity(entity);
 		}
 

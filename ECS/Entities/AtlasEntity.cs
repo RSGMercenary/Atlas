@@ -4,6 +4,8 @@ using Atlas.ECS.Systems;
 using Atlas.Framework.Collections.EngineList;
 using Atlas.Framework.Collections.Pool;
 using Atlas.Framework.Messages;
+using Atlas.Framework.Messages.Signals;
+using Atlas.Framework.Signals;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -841,6 +843,25 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
+		public void AddListener<TMessage>(Action<TMessage> listener, EntityHierarchy hierarchy)
+			where TMessage : IMessage
+		{
+			var slot = AddListenerSlot(listener, 0) as EntitySlot<TMessage>;
+			slot.Hierarchy = hierarchy;
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, EntityHierarchy hierarchy)
+			where TMessage : IMessage
+		{
+			var slot = AddListenerSlot(listener, priority) as EntitySlot<TMessage>;
+			slot.Hierarchy = hierarchy;
+		}
+
+		protected sealed override Signal<TMessage> GetSignal<TMessage>()
+		{
+			return new EntitySignal<TMessage>();
+		}
+
 		public sealed override void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
@@ -848,7 +869,7 @@ namespace Atlas.ECS.Entities
 
 			//Standard Message() call.
 			//Set Target if null and Dispatch() event by type;
-			Message(message, true);
+			base.Message(message);
 
 			//Send Message to children.
 			foreach(var child in children)

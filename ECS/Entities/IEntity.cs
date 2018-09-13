@@ -2,12 +2,13 @@
 using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using Atlas.Framework.Collections.EngineList;
+using Atlas.Framework.Messages;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IAutoDestroyObject, ISleepObject, IEngineObject
+	public interface IEntity : IEngineObject, IAutoDestroyObject, ISleepObject
 	{
 		#region Entities
 
@@ -68,6 +69,8 @@ namespace Atlas.ECS.Entities
 		bool HasAncestor(IEntity ancestor);
 
 		bool HasChild(IEntity child);
+
+		bool HasSibling(IEntity sibling);
 
 		int GetChildIndex(IEntity child);
 
@@ -243,6 +246,16 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
+
+		#endregion
+
+		#region Messages
+
+		void AddListener<TMessage>(Action<TMessage> listener, EntityHierarchy hierarchy)
+			where TMessage : IMessage;
+
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, EntityHierarchy hierarchy)
+			where TMessage : IMessage;
 
 		#endregion
 

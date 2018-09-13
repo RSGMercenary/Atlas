@@ -88,11 +88,11 @@ namespace Atlas.Framework.Signals
 			return Add(listener, 0);
 		}
 
-		public ISlotBase Add(Delegate listener, int priority = 0)
+		public ISlotBase Add(Delegate listener, int priority)
 		{
 			if(listener == null)
 				return null;
-			SlotBase slot = Get(listener) as SlotBase;
+			var slot = Get(listener) as SlotBase;
 			if(!slot)
 			{
 				if(slotsPooled.Count > 0)

@@ -5,38 +5,28 @@
 	/// </summary>
 	class Enumeration
 	{
-		private readonly int value = 0;
-		private readonly string name = "";
+		public string Name { get; } = "";
+		public int Value { get; } = 0;
 
 		protected Enumeration(int value, string name)
 		{
-			this.value = value;
-			this.name = name;
-		}
-
-		public int Value
-		{
-			get { return value; }
-		}
-
-		public string Name
-		{
-			get { return name; }
+			Value = value;
+			Name = name;
 		}
 
 		public override string ToString()
 		{
-			return name;
+			return Name;
 		}
 
 		public static implicit operator string(Enumeration enumeration)
 		{
-			return enumeration.name;
+			return enumeration.Name;
 		}
 
 		public static implicit operator int(Enumeration enumeration)
 		{
-			return enumeration.value;
+			return enumeration.Value;
 		}
 	}
 }
