@@ -148,9 +148,6 @@ namespace Atlas.ECS.Families
 
 		private void PoolMembers(IUpdateMessage message)
 		{
-			//Only listen when it comes form the source.
-			if(!message.AtMessenger)
-				return;
 			//Clean up update listener.
 			message.Messenger.RemoveListener<IUpdateMessage>(PoolMembers);
 			while(removed.Count > 0)

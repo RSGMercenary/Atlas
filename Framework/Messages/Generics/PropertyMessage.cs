@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Framework.Messages
 {
-	public class PropertyMessage<TMessenger, TProperty> : Message<TMessenger>, IPropertyMessage<TMessenger, TProperty>
+	public abstract class PropertyMessage<TMessenger, TProperty> : Message<TMessenger>, IPropertyMessage<TMessenger, TProperty>
 		where TMessenger : IMessageDispatcher
 	{
 		public PropertyMessage()

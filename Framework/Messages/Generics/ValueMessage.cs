@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Framework.Messages
 {
-	public class ValueMessage<TMessenger, TValue> : Message<TMessenger>, IValueMessage<TMessenger, TValue>
+	public abstract class ValueMessage<TMessenger, TValue> : Message<TMessenger>, IValueMessage<TMessenger, TValue>
 		where TMessenger : IMessageDispatcher
 	{
 		public ValueMessage()

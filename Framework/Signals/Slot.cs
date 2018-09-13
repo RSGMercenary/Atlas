@@ -85,7 +85,7 @@ namespace Atlas.Framework.Signals
 
 	public class Slot<T1> : SlotBase<ISignal<T1>, Action<T1>>, ISlot<T1>, IDispatch<T1>
 	{
-		public virtual bool Dispatch(T1 item1)
+		public bool Dispatch(T1 item1)
 		{
 			Listener.Invoke(item1);
 			return true;

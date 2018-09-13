@@ -262,8 +262,6 @@ namespace Atlas.ECS.Components
 
 		private void EntityEngineChanged(IEngineMessage message)
 		{
-			if(!message.AtMessenger)
-				return;
 			Engine = message.CurrentValue;
 		}
 

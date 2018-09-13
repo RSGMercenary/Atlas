@@ -401,7 +401,7 @@ namespace Atlas.ECS.Entities
 				return null;
 			if(!components.ContainsKey(type))
 				return null;
-			IComponent component = components[type];
+			var component = components[type];
 			Message<IComponentRemoveMessage>(new ComponentRemoveMessage(type, component));
 			components.Remove(type);
 			component.RemoveManager(this, type);
@@ -568,7 +568,7 @@ namespace Atlas.ECS.Entities
 			//Can't set a descendant of this as a parent.
 			if(HasDescendant(next))
 				return false;
-			IEntity previous = parent;
+			var previous = parent;
 			parent = next;
 			Message<IParentMessage>(new ParentMessage(next, previous));
 
@@ -612,6 +612,8 @@ namespace Atlas.ECS.Entities
 
 		public bool HasDescendant(IEntity descendant)
 		{
+			if(descendant == this)
+				return false;
 			while(descendant != null && descendant != this)
 				descendant = descendant.Parent;
 			return descendant == this;
@@ -619,12 +621,14 @@ namespace Atlas.ECS.Entities
 
 		public bool HasAncestor(IEntity ancestor)
 		{
-			return ancestor != null ? ancestor.HasDescendant(this) : false;
+			return ancestor?.HasDescendant(this) ?? false;
 		}
 
 		public bool HasSibling(IEntity sibling)
 		{
-			return Parent != null ? Parent.HasChild(sibling) : false;
+			if(sibling == this)
+				return false;
+			return Parent?.HasChild(sibling) ?? false;
 		}
 
 		public IEntity GetChild(int index)
@@ -835,6 +839,8 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
+		#region Messages
+
 		public sealed override void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
@@ -909,6 +915,8 @@ namespace Atlas.ECS.Entities
 			base.Messaging(message);
 		}
 
+		#endregion
+
 		public override string ToString()
 		{
 			return GlobalName;
@@ -930,13 +938,13 @@ namespace Atlas.ECS.Entities
 			{
 				int index = 0;
 				foreach(var type in components.Keys)
-					info.Append(components[type].ToInfoString(addEntities, ++index, indent + "    "));
+					info.Append(components[type].ToInfoString(addEntities, ++index, $"{indent}    "));
 			}
 			info.AppendLine($"{indent}  {nameof(Systems)}    ({systems.Count})");
 			if(addSystems)
 			{
 				foreach(var type in systems)
-					info.AppendLine(indent + "    " + type.FullName);
+					info.AppendLine($"{indent}    {type.FullName}");
 			}
 
 			info.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
