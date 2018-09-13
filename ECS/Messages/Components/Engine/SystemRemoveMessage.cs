@@ -2,7 +2,7 @@
 using Atlas.ECS.Systems;
 using System;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class SystemRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemRemoveMessage
 	{

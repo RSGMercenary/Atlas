@@ -1,7 +1,7 @@
-﻿using Atlas.Framework.Messages.Signals;
-using Atlas.Framework.Signals;
+﻿using Atlas.Core.Messages.Signals;
+using Atlas.Core.Signals;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	public class EntitySignal<T> : Signal<T>
 		where T : IMessage

@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Components;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class ManagerMessage : Message<IComponent>, IManagerMessage
 	{

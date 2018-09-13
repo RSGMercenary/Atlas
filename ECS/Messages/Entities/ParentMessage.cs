@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Entities;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class ParentMessage : PropertyMessage<IEntity, IEntity>, IParentMessage
 	{

@@ -1,7 +1,7 @@
 ﻿using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class EngineMessage : PropertyMessage<IEngineObject, IEngine>, IEngineMessage
 	{

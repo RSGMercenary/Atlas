@@ -1,4 +1,4 @@
-﻿using Atlas.Framework.Builders;
+﻿using Atlas.Core.Builders;
 
 namespace Atlas.ECS.Components
 {

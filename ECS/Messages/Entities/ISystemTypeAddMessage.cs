@@ -1,7 +1,7 @@
 ﻿using Atlas.ECS.Entities;
 using System;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	public interface ISystemTypeAddMessage : IValueMessage<IEntity, Type>
 	{

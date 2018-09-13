@@ -2,7 +2,7 @@
 using Atlas.ECS.Families;
 using System;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyRemoveMessage
 	{

@@ -1,6 +1,6 @@
-﻿using Atlas.ECS.Entities;
-using Atlas.Framework.Builders;
-using Atlas.Framework.Signals;
+﻿using Atlas.Core.Builders;
+using Atlas.Core.Signals;
+using Atlas.ECS.Entities;
 using System;
 
 namespace Atlas.ECS.Components

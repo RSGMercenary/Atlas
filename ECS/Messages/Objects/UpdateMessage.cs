@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Objects;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class UpdateMessage : PropertyMessage<IUpdateObject, bool>, IUpdateMessage
 	{

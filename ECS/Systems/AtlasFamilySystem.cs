@@ -1,6 +1,6 @@
-﻿using Atlas.ECS.Components;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Components;
 using Atlas.ECS.Families;
-using Atlas.Framework.Messages;
 
 namespace Atlas.ECS.Systems
 {
@@ -43,9 +43,7 @@ namespace Atlas.ECS.Systems
 			family.AddListener<IFamilyMemberAddMessage>(EntityAdded);
 			family.AddListener<IFamilyMemberRemoveMessage>(EntityRemoved);
 			foreach(var member in family.Members)
-			{
 				MemberAdded(family, member);
-			}
 		}
 
 		protected override void RemovingEngine(IEngine engine)
@@ -53,9 +51,7 @@ namespace Atlas.ECS.Systems
 			family.RemoveListener<IFamilyMemberAddMessage>(EntityAdded);
 			family.RemoveListener<IFamilyMemberRemoveMessage>(EntityRemoved);
 			foreach(var member in family.Members)
-			{
 				MemberRemoved(family, member);
-			}
 			engine.RemoveFamily<TFamilyMember>();
 			family = null; //TO-DO Pretty sure this is safe.
 			base.RemovingEngine(engine);

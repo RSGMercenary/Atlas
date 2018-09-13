@@ -1,6 +1,6 @@
-﻿using Atlas.ECS.Entities;
+﻿using Atlas.Core.Collections.EngineList;
+using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
-using Atlas.Framework.Collections.EngineList;
 using System;
 
 namespace Atlas.ECS.Components

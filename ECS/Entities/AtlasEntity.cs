@@ -1,11 +1,11 @@
-﻿using Atlas.ECS.Components;
+﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Collections.Pool;
+using Atlas.Core.Messages;
+using Atlas.Core.Messages.Signals;
+using Atlas.Core.Signals;
+using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
-using Atlas.Framework.Collections.EngineList;
-using Atlas.Framework.Collections.Pool;
-using Atlas.Framework.Messages;
-using Atlas.Framework.Messages.Signals;
-using Atlas.Framework.Signals;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Systems;
 
-namespace Atlas.Framework.Messages
+namespace Atlas.Core.Messages
 {
 	class FixedTimeMessage : PropertyMessage<IReadOnlySystem, double>, IFixedTimeMessage
 	{

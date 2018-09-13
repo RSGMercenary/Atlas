@@ -1,7 +1,7 @@
-﻿using Atlas.ECS.Entities;
-using Atlas.Framework.Signals;
+﻿using Atlas.Core.Signals;
+using Atlas.ECS.Entities;
 
-namespace Atlas.Framework.Messages.Signals
+namespace Atlas.Core.Messages.Signals
 {
 	public class EntitySlot<TMessage> : Slot<TMessage>
 		where TMessage : IMessage
