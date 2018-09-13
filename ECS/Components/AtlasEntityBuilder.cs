@@ -20,7 +20,7 @@ namespace Atlas.ECS.Components
 			get { return builder.BuildStateChanged; }
 		}
 
-		override protected void AddingManager(IEntity entity, int index)
+		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
 			builder.BuildState = BuildState.Building;

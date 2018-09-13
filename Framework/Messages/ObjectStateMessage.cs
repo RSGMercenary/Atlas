@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class ObjectStateMessage : PropertyMessage<IObject, ObjectState>, IObjectStateMessage
 	{
-		public ObjectStateMessage(ObjectState current, ObjectState previous) : base(current, previous)
+		public ObjectStateMessage(IObject messenger, ObjectState current, ObjectState previous) : base(messenger, current, previous)
 		{
 		}
 	}

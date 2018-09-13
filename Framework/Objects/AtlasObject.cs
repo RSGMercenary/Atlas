@@ -31,7 +31,7 @@ namespace Atlas.Framework.Objects
 					return;
 				var previous = state;
 				state = value;
-				Message<IObjectStateMessage>(new ObjectStateMessage(value, previous));
+				Message<IObjectStateMessage>(new ObjectStateMessage(this, value, previous));
 			}
 		}
 

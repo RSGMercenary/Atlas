@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IComponent : IAutoDestroyObject
+	public interface IComponent : IAutoDestroyObject, IEngineObject
 	{
 		/// <summary>
 		/// Determines whether <see cref="IObject.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.

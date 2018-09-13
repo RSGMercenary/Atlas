@@ -17,7 +17,7 @@ namespace Atlas.ECS.Objects
 					return;
 				var previous = engine;
 				engine = value;
-				Message<IEngineMessage>(new EngineMessage(value, previous));
+				Message<IEngineMessage>(new EngineMessage(this, value, previous));
 			}
 		}
 	}

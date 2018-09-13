@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class GlobalNameMessage : PropertyMessage<IEntity, string>, IGlobalNameMessage
 	{
-		public GlobalNameMessage(string current, string previous) : base(current, previous)
+		public GlobalNameMessage(IEntity messenger, string current, string previous) : base(messenger, current, previous)
 		{
 		}
 	}

@@ -126,7 +126,7 @@ namespace Atlas.ECS.Components
 			foreach(IFamily family in families)
 				family.AddEntity(entity);
 
-			Message<IEntityAddMessage>(new EntityAddMessage(entity));
+			Message<IEntityAddMessage>(new EntityAddMessage(this, entity));
 
 			foreach(var child in entity.Children.Forward())
 				AddEntity(child);
@@ -142,7 +142,7 @@ namespace Atlas.ECS.Components
 			foreach(var child in entity.Children.Backward())
 				RemoveEntity(child);
 
-			Message<IEntityRemoveMessage>(new EntityRemoveMessage(entity));
+			Message<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
 
 			//TO-DO
 			//entity.Systems isn't an EngineList, so it might screw up.
@@ -261,7 +261,7 @@ namespace Atlas.ECS.Components
 			AddFixedTime(system.FixedTime);
 
 			system.Engine = this;
-			Message<ISystemAddMessage>(new SystemAddMessage(type, system));
+			Message<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 		}
 
 		private void RemoveSystem(Type type)
@@ -277,7 +277,7 @@ namespace Atlas.ECS.Components
 			systems.Remove(system);
 
 			systemsType.Remove(type);
-			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
+			Message<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
 			if(isUpdating)
 			{
 				systemsRemoved.Push(system);
@@ -432,7 +432,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = isUpdating;
 				isUpdating = value;
-				Message<IUpdateMessage>(new UpdateMessage(value, previous));
+				Message<IUpdateMessage>(new UpdateMessage(this, value, previous));
 			}
 		}
 
@@ -576,7 +576,7 @@ namespace Atlas.ECS.Components
 
 				foreach(var entity in entities)
 					family.AddEntity(entity);
-				Message<IFamilyAddMessage>(new FamilyAddMessage(type, family));
+				Message<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
 				return family;
 			}
 			else
@@ -598,7 +598,7 @@ namespace Atlas.ECS.Components
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesReference.Remove(type);
-			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
+			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
 			if(isUpdating)
 			{
 				familiesRemoved.Push(family);

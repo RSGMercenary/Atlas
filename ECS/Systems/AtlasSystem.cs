@@ -18,7 +18,7 @@ namespace Atlas.ECS.Systems
 
 		}
 
-		sealed public override void Dispose()
+		public sealed override void Dispose()
 		{
 			if(State != ObjectState.Initialized)
 				return;
@@ -37,7 +37,7 @@ namespace Atlas.ECS.Systems
 			base.Disposing(finalizer);
 		}
 
-		sealed override public IEngine Engine
+		public sealed override IEngine Engine
 		{
 			get { return base.Engine; }
 			set
@@ -108,7 +108,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = isUpdating;
 				isUpdating = value;
-				Message<IUpdateMessage>(new UpdateMessage(value, previous));
+				Message<IUpdateMessage>(new UpdateMessage(this, value, previous));
 			}
 		}
 
@@ -121,7 +121,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = fixedTime;
 				fixedTime = value;
-				Message<IFixedTimeMessage>(new FixedTimeMessage(value, previous));
+				Message<IFixedTimeMessage>(new FixedTimeMessage(this, value, previous));
 			}
 		}
 
@@ -134,7 +134,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage>(new SleepMessage(value, previous));
+				Message<ISleepMessage>(new SleepMessage(this, value, previous));
 			}
 		}
 
@@ -159,7 +159,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message<IPriorityMessage>(new PriorityMessage(value, previous));
+				Message<IPriorityMessage>(new PriorityMessage(this, value, previous));
 			}
 		}
 	}

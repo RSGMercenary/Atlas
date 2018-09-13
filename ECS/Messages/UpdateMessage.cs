@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class UpdateMessage : PropertyMessage<IUpdateObject, bool>, IUpdateMessage
 	{
-		public UpdateMessage(bool current, bool previous) : base(current, previous)
+		public UpdateMessage(IUpdateObject messenger, bool current, bool previous) : base(messenger, current, previous)
 		{
 		}
 	}

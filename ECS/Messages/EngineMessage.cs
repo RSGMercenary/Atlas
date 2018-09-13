@@ -5,12 +5,7 @@ namespace Atlas.Framework.Messages
 {
 	class EngineMessage : PropertyMessage<IEngineObject, IEngine>, IEngineMessage
 	{
-		public EngineMessage()
-		{
-
-		}
-
-		public EngineMessage(IEngine current, IEngine previous) : base(current, previous)
+		public EngineMessage(IEngineObject messenger, IEngine current, IEngine previous) : base(messenger, current, previous)
 		{
 		}
 	}

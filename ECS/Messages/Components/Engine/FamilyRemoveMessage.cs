@@ -6,7 +6,7 @@ namespace Atlas.Framework.Messages
 {
 	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyRemoveMessage
 	{
-		public FamilyRemoveMessage(Type key, IReadOnlyFamily value) : base(key, value)
+		public FamilyRemoveMessage(IEngine messenger, Type key, IReadOnlyFamily value) : base(messenger, key, value)
 		{
 		}
 	}

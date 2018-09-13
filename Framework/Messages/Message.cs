@@ -2,26 +2,19 @@
 {
 	public class Message
 	{
-		private IMessageDispatcher messenger;
-
-		public IMessageDispatcher Messenger
-		{
-			get { return messenger; }
-			set { messenger = messenger ?? value; }
-		}
-
+		public IMessageDispatcher Messenger { get; }
 		public IMessageDispatcher CurrentMessenger { get; set; }
 
-		public bool AtMessenger
+		public Message(IMessageDispatcher messenger)
 		{
-			get { return (bool)messenger?.Equals(CurrentMessenger); }
+			Messenger = messenger;
 		}
 	}
 
 	public class Message<TMessenger> : Message, IMessage<TMessenger>
 		where TMessenger : IMessageDispatcher
 	{
-		public Message()
+		public Message(TMessenger messenger) : base(messenger)
 		{
 
 		}
@@ -29,13 +22,6 @@
 		public new TMessenger Messenger
 		{
 			get { return (TMessenger)base.Messenger; }
-			set { base.Messenger = value; }
-		}
-
-		public new TMessenger CurrentMessenger
-		{
-			get { return (TMessenger)base.CurrentMessenger; }
-			set { base.CurrentMessenger = value; }
 		}
 	}
 }

@@ -6,7 +6,7 @@ namespace Atlas.Framework.Messages
 {
 	class SystemRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemRemoveMessage
 	{
-		public SystemRemoveMessage(Type key, IReadOnlySystem value) : base(key, value)
+		public SystemRemoveMessage(IEngine messenger, Type key, IReadOnlySystem value) : base(messenger, key, value)
 		{
 		}
 	}

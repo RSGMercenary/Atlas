@@ -6,7 +6,7 @@ namespace Atlas.Framework.Messages
 {
 	class FamilyAddMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyAddMessage
 	{
-		public FamilyAddMessage(Type key, IReadOnlyFamily value) : base(key, value)
+		public FamilyAddMessage(IEngine messenger, Type key, IReadOnlyFamily value) : base(messenger, key, value)
 		{
 		}
 	}

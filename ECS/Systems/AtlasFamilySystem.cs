@@ -15,12 +15,12 @@ namespace Atlas.ECS.Systems
 
 		}
 
-		sealed override protected void Updating(double deltaTime)
+		protected sealed override void Updating(double deltaTime)
 		{
 			FamilyUpdate(deltaTime);
 		}
 
-		virtual protected void FamilyUpdate(double deltaTime)
+		protected virtual void FamilyUpdate(double deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
 			foreach(var member in family.Members)
@@ -30,13 +30,13 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		virtual protected void MemberUpdate(double deltaTime, TFamilyMember member) { }
+		protected virtual void MemberUpdate(double deltaTime, TFamilyMember member) { }
 
-		virtual protected void MemberAdded(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
+		protected virtual void MemberAdded(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		virtual protected void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
+		protected virtual void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		override protected void AddingEngine(IEngine engine)
+		protected override void AddingEngine(IEngine engine)
 		{
 			base.AddingEngine(engine);
 			family = engine.AddFamily<TFamilyMember>();
@@ -48,7 +48,7 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		override protected void RemovingEngine(IEngine engine)
+		protected override void RemovingEngine(IEngine engine)
 		{
 			family.RemoveListener<IFamilyMemberAddMessage>(EntityAdded);
 			family.RemoveListener<IFamilyMemberRemoveMessage>(EntityRemoved);

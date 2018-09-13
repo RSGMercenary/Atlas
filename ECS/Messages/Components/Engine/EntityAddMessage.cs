@@ -5,7 +5,7 @@ namespace Atlas.Framework.Messages
 {
 	class EntityAddMessage : ValueMessage<IEngine, IEntity>, IEntityAddMessage
 	{
-		public EntityAddMessage(IEntity value) : base(value)
+		public EntityAddMessage(IEngine messenger, IEntity value) : base(messenger, value)
 		{
 		}
 	}

@@ -6,7 +6,7 @@ namespace Atlas.Framework.Messages
 {
 	class SystemAddMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemAddMessage
 	{
-		public SystemAddMessage(Type key, IReadOnlySystem value) : base(key, value)
+		public SystemAddMessage(IEngine messenger, Type key, IReadOnlySystem value) : base(messenger, key, value)
 		{
 		}
 	}

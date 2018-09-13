@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class ChildrenMessage : Message<IEntity>, IChildrenMessage
 	{
-		public ChildrenMessage()
+		public ChildrenMessage(IEntity messenger) : base(messenger)
 		{
 
 		}

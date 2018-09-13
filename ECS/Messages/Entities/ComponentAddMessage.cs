@@ -6,7 +6,7 @@ namespace Atlas.Framework.Messages
 {
 	class ComponentAddMessage : KeyValueMessage<IEntity, Type, IComponent>, IComponentAddMessage
 	{
-		public ComponentAddMessage(Type key, IComponent value) : base(key, value)
+		public ComponentAddMessage(IEntity messenger, Type key, IComponent value) : base(messenger, key, value)
 		{
 		}
 	}

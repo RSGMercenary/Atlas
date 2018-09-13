@@ -5,7 +5,7 @@ namespace Atlas.Framework.Messages
 {
 	class SystemTypeAddMessage : ValueMessage<IEntity, Type>, ISystemTypeAddMessage
 	{
-		public SystemTypeAddMessage(Type value) : base(value)
+		public SystemTypeAddMessage(IEntity messenger, Type value) : base(messenger, value)
 		{
 		}
 	}

@@ -67,7 +67,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = autoDestroy;
 				autoDestroy = value;
-				Message<IAutoDestroyMessage>(new AutoDestroyMessage(value, previous));
+				Message<IAutoDestroyMessage>(new AutoDestroyMessage(this, value, previous));
 			}
 		}
 
@@ -90,7 +90,7 @@ namespace Atlas.ECS.Components
 		{
 			if(!managers.SetIndex(entity, index))
 				return false;
-			Message<IManagerMessage>(new ManagerMessage());
+			Message<IManagerMessage>(new ManagerMessage(this));
 			return true;
 		}
 
@@ -109,7 +109,7 @@ namespace Atlas.ECS.Components
 		{
 			if(!managers.Swap(index1, index2))
 				return false;
-			Message<IManagerMessage>(new ManagerMessage());
+			Message<IManagerMessage>(new ManagerMessage(this));
 			return true;
 		}
 
@@ -159,8 +159,8 @@ namespace Atlas.ECS.Components
 					entity.AddListener<IEngineMessage>(EntityEngineChanged);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
-					Message<IManagerAddMessage>(new ManagerAddMessage(index, entity));
-					Message<IManagerMessage>(new ManagerMessage());
+					Message<IManagerAddMessage>(new ManagerAddMessage(this, index, entity));
+					Message<IManagerMessage>(new ManagerMessage(this));
 				}
 				else
 				{
@@ -218,8 +218,8 @@ namespace Atlas.ECS.Components
 				if(managers.Count <= 0)
 					Engine = null;
 				RemovingManager(entity, index);
-				Message<IManagerRemoveMessage>(new ManagerRemoveMessage(index, entity));
-				Message<IManagerMessage>(new ManagerMessage());
+				Message<IManagerRemoveMessage>(new ManagerRemoveMessage(this, index, entity));
+				Message<IManagerMessage>(new ManagerMessage(this));
 				if(AutoDestroy && managers.Count <= 0)
 					Dispose();
 			}

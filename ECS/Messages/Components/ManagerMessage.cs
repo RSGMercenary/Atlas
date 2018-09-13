@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class ManagerMessage : Message<IComponent>, IManagerMessage
 	{
-		public ManagerMessage()
+		public ManagerMessage(IComponent messenger) : base(messenger)
 		{
 
 		}

@@ -123,7 +123,7 @@ namespace Atlas.ECS.Families
 			}
 			members.Add(member);
 			entities.Add(entity, member);
-			Message<IFamilyMemberAddMessage>(new FamilyMemberAddMessage(member));
+			Message<IFamilyMemberAddMessage>(new FamilyMemberAddMessage(this, member));
 		}
 
 		private void Remove(IEntity entity)
@@ -133,7 +133,7 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
-			Message<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(member));
+			Message<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(this, member));
 
 			if(Engine == null || !Engine.IsUpdating)
 			{

@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class FamilyMemberAddMessage : ValueMessage<IReadOnlyFamily, IFamilyMember>, IFamilyMemberAddMessage
 	{
-		public FamilyMemberAddMessage(IFamilyMember value) : base(value)
+		public FamilyMemberAddMessage(IReadOnlyFamily messenger, IFamilyMember value) : base(messenger, value)
 		{
 		}
 	}

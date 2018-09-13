@@ -5,12 +5,7 @@ namespace Atlas.Framework.Messages
 {
 	class SystemTypeRemoveMessage : ValueMessage<IEntity, Type>, ISystemTypeRemoveMessage
 	{
-		public SystemTypeRemoveMessage()
-		{
-
-		}
-
-		public SystemTypeRemoveMessage(Type value) : base(value)
+		public SystemTypeRemoveMessage(IEntity messenger, Type value) : base(messenger, value)
 		{
 		}
 	}

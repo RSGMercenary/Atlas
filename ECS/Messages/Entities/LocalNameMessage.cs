@@ -4,7 +4,7 @@ namespace Atlas.Framework.Messages
 {
 	class LocalNameMessage : PropertyMessage<IEntity, string>, ILocalNameMessage
 	{
-		public LocalNameMessage(string current, string previous) : base(current, previous)
+		public LocalNameMessage(IEntity messenger, string current, string previous) : base(messenger, current, previous)
 		{
 		}
 	}
