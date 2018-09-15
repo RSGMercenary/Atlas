@@ -1,14 +1,11 @@
-﻿using Atlas.Core.Collections.EngineList;
-using System;
-
-namespace Atlas.Core.Collections.Hierarchy
-{
+﻿namespace Atlas.Core.Collections.Hierarchy
+{/*
 	public class Hierarchy : IHierarchy
 	{
 		private IReadOnlyHierarchy root;
 		private IReadOnlyHierarchy parent;
 		private int parentIndex = -1;
-		private EngineList<IReadOnlyHierarchy> children = new EngineList<IReadOnlyHierarchy>();
+		private Group<IReadOnlyHierarchy> children = new Group<IReadOnlyHierarchy>();
 
 		IReadOnlyHierarchy IReadOnlyHierarchy.Root
 		{
@@ -374,5 +371,5 @@ namespace Atlas.Core.Collections.Hierarchy
 		{
 			return base.SwapChildren(child1, child2);
 		}
-	}
+	}*/
 }

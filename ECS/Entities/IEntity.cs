@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
@@ -62,7 +62,7 @@ namespace Atlas.ECS.Entities
 
 		int ParentIndex { get; set; }
 
-		IReadOnlyEngineList<IEntity> Children { get; }
+		IReadOnlyGroup<IEntity> Children { get; }
 
 		bool SetParent(IEntity parent = null, int index = int.MaxValue);
 

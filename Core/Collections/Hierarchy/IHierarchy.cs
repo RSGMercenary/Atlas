@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 
 namespace Atlas.Core.Collections.Hierarchy
 {
@@ -10,7 +10,7 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		int ParentIndex { get; }
 
-		IReadOnlyEngineList<IReadOnlyHierarchy> Children { get; }
+		IReadOnlyGroup<IReadOnlyHierarchy> Children { get; }
 
 		IReadOnlyHierarchy GetChild(int index);
 
@@ -31,7 +31,7 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		new int ParentIndex { get; set; }
 
-		new IReadOnlyEngineList<IHierarchy> Children { get; }
+		new IReadOnlyGroup<IHierarchy> Children { get; }
 
 		bool SetParent(IHierarchy parent, int index);
 
@@ -63,7 +63,7 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		new T Parent { get; }
 
-		new IReadOnlyEngineList<T> Children { get; }
+		new IReadOnlyGroup<T> Children { get; }
 
 		new T GetChild(int index);
 
