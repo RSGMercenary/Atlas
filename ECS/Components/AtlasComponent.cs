@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.ECS.Entities;
@@ -31,7 +31,7 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		private EngineList<IEntity> managers = new EngineList<IEntity>();
+		private Group<IEntity> managers = new Group<IEntity>();
 		private bool autoDestroy = true;
 		public bool IsShareable { get; } = false;
 
@@ -77,7 +77,7 @@ namespace Atlas.ECS.Components
 			get { return !IsShareable && managers.Count > 0 ? managers[0] : null; }
 		}
 
-		public IReadOnlyEngineList<IEntity> Managers
+		public IReadOnlyGroup<IEntity> Managers
 		{
 			get { return managers; }
 		}

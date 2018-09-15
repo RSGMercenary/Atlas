@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
@@ -15,7 +15,7 @@ namespace Atlas.ECS.Families
 	sealed class AtlasFamily<TFamilyMember> : EngineObject, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
-		private EngineList<TFamilyMember> members = new EngineList<TFamilyMember>();
+		private Group<TFamilyMember> members = new Group<TFamilyMember>();
 		private Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
 		private Dictionary<Type, string> components = new Dictionary<Type, string>();
 		private Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
@@ -32,11 +32,11 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		public IReadOnlyEngineList<TFamilyMember> Members { get { return members; } }
+		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
 
-		IReadOnlyEngineList<IFamilyMember> IReadOnlyFamily.Members
+		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members
 		{
-			get { return members as IReadOnlyEngineList<IFamilyMember>; }
+			get { return members as IReadOnlyGroup<IFamilyMember>; }
 		}
 
 		public sealed override void Dispose()

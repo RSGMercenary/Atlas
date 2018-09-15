@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +12,7 @@ namespace Atlas.Core.Signals
 			return signal != null;
 		}
 
-		private EngineList<SlotBase> slots = new EngineList<SlotBase>();
+		private Group<SlotBase> slots = new Group<SlotBase>();
 		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 

@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
@@ -163,7 +163,7 @@ namespace Atlas.ECS.Components
 		/// The Entities managing this Component. This will return all Entities
 		/// regardless of the Component's shareable status.
 		/// </summary>
-		IReadOnlyEngineList<IEntity> Managers { get; }
+		IReadOnlyGroup<IEntity> Managers { get; }
 
 		/// <summary>
 		/// A Boolean of whether this Component is shareable. Shareable Components

@@ -3,30 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Atlas.Core.Collections.EngineList
+namespace Atlas.Core.Collections.Group
 {
-	public class EngineList<T> : IEngineList<T>
+	public class Group<T> : IGroup<T>
 	{
-		private class EngineListItem
+		private class GroupItem
 		{
 			public T Value { get; set; }
 			public bool IsRemoved { get; set; } = false;
 		}
 
-		private List<EngineListItem> items = new List<EngineListItem>();
-		private Stack<EngineListItem> pooled = new Stack<EngineListItem>();
-		private Stack<EngineListItem> removed = new Stack<EngineListItem>();
+		private List<GroupItem> items = new List<GroupItem>();
+		private Stack<GroupItem> pooled = new Stack<GroupItem>();
+		private Stack<GroupItem> removed = new Stack<GroupItem>();
 		private int iterators = 0;
 
-		private EngineListItem GetItem(T value)
+		private GroupItem GetItem(T value)
 		{
-			var item = pooled.Count > 0 ? pooled.Pop() : new EngineListItem();
+			var item = pooled.Count > 0 ? pooled.Pop() : new GroupItem();
 			item.Value = value;
 			item.IsRemoved = false;
 			return item;
 		}
 
-		private void PoolItem(EngineListItem element)
+		private void PoolItem(GroupItem element)
 		{
 			element.Value = default;
 			//Leave IsRemoved = true for now. Seems cleaner.

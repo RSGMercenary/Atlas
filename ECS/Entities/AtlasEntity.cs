@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
@@ -66,7 +66,7 @@ namespace Atlas.ECS.Entities
 		private IEntity root;
 		private IEntity parent;
 		private int parentIndex = -1;
-		private EngineList<IEntity> children = new EngineList<IEntity>();
+		private Group<IEntity> children = new Group<IEntity>();
 		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 		private HashSet<Type> systems = new HashSet<Type>();
 		private bool autoDestroy = true;
@@ -680,7 +680,7 @@ namespace Atlas.ECS.Entities
 			return true;
 		}
 
-		public IReadOnlyEngineList<IEntity> Children
+		public IReadOnlyGroup<IEntity> Children
 		{
 			get { return children; }
 		}

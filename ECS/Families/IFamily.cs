@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
@@ -7,13 +7,13 @@ namespace Atlas.ECS.Families
 {
 	public interface IReadOnlyFamily : IEngineObject
 	{
-		IReadOnlyEngineList<IFamilyMember> Members { get; }
+		IReadOnlyGroup<IFamilyMember> Members { get; }
 	}
 
 	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily
 		where TFamilyMember : IFamilyMember, new()
 	{
-		new IReadOnlyEngineList<TFamilyMember> Members { get; }
+		new IReadOnlyGroup<TFamilyMember> Members { get; }
 	}
 
 	public interface IFamily : IReadOnlyFamily

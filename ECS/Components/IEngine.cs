@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
@@ -19,7 +19,7 @@ namespace Atlas.ECS.Components
 		/// This is done by creating a root Entity, adding an Engine Component
 		/// to it, and then adding children to that hierarchy.</para>
 		/// </summary>
-		IReadOnlyEngineList<IEntity> Entities { get; }
+		IReadOnlyGroup<IEntity> Entities { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing an Entity with the given global name.
@@ -53,7 +53,7 @@ namespace Atlas.ECS.Components
 		/// <para>Systems are added to and removed from the Engine by being managed
 		/// as a Type to an Entity already in the Entity hierarchy.</para>
 		/// </summary>
-		IReadOnlyEngineList<IReadOnlySystem> Systems { get; }
+		IReadOnlyGroup<IReadOnlySystem> Systems { get; }
 
 		bool AddSystemType<TISystem, TSystem>()
 			where TISystem : ISystem
@@ -119,7 +119,7 @@ namespace Atlas.ECS.Components
 		/// <para>Families of Entities are added to and removed from the Engine by
 		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		IReadOnlyEngineList<IReadOnlyFamily> Families { get; }
+		IReadOnlyGroup<IReadOnlyFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.

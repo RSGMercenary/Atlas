@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.EngineList;
+﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.ECS.Entities;
@@ -28,9 +28,9 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		private EngineList<IEntity> entities = new EngineList<IEntity>();
-		private EngineList<IReadOnlyFamily> families = new EngineList<IReadOnlyFamily>();
-		private EngineList<IReadOnlySystem> systems = new EngineList<IReadOnlySystem>();
+		private Group<IEntity> entities = new Group<IEntity>();
+		private Group<IReadOnlyFamily> families = new Group<IReadOnlyFamily>();
+		private Group<IReadOnlySystem> systems = new Group<IReadOnlySystem>();
 
 		private Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
 		private Dictionary<Type, IReadOnlyFamily> familiesType = new Dictionary<Type, IReadOnlyFamily>();
@@ -88,9 +88,9 @@ namespace Atlas.ECS.Components
 			base.RemovingManager(entity, index);
 		}
 
-		public IReadOnlyEngineList<IEntity> Entities { get { return entities; } }
-		public IReadOnlyEngineList<IReadOnlyFamily> Families { get { return families; } }
-		public IReadOnlyEngineList<IReadOnlySystem> Systems { get { return systems; } }
+		public IReadOnlyGroup<IEntity> Entities { get { return entities; } }
+		public IReadOnlyGroup<IReadOnlyFamily> Families { get { return families; } }
+		public IReadOnlyGroup<IReadOnlySystem> Systems { get { return systems; } }
 
 		#region Entities
 
