@@ -1,6 +1,7 @@
-﻿using Atlas.ECS.Entities;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Entities;
 
-namespace Atlas.Core.Messages
+namespace Atlas.ECS.Messages
 {
 	class RootMessage : PropertyMessage<IEntity, IEntity>, IRootMessage
 	{

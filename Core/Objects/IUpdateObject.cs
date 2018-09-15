@@ -1,6 +1,4 @@
-﻿using Atlas.Core.Objects;
-
-namespace Atlas.ECS.Objects
+﻿namespace Atlas.Core.Objects
 {
 	public interface IUpdateObject : IObject
 	{

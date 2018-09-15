@@ -28,7 +28,7 @@ namespace Atlas.Core.Collections.EngineList
 
 		private void PoolItem(EngineListItem element)
 		{
-			element.Value = default(T);
+			element.Value = default;
 			//Leave IsRemoved = true for now. Seems cleaner.
 			pooled.Push(element);
 
@@ -187,10 +187,10 @@ namespace Atlas.Core.Collections.EngineList
 			foreach(var item in this)
 				if(method(item))
 					return item;
-			return default(T);
+			return default;
 		}
 
-		override public string ToString()
+		public override string ToString()
 		{
 			var text = new StringBuilder();
 			text.Append('[');

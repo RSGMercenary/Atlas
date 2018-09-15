@@ -5,16 +5,16 @@ namespace Atlas.Core.Objects
 {
 	public abstract class AtlasObject : MessageDispatcher, IObject
 	{
-		public static implicit operator bool(AtlasObject engineObject)
+		public static implicit operator bool(AtlasObject atlasObject)
 		{
-			return engineObject != null;
+			return atlasObject != null;
 		}
 
 		private ObjectState state = ObjectState.Disposed;
 
 		public AtlasObject()
 		{
-			Initialize(true);
+			Compose(true);
 		}
 
 		~AtlasObject()
@@ -35,18 +35,18 @@ namespace Atlas.Core.Objects
 			}
 		}
 
-		internal void Initialize()
+		internal void Compose()
 		{
-			Initialize(false);
+			Compose(false);
 		}
 
-		private void Initialize(bool constructor)
+		private void Compose(bool constructor)
 		{
 			if(state != ObjectState.Disposed)
 				return;
-			State = ObjectState.Initializing;
-			Initializing(constructor);
-			State = ObjectState.Initialized;
+			State = ObjectState.Composing;
+			Composing(constructor);
+			State = ObjectState.Composed;
 			GC.ReRegisterForFinalize(this);
 		}
 
@@ -57,7 +57,7 @@ namespace Atlas.Core.Objects
 
 		private void Dispose(bool finalizer)
 		{
-			if(state != ObjectState.Initialized)
+			if(state != ObjectState.Composed)
 				return;
 			State = ObjectState.Disposing;
 			Disposing(finalizer);
@@ -66,9 +66,9 @@ namespace Atlas.Core.Objects
 		}
 
 		/// <summary>
-		/// Called when this instance is being initialized. Should not be called manually.
+		/// Called when this instance is being composed. Should not be called manually.
 		/// </summary>
-		protected virtual void Initializing(bool constructor)
+		protected virtual void Composing(bool constructor)
 		{
 
 		}

@@ -1,6 +1,7 @@
-﻿using Atlas.ECS.Families;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Families;
 
-namespace Atlas.Core.Messages
+namespace Atlas.ECS.Messages
 {
 	class FamilyMemberAddMessage : ValueMessage<IReadOnlyFamily, IFamilyMember>, IFamilyMemberAddMessage
 	{

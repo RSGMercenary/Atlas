@@ -2,6 +2,7 @@
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Atlas.ECS.Components
 		{
 			var type = typeof(TComponent);
 			if(!pools.ContainsKey(type))
-				pools.Add(type, new Pool<TComponent>(() => new TComponent(), component => component.Initialize()));
+				pools.Add(type, new Pool<TComponent>(() => new TComponent(), component => component.Compose()));
 			return pools[type] as IReadOnlyPool<TComponent>;
 		}
 

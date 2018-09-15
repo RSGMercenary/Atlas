@@ -1,7 +1,9 @@
 ﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -63,13 +65,13 @@ namespace Atlas.ECS.Components
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, EntityHierarchy.All);
-			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, EntityHierarchy.All);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, MessageHierarchy.All);
 			AddEntity(entity);
 		}
 
@@ -550,7 +552,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public bool HasFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
+			where TFamilyMember : IFamilyMember, new()
 		{
 			return HasFamily(typeof(TFamilyMember));
 		}
@@ -561,7 +563,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
+			where TFamilyMember : IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
@@ -586,7 +588,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public IReadOnlyFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
+			where TFamilyMember : IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
@@ -616,7 +618,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
+			where TFamilyMember : IFamilyMember, new()
 		{
 			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
 		}

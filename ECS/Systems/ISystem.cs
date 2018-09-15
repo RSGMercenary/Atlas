@@ -1,4 +1,5 @@
-﻿using Atlas.ECS.Objects;
+﻿using Atlas.Core.Objects;
+using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {

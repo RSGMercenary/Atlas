@@ -1,9 +1,10 @@
 ﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.Core.Messages.Signals;
 using Atlas.Core.Signals;
 using Atlas.ECS.Components;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using System;
@@ -18,7 +19,7 @@ namespace Atlas.ECS.Entities
 
 		#region Static Singleton
 
-		private static Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity(), entity => entity.Initialize());
+		private static Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity(), entity => entity.Compose());
 
 		public static IReadOnlyPool<AtlasEntity> Pool() { return pool; }
 
@@ -523,7 +524,7 @@ namespace Atlas.ECS.Entities
 				int index = children.IndexOf(child);
 				Message<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
 				Message<IChildrenMessage>(new ChildrenMessage(this));
-				//Could've been readded suring messaging?
+				//Could've been readded during messaging?
 				if(child.Parent != this)
 					children.Remove(child);
 			}
@@ -843,23 +844,23 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		public void AddListener<TMessage>(Action<TMessage> listener, EntityHierarchy hierarchy)
+		public void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
 			where TMessage : IMessage
 		{
-			var slot = AddListenerSlot(listener, 0) as EntitySlot<TMessage>;
+			var slot = AddListenerSlot(listener, 0) as HierarchySlot<TMessage>;
 			slot.Hierarchy = hierarchy;
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, EntityHierarchy hierarchy)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
 			where TMessage : IMessage
 		{
-			var slot = AddListenerSlot(listener, priority) as EntitySlot<TMessage>;
+			var slot = AddListenerSlot(listener, priority) as HierarchySlot<TMessage>;
 			slot.Hierarchy = hierarchy;
 		}
 
-		protected sealed override Signal<TMessage> GetSignal<TMessage>()
+		protected sealed override Signal<TMessage> CreateSignal<TMessage>()
 		{
-			return new EntitySignal<TMessage>();
+			return new HierarchySignal<TMessage>();
 		}
 
 		public sealed override void Message<TMessage>(TMessage message)

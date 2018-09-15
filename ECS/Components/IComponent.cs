@@ -1,11 +1,12 @@
 ﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IComponent : IAutoDestroyObject, IEngineObject
+	public interface IComponent : IEngineObject, IAutoDestroyObject
 	{
 		/// <summary>
 		/// Determines whether <see cref="IObject.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.

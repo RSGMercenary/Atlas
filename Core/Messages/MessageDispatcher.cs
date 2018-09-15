@@ -42,14 +42,8 @@ namespace Atlas.Core.Messages
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
-				messages.Add(type, GetSignal<TMessage>());
+				messages.Add(type, CreateSignal<TMessage>());
 			return messages[type].Add(listener, priority);
-		}
-
-		protected virtual Signal<TMessage> GetSignal<TMessage>()
-			where TMessage : IMessage
-		{
-			return new Signal<TMessage>();
 		}
 
 		public void RemoveListener<TMessage>(Action<TMessage> listener)
@@ -64,6 +58,12 @@ namespace Atlas.Core.Messages
 				return;
 			messages.Remove(type);
 			signal.Dispose();
+		}
+
+		protected virtual Signal<TMessage> CreateSignal<TMessage>()
+			where TMessage : IMessage
+		{
+			return new Signal<TMessage>();
 		}
 	}
 }

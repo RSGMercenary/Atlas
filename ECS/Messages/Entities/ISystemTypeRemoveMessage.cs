@@ -1,7 +1,8 @@
-﻿using Atlas.ECS.Entities;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Entities;
 using System;
 
-namespace Atlas.Core.Messages
+namespace Atlas.ECS.Messages
 {
 	public interface ISystemTypeRemoveMessage : IValueMessage<IEntity, Type>
 	{

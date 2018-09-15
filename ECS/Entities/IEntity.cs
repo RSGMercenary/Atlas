@@ -1,5 +1,7 @@
 ﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
+using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
@@ -251,10 +253,10 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		void AddListener<TMessage>(Action<TMessage> listener, EntityHierarchy hierarchy)
+		void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
 			where TMessage : IMessage;
 
-		void AddListener<TMessage>(Action<TMessage> listener, int priority, EntityHierarchy hierarchy)
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
 			where TMessage : IMessage;
 
 		#endregion

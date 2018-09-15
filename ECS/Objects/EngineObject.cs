@@ -1,6 +1,6 @@
-﻿using Atlas.ECS.Components;
-using Atlas.Core.Messages;
-using Atlas.Core.Objects;
+﻿using Atlas.Core.Objects;
+using Atlas.ECS.Components;
+using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Objects
 {

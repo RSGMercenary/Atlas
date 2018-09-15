@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Atlas.ECS.Entities
+namespace Atlas.Core.Collections.Hierarchy
 {
 	[Flags]
-	public enum EntityHierarchy
+	public enum MessageHierarchy
 	{
 		Self = 1,
 		Sibling = 2,

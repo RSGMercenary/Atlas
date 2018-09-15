@@ -1,7 +1,7 @@
 ﻿using Atlas.Core.Collections.EngineList;
+using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
-using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -134,7 +134,7 @@ namespace Atlas.ECS.Components
 		/// <typeparam name="TFamilyType"></typeparam>
 		/// <returns></returns>
 		bool HasFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new();
+			where TFamilyMember : IFamilyMember, new();
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given Type.
@@ -149,7 +149,7 @@ namespace Atlas.ECS.Components
 		/// <typeparam name="TFamilyMember"></typeparam>
 		/// <returns></returns>
 		IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new();
+			where TFamilyMember : IFamilyMember, new();
 
 		/// <summary>
 		/// Returns the Family with the given Type.
@@ -159,10 +159,10 @@ namespace Atlas.ECS.Components
 		IReadOnlyFamily GetFamily(Type type);
 
 		IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new();
+			where TFamilyMember : IFamilyMember, new();
 
 		IReadOnlyFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new();
+			where TFamilyMember : IFamilyMember, new();
 
 		#endregion
 

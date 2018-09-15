@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
@@ -20,7 +21,7 @@ namespace Atlas.ECS.Systems
 
 		public sealed override void Dispose()
 		{
-			if(State != ObjectState.Initialized)
+			if(State != ObjectState.Composed)
 				return;
 			//Can't destroy System mid-update.
 			if(Engine == null || Engine.IsUpdating)

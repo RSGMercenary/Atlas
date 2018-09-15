@@ -1,7 +1,8 @@
-﻿using Atlas.ECS.Components;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
 
-namespace Atlas.Core.Messages
+namespace Atlas.ECS.Messages
 {
 	class EntityAddMessage : ValueMessage<IEngine, IEntity>, IEntityAddMessage
 	{

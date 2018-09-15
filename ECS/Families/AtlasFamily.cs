@@ -4,6 +4,7 @@ using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Reflection;
 namespace Atlas.ECS.Families
 {
 	sealed class AtlasFamily<TFamilyMember> : EngineObject, IFamily<TFamilyMember>
-		where TFamilyMember : class, IFamilyMember, new()
+		where TFamilyMember : IFamilyMember, new()
 	{
 		private EngineList<TFamilyMember> members = new EngineList<TFamilyMember>();
 		private Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
@@ -40,7 +41,7 @@ namespace Atlas.ECS.Families
 
 		public sealed override void Dispose()
 		{
-			if(State != ObjectState.Initialized)
+			if(State != ObjectState.Composed)
 				return;
 			//Can't destroy Family mid-update.
 			if(Engine == null || Engine.IsUpdating)

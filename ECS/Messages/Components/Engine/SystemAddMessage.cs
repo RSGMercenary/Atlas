@@ -1,8 +1,9 @@
-﻿using Atlas.ECS.Components;
+﻿using Atlas.Core.Messages;
+using Atlas.ECS.Components;
 using Atlas.ECS.Systems;
 using System;
 
-namespace Atlas.Core.Messages
+namespace Atlas.ECS.Messages
 {
 	class SystemAddMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemAddMessage
 	{
