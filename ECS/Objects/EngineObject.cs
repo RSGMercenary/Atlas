@@ -4,7 +4,8 @@ using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Objects
 {
-	public abstract class EngineObject : AtlasObject, IEngineObject
+	public abstract class EngineObject<T> : AtlasObject<T>, IEngineObject<T>
+		where T : class, IEngineObject
 	{
 		private IEngine engine;
 
@@ -17,7 +18,7 @@ namespace Atlas.ECS.Objects
 					return;
 				var previous = engine;
 				engine = value;
-				Message<IEngineMessage>(new EngineMessage(this, value, previous));
+				Dispatch<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
 			}
 		}
 	}

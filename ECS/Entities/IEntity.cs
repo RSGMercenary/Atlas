@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IEngineObject, IAutoDestroyObject, ISleepObject
+	public interface IEntity : IEngineObject<IEntity>, IAutoDestroyObject<IEntity>, ISleepObject<IEntity>
 	{
 		#region Entities
 
@@ -223,13 +223,13 @@ namespace Atlas.ECS.Entities
 		#region Systems
 
 		bool HasSystem(Type type);
-		bool HasSystem<TISystem>() where TISystem : IReadOnlySystem;
+		bool HasSystem<TISystem>() where TISystem : ISystem;
 
 		bool AddSystem(Type type);
-		bool AddSystem<TISystem>() where TISystem : IReadOnlySystem;
+		bool AddSystem<TISystem>() where TISystem : ISystem;
 
 		bool RemoveSystem(Type type);
-		bool RemoveSystem<TISystem>() where TISystem : IReadOnlySystem;
+		bool RemoveSystem<TISystem>() where TISystem : ISystem;
 		bool RemoveSystems();
 
 		IReadOnlyCollection<Type> Systems { get; }
@@ -254,10 +254,10 @@ namespace Atlas.ECS.Entities
 		#region Messages
 
 		void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
-			where TMessage : IMessage;
+			where TMessage : IMessage<IEntity>;
 
 		void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
-			where TMessage : IMessage;
+			where TMessage : IMessage<IEntity>;
 
 		#endregion
 

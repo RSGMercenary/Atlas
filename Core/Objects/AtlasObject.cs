@@ -3,13 +3,9 @@ using System;
 
 namespace Atlas.Core.Objects
 {
-	public abstract class AtlasObject : MessageDispatcher, IObject
+	public abstract class AtlasObject<T> : Messenger<T>, IObject<T>
+		where T : class, IObject
 	{
-		public static implicit operator bool(AtlasObject atlasObject)
-		{
-			return atlasObject != null;
-		}
-
 		private ObjectState state = ObjectState.Disposed;
 
 		public AtlasObject()
@@ -31,7 +27,7 @@ namespace Atlas.Core.Objects
 					return;
 				var previous = state;
 				state = value;
-				Message<IObjectStateMessage>(new ObjectStateMessage(this, value, previous));
+				Dispatch<IObjectStateMessage<T>>(new ObjectStateMessage<T>(this as T, value, previous));
 			}
 		}
 

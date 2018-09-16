@@ -1,7 +1,7 @@
 ﻿namespace Atlas.Core.Messages
 {
 	public abstract class PropertyMessage<TMessenger, TProperty> : Message<TMessenger>, IPropertyMessage<TMessenger, TProperty>
-		where TMessenger : IMessageDispatcher
+		where TMessenger : IMessenger
 	{
 		public PropertyMessage(TMessenger messenger, TProperty current, TProperty previous) : base(messenger)
 		{

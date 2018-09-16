@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public sealed class AtlasEntity : EngineObject, IEntity
+	public sealed class AtlasEntity : EngineObject<IEntity>, IEntity
 	{
 		public const string RootName = "Root";
 
@@ -121,7 +121,7 @@ namespace Atlas.ECS.Entities
 					return;
 				string previous = globalName;
 				globalName = value;
-				Message<IGlobalNameMessage>(new GlobalNameMessage(this, value, previous));
+				Dispatch<IGlobalNameMessage>(new GlobalNameMessage(this, value, previous));
 			}
 		}
 
@@ -142,7 +142,7 @@ namespace Atlas.ECS.Entities
 					return;
 				string previous = localName;
 				localName = value;
-				Message<ILocalNameMessage>(new LocalNameMessage(this, value, previous));
+				Dispatch<ILocalNameMessage>(new LocalNameMessage(this, value, previous));
 			}
 		}
 
@@ -364,7 +364,7 @@ namespace Atlas.ECS.Entities
 				return null;
 			//The component isn't shareable and it already has a manager.
 			//Or this Entity alreay manages this Component.
-			if(component.Manager != null || component.Managers.Contains(this))
+			if(component.Manager != null || component.HasManager(this))
 				return null;
 			if(type == null)
 				type = component.GetType();
@@ -380,7 +380,7 @@ namespace Atlas.ECS.Entities
 				RemoveComponent(type);
 				components.Add(type, component);
 				component.AddManager(this, type, index);
-				Message<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
+				Dispatch<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
 			}
 			return component;
 		}
@@ -405,7 +405,7 @@ namespace Atlas.ECS.Entities
 			if(!components.ContainsKey(type))
 				return null;
 			var component = components[type];
-			Message<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
+			Dispatch<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
 			components.Remove(type);
 			component.RemoveManager(this, type);
 			return component;
@@ -441,7 +441,7 @@ namespace Atlas.ECS.Entities
 					return;
 				var previous = root;
 				root = value;
-				Message<IRootMessage>(new RootMessage(this, value, previous));
+				Dispatch<IRootMessage>(new RootMessage(this, value, previous));
 			}
 		}
 
@@ -497,8 +497,8 @@ namespace Atlas.ECS.Entities
 					if(HasChild(child.LocalName))
 						child.LocalName = UniqueName;
 					children.Insert(index, child);
-					Message<IChildAddMessage>(new ChildAddMessage(this, index, child));
-					Message<IChildrenMessage>(new ChildrenMessage(this));
+					Dispatch<IChildAddMessage>(new ChildAddMessage(this, index, child));
+					Dispatch<IChildrenMessage>(new ChildrenMessage(this));
 				}
 				else
 				{
@@ -522,8 +522,8 @@ namespace Atlas.ECS.Entities
 				if(!HasChild(child))
 					return null;
 				int index = children.IndexOf(child);
-				Message<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
-				Message<IChildrenMessage>(new ChildrenMessage(this));
+				Dispatch<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
+				Dispatch<IChildrenMessage>(new ChildrenMessage(this));
 				//Could've been readded during messaging?
 				if(child.Parent != this)
 					children.Remove(child);
@@ -573,7 +573,7 @@ namespace Atlas.ECS.Entities
 				return false;
 			var previous = parent;
 			parent = next;
-			Message<IParentMessage>(new ParentMessage(this, next, previous));
+			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
 
 			int sleeping = 0;
 			//Extra previous and next checks against parent
@@ -657,7 +657,7 @@ namespace Atlas.ECS.Entities
 
 			children.RemoveAt(previous);
 			children.Insert(index, child);
-			Message<IChildrenMessage>(new ChildrenMessage(this));
+			Dispatch<IChildrenMessage>(new ChildrenMessage(this));
 			return true;
 		}
 
@@ -676,7 +676,7 @@ namespace Atlas.ECS.Entities
 		{
 			if(!children.Swap(index1, index2))
 				return false;
-			Message<IChildrenMessage>(new ChildrenMessage(this));
+			Dispatch<IChildrenMessage>(new ChildrenMessage(this));
 			return true;
 		}
 
@@ -691,7 +691,7 @@ namespace Atlas.ECS.Entities
 				return;
 			int previous = parentIndex;
 			parentIndex = value;
-			Message<IParentIndexMessage>(new ParentIndexMessage(this, value, previous));
+			Dispatch<IParentIndexMessage>(new ParentIndexMessage(this, value, previous));
 		}
 
 		#endregion
@@ -707,7 +707,7 @@ namespace Atlas.ECS.Entities
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage>(new SleepMessage(this, value, previous));
+				Dispatch<ISleepMessage<IEntity>>(new SleepMessage<IEntity>(this, value, previous));
 			}
 		}
 
@@ -732,7 +732,7 @@ namespace Atlas.ECS.Entities
 					return;
 				int previous = freeSleeping;
 				freeSleeping = value;
-				Message<IFreeSleepMessage>(new FreeSleepMessage(this, value, previous));
+				Dispatch<IFreeSleepMessage>(new FreeSleepMessage(this, value, previous));
 				if(parent == null)
 					return;
 				if(value > 0 && previous <= 0)
@@ -766,10 +766,10 @@ namespace Atlas.ECS.Entities
 
 		public IReadOnlyCollection<Type> Systems
 		{
-			get { return (IReadOnlyCollection<Type>)systems; }
+			get { return systems; }
 		}
 
-		public bool HasSystem<TISystem>() where TISystem : IReadOnlySystem
+		public bool HasSystem<TISystem>() where TISystem : ISystem
 		{
 			return HasSystem(typeof(TISystem));
 		}
@@ -779,7 +779,7 @@ namespace Atlas.ECS.Entities
 			return systems.Contains(type);
 		}
 
-		public bool AddSystem<TISystem>() where TISystem : IReadOnlySystem
+		public bool AddSystem<TISystem>() where TISystem : ISystem
 		{
 			return AddSystem(typeof(TISystem));
 		}
@@ -790,18 +790,18 @@ namespace Atlas.ECS.Entities
 				return false;
 			if(!type.IsInterface) //Type must be an interface.
 				return false;
-			if(type == typeof(IReadOnlySystem)) //Type can't directly be ISystem.
+			if(type == typeof(ISystem)) //Type can't directly be ISystem.
 				return false;
-			if(!typeof(IReadOnlySystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
+			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
 				return false;
 			if(systems.Contains(type))
 				return false;
 			systems.Add(type);
-			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
+			Dispatch<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
 			return true;
 		}
 
-		public bool RemoveSystem<TISystem>() where TISystem : IReadOnlySystem
+		public bool RemoveSystem<TISystem>() where TISystem : ISystem
 		{
 			return RemoveSystem(typeof(TISystem));
 		}
@@ -813,8 +813,7 @@ namespace Atlas.ECS.Entities
 			if(!systems.Contains(type))
 				return false;
 			systems.Remove(type);
-
-			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
+			Dispatch<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
 			return true;
 		}
 
@@ -838,21 +837,21 @@ namespace Atlas.ECS.Entities
 					return;
 				var previous = autoDestroy;
 				autoDestroy = value;
-				Message<IAutoDestroyMessage>(new AutoDestroyMessage(this, value, previous));
+				Dispatch<IAutoDestroyMessage<IEntity>>(new AutoDestroyMessage<IEntity>(this, value, previous));
 			}
 		}
 
 		#region Messages
 
 		public void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
-			where TMessage : IMessage
+			where TMessage : IMessage<IEntity>
 		{
 			var slot = AddListenerSlot(listener, 0) as HierarchySlot<TMessage>;
 			slot.Hierarchy = hierarchy;
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
-			where TMessage : IMessage
+			where TMessage : IMessage<IEntity>
 		{
 			var slot = AddListenerSlot(listener, priority) as HierarchySlot<TMessage>;
 			slot.Hierarchy = hierarchy;
@@ -863,14 +862,14 @@ namespace Atlas.ECS.Entities
 			return new HierarchySignal<TMessage>();
 		}
 
-		public sealed override void Message<TMessage>(TMessage message)
+		public sealed override void Dispatch<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
 			var previousTarget = message.CurrentMessenger;
 
 			//Standard Message() call.
 			//Set Target if null and Dispatch() event by type;
-			base.Message(message);
+			base.Dispatch(message);
 
 			//Send Message to children.
 			foreach(var child in children)
@@ -878,7 +877,7 @@ namespace Atlas.ECS.Entities
 				//Don't send Message back to child that told the parent to Message().
 				if(child == previousTarget)
 					continue;
-				child.Message(message);
+				child.Dispatch(message);
 				//Reset CurrentTarget back to this so
 				//the next child (and parent) can block messaging from its original source.
 				message.CurrentMessenger = this;
@@ -889,7 +888,7 @@ namespace Atlas.ECS.Entities
 			if(Parent != null)
 			{
 				if(Parent != previousTarget)
-					Parent.Message(message);
+					Parent.Dispatch(message);
 			}
 			else
 			{
@@ -901,13 +900,13 @@ namespace Atlas.ECS.Entities
 
 		protected override void Messaging(IMessage message)
 		{
-			if(message is ISleepMessage)
+			if(message is ISleepMessage<IEntity>)
 			{
 				if(message.Messenger != Parent)
 					return;
 				if(IsFreeSleeping)
 					return;
-				var cast = message as ISleepMessage;
+				var cast = message as ISleepMessage<IEntity>;
 				if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
 					++Sleeping;
 				else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)
@@ -926,11 +925,11 @@ namespace Atlas.ECS.Entities
 					return;
 				SetParentIndex(Parent.GetChildIndex(this));
 			}
-			else if(message is IAutoDestroyMessage)
+			else if(message is IAutoDestroyMessage<IEntity>)
 			{
 				if(message.CurrentMessenger != message.Messenger)
 					return;
-				var cast = message as IAutoDestroyMessage;
+				var cast = message as IAutoDestroyMessage<IEntity>;
 				if(cast.CurrentValue && parent == null)
 					Dispose();
 			}

@@ -10,13 +10,19 @@ using System.Text;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasComponent : EngineObject, IComponent
+	public abstract class AtlasComponent : AtlasComponent<IComponent>
+	{
+
+	}
+
+	public abstract class AtlasComponent<T> : EngineObject<T>, IComponent<T>
+		where T : class, IComponent
 	{
 		#region Static
 
 		private static Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
-		public static IReadOnlyPool<TComponent> Pool<TComponent>() where TComponent : AtlasComponent, new()
+		public static IReadOnlyPool<TComponent> Pool<TComponent>() where TComponent : AtlasComponent<T>, new()
 		{
 			var type = typeof(TComponent);
 			if(!pools.ContainsKey(type))
@@ -24,7 +30,7 @@ namespace Atlas.ECS.Components
 			return pools[type] as IReadOnlyPool<TComponent>;
 		}
 
-		public static TComponent Get<TComponent>() where TComponent : AtlasComponent, new()
+		public static TComponent Get<TComponent>() where TComponent : AtlasComponent<T>, new()
 		{
 			return Pool<TComponent>().Remove();
 		}
@@ -68,7 +74,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = autoDestroy;
 				autoDestroy = value;
-				Message<IAutoDestroyMessage>(new AutoDestroyMessage(this, value, previous));
+				Dispatch<IAutoDestroyMessage<T>>(new AutoDestroyMessage<T>(this as T, value, previous));
 			}
 		}
 
@@ -82,6 +88,11 @@ namespace Atlas.ECS.Components
 			get { return managers; }
 		}
 
+		public bool HasManager(IEntity entity)
+		{
+			return managers.Contains(entity);
+		}
+
 		public int GetManagerIndex(IEntity entity)
 		{
 			return managers.IndexOf(entity);
@@ -91,7 +102,7 @@ namespace Atlas.ECS.Components
 		{
 			if(!managers.SetIndex(entity, index))
 				return false;
-			Message<IManagerMessage>(new ManagerMessage(this));
+			Dispatch<IManagerMessage>(new ManagerMessage(this));
 			return true;
 		}
 
@@ -110,7 +121,7 @@ namespace Atlas.ECS.Components
 		{
 			if(!managers.Swap(index1, index2))
 				return false;
-			Message<IManagerMessage>(new ManagerMessage(this));
+			Dispatch<IManagerMessage>(new ManagerMessage(this));
 			return true;
 		}
 
@@ -157,11 +168,11 @@ namespace Atlas.ECS.Components
 				{
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Insert(index, entity);
-					entity.AddListener<IEngineMessage>(EntityEngineChanged);
+					entity.AddListener<IEngineMessage<IEntity>>(EntityEngineChanged);
 					Engine = entity.Engine;
 					AddingManager(entity, index);
-					Message<IManagerAddMessage>(new ManagerAddMessage(this, index, entity));
-					Message<IManagerMessage>(new ManagerMessage(this));
+					Dispatch<IManagerAddMessage>(new ManagerAddMessage(this, index, entity));
+					Dispatch<IManagerMessage>(new ManagerMessage(this));
 				}
 				else
 				{
@@ -215,12 +226,12 @@ namespace Atlas.ECS.Components
 			{
 				int index = managers.IndexOf(entity);
 				managers.RemoveAt(index);
-				entity.RemoveListener<IEngineMessage>(EntityEngineChanged);
+				entity.RemoveListener<IEngineMessage<IEntity>>(EntityEngineChanged);
 				if(managers.Count <= 0)
 					Engine = null;
 				RemovingManager(entity, index);
-				Message<IManagerRemoveMessage>(new ManagerRemoveMessage(this, index, entity));
-				Message<IManagerMessage>(new ManagerMessage(this));
+				Dispatch<IManagerRemoveMessage>(new ManagerRemoveMessage(this, index, entity));
+				Dispatch<IManagerMessage>(new ManagerMessage(this));
 				if(AutoDestroy && managers.Count <= 0)
 					Dispose();
 			}
@@ -261,7 +272,7 @@ namespace Atlas.ECS.Components
 			return true;
 		}
 
-		private void EntityEngineChanged(IEngineMessage message)
+		private void EntityEngineChanged(IEngineMessage<IEntity> message)
 		{
 			Engine = message.CurrentValue;
 		}
@@ -271,31 +282,24 @@ namespace Atlas.ECS.Components
 			get { return base.Engine; }
 			set
 			{
-				if(managers.Count <= 0)
+				int count = 0;
+				foreach(var manager in managers)
 				{
+					if(manager.Engine == value)
+						++count;
+				}
+				if(count <= 0)
 					base.Engine = null;
-				}
-				else
-				{
-					int same = 0;
-					foreach(var manager in managers)
-					{
-						if(manager.Engine == value)
-							++same;
-					}
-					if(managers.Count == same)
-						base.Engine = value;
-					else if(same > 0)
-						base.Engine = null;
-				}
+				else if(managers.Count == count)
+					base.Engine = value;
 			}
 		}
 
 		protected override void Messaging(IMessage message)
 		{
-			if(message is IAutoDestroyMessage)
+			if(message is IAutoDestroyMessage<T>)
 			{
-				var cast = message as IAutoDestroyMessage;
+				var cast = message as IAutoDestroyMessage<T>;
 				if(cast.CurrentValue && managers.Count <= 0)
 					Dispose();
 			}

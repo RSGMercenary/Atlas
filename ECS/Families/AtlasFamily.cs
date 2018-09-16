@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : EngineObject, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : EngineObject<IReadOnlyFamily>, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
 		private Group<TFamilyMember> members = new Group<TFamilyMember>();
@@ -124,7 +124,7 @@ namespace Atlas.ECS.Families
 			}
 			members.Add(member);
 			entities.Add(entity, member);
-			Message<IFamilyMemberAddMessage>(new FamilyMemberAddMessage(this, member));
+			Dispatch<IFamilyMemberAddMessage>(new FamilyMemberAddMessage(this, member));
 		}
 
 		private void Remove(IEntity entity)
@@ -134,7 +134,7 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
-			Message<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(this, member));
+			Dispatch<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(this, member));
 
 			if(Engine == null || !Engine.IsUpdating)
 			{
@@ -143,14 +143,14 @@ namespace Atlas.ECS.Families
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdateMessage>(PoolMembers);
+				Engine.AddListener<IUpdateMessage<IEngine>>(PoolMembers);
 			}
 		}
 
-		private void PoolMembers(IUpdateMessage message)
+		private void PoolMembers(IUpdateMessage<IEngine> message)
 		{
 			//Clean up update listener.
-			message.Messenger.RemoveListener<IUpdateMessage>(PoolMembers);
+			message.Messenger.RemoveListener<IUpdateMessage<IEngine>>(PoolMembers);
 			while(removed.Count > 0)
 			{
 				DisposeMember(removed.Pop());

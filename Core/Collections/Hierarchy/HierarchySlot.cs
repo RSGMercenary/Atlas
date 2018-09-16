@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.Core.Signals;
+using Atlas.ECS.Entities;
 
 namespace Atlas.Core.Collections.Hierarchy
 {
@@ -10,8 +11,8 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		public override bool Dispatch(TMessage message)
 		{
-			var first = message.Messenger as IReadOnlyHierarchy;
-			var current = message.CurrentMessenger as IReadOnlyHierarchy;
+			var first = message.Messenger as IEntity;
+			var current = message.CurrentMessenger as IEntity;
 			if(first == null || current == null)
 				return base.Dispatch(message);
 

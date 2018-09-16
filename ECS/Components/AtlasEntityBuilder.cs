@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasEntityBuilder : AtlasComponent, IEntityBuilder
+	public abstract class AtlasEntityBuilder : AtlasComponent<IEntityBuilder>, IEntityBuilder
 	{
 		private Builder<IEntityBuilder> builder;
 

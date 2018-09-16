@@ -2,17 +2,17 @@
 {
 	public class Message
 	{
-		public IMessageDispatcher Messenger { get; }
-		public IMessageDispatcher CurrentMessenger { get; set; }
+		public IMessenger Messenger { get; }
+		public IMessenger CurrentMessenger { get; set; }
 
-		public Message(IMessageDispatcher messenger)
+		public Message(IMessenger messenger)
 		{
 			Messenger = messenger;
 		}
 	}
 
 	public class Message<TMessenger> : Message, IMessage<TMessenger>
-		where TMessenger : IMessageDispatcher
+		where TMessenger : IMessenger
 	{
 		public Message(TMessenger messenger) : base(messenger)
 		{

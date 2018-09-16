@@ -3,8 +3,13 @@ using System;
 
 namespace Atlas.Core.Objects
 {
-	public interface IObject : IMessageDispatcher, IDisposable
+	public interface IObject : IMessenger, IDisposable
 	{
 		ObjectState State { get; }
+	}
+
+	public interface IObject<T> : IObject, IMessenger<T>
+		where T : IObject
+	{
 	}
 }

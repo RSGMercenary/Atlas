@@ -2,9 +2,8 @@
 
 namespace Atlas.Core.Collections.Group
 {
-	public interface IReadOnlyGroup<T> : IReadOnlyList<T>
+	public interface IReadOnlyGroup<out T> : IReadOnlyList<T>
 	{
-		bool Contains(T item);
 		IEnumerable<T> Forward();
 		IEnumerable<T> Backward();
 	}

@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 namespace Atlas.ECS.Components
 {
-	public sealed class AtlasEngine : AtlasComponent, IEngine
+	public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 	{
 		#region Static Singleton
 
@@ -29,12 +29,12 @@ namespace Atlas.ECS.Components
 		#endregion
 
 		private Group<IEntity> entities = new Group<IEntity>();
-		private Group<IReadOnlyFamily> families = new Group<IReadOnlyFamily>();
-		private Group<IReadOnlySystem> systems = new Group<IReadOnlySystem>();
+		private Group<IFamily> families = new Group<IFamily>();
+		private Group<ISystem> systems = new Group<ISystem>();
 
 		private Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
-		private Dictionary<Type, IReadOnlyFamily> familiesType = new Dictionary<Type, IReadOnlyFamily>();
-		private Dictionary<Type, IReadOnlySystem> systemsType = new Dictionary<Type, IReadOnlySystem>();
+		private Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
+		private Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
 		private Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
 
@@ -124,10 +124,10 @@ namespace Atlas.ECS.Components
 			foreach(var type in entity.Systems)
 				AddSystem(type);
 
-			foreach(IFamily family in families)
+			foreach(var family in families)
 				family.AddEntity(entity);
 
-			Message<IEntityAddMessage>(new EntityAddMessage(this, entity));
+			Dispatch<IEntityAddMessage>(new EntityAddMessage(this, entity));
 
 			foreach(var child in entity.Children.Forward())
 				AddEntity(child);
@@ -143,14 +143,14 @@ namespace Atlas.ECS.Components
 			foreach(var child in entity.Children.Backward())
 				RemoveEntity(child);
 
-			Message<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
+			Dispatch<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
 
 			//TO-DO
 			//entity.Systems isn't an EngineList, so it might screw up.
 			foreach(var type in entity.Systems)
 				RemoveSystem(type);
 
-			foreach(IFamily family in families)
+			foreach(var family in families)
 				family.RemoveEntity(entity);
 
 			entitiesGlobalName.Remove(entity.GlobalName);
@@ -242,10 +242,10 @@ namespace Atlas.ECS.Components
 			//There's no system instance class assigned.
 			if(!systemsInstance.ContainsKey(type))
 				return;
-			IReadOnlySystem system;
+			ISystem system;
 			try
 			{
-				system = Activator.CreateInstance(systemsInstance[type]) as IReadOnlySystem;
+				system = Activator.CreateInstance(systemsInstance[type]) as ISystem;
 			}
 			catch(Exception e)
 			{
@@ -262,7 +262,7 @@ namespace Atlas.ECS.Components
 			AddFixedTime(system.FixedTime);
 
 			system.Engine = this;
-			Message<ISystemAddMessage>(new SystemAddMessage(this, type, system));
+			Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 		}
 
 		private void RemoveSystem(Type type)
@@ -278,7 +278,7 @@ namespace Atlas.ECS.Components
 			systems.Remove(system);
 
 			systemsType.Remove(type);
-			Message<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
+			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
 			if(isUpdating)
 			{
 				systemsRemoved.Push(system);
@@ -310,10 +310,10 @@ namespace Atlas.ECS.Components
 
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
-			SystemPriorityChanged(message.Messenger);
+			SystemPriorityChanged(message.Messenger as ISystem);
 		}
 
-		private void SystemPriorityChanged(IReadOnlySystem system)
+		private void SystemPriorityChanged(ISystem system)
 		{
 			systems.Remove(system);
 
@@ -365,7 +365,7 @@ namespace Atlas.ECS.Components
 
 		public bool HasSystem(IReadOnlySystem system)
 		{
-			return systems.Contains(system);
+			return systems.Contains(system as ISystem);
 		}
 
 		public bool HasSystem<TISystem>() where TISystem : IReadOnlySystem
@@ -433,7 +433,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = isUpdating;
 				isUpdating = value;
-				Message<IUpdateMessage>(new UpdateMessage(this, value, previous));
+				Dispatch<IUpdateMessage<IEngine>>(new UpdateMessage<IEngine>(this, value, previous));
 			}
 		}
 
@@ -496,7 +496,7 @@ namespace Atlas.ECS.Components
 
 						IsUpdating = true;
 
-						foreach(ISystem system in systems)
+						foreach(var system in systems)
 						{
 							//System is reactive/listens for messages and does not receive time-related updates.
 							if(system.FixedTime == 0)
@@ -548,7 +548,7 @@ namespace Atlas.ECS.Components
 
 		public bool HasFamily(IReadOnlyFamily family)
 		{
-			return familiesType.ContainsValue(family);
+			return familiesType.ContainsValue(family as IFamily);
 		}
 
 		public bool HasFamily<TFamilyMember>()
@@ -577,7 +577,7 @@ namespace Atlas.ECS.Components
 
 				foreach(var entity in entities)
 					family.AddEntity(entity);
-				Message<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
+				Dispatch<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
 				return family;
 			}
 			else
@@ -599,7 +599,7 @@ namespace Atlas.ECS.Components
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesReference.Remove(type);
-			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
+			Dispatch<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
 			if(isUpdating)
 			{
 				familiesRemoved.Push(family);
@@ -630,13 +630,13 @@ namespace Atlas.ECS.Components
 
 		private void EntityComponentAdded(IComponentAddMessage message)
 		{
-			foreach(IFamily family in families)
+			foreach(var family in families)
 				family.AddEntity(message.Messenger, message.Key);
 		}
 
 		private void EntityComponentRemoved(IComponentRemoveMessage message)
 		{
-			foreach(IFamily family in families)
+			foreach(var family in families)
 				family.RemoveEntity(message.Messenger, message.Key);
 		}
 

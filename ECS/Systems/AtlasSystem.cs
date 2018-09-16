@@ -6,7 +6,7 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasSystem : EngineObject, IReadOnlySystem
+	public abstract class AtlasSystem : EngineObject<IReadOnlySystem>, IReadOnlySystem
 	{
 		private int priority = 0;
 		private int sleeping = 0;
@@ -62,9 +62,9 @@ namespace Atlas.ECS.Systems
 
 		protected override void Messaging(IMessage message)
 		{
-			if(message is IEngineMessage)
+			if(message is IEngineMessage<IReadOnlySystem>)
 			{
-				var cast = message as IEngineMessage;
+				var cast = message as IEngineMessage<IReadOnlySystem>;
 				if(cast.PreviousValue != null)
 				{
 					RemovingEngine(cast.PreviousValue);
@@ -109,7 +109,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = isUpdating;
 				isUpdating = value;
-				Message<IUpdateMessage>(new UpdateMessage(this, value, previous));
+				Dispatch<IUpdateMessage<IReadOnlySystem>>(new UpdateMessage<IReadOnlySystem>(this, value, previous));
 			}
 		}
 
@@ -122,7 +122,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = fixedTime;
 				fixedTime = value;
-				Message<IFixedTimeMessage>(new FixedTimeMessage(this, value, previous));
+				Dispatch<IFixedTimeMessage>(new FixedTimeMessage(this, value, previous));
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage>(new SleepMessage(this, value, previous));
+				Dispatch<ISleepMessage<IReadOnlySystem>>(new SleepMessage<IReadOnlySystem>(this, value, previous));
 			}
 		}
 
@@ -160,7 +160,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message<IPriorityMessage>(new PriorityMessage(this, value, previous));
+				Dispatch<IPriorityMessage>(new PriorityMessage(this, value, previous));
 			}
 		}
 	}

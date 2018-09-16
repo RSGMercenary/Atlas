@@ -13,6 +13,8 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		new bool AutoDestroy { get; set; }
 
+		bool HasManager(IEntity entity);
+
 		/// <summary>
 		/// Gets the index of the Entity. Returns -1 if the Entity
 		/// isn't found in this Component.
@@ -181,5 +183,10 @@ namespace Atlas.ECS.Components
 		/// <param name="indent">Indentation used for formatting the ToString() correctly.</param>
 		/// <returns></returns>
 		string ToInfoString(bool addManagers = true, int index = 0, string indent = "");
+	}
+
+	public interface IComponent<T> : IComponent, IEngineObject<T>, IAutoDestroyObject<T>
+		where T : IComponent
+	{
 	}
 }

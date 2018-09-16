@@ -2,12 +2,12 @@
 {
 	public interface IMessage
 	{
-		IMessageDispatcher Messenger { get; }
-		IMessageDispatcher CurrentMessenger { get; set; }
+		IMessenger Messenger { get; }
+		IMessenger CurrentMessenger { get; set; }
 	}
 
 	public interface IMessage<TMessenger> : IMessage
-		where TMessenger : IMessageDispatcher
+		where TMessenger : IMessenger
 	{
 		/// <summary>
 		/// The TMessenger that first created and sent the Message.

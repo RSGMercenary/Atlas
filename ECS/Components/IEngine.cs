@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent, IUpdateObject
+	public interface IEngine : IComponent<IEngine>, IUpdateObject<IEngine>
 	{
 		#region Entities
 
