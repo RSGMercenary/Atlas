@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
+using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Messages;
@@ -44,23 +45,20 @@ namespace Atlas.ECS.Components
 		private Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
 		private Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
 
-		private Dictionary<double, int> fixedTimesReference = new Dictionary<double, int>();
-		private Dictionary<double, double> fixedTimesTotal = new Dictionary<double, double>();
-		private Dictionary<double, int> fixedTimesUpdate = new Dictionary<double, int>();
-
 		private Stopwatch timer = new Stopwatch();
 		private IReadOnlySystem currentSystem;
 
 		private bool isRunning = false;
-		private bool isUpdating = false;
+		private TimeStep updateState = TimeStep.None;
 
-		private double deltaTime = 0;
-		private double totalTime = 0;
+		private double maxVariableTime = 0.25;
+		private double deltaVariableTime = 0;
+		private double totalVariableTime = 0;
 
-		private AtlasEngine()
-		{
+		private double deltaFixedTime = 1d / 60d;
+		private double totalFixedTime = 0;
 
-		}
+		private AtlasEngine() { }
 
 		protected override void AddingManager(IEntity entity, int index)
 		{
@@ -258,9 +256,6 @@ namespace Atlas.ECS.Components
 			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 			SystemPriorityChanged(system);
 
-			system.AddListener<IFixedTimeMessage>(SystemFixedTimeChanged);
-			AddFixedTime(system.FixedTime);
-
 			system.Engine = this;
 			Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 		}
@@ -271,15 +266,12 @@ namespace Atlas.ECS.Components
 				return;
 			var system = systemsType[type];
 
-			system.RemoveListener<IFixedTimeMessage>(SystemFixedTimeChanged);
-			RemoveFixedTime(system.FixedTime);
-
 			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 			systems.Remove(system);
 
 			systemsType.Remove(type);
 			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
-			if(isUpdating)
+			if(updateState != TimeStep.None)
 			{
 				systemsRemoved.Push(system);
 			}
@@ -329,40 +321,6 @@ namespace Atlas.ECS.Components
 			systems.Insert(0, system);
 		}
 
-		private void SystemFixedTimeChanged(IFixedTimeMessage message)
-		{
-			RemoveFixedTime(message.PreviousValue);
-			AddFixedTime(message.CurrentValue);
-		}
-
-		private void AddFixedTime(double fixedTime)
-		{
-			if(fixedTime <= 0)
-				return;
-			if(!fixedTimesReference.ContainsKey(fixedTime))
-			{
-				fixedTimesReference.Add(fixedTime, 1);
-				fixedTimesTotal.Add(fixedTime, 0);
-				//Get the total time in sync with the rest of the engine.
-				while(fixedTimesTotal[fixedTime] + fixedTime < totalTime)
-					fixedTimesTotal[fixedTime] += fixedTime;
-				fixedTimesUpdate.Add(fixedTime, 0);
-			}
-			else
-			{
-				++fixedTimesReference[fixedTime];
-			}
-		}
-
-		private void RemoveFixedTime(double fixedTime)
-		{
-			if(--fixedTimesReference[fixedTime] > 0)
-				return;
-			fixedTimesReference.Remove(fixedTime);
-			fixedTimesTotal.Remove(fixedTime);
-			fixedTimesUpdate.Remove(fixedTime);
-		}
-
 		public bool HasSystem(IReadOnlySystem system)
 		{
 			return systems.Contains(system as ISystem);
@@ -397,43 +355,71 @@ namespace Atlas.ECS.Components
 
 		#region Updates
 
-		public double DeltaTime
+		public double MaxVariableTime
 		{
-			get { return deltaTime; }
-			private set
+			get { return maxVariableTime; }
+			set
 			{
-				if(deltaTime == value)
+				if(maxVariableTime == value)
 					return;
-				deltaTime = value;
+				maxVariableTime = value;
 			}
 		}
 
-		public double TotalTime
+		public double DeltaVariableTime
 		{
-			get { return totalTime; }
+			get { return deltaVariableTime; }
 			private set
 			{
-				if(totalTime == value)
+				if(deltaVariableTime == value)
 					return;
-				totalTime = value;
+				deltaVariableTime = value;
 			}
 		}
 
-		public IReadOnlyDictionary<double, double> FixedTimes
+		public double TotalVariableTime
 		{
-			get { return fixedTimesTotal; }
-		}
-
-		public bool IsUpdating
-		{
-			get { return isUpdating; }
+			get { return totalVariableTime; }
 			private set
 			{
-				if(isUpdating == value)
+				if(totalVariableTime == value)
 					return;
-				var previous = isUpdating;
-				isUpdating = value;
-				Dispatch<IUpdateMessage<IEngine>>(new UpdateMessage<IEngine>(this, value, previous));
+				totalVariableTime = value;
+			}
+		}
+
+		public double DeltaFixedTime
+		{
+			get { return deltaFixedTime; }
+			set
+			{
+				if(deltaFixedTime == value)
+					return;
+				deltaFixedTime = value;
+			}
+		}
+
+		public double TotalFixedTime
+		{
+			get { return totalFixedTime; }
+			private set
+			{
+				if(totalFixedTime == value)
+					return;
+				totalFixedTime = value;
+			}
+		}
+
+		public TimeStep UpdateState
+		{
+			get { return updateState; }
+			private set
+			{
+				if(updateState == value)
+					return;
+				var previous = updateState;
+				updateState = value;
+				Dispatch<IUpdateStateMessage<IEngine>>(new UpdateStateMessage<IEngine>(this, value, previous));
 			}
 		}
 
@@ -468,72 +454,56 @@ namespace Atlas.ECS.Components
 					while(isRunning)
 					{
 						var currentTime = timer.Elapsed.TotalSeconds;
-#if DEBUG
-						//This is mainly for debugging.
-						//Stopwatch is constant and doesn't stop for breakpoints.
-						if(currentTime - previousTime > 1)
-						{
-							//Ignore the elapsed time while breakpoints were active.
-							previousTime = currentTime;
-							continue;
-						}
-#endif
-						//Update delta time and total time.
-						DeltaTime = currentTime - previousTime;
-						TotalTime += deltaTime;
 
-						//Update fixed total times and calculate number of fixed updates for this loop.
-						//Have to copy the keys, or you get modification exceptions.
-						foreach(var fixedTime in new List<double>(fixedTimesUpdate.Keys))
+						var deltaVariableTime = currentTime - previousTime;
+						previousTime = currentTime;
+
+						//Cap delta time to avoid the "spiral of death".
+						if(deltaVariableTime > maxVariableTime)
+							deltaVariableTime = maxVariableTime;
+
+						var deltaFixedTime = DeltaFixedTime;
+						var totalFixedTime = TotalFixedTime;
+
+						//Calculate the number of fixed updates.
+						var fixedUpdates = 0;
+						while(totalFixedTime + deltaFixedTime < totalVariableTime)
 						{
-							fixedTimesUpdate[fixedTime] = 0;
-							while(fixedTimesTotal[fixedTime] + fixedTime < totalTime)
-							{
-								fixedTimesTotal[fixedTime] += fixedTime;
-								++fixedTimesUpdate[fixedTime];
-							}
+							totalFixedTime += deltaFixedTime;
+							++fixedUpdates;
 						}
 
-						IsUpdating = true;
+						//Update all delta and total times.
+						DeltaVariableTime = deltaVariableTime;
+						TotalVariableTime = totalVariableTime + deltaVariableTime;
+						TotalFixedTime = totalFixedTime;
 
-						foreach(var system in systems)
-						{
-							//System is reactive/listens for messages and does not receive time-related updates.
-							if(system.FixedTime == 0)
-								continue;
-							//System receives updates.
-							if(system.FixedTime > 0)
-							{
-								//Store system.FixedTime locally in case updates alter the fixed time.
-								//Probably an extremely rare exception, but still.
-								var fixedTime = system.FixedTime;
-
-								//Update System based on fixed time.
-								CurrentSystem = system;
-								for(var i = fixedTimesUpdate[fixedTime]; i > 0; --i)
-									system.Update(fixedTime);
-								CurrentSystem = null;
-							}
-							else
-							{
-								//Update System based on delta time.
-								CurrentSystem = system;
-								system.Update(deltaTime);
-								CurrentSystem = null;
-							}
-						}
-
-						IsUpdating = false;
+						//Run fixed-time and variable-time updates.
+						while(fixedUpdates-- > 0)
+							UpdateSystems(TimeStep.Fixed, deltaFixedTime);
+						UpdateSystems(TimeStep.Variable, deltaVariableTime);
 
 						DestroySystems();
 						DestroyFamilies();
-
-						previousTime = currentTime;
 					}
-					DeltaTime = 0;
+					DeltaVariableTime = 0;
 					timer.Stop();
 				}
 			}
+		}
+
+		private void UpdateSystems(TimeStep timeStep, double deltaTime)
+		{
+			UpdateState = timeStep;
+			foreach(var system in systems)
+			{
+				if(system.TimeStep != timeStep)
+					continue;
+				CurrentSystem = system;
+				system.Update(deltaTime);
+				CurrentSystem = null;
+			}
+			UpdateState = TimeStep.None;
 		}
 
 		private void DestroySystems()
@@ -600,7 +570,7 @@ namespace Atlas.ECS.Components
 			familiesType.Remove(type);
 			familiesReference.Remove(type);
 			Dispatch<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
-			if(isUpdating)
+			if(updateState != TimeStep.None)
 			{
 				familiesRemoved.Push(family);
 			}

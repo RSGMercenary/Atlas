@@ -4,11 +4,10 @@ using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using System;
-using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent<IEngine>, IUpdateObject<IEngine>
+	public interface IEngine : IComponent<IEngine>, IUpdateStateObject<IEngine>
 	{
 		#region Entities
 
@@ -167,19 +166,29 @@ namespace Atlas.ECS.Components
 		#endregion
 
 		/// <summary>
-		/// The delta time between update loops. This is updated every loop.
+		/// The max delta time between updates. Prevents the update loop "spiral of death".
 		/// </summary>
-		double DeltaTime { get; }
+		double MaxVariableTime { get; set; }
 
 		/// <summary>
-		/// The total time spent running update loops. This is updated every loop.
+		/// The delta time between variable-time updates. This is set every loop.
 		/// </summary>
-		double TotalTime { get; }
+		double DeltaVariableTime { get; }
 
 		/// <summary>
-		/// A Dictionary of fixed times and fixed time update totals.
+		/// The total time running variable-time updates. This is set every loop.
 		/// </summary>
-		IReadOnlyDictionary<double, double> FixedTimes { get; }
+		double TotalVariableTime { get; }
+
+		/// <summary>
+		/// The delta time between fixed-time updates. This is set manually.
+		/// </summary>
+		double DeltaFixedTime { get; set; }
+
+		/// <summary>
+		/// The total time running fixed-time updates. This is set every loop.
+		/// </summary>
+		double TotalFixedTime { get; }
 
 		/// <summary>
 		/// Returns if the Engine is currently running. This is true

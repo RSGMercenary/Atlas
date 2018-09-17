@@ -25,10 +25,9 @@ namespace Atlas.ECS.Families
 		{
 			foreach(var property in typeof(TFamilyMember).GetProperties(BindingFlags.Instance | BindingFlags.Public))
 			{
-				if(property.Name != "Entity")
-				{
-					components.Add(property.PropertyType, property.Name);
-				}
+				if(property.Name == "Entity")
+					continue;
+				components.Add(property.PropertyType, property.Name);
 			}
 		}
 
@@ -44,7 +43,7 @@ namespace Atlas.ECS.Families
 			if(State != ObjectState.Composed)
 				return;
 			//Can't destroy Family mid-update.
-			if(Engine == null || Engine.IsUpdating)
+			if(Engine != null && Engine.UpdateState != TimeStep.None)
 				return;
 			Engine = null;
 			if(Engine == null)
@@ -124,7 +123,7 @@ namespace Atlas.ECS.Families
 			}
 			members.Add(member);
 			entities.Add(entity, member);
-			Dispatch<IFamilyMemberAddMessage>(new FamilyMemberAddMessage(this, member));
+			Dispatch<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(this, member));
 		}
 
 		private void Remove(IEntity entity)
@@ -134,28 +133,25 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
-			Dispatch<IFamilyMemberRemoveMessage>(new FamilyMemberRemoveMessage(this, member));
+			Dispatch<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(this, member));
 
-			if(Engine == null || !Engine.IsUpdating)
+			if(Engine == null || Engine.UpdateState == TimeStep.None)
 			{
 				DisposeMember(member);
 			}
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdateMessage<IEngine>>(PoolMembers);
+				Engine.AddListener<IUpdateStateMessage<IEngine>>(PoolMembers);
 			}
 		}
 
-		private void PoolMembers(IUpdateMessage<IEngine> message)
+		private void PoolMembers(IUpdateStateMessage<IEngine> message)
 		{
 			//Clean up update listener.
-			message.Messenger.RemoveListener<IUpdateMessage<IEngine>>(PoolMembers);
+			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(PoolMembers);
 			while(removed.Count > 0)
-			{
 				DisposeMember(removed.Pop());
-			}
-
 		}
 
 		private void DisposeMember(TFamilyMember member)
@@ -163,9 +159,7 @@ namespace Atlas.ECS.Families
 			var family = typeof(TFamilyMember);
 			member.Entity = null;
 			foreach(var type in components.Keys)
-			{
 				family.GetProperty(components[type]).SetValue(member, null);
-			}
 			pooled.Add(member);
 		}
 	}

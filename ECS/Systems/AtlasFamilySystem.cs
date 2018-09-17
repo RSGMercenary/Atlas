@@ -4,26 +4,21 @@ using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
+	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasFamilySystem<IFamilySystem, TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
-		IReadOnlyFamily IFamilySystem.Family => Family;
+
+	}
+
+	public abstract class AtlasFamilySystem<T, TFamilyMember> : AtlasSystem<T>, IFamilySystem<T, TFamilyMember>
+		where T : class, IFamilySystem
+		where TFamilyMember : IFamilyMember, new()
+	{
+		IReadOnlyFamily IReadOnlyFamilySystem.Family => Family;
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
-		public bool UpdateSleepingEntities { get; protected set; } = false;
+		public bool UpdateSleepingEntities { get; set; } = false;
 
-		public AtlasFamilySystem()
-		{
-
-		}
-
-
-
-		protected sealed override void Updating(double deltaTime)
-		{
-			FamilyUpdate(deltaTime);
-		}
-
-		protected virtual void FamilyUpdate(double deltaTime)
+		protected override void Updating(double deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
 			foreach(var member in Family.Members)
@@ -43,16 +38,16 @@ namespace Atlas.ECS.Systems
 		{
 			base.AddingEngine(engine);
 			Family = engine.AddFamily<TFamilyMember>();
-			Family.AddListener<IFamilyMemberAddMessage>(EntityAdded);
-			Family.AddListener<IFamilyMemberRemoveMessage>(EntityRemoved);
+			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
+			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberAdded(Family, member);
 		}
 
 		protected override void RemovingEngine(IEngine engine)
 		{
-			Family.RemoveListener<IFamilyMemberAddMessage>(EntityAdded);
-			Family.RemoveListener<IFamilyMemberRemoveMessage>(EntityRemoved);
+			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
+			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberRemoved(Family, member);
 			engine.RemoveFamily<TFamilyMember>();
@@ -60,14 +55,14 @@ namespace Atlas.ECS.Systems
 			base.RemovingEngine(engine);
 		}
 
-		private void EntityAdded(IFamilyMemberAddMessage message)
+		private void EntityAdded(IFamilyMemberAddMessage<TFamilyMember> message)
 		{
-			MemberAdded(message.Messenger as IReadOnlyFamily<TFamilyMember>, (TFamilyMember)message.Value);
+			MemberAdded(message.Messenger, message.Value);
 		}
 
-		private void EntityRemoved(IFamilyMemberRemoveMessage message)
+		private void EntityRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message)
 		{
-			MemberRemoved(message.Messenger as IReadOnlyFamily<TFamilyMember>, (TFamilyMember)message.Value);
+			MemberRemoved(message.Messenger, message.Value);
 		}
 	}
 }

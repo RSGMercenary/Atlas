@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IAutoDestroyMessage<TMessenger> : IPropertyMessage<TMessenger, bool>
+	public interface IAutoDestroyMessage<out TMessenger> : IPropertyMessage<TMessenger, bool>
 		where TMessenger : IAutoDestroyObject
 	{
 	}

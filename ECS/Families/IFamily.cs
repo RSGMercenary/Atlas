@@ -10,7 +10,7 @@ namespace Atlas.ECS.Families
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 	}
 
-	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily
+	public interface IReadOnlyFamily<out TFamilyMember> : IReadOnlyFamily
 		where TFamilyMember : IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }

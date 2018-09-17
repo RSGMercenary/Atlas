@@ -3,9 +3,10 @@ using Atlas.ECS.Families;
 
 namespace Atlas.ECS.Messages
 {
-	class FamilyMemberRemoveMessage : ValueMessage<IReadOnlyFamily, IFamilyMember>, IFamilyMemberRemoveMessage
+	class FamilyMemberRemoveMessage<TFamilyMember> : ValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>, IFamilyMemberRemoveMessage<TFamilyMember>
+		where TFamilyMember : IFamilyMember, new()
 	{
-		public FamilyMemberRemoveMessage(IReadOnlyFamily messenger, IFamilyMember value) : base(messenger, value)
+		public FamilyMemberRemoveMessage(IReadOnlyFamily<TFamilyMember> messenger, TFamilyMember value) : base(messenger, value)
 		{
 		}
 	}

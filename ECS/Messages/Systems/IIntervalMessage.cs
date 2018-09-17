@@ -3,7 +3,7 @@ using Atlas.ECS.Systems;
 
 namespace Atlas.ECS.Messages
 {
-	public interface IFixedTimeMessage : IPropertyMessage<IReadOnlySystem, double>
+	public interface IIntervalMessage : IPropertyMessage<IReadOnlySystem, double>
 	{
 	}
 }

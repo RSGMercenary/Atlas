@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IObjectStateMessage<TMessenger> : IPropertyMessage<TMessenger, ObjectState>
+	public interface IObjectStateMessage<out TMessenger> : IPropertyMessage<TMessenger, ObjectState>
 		where TMessenger : IObject
 	{
 	}

@@ -3,23 +3,28 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface IReadOnlySystem : IEngineObject, ISleepObject, IUpdateObject
+	public interface IReadOnlySystem : IEngineObject, ISleepObject, IUpdateStateObject
 	{
 		/// <summary>
-		/// The priority of this System relative to other Systems in the Engine.
-		/// Systems are ordered from lowest-to-highest Priority value.
+		/// The Priority of this System relative to other Systems in the Engine.
+		/// Systems are updated from lowest-to-highest Priority value.
 		/// </summary>
 		int Priority { get; }
 
 		/// <summary>
-		/// The fixed time of this System in seconds (1/60, 1/30, 5, etc). Systems with a fixed time get their
-		/// Update(FixedTime) method called the number of times a fixed update is need for a given update loop.
+		/// The delay between updates. This is useful for Systems that don't have to
+		/// update every loop. Systems will update once the Interval has been reached.
 		/// </summary>
-		double FixedTime { get; }
+		double DeltaIntervalTime { get; }
+
+		/// <summary>
+		/// Determines whether the System is fixed-time, variable-time, or is event-based.
+		/// </summary>
+		TimeStep TimeStep { get; }
 	}
 
-	public interface IReadOnlySystem<T> : IReadOnlySystem, IEngineObject<T>, ISleepObject<T>, IUpdateObject<T>
-		where T : class, IReadOnlySystem
+	public interface IReadOnlySystem<T> : IReadOnlySystem, IEngineObject<T>, ISleepObject<T>, IUpdateStateObject<T>
+		where T : IReadOnlySystem
 	{
 	}
 
@@ -29,7 +34,7 @@ namespace Atlas.ECS.Systems
 	}
 
 	public interface ISystem<T> : ISystem, IReadOnlySystem<T>
-		where T : class, ISystem
+		where T : ISystem
 	{
 	}
 }

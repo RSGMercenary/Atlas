@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Core.Messages
 {
-	public interface IPropertyMessage<TMessenger, TProperty> : IMessage<TMessenger>
+	public interface IPropertyMessage<out TMessenger, TProperty> : IMessage<TMessenger>
 		where TMessenger : IMessenger
 	{
 		TProperty CurrentValue { get; }
