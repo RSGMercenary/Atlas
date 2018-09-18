@@ -15,9 +15,11 @@ namespace Atlas.ECS.Entities
 {
 	public sealed class AtlasEntity : EngineObject<IEntity>, IEntity
 	{
-		public const string RootName = "Root";
-
 		#region Static Singleton
+
+		private static AtlasEntity instance;
+		public const string RootName = "Root";
+		public static string UniqueName { get { return $"Entity {Guid.NewGuid().ToString("N")}"; } }
 
 		private static Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity(), entity => entity.Compose());
 
@@ -31,32 +33,6 @@ namespace Atlas.ECS.Entities
 			return entity;
 		}
 
-		private static AtlasEntity instance;
-
-		/// <summary>
-		/// Creates a Singleton instance of the Root <see cref="IEntity"/>.
-		/// </summary>
-		public static AtlasEntity Instance
-		{
-			get
-			{
-				if(!instance)
-				{
-					var root = new AtlasEntity();
-					root.GlobalName = RootName;
-					root.LocalName = RootName;
-					root.Root = root;
-					instance = root;
-				}
-				return instance;
-			}
-		}
-
-		public static string UniqueName
-		{
-			get { return $"Entity-{Guid.NewGuid().ToString("N")}"; }
-		}
-
 		#endregion
 
 		private string globalName = UniqueName;
@@ -66,25 +42,42 @@ namespace Atlas.ECS.Entities
 		private IEntity root;
 		private IEntity parent;
 		private int parentIndex = -1;
-		private Group<IEntity> children = new Group<IEntity>();
-		private Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
-		private HashSet<Type> systems = new HashSet<Type>();
+		private readonly Group<IEntity> children = new Group<IEntity>();
+		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
+		private readonly HashSet<Type> systems = new HashSet<Type>();
 		private bool autoDestroy = true;
 
-		private AtlasEntity()
+		public AtlasEntity()
 		{
 
 		}
 
-		public sealed override void Dispose()
+		public AtlasEntity(string globalName, string localName) : this(globalName)
 		{
-			if(this == instance)
-				return;
-			base.Dispose();
+			LocalName = localName;
+		}
+
+		public AtlasEntity(string globalName)
+		{
+			GlobalName = globalName;
+		}
+
+		public AtlasEntity(bool root)
+		{
+			if(root && !instance)
+			{
+				globalName = RootName;
+				localName = RootName;
+				this.root = this;
+				instance = this;
+			}
 		}
 
 		protected override void Disposing(bool finalizer)
 		{
+			if(this == instance)
+				instance = null;
+
 			RemoveChildren();
 			RemoveComponents();
 			RemoveSystems();
@@ -109,9 +102,9 @@ namespace Atlas.ECS.Entities
 			get { return globalName; }
 			set
 			{
-				//Prevent changing the GlobalName ("Root") of the Root Entity.
-				//The Root is always found by the name "Root".
-				if(this == instance)
+				//Prevents the Root from changing names and other
+				//Entities from chaning their names to Root.
+				if(this == instance || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					return;
@@ -130,9 +123,9 @@ namespace Atlas.ECS.Entities
 			get { return localName; }
 			set
 			{
-				//Prevent changing the LocalName ("Root") of the Root Entity.
-				//The Root is always found by the name "Root".
-				if(this == instance)
+				//Prevents the Root from changing names and other
+				//Entities from chaning their names to Root.
+				if(this == instance || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					return;
@@ -437,6 +430,8 @@ namespace Atlas.ECS.Entities
 			get { return root; }
 			private set
 			{
+				if(Parent?.Root != value)
+					return;
 				if(root == value)
 					return;
 				var previous = root;
@@ -947,7 +942,8 @@ namespace Atlas.ECS.Entities
 		{
 			var info = new StringBuilder();
 
-			info.AppendLine($"{indent}Child {parentIndex + 1}");
+			var name = (this == instance) ? RootName : $"Child {parentIndex + 1}";
+			info.AppendLine($"{indent}{name}");
 			info.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
 			info.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
 			info.AppendLine($"{indent}  {nameof(AutoDestroy)}  = {AutoDestroy}");

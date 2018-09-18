@@ -49,18 +49,18 @@ namespace Atlas.Core.Signals
 	}
 
 	public class SlotBase<TSignal, TDelegate> : SlotBase
-		where TSignal : class, ISignalBase
+		where TSignal : ISignalBase
 		where TDelegate : Delegate
 	{
 		public new TSignal Signal
 		{
-			get { return base.Signal as TSignal; }
+			get { return (TSignal)base.Signal; }
 			set { base.Signal = value; }
 		}
 
 		public new TDelegate Listener
 		{
-			get { return base.Listener as TDelegate; }
+			get { return (TDelegate)base.Listener; }
 			set { base.Listener = value; }
 		}
 	}

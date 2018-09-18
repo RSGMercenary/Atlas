@@ -29,23 +29,23 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		private Group<IEntity> entities = new Group<IEntity>();
-		private Group<IFamily> families = new Group<IFamily>();
-		private Group<ISystem> systems = new Group<ISystem>();
+		private readonly Group<IEntity> entities = new Group<IEntity>();
+		private readonly Group<IFamily> families = new Group<IFamily>();
+		private readonly Group<ISystem> systems = new Group<ISystem>();
 
-		private Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
-		private Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
-		private Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
+		private readonly Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
+		private readonly Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
+		private readonly Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
-		private Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
+		private readonly Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
 
-		private Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
-		private Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
+		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
+		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
-		private Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
-		private Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
+		private readonly Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
+		private readonly Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
 
-		private Stopwatch timer = new Stopwatch();
+		private readonly Stopwatch timer = new Stopwatch();
 		private IReadOnlySystem currentSystem;
 
 		private bool isRunning = false;

@@ -9,8 +9,8 @@ namespace Atlas.Core.Signals
 		int Priority { get; set; }
 	}
 
-	public interface ISlotBase<TSignal, TDelegate> : ISlotBase
-		where TSignal : class, ISignalBase
+	public interface ISlotBase<out TSignal, out TDelegate> : ISlotBase
+		where TSignal : ISignalBase
 		where TDelegate : Delegate
 	{
 		new TSignal Signal { get; }

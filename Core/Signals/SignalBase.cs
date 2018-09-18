@@ -12,9 +12,9 @@ namespace Atlas.Core.Signals
 			return signal != null;
 		}
 
-		private Group<SlotBase> slots = new Group<SlotBase>();
-		private Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
-		private Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
+		private readonly Group<SlotBase> slots = new Group<SlotBase>();
+		private readonly Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
+		private readonly Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 
 		public int Dispatching { get; private set; } = 0;
 		public bool IsDisposed { get; private set; } = false;

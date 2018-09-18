@@ -13,9 +13,9 @@ namespace Atlas.Core.Collections.Group
 			public bool IsRemoved { get; set; } = false;
 		}
 
-		private List<GroupItem> items = new List<GroupItem>();
-		private Stack<GroupItem> pooled = new Stack<GroupItem>();
-		private Stack<GroupItem> removed = new Stack<GroupItem>();
+		private readonly List<GroupItem> items = new List<GroupItem>();
+		private readonly Stack<GroupItem> pooled = new Stack<GroupItem>();
+		private readonly Stack<GroupItem> removed = new Stack<GroupItem>();
 		private int iterators = 0;
 
 		private GroupItem GetItem(T value)

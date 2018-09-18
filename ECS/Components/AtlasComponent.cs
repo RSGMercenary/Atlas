@@ -37,7 +37,7 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		private Group<IEntity> managers = new Group<IEntity>();
+		private readonly Group<IEntity> managers = new Group<IEntity>();
 		private bool autoDestroy = true;
 		public bool IsShareable { get; } = false;
 

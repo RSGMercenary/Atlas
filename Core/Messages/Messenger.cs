@@ -12,7 +12,7 @@ namespace Atlas.Core.Messages
 			return instance != null;
 		}
 
-		private Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
+		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
 		protected virtual void Messaging(IMessage message)
 		{

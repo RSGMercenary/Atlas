@@ -17,7 +17,7 @@ namespace Atlas.ECS.Systems
 		private int priority = 0;
 		private int sleeping = 0;
 		private double totalIntervalTime = 0;
-		private double deltaIntervalTime = -1;
+		private double deltaIntervalTime = 0;
 		private TimeStep timeStep = TimeStep.Variable;
 		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;

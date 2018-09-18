@@ -15,11 +15,11 @@ namespace Atlas.ECS.Families
 	sealed class AtlasFamily<TFamilyMember> : EngineObject<IReadOnlyFamily>, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
-		private Group<TFamilyMember> members = new Group<TFamilyMember>();
-		private Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
-		private Dictionary<Type, string> components = new Dictionary<Type, string>();
-		private Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
-		private Pool<TFamilyMember> pooled = new Pool<TFamilyMember>(() => new TFamilyMember());
+		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
+		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
+		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
+		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
+		private readonly Pool<TFamilyMember> pooled = new Pool<TFamilyMember>(() => new TFamilyMember());
 
 		public AtlasFamily()
 		{

@@ -7,9 +7,9 @@ namespace Atlas.Core.Collections.Pool
 	{
 		private readonly Stack<T> stack = new Stack<T>();
 		private int maxCount = -1;
-		private Func<T> creator;
-		private Action<T> onRemove;
-		private Func<T, bool> onAdd;
+		private readonly Func<T> creator;
+		private readonly Action<T> onRemove;
+		private readonly Func<T, bool> onAdd;
 
 		public Pool(Func<T> creator)
 		{
