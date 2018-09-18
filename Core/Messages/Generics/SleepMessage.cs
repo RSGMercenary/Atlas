@@ -3,7 +3,7 @@
 namespace Atlas.Core.Messages
 {
 	class SleepMessage<TMessenger> : PropertyMessage<TMessenger, int>, ISleepMessage<TMessenger>
-		where TMessenger : ISleepObject
+		where TMessenger : ISleep
 	{
 		public SleepMessage(TMessenger messenger, int current, int previous) : base(messenger, current, previous)
 		{

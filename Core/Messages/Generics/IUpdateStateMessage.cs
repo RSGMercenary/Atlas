@@ -3,7 +3,7 @@
 namespace Atlas.Core.Messages
 {
 	public interface IUpdateStateMessage<out TMessenger> : IPropertyMessage<TMessenger, TimeStep>
-		where TMessenger : IUpdateStateObject
+		where TMessenger : IUpdateState
 	{
 	}
 }

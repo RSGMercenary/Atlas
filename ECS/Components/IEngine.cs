@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent<IEngine>, IUpdateStateObject<IEngine>
+	public interface IEngine : IComponent<IEngine>, IUpdateState<IEngine>
 	{
 		#region Entities
 
@@ -165,6 +165,8 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
+		#region Updates
+
 		/// <summary>
 		/// The max delta time between updates. Prevents the update loop "spiral of death".
 		/// </summary>
@@ -201,5 +203,7 @@ namespace Atlas.ECS.Components
 		/// The current System that's undergoing an Update().
 		/// </summary>
 		IReadOnlySystem CurrentSystem { get; }
+
+		#endregion
 	}
 }

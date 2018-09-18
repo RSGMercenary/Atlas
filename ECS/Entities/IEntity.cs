@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IEngineObject<IEntity>, IAutoDestroyObject<IEntity>, ISleepObject<IEntity>
+	public interface IEntity : IEngineObject<IEntity>, IAutoDestroy<IEntity>, ISleep<IEntity>
 	{
 		#region Entities
 

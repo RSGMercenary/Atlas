@@ -3,7 +3,7 @@
 namespace Atlas.Core.Messages
 {
 	class AutoDestroyMessage<TMessenger> : PropertyMessage<TMessenger, bool>, IAutoDestroyMessage<TMessenger>
-		where TMessenger : IAutoDestroyObject
+		where TMessenger : IAutoDestroy
 	{
 		public AutoDestroyMessage(TMessenger messenger, bool current, bool previous) : base(messenger, current, previous)
 		{

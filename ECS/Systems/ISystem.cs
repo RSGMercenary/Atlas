@@ -3,7 +3,7 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface IReadOnlySystem : IEngineObject, ISleepObject, IUpdateStateObject
+	public interface IReadOnlySystem : IEngineObject, ISleep, IUpdateState
 	{
 		/// <summary>
 		/// The Priority of this System relative to other Systems in the Engine.
@@ -23,7 +23,7 @@ namespace Atlas.ECS.Systems
 		TimeStep TimeStep { get; }
 	}
 
-	public interface IReadOnlySystem<T> : IReadOnlySystem, IEngineObject<T>, ISleepObject<T>, IUpdateStateObject<T>
+	public interface IReadOnlySystem<T> : IReadOnlySystem, IEngineObject<T>, ISleep<T>, IUpdateState<T>
 		where T : IReadOnlySystem
 	{
 	}
