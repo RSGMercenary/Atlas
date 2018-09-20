@@ -22,8 +22,6 @@ namespace Atlas.ECS.Systems
 		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;
 
-		//private int currentInterval = -1;
-
 		public AtlasSystem()
 		{
 
@@ -58,43 +56,25 @@ namespace Atlas.ECS.Systems
 					if(Engine == null && value.HasSystem(this))
 					{
 						base.Engine = value;
+						AddFamilies();
+						SyncTotalIntervalTime();
 					}
 				}
 				else
 				{
 					if(Engine != null && !Engine.HasSystem(this))
 					{
+						RemoveFamilies();
 						base.Engine = value;
+						SyncTotalIntervalTime();
 					}
 				}
 			}
 		}
 
-		protected override void Messaging(IMessage message)
-		{
-			if(message is IEngineMessage<IReadOnlySystem>)
-			{
-				SyncTotalIntervalTime();
-				var cast = message as IEngineMessage<IReadOnlySystem>;
-				if(cast.PreviousValue != null)
-				{
-					RemovingEngine(cast.PreviousValue);
-				}
-				if(cast.CurrentValue != null)
-				{
-					AddingEngine(cast.CurrentValue);
-				}
-			}
-			else if(message is IIntervalMessage)
-			{
-				SyncTotalIntervalTime();
-			}
-			base.Messaging(message);
-		}
+		protected virtual void AddFamilies() { }
 
-		protected virtual void AddingEngine(IEngine engine) { }
-
-		protected virtual void RemovingEngine(IEngine engine) { }
+		protected virtual void RemoveFamilies() { }
 
 		#region Updating
 
@@ -109,12 +89,6 @@ namespace Atlas.ECS.Systems
 
 			if(deltaIntervalTime > 0)
 			{
-				/*if(currentInterval != (int)(Engine.TotalVariableTime - totalIntervalTime))
-				{
-					currentInterval = (int)(Engine.TotalVariableTime - totalIntervalTime);
-					Debug.WriteLine($"{currentInterval} / {(int)deltaIntervalTime}");
-				}*/
-
 				deltaTime = deltaIntervalTime;
 				if(Engine.TotalVariableTime - totalIntervalTime < deltaIntervalTime)
 					return;
@@ -171,6 +145,7 @@ namespace Atlas.ECS.Systems
 				var previous = deltaIntervalTime;
 				deltaIntervalTime = value;
 				Dispatch<IIntervalMessage>(new IntervalMessage(this, value, previous));
+				SyncTotalIntervalTime();
 			}
 		}
 

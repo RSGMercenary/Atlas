@@ -75,6 +75,8 @@ namespace Atlas.ECS.Components
 				var previous = autoDestroy;
 				autoDestroy = value;
 				Dispatch<IAutoDestroyMessage<T>>(new AutoDestroyMessage<T>(this as T, value, previous));
+				if(autoDestroy && managers.Count <= 0)
+					Dispose();
 			}
 		}
 
@@ -232,7 +234,7 @@ namespace Atlas.ECS.Components
 				RemovingManager(entity, index);
 				Dispatch<IManagerRemoveMessage>(new ManagerRemoveMessage(this, index, entity));
 				Dispatch<IManagerMessage>(new ManagerMessage(this));
-				if(AutoDestroy && managers.Count <= 0)
+				if(autoDestroy && managers.Count <= 0)
 					Dispose();
 			}
 			else
@@ -293,17 +295,6 @@ namespace Atlas.ECS.Components
 				else if(managers.Count == count)
 					base.Engine = value;
 			}
-		}
-
-		protected override void Messaging(IMessage message)
-		{
-			if(message is IAutoDestroyMessage<T>)
-			{
-				var cast = message as IAutoDestroyMessage<T>;
-				if(cast.CurrentValue && managers.Count <= 0)
-					Dispose();
-			}
-			base.Messaging(message);
 		}
 
 		public string ToInfoString(bool addEntities, int index = 0, string indent = "")

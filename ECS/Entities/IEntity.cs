@@ -140,7 +140,7 @@ namespace Atlas.ECS.Entities
 		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
 		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
 		/// <returns></returns>
-		TComponent AddComponent<TIComponent, TComponent>()
+		TComponent AddComponent<TComponent, TIComponent>()
 			where TIComponent : IComponent
 			where TComponent : TIComponent, new();
 
@@ -151,7 +151,7 @@ namespace Atlas.ECS.Entities
 		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TIComponent, TComponent>(TComponent component)
+		TComponent AddComponent<TComponent, TIComponent>(TComponent component)
 			where TIComponent : IComponent
 			where TComponent : TIComponent;
 
@@ -163,7 +163,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="Component">The instance of the Component.</param>
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TIComponent, TComponent>(TComponent component, int index)
+		TComponent AddComponent<TComponent, TIComponent>(TComponent component, int index)
 			where TIComponent : IComponent
 			where TComponent : TIComponent;
 
@@ -181,7 +181,7 @@ namespace Atlas.ECS.Entities
 		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
-		TIComponent AddComponent<TIComponent>(IComponent component)
+		TIComponent AddComponent<TIComponent>(TIComponent component)
 			where TIComponent : IComponent;
 
 		/// <summary>
@@ -191,7 +191,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="component">The instance of the Component.</param>
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
-		TIComponent AddComponent<TIComponent>(IComponent component, int index)
+		TIComponent AddComponent<TIComponent>(TIComponent component, int index)
 			where TIComponent : IComponent;
 
 		IComponent AddComponent(IComponent component);

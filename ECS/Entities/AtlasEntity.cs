@@ -292,7 +292,7 @@ namespace Atlas.ECS.Entities
 		}
 
 		//New component with Type
-		public TComponent AddComponent<TIComponent, TComponent>()
+		public TComponent AddComponent<TComponent, TIComponent>()
 			where TIComponent : IComponent
 			where TComponent : TIComponent, new()
 		{
@@ -300,7 +300,7 @@ namespace Atlas.ECS.Entities
 		}
 
 		//Component with Type
-		public TComponent AddComponent<TIComponent, TComponent>(TComponent component)
+		public TComponent AddComponent<TComponent, TIComponent>(TComponent component)
 			where TIComponent : IComponent
 			where TComponent : TIComponent
 		{
@@ -308,7 +308,7 @@ namespace Atlas.ECS.Entities
 		}
 
 		//Component with Type, index
-		public TComponent AddComponent<TIComponent, TComponent>(TComponent component, int index)
+		public TComponent AddComponent<TComponent, TIComponent>(TComponent component, int index)
 			where TIComponent : IComponent
 			where TComponent : TIComponent
 		{
@@ -323,14 +323,14 @@ namespace Atlas.ECS.Entities
 		}
 
 		//Component
-		public TIComponent AddComponent<TIComponent>(IComponent component)
+		public TIComponent AddComponent<TIComponent>(TIComponent component)
 			where TIComponent : IComponent
 		{
 			return (TIComponent)AddComponent(component, typeof(TIComponent), int.MaxValue);
 		}
 
 		//Component, index
-		public TIComponent AddComponent<TIComponent>(IComponent component, int index)
+		public TIComponent AddComponent<TIComponent>(TIComponent component, int index)
 			where TIComponent : IComponent
 		{
 			return (TIComponent)AddComponent(component, typeof(TIComponent), index);
@@ -585,14 +585,10 @@ namespace Atlas.ECS.Entities
 					++sleeping;
 			}
 			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
-			//If parent becomes null, this won't get sent to anyone below...
-			//...Which might really be intended/expected behavior.
-			//Might still need to listen for parent changes in AtlasEngine.
-			//Message<IParentMessage>(new ParentMessage(next, previous));
 			SetParentIndex(index);
 			Sleeping += sleeping;
 			Root = next?.Root;
-			if(AutoDestroy && parent == null)
+			if(autoDestroy && parent == null)
 				Dispose();
 			return true;
 		}
@@ -828,6 +824,8 @@ namespace Atlas.ECS.Entities
 				var previous = autoDestroy;
 				autoDestroy = value;
 				Dispatch<IAutoDestroyMessage<IEntity>>(new AutoDestroyMessage<IEntity>(this, value, previous));
+				if(autoDestroy && parent == null)
+					Dispose();
 			}
 		}
 
@@ -857,14 +855,14 @@ namespace Atlas.ECS.Entities
 			//Keep track of what child told the parent to Dispatch().
 			var previousTarget = message.CurrentMessenger;
 
-			//Standard Message() call.
-			//Set Target if null and Dispatch() event by type;
+			//Standard Dispatch() call.
+			//Set CurrentMessenger and Dispatch() event by type;
 			base.Dispatch(message);
 
 			//Send Message to children.
 			foreach(var child in children)
 			{
-				//Don't send Message back to child that told the parent to Message().
+				//Don't send Message back to child that told this to Dispatch().
 				if(child == previousTarget)
 					continue;
 				child.Dispatch(message);
@@ -874,9 +872,9 @@ namespace Atlas.ECS.Entities
 			}
 
 			//Send Message to parent.
-			//Don't send Message back to parent that told the child to Message().
 			if(Parent != null)
 			{
+				//Don't send Message back to parent that told this to Dispatch().
 				if(Parent != previousTarget)
 					Parent.Dispatch(message);
 			}
@@ -890,38 +888,27 @@ namespace Atlas.ECS.Entities
 
 		protected override void Messaging(IMessage message)
 		{
-			if(message is ISleepMessage<IEntity>)
+			if(message.Messenger == Parent)
 			{
-				if(message.Messenger != Parent)
-					return;
-				if(IsFreeSleeping)
-					return;
-				var cast = message as ISleepMessage<IEntity>;
-				if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
-					++Sleeping;
-				else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)
-					--Sleeping;
-			}
-			else if(message is IRootMessage)
-			{
-				if(message.Messenger != Parent)
-					return;
-				var cast = message as IRootMessage;
-				Root = cast.Messenger.Root;
-			}
-			else if(message is IChildrenMessage)
-			{
-				if(message.Messenger != Parent)
-					return;
-				SetParentIndex(Parent.GetChildIndex(this));
-			}
-			else if(message is IAutoDestroyMessage<IEntity>)
-			{
-				if(message.CurrentMessenger != message.Messenger)
-					return;
-				var cast = message as IAutoDestroyMessage<IEntity>;
-				if(cast.CurrentValue && parent == null)
-					Dispose();
+				if(message is ISleepMessage<IEntity>)
+				{
+					if(!IsFreeSleeping)
+					{
+						var cast = message as ISleepMessage<IEntity>;
+						if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
+							++Sleeping;
+						else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)
+							--Sleeping;
+					}
+				}
+				else if(message is IRootMessage)
+				{
+					Root = (message as IRootMessage).Messenger.Root;
+				}
+				else if(message is IChildrenMessage)
+				{
+					SetParentIndex(Parent.GetChildIndex(this));
+				}
 			}
 			base.Messaging(message);
 		}

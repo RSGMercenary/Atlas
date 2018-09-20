@@ -1,5 +1,4 @@
-﻿using Atlas.ECS.Components;
-using Atlas.ECS.Families;
+﻿using Atlas.ECS.Families;
 using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Systems
@@ -21,7 +20,7 @@ namespace Atlas.ECS.Systems
 		protected override void Updating(double deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
-			foreach(var member in Family.Members)
+			foreach(var member in Family?.Members)
 			{
 				if(updateSleepingEntities || !member.Entity.IsSleeping)
 					MemberUpdate(deltaTime, member);
@@ -34,25 +33,25 @@ namespace Atlas.ECS.Systems
 
 		protected virtual void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		protected override void AddingEngine(IEngine engine)
+		protected override void AddFamilies()
 		{
-			base.AddingEngine(engine);
-			Family = engine.AddFamily<TFamilyMember>();
+			base.AddFamilies();
+			Family = Engine.AddFamily<TFamilyMember>();
 			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
 			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberAdded(Family, member);
 		}
 
-		protected override void RemovingEngine(IEngine engine)
+		protected override void RemoveFamilies()
 		{
 			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
 			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberRemoved(Family, member);
-			engine.RemoveFamily<TFamilyMember>();
+			Engine.RemoveFamily<TFamilyMember>();
 			Family = null; //TO-DO Pretty sure this is safe.
-			base.RemovingEngine(engine);
+			base.RemoveFamilies();
 		}
 
 		private void EntityAdded(IFamilyMemberAddMessage<TFamilyMember> message)

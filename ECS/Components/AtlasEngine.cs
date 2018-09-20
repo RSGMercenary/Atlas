@@ -185,14 +185,14 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
-		public bool AddSystemType<TISystem, TSystem>()
+		public bool AddSystemType<TSystem, TISystem>()
 			where TISystem : ISystem
 			where TSystem : TISystem, new()
 		{
-			return AddSystemType(typeof(TISystem), typeof(TSystem));
+			return AddSystemType(typeof(TSystem), typeof(TISystem));
 		}
 
-		public bool AddSystemType(Type type, Type instance)
+		public bool AddSystemType(Type instance, Type type)
 		{
 			if(type == null)
 				return false;
