@@ -567,30 +567,28 @@ namespace Atlas.ECS.Entities
 			if(HasDescendant(next))
 				return false;
 			var previous = parent;
-			parent = next;
-			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
-
 			int sleeping = 0;
-			//Extra previous and next checks against parent
-			//in case an event changes the parent mid dispatch.
-			if(previous != null && parent != previous)
+			//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
+			if(previous != null)
 			{
+				parent = null;
 				previous.RemoveChild(this);
 				if(!IsFreeSleeping && previous.IsSleeping)
 					--sleeping;
 			}
-			if(next != null && parent == next)
+			if(next != null)
 			{
+				parent = next;
 				index = Math.Max(0, Math.Min(index, next.Children.Count));
 				next.AddChild(this, index);
 				if(!IsFreeSleeping && next.IsSleeping)
 					++sleeping;
 			}
+			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
 			//If parent becomes null, this won't get sent to anyone below...
 			//...Which might really be intended/expected behavior.
 			//Might still need to listen for parent changes in AtlasEngine.
 			//Message<IParentMessage>(new ParentMessage(next, previous));
-
 			SetParentIndex(index);
 			Sleeping += sleeping;
 			Root = next?.Root;
@@ -602,10 +600,7 @@ namespace Atlas.ECS.Entities
 		public int ParentIndex
 		{
 			get { return parentIndex; }
-			set
-			{
-				parent?.SetChildIndex(this, value);
-			}
+			set { parent?.SetChildIndex(this, value); }
 		}
 
 		public bool HasDescendant(IEntity descendant)

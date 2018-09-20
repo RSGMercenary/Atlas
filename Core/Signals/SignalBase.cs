@@ -265,7 +265,7 @@ namespace Atlas.Core.Signals
 
 		protected bool Dispatch(Action<TSlot> dispatcher)
 		{
-			return Dispatch<TSlot>(slot => dispatcher.Invoke(slot));
+			return Dispatch<TSlot>(dispatcher);
 		}
 	}
 }

@@ -18,16 +18,9 @@ namespace Atlas.ECS.Components
 
 		private static AtlasEngine instance;
 
-		/// <summary>
-		/// Creates a singleton instance of the Engine.
-		/// Only one Engine should exist at a time.
-		/// </summary>
-		public static AtlasEngine Instance
-		{
-			get { return instance = instance ?? new AtlasEngine(); }
-		}
-
 		#endregion
+
+		#region Fields
 
 		private readonly Group<IEntity> entities = new Group<IEntity>();
 		private readonly Group<IFamily> families = new Group<IFamily>();
@@ -58,13 +51,26 @@ namespace Atlas.ECS.Components
 		private double deltaFixedTime = 1d / 60d;
 		private double totalFixedTime = 0;
 
-		private AtlasEngine() { }
+		#endregion
+
+		public AtlasEngine()
+		{
+			if(!instance)
+				instance = this;
+			else
+				throw new InvalidOperationException("A new AtlasEngine instance cannot be constructed when one already exists.");
+		}
+
+		~AtlasEngine()
+		{
+			instance = null;
+		}
 
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<IChildRemoveMessage>(EntityChildRemoved, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IParentMessage>(EntityParentChanged, int.MinValue, MessageHierarchy.All);
 			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageHierarchy.All);
 			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageHierarchy.All);
 			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageHierarchy.All);
@@ -77,7 +83,7 @@ namespace Atlas.ECS.Components
 		{
 			RemoveEntity(entity);
 			entity.RemoveListener<IChildAddMessage>(EntityChildAdded);
-			entity.RemoveListener<IChildRemoveMessage>(EntityChildRemoved);
+			entity.RemoveListener<IParentMessage>(EntityParentChanged);
 			entity.RemoveListener<IGlobalNameMessage>(EntityGlobalNameChanged);
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
@@ -109,7 +115,7 @@ namespace Atlas.ECS.Components
 
 		private void AddEntity(IEntity entity)
 		{
-			//Change the global name of an incoming Entity if it already exists.
+			//Change the Entity's global name if it already exists.
 			if(entitiesGlobalName.ContainsKey(entity.GlobalName))
 				entity.GlobalName = AtlasEntity.UniqueName;
 
@@ -158,13 +164,15 @@ namespace Atlas.ECS.Components
 
 		private void EntityChildAdded(IChildAddMessage message)
 		{
-			AddEntity(message.Value);
+			if(!entitiesGlobalName.ContainsKey(message.Value.GlobalName) ||
+				entitiesGlobalName[message.Value.GlobalName] != message.Value)
+				AddEntity(message.Value);
 		}
 
-		private void EntityChildRemoved(IChildRemoveMessage message)
+		private void EntityParentChanged(IParentMessage message)
 		{
-			if(message.Value.Parent == null)
-				RemoveEntity(message.Value);
+			if(message.CurrentValue == null)
+				RemoveEntity(message.Messenger);
 		}
 
 		private void EntityGlobalNameChanged(IGlobalNameMessage message)
