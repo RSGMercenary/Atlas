@@ -32,9 +32,6 @@ namespace Atlas.ECS.Components
 		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
-		private readonly Stack<IReadOnlyFamily> familiesRemoved = new Stack<IReadOnlyFamily>();
-		private readonly Stack<IReadOnlySystem> systemsRemoved = new Stack<IReadOnlySystem>();
-
 		private readonly Stopwatch timer = new Stopwatch();
 		private IReadOnlySystem currentSystem;
 
@@ -224,12 +221,8 @@ namespace Atlas.ECS.Components
 			systemsType.Remove(type);
 			systemsReference.Remove(type);
 
+			system.Engine = null;
 			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
-
-			if(updateState != TimeStep.None)
-				systemsRemoved.Push(system);
-			else
-				system.Dispose();
 		}
 
 		private void EntitySystemAdded(ISystemTypeAddMessage message)
@@ -430,9 +423,6 @@ namespace Atlas.ECS.Components
 						while(fixedUpdates-- > 0)
 							UpdateSystems(TimeStep.Fixed, deltaFixedTime);
 						UpdateSystems(TimeStep.Variable, deltaVariableTime);
-
-						DestroySystems();
-						DestroyFamilies();
 					}
 					DeltaVariableTime = 0;
 					timer.Stop();
@@ -452,12 +442,6 @@ namespace Atlas.ECS.Components
 				CurrentSystem = null;
 			}
 			UpdateState = TimeStep.None;
-		}
-
-		private void DestroySystems()
-		{
-			while(systemsRemoved.Count > 0)
-				systemsRemoved.Pop().Dispose();
 		}
 
 		#endregion
@@ -487,12 +471,10 @@ namespace Atlas.ECS.Components
 			if(!familiesType.ContainsKey(type))
 			{
 				var family = new AtlasFamily<TFamilyMember>();
-
 				families.Add(family);
 				familiesType.Add(type, family);
 				familiesReference.Add(type, 1);
 				family.Engine = this;
-
 				foreach(var entity in entities)
 					family.AddEntity(entity);
 				Dispatch<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
@@ -505,34 +487,20 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public IReadOnlyFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
+		public void RemoveFamily<TFamilyMember>()
 			where TFamilyMember : IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
-				return null;
+				return;
 			var family = familiesType[type];
 			if(--familiesReference[type] > 0)
-				return family as IReadOnlyFamily<TFamilyMember>;
+				return;
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesReference.Remove(type);
+			family.Engine = null;
 			Dispatch<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
-			if(updateState != TimeStep.None)
-			{
-				familiesRemoved.Push(family);
-			}
-			else
-			{
-				family.Dispose();
-			}
-			return family as IReadOnlyFamily<TFamilyMember>;
-		}
-
-		private void DestroyFamilies()
-		{
-			while(familiesRemoved.Count > 0)
-				familiesRemoved.Pop().Dispose();
 		}
 
 		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()

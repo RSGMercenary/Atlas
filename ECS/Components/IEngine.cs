@@ -149,7 +149,7 @@ namespace Atlas.ECS.Components
 		IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
 			where TFamilyMember : IFamilyMember, new();
 
-		IReadOnlyFamily<TFamilyMember> RemoveFamily<TFamilyMember>()
+		void RemoveFamily<TFamilyMember>()
 			where TFamilyMember : IFamilyMember, new();
 
 		#endregion

@@ -75,27 +75,27 @@ namespace Atlas.ECS.Entities
 		{
 			if(this == instance)
 				instance = null;
+			if(!finalizer)
+			{
+				//Order matters here!
+				//  |
+				// \ /
+				RemoveChildren();
+				RemoveComponents();
+				RemoveSystems();
+				// / \
+				//  |
 
-			//Order matters here!
-			//  |
-			// \ /
-			RemoveChildren();
-			RemoveComponents();
-			RemoveSystems();
-			// / \
-			//  |
+				GlobalName = UniqueName;
+				LocalName = UniqueName;
+				AutoDestroy = true;
+				Parent = null;
+				Sleeping = 0;
+				FreeSleeping = 0;
+				Root = null;
 
-			GlobalName = UniqueName;
-			LocalName = UniqueName;
-			AutoDestroy = true;
-			Parent = null;
-			Sleeping = 0;
-			FreeSleeping = 0;
-			Root = null;
-
-			//if(!finalizer)
-			pool.Add(this);
-
+				pool.Add(this);
+			}
 			base.Disposing(finalizer);
 		}
 

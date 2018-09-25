@@ -1,7 +1,6 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Messages;
-using System;
 
 namespace Atlas.ECS.Objects
 {
@@ -50,7 +49,6 @@ namespace Atlas.ECS.Objects
 			State = ObjectState.Composing;
 			base.Compose();
 			State = ObjectState.Composed;
-			GC.ReRegisterForFinalize(this);
 		}
 
 		public override void Dispose()
@@ -60,7 +58,6 @@ namespace Atlas.ECS.Objects
 			State = ObjectState.Disposing;
 			base.Dispose();
 			State = ObjectState.Disposed;
-			GC.SuppressFinalize(this);
 		}
 	}
 }

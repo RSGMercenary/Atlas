@@ -40,20 +40,19 @@ namespace Atlas.ECS.Families
 
 		public sealed override void Dispose()
 		{
-			if(State != ObjectState.Composed)
-				return;
 			//Can't destroy Family mid-update.
-			if(Engine != null && Engine.UpdateState != TimeStep.None)
+			if(removed.Count > 0)
 				return;
-			Engine = null;
-			if(Engine == null)
-				base.Dispose();
+			base.Dispose();
 		}
 
 		protected override void Disposing(bool finalizer)
 		{
-			//TO-DO
-			//Do some clean please! 
+			if(!finalizer)
+			{
+				//TO-DO
+				//Do some clean up please! 
+			}
 			base.Disposing(finalizer);
 		}
 
@@ -77,6 +76,15 @@ namespace Atlas.ECS.Families
 					}
 				}
 			}
+		}
+
+		protected override void ChangingEngine(IEngine current, IEngine previous)
+		{
+			if(current == null)
+			{
+				Dispose();
+			}
+			base.ChangingEngine(current, previous);
 		}
 
 		public void AddEntity(IEntity entity)
@@ -149,9 +157,13 @@ namespace Atlas.ECS.Families
 		private void PoolMembers(IUpdateStateMessage<IEngine> message)
 		{
 			//Clean up update listener.
+			if(message.CurrentValue != TimeStep.None)
+				return;
 			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(PoolMembers);
 			while(removed.Count > 0)
 				DisposeMember(removed.Pop());
+			if(Engine == null)
+				Dispose();
 		}
 
 		private void DisposeMember(TFamilyMember member)

@@ -47,11 +47,15 @@ namespace Atlas.Core.Messages
 		private void Compose(bool constructor)
 		{
 			Composing(constructor);
+			if(!constructor)
+				GC.ReRegisterForFinalize(this);
 		}
 
 		private void Dispose(bool finalizer)
 		{
 			Disposing(finalizer);
+			if(!finalizer)
+				GC.SuppressFinalize(this);
 		}
 
 		/// <summary>
@@ -64,11 +68,14 @@ namespace Atlas.Core.Messages
 		/// </summary>
 		protected virtual void Disposing(bool finalizer)
 		{
-			foreach(var message in new List<Type>(messages.Keys))
+			if(!finalizer)
 			{
-				var signal = messages[message];
-				messages.Remove(message);
-				signal.Dispose();
+				foreach(var message in new List<Type>(messages.Keys))
+				{
+					var signal = messages[message];
+					messages.Remove(message);
+					signal.Dispose();
+				}
 			}
 		}
 

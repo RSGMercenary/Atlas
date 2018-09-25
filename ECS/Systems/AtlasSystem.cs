@@ -29,24 +29,23 @@ namespace Atlas.ECS.Systems
 
 		public sealed override void Dispose()
 		{
-			if(State != ObjectState.Composed)
-				return;
 			//Can't destroy System mid-update.
-			if(Engine != null && Engine.UpdateState != TimeStep.None)
+			if(updateState != TimeStep.None)
 				return;
-			Engine = null;
-			if(Engine == null)
-				base.Dispose();
+			base.Dispose();
 		}
 
 		protected override void Disposing(bool finalizer)
 		{
-			Priority = 0;
-			Sleeping = 0;
-			DeltaIntervalTime = 0;
-			TotalIntervalTime = 0;
-			TimeStep = TimeStep.Variable;
-			UpdateState = TimeStep.None;
+			if(!finalizer)
+			{
+				Priority = 0;
+				Sleeping = 0;
+				DeltaIntervalTime = 0;
+				TotalIntervalTime = 0;
+				TimeStep = TimeStep.Variable;
+				UpdateState = TimeStep.None;
+			}
 			base.Disposing(finalizer);
 		}
 
@@ -83,6 +82,7 @@ namespace Atlas.ECS.Systems
 			{
 				TotalIntervalTime = 0;
 				RemoveFamilies(previous);
+				Dispose();
 			}
 			base.ChangingEngine(current, previous);
 		}
@@ -115,6 +115,8 @@ namespace Atlas.ECS.Systems
 			Updating(deltaTime);
 			UpdateState = TimeStep.None;
 			updateLock = false;
+			if(Engine == null)
+				Dispose();
 		}
 
 		protected virtual void Updating(double deltaTime) { }

@@ -53,15 +53,16 @@ namespace Atlas.ECS.Components
 
 		protected override void Disposing(bool finalizer)
 		{
-			RemoveManagers();
-			AutoDestroy = true;
+			if(!finalizer)
+			{
+				RemoveManagers();
+				AutoDestroy = true;
 
-			//AtlasComponent derived class had Dispose() called
-			//manually or by ~EngineObject() finalizer.
-			//Pool reference for later reuse.
-			if(pools.ContainsKey(GetType()))
-				pools[GetType()].Add(this);
-
+				//AtlasComponent derived class had Dispose() called
+				//manually. Pool reference for later reuse.
+				if(pools.ContainsKey(GetType()))
+					pools[GetType()].Add(this);
+			}
 			base.Disposing(finalizer);
 		}
 
