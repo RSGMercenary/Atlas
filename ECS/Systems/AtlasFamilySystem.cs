@@ -1,4 +1,5 @@
-﻿using Atlas.ECS.Families;
+﻿using Atlas.ECS.Components;
+using Atlas.ECS.Families;
 using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Systems
@@ -17,10 +18,15 @@ namespace Atlas.ECS.Systems
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; set; } = false;
 
-		protected override void Updating(double deltaTime)
+		protected sealed override void Updating(double deltaTime)
+		{
+			FamilyUpdate(deltaTime);
+		}
+
+		protected virtual void FamilyUpdate(double deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
-			foreach(var member in Family?.Members)
+			foreach(var member in Family.Members)
 			{
 				if(updateSleepingEntities || !member.Entity.IsSleeping)
 					MemberUpdate(deltaTime, member);
@@ -33,25 +39,25 @@ namespace Atlas.ECS.Systems
 
 		protected virtual void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		protected override void AddFamilies()
+		protected override void AddFamilies(IEngine engine)
 		{
-			base.AddFamilies();
-			Family = Engine.AddFamily<TFamilyMember>();
+			base.AddFamilies(engine);
+			Family = engine.AddFamily<TFamilyMember>();
 			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
 			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberAdded(Family, member);
 		}
 
-		protected override void RemoveFamilies()
+		protected override void RemoveFamilies(IEngine engine)
 		{
 			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
 			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
 			foreach(var member in Family.Members)
 				MemberRemoved(Family, member);
-			Engine.RemoveFamily<TFamilyMember>();
-			Family = null; //TO-DO Pretty sure this is safe.
-			base.RemoveFamilies();
+			engine.RemoveFamily<TFamilyMember>();
+			Family = null;
+			base.RemoveFamilies(engine);
 		}
 
 		private void EntityAdded(IFamilyMemberAddMessage<TFamilyMember> message)

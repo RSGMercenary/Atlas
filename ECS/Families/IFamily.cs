@@ -5,12 +5,12 @@ using System;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IEngineObject<IReadOnlyFamily>
+	public interface IReadOnlyFamily : IObject<IReadOnlyFamily>
 	{
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 	}
 
-	public interface IReadOnlyFamily<out TFamilyMember> : IReadOnlyFamily
+	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily
 		where TFamilyMember : IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }

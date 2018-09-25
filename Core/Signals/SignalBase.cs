@@ -1,7 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Atlas.Core.Signals
 {
@@ -85,10 +84,20 @@ namespace Atlas.Core.Signals
 
 		public ISlotBase Add(Delegate listener)
 		{
-			return Add(listener, 0);
+			return Add(listener, 0, null);
 		}
 
 		public ISlotBase Add(Delegate listener, int priority)
+		{
+			return Add(listener, priority, null);
+		}
+
+		public ISlotBase Add(Delegate listener, Delegate validator)
+		{
+			return Add(listener, 0, validator);
+		}
+
+		public ISlotBase Add(Delegate listener, int priority, Delegate validator)
 		{
 			if(listener == null)
 				return null;
@@ -108,6 +117,7 @@ namespace Atlas.Core.Signals
 			slot.Signal = this;
 			slot.Listener = listener;
 			slot.Priority = priority;
+			slot.Validator = validator;
 
 			PriorityChanged(slot, 0, 0);
 
@@ -194,19 +204,7 @@ namespace Atlas.Core.Signals
 			{
 				++Dispatching;
 				foreach(TSlot slot in Slots)
-				{
-					try
-					{
-						dispatcher.Invoke(slot);
-					}
-					catch(Exception e)
-					{
-						Debug.WriteLine(e);
-						//We remove the Slot so the Error doesn't inevitably happen again.
-						//TO-DO Might not wanna do this.
-						Remove(slot.Listener);
-					}
-				}
+					dispatcher.Invoke(slot);
 				if(--Dispatching == 0)
 				{
 					while(slotsRemoved.Count > 0)
@@ -218,10 +216,11 @@ namespace Atlas.Core.Signals
 		}
 	}
 
-	public class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
+	public class SignalBase<TSlot, TISlot, TDelegate, TValidator> : SignalBase, ISignalBase<TISlot, TDelegate, TValidator>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : Delegate
+		where TValidator : Delegate
 	{
 		public SignalBase()
 		{
@@ -230,12 +229,22 @@ namespace Atlas.Core.Signals
 
 		public TISlot Add(TDelegate listener)
 		{
-			return base.Add(listener) as TISlot;
+			return base.Add(listener, 0, null) as TISlot;
 		}
 
 		public TISlot Add(TDelegate listener, int priority)
 		{
-			return base.Add(listener, priority) as TISlot;
+			return base.Add(listener, priority, null) as TISlot;
+		}
+
+		public TISlot Add(TDelegate listener, TValidator validator)
+		{
+			return base.Add(listener, 0, validator) as TISlot;
+		}
+
+		public TISlot Add(TDelegate listener, int priority, TValidator validator)
+		{
+			return base.Add(listener, priority, validator) as TISlot;
 		}
 
 		public TISlot Get(TDelegate listener)
@@ -259,6 +268,11 @@ namespace Atlas.Core.Signals
 		}
 
 		protected override SlotBase CreateSlot()
+		{
+			return CreateGenericSlot();
+		}
+
+		protected virtual TSlot CreateGenericSlot()
 		{
 			return new TSlot();
 		}

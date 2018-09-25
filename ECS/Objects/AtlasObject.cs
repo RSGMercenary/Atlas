@@ -1,21 +1,33 @@
 ﻿using Atlas.Core.Messages;
+using Atlas.ECS.Components;
+using Atlas.ECS.Messages;
 using System;
 
-namespace Atlas.Core.Objects
+namespace Atlas.ECS.Objects
 {
 	public abstract class AtlasObject<T> : Messenger<T>, IObject<T>
 		where T : class, IObject
 	{
+		private IEngine engine;
 		private ObjectState state = ObjectState.Disposed;
 
-		public AtlasObject()
+		public virtual IEngine Engine
 		{
-			Compose(true);
+			get { return engine; }
+			set
+			{
+				if(engine == value)
+					return;
+				var previous = engine;
+				engine = value;
+				ChangingEngine(value, previous);
+				Dispatch<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
+			}
 		}
 
-		~AtlasObject()
+		protected virtual void ChangingEngine(IEngine current, IEngine previous)
 		{
-			Dispose(true);
+
 		}
 
 		public ObjectState State
@@ -31,50 +43,24 @@ namespace Atlas.Core.Objects
 			}
 		}
 
-		internal void Compose()
-		{
-			Compose(false);
-		}
-
-		private void Compose(bool constructor)
+		public override void Compose()
 		{
 			if(state != ObjectState.Disposed)
 				return;
 			State = ObjectState.Composing;
-			Composing(constructor);
+			base.Compose();
 			State = ObjectState.Composed;
 			GC.ReRegisterForFinalize(this);
 		}
 
-		public virtual void Dispose()
-		{
-			Dispose(false);
-		}
-
-		private void Dispose(bool finalizer)
+		public override void Dispose()
 		{
 			if(state != ObjectState.Composed)
 				return;
 			State = ObjectState.Disposing;
-			Disposing(finalizer);
+			base.Dispose();
 			State = ObjectState.Disposed;
 			GC.SuppressFinalize(this);
-		}
-
-		/// <summary>
-		/// Called when this instance is being composed. Should not be called manually.
-		/// </summary>
-		protected virtual void Composing(bool constructor)
-		{
-
-		}
-
-		/// <summary>
-		/// Called when this instance is being disposed. Should not be called manually.
-		/// </summary>
-		protected virtual void Disposing(bool finalizer)
-		{
-
 		}
 	}
 }

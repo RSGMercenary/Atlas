@@ -1,8 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.Core.Signals;
 using Atlas.ECS.Components;
 using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
@@ -13,7 +11,7 @@ using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public sealed class AtlasEntity : EngineObject<IEntity>, IEntity
+	public sealed class AtlasEntity : AtlasObject<IEntity>, IEntity
 	{
 		#region Static Singleton
 
@@ -44,7 +42,7 @@ namespace Atlas.ECS.Entities
 		private int parentIndex = -1;
 		private readonly Group<IEntity> children = new Group<IEntity>();
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
-		private readonly HashSet<Type> systems = new HashSet<Type>();
+		private readonly Group<Type> systems = new Group<Type>();
 		private bool autoDestroy = true;
 
 		public AtlasEntity()
@@ -64,7 +62,7 @@ namespace Atlas.ECS.Entities
 
 		public AtlasEntity(bool root)
 		{
-			if(root && !instance)
+			if(root && instance == null)
 			{
 				globalName = RootName;
 				localName = RootName;
@@ -78,9 +76,15 @@ namespace Atlas.ECS.Entities
 			if(this == instance)
 				instance = null;
 
+			//Order matters here!
+			//  |
+			// \ /
 			RemoveChildren();
 			RemoveComponents();
 			RemoveSystems();
+			// / \
+			//  |
+
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
 			AutoDestroy = true;
@@ -191,7 +195,7 @@ namespace Atlas.ECS.Entities
 			return entity;
 		}
 
-		public bool SetHierarchy(string hierarchy, int index)
+		public IEntity SetHierarchy(string hierarchy, int index)
 		{
 			return SetParent(GetHierarchy(hierarchy), index);
 		}
@@ -256,6 +260,12 @@ namespace Atlas.ECS.Entities
 			return (TIComponent)GetComponent(typeof(TIComponent));
 		}
 
+		public TComponent GetComponent<TComponent>(Type type)
+			where TComponent : IComponent
+		{
+			return (TComponent)GetComponent(type);
+		}
+
 		public IComponent GetComponent(Type type)
 		{
 			return components.ContainsKey(type) ? components[type] : null;
@@ -271,19 +281,6 @@ namespace Atlas.ECS.Entities
 					return type;
 			}
 			return null;
-		}
-
-		public List<Type> GetComponentTypes(IComponent component)
-		{
-			var types = new List<Type>();
-			if(component == null)
-				return types;
-			foreach(var type in components.Keys)
-			{
-				if(components[type] == component)
-					types.Add(type);
-			}
-			return types;
 		}
 
 		public IReadOnlyDictionary<Type, IComponent> Components
@@ -353,28 +350,26 @@ namespace Atlas.ECS.Entities
 
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
-			if(component == null)
+			type = type ?? component?.GetType();
+			if(!(bool)type?.IsInstanceOfType(component))
 				return null;
 			//The component isn't shareable and it already has a manager.
 			//Or this Entity alreay manages this Component.
-			if(component.Manager != null || component.HasManager(this))
+			if(component.Manager != null)
+			{
+				if(component.Manager == this)
+					return component;
 				return null;
-			if(type == null)
-				type = component.GetType();
-			else
-			{
-				if(type == typeof(IComponent))
-					return null;
-				if(!type.IsInstanceOfType(component))
-					return null;
 			}
-			if(!components.ContainsKey(type) || components[type] != component)
+			if(components.ContainsKey(type))
 			{
+				if(components[type] == component)
+					return component;
 				RemoveComponent(type);
-				components.Add(type, component);
-				component.AddManager(this, type, index);
-				Dispatch<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
 			}
+			components.Add(type, component);
+			component.AddManager(this, type, index);
+			Dispatch<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
 			return component;
 		}
 
@@ -393,14 +388,12 @@ namespace Atlas.ECS.Entities
 
 		public IComponent RemoveComponent(Type type)
 		{
-			if(type == null)
-				return null;
-			if(!components.ContainsKey(type))
+			if(type == null || !components.ContainsKey(type))
 				return null;
 			var component = components[type];
-			Dispatch<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
 			components.Remove(type);
 			component.RemoveManager(this, type);
+			Dispatch<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
 			return component;
 		}
 
@@ -430,8 +423,9 @@ namespace Atlas.ECS.Entities
 			get { return root; }
 			private set
 			{
-				if(Parent?.Root != value)
-					return;
+				//Only need this if Root setter becomes public
+				/*if(Parent?.Root != value)
+					return;*/
 				if(root == value)
 					return;
 				var previous = root;
@@ -483,9 +477,7 @@ namespace Atlas.ECS.Entities
 
 		public IEntity AddChild(IEntity child, int index)
 		{
-			if(child == null)
-				return null;
-			if(child.Parent == this)
+			if(child?.Parent == this)
 			{
 				if(!HasChild(child))
 				{
@@ -502,7 +494,7 @@ namespace Atlas.ECS.Entities
 			}
 			else
 			{
-				if(!child.SetParent(this, index))
+				if(child?.SetParent(this, index) == null)
 					return null;
 			}
 			return child;
@@ -517,11 +509,9 @@ namespace Atlas.ECS.Entities
 				if(!HasChild(child))
 					return null;
 				int index = children.IndexOf(child);
+				children.Remove(child);
 				Dispatch<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
 				Dispatch<IChildrenMessage>(new ChildrenMessage(this));
-				//Could've been readded during messaging?
-				if(child.Parent != this)
-					children.Remove(child);
 			}
 			else
 			{
@@ -555,17 +545,18 @@ namespace Atlas.ECS.Entities
 			set { SetParent(value); }
 		}
 
-		public bool SetParent(IEntity next = null, int index = int.MaxValue)
+		public IEntity SetParent(IEntity next = null, int index = int.MaxValue)
 		{
 			//Prevent changing the Parent of the Root Entity.
 			//The Root must be the absolute bottom of the hierarchy.
 			if(this == instance)
-				return false;
+				return null;
 			if(parent == next)
-				return false;
+				return null;
 			//Can't set a descendant of this as a parent.
 			if(HasDescendant(next))
-				return false;
+				return null;
+			Root = next?.Root;
 			var previous = parent;
 			int sleeping = 0;
 			//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
@@ -587,10 +578,9 @@ namespace Atlas.ECS.Entities
 			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(index);
 			Sleeping += sleeping;
-			Root = next?.Root;
 			if(autoDestroy && parent == null)
 				Dispose();
-			return true;
+			return next;
 		}
 
 		public int ParentIndex
@@ -750,7 +740,7 @@ namespace Atlas.ECS.Entities
 
 		#region Systems
 
-		public IReadOnlyCollection<Type> Systems
+		public IReadOnlyGroup<Type> Systems
 		{
 			get { return systems; }
 		}
@@ -830,25 +820,6 @@ namespace Atlas.ECS.Entities
 		}
 
 		#region Messages
-
-		public void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
-			where TMessage : IMessage<IEntity>
-		{
-			var slot = AddListenerSlot(listener, 0) as HierarchySlot<TMessage>;
-			slot.Hierarchy = hierarchy;
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
-			where TMessage : IMessage<IEntity>
-		{
-			var slot = AddListenerSlot(listener, priority) as HierarchySlot<TMessage>;
-			slot.Hierarchy = hierarchy;
-		}
-
-		protected sealed override Signal<TMessage> CreateSignal<TMessage>()
-		{
-			return new HierarchySignal<TMessage>();
-		}
 
 		public sealed override void Dispatch<TMessage>(TMessage message)
 		{

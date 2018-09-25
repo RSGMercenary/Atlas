@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
@@ -30,8 +29,6 @@ namespace Atlas.ECS.Components
 		private readonly Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
 		private readonly Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
-		private readonly Dictionary<Type, Type> systemsInstance = new Dictionary<Type, Type>();
-
 		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
@@ -48,34 +45,47 @@ namespace Atlas.ECS.Components
 		private double deltaVariableTime = 0;
 		private double totalVariableTime = 0;
 
+		private int lagFixedTime = 0;
 		private double deltaFixedTime = 1d / 60d;
 		private double totalFixedTime = 0;
 
+		private Func<Type, ISystem> systemCreator;
+
 		#endregion
 
-		public AtlasEngine()
+		public AtlasEngine(Func<Type, ISystem> systemCreator)
 		{
-			if(!instance)
-				instance = this;
-			else
-				throw new InvalidOperationException("A new AtlasEngine instance cannot be constructed when one already exists.");
+			this.systemCreator = systemCreator ?? throw new NullReferenceException();
 		}
 
-		~AtlasEngine()
+		protected override void Composing(bool constructor)
+		{
+			base.Composing(constructor);
+			if(instance == null)
+				instance = this;
+			else
+				throw new InvalidOperationException("A new AtlasEngine instance cannot be composed when one already exists.");
+
+		}
+
+		protected override void Disposing(bool finalizer)
 		{
 			instance = null;
+			base.Disposing(finalizer);
 		}
 
 		protected override void AddingManager(IEntity entity, int index)
 		{
+			if(entity.Root != entity)
+				throw new InvalidOperationException($"{GetType()} must be added to the root Entity.");
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<IParentMessage>(EntityParentChanged, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, MessageHierarchy.All);
-			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, MessageHierarchy.All);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Messenger.All);
+			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Messenger.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Messenger.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Messenger.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Messenger.All);
+			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, Messenger.All);
+			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, Messenger.All);
 			AddEntity(entity);
 		}
 
@@ -83,7 +93,7 @@ namespace Atlas.ECS.Components
 		{
 			RemoveEntity(entity);
 			entity.RemoveListener<IChildAddMessage>(EntityChildAdded);
-			entity.RemoveListener<IParentMessage>(EntityParentChanged);
+			entity.RemoveListener<IRootMessage>(EntityRootChanged);
 			entity.RemoveListener<IGlobalNameMessage>(EntityGlobalNameChanged);
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
@@ -123,8 +133,6 @@ namespace Atlas.ECS.Components
 			entities.Add(entity);
 			entity.Engine = this;
 
-			//TO-DO
-			//entity.Systems isn't an EngineList, so it might screw up.
 			foreach(var type in entity.Systems)
 				AddSystem(type);
 
@@ -149,8 +157,6 @@ namespace Atlas.ECS.Components
 
 			Dispatch<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
 
-			//TO-DO
-			//entity.Systems isn't an EngineList, so it might screw up.
 			foreach(var type in entity.Systems)
 				RemoveSystem(type);
 
@@ -169,7 +175,7 @@ namespace Atlas.ECS.Components
 				AddEntity(message.Value);
 		}
 
-		private void EntityParentChanged(IParentMessage message)
+		private void EntityRootChanged(IRootMessage message)
 		{
 			if(message.CurrentValue == null)
 				RemoveEntity(message.Messenger);
@@ -185,126 +191,54 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
-		public bool AddSystemType<TSystem, TISystem>()
-			where TISystem : ISystem
-			where TSystem : TISystem, new()
-		{
-			return AddSystemType(typeof(TSystem), typeof(TISystem));
-		}
-
-		public bool AddSystemType(Type instance, Type type)
-		{
-			if(type == null)
-				return false;
-			if(instance == null)
-				return false;
-			if(!type.IsInterface)
-				return false;
-			if(!instance.IsClass)
-				return false;
-			if(type == typeof(ISystem))
-				return false;
-			if(!typeof(ISystem).IsAssignableFrom(type))
-				return false;
-			if(!type.IsAssignableFrom(instance))
-				return false;
-			if(instance.GetConstructor(Type.EmptyTypes) == null)
-				return false;
-			if(systemsInstance.ContainsKey(type) && systemsInstance[type] == instance)
-				return false;
-			RemoveSystemType(type);
-			systemsInstance.Add(type, instance);
-			AddSystem(type);
-			return true;
-		}
-
-		public bool RemoveSystemType<TISystem>()
-			where TISystem : IReadOnlySystem
-		{
-			return RemoveSystemType(typeof(TISystem));
-		}
-
-		public bool RemoveSystemType(Type type)
-		{
-			if(type == null)
-				return false;
-			if(!type.IsInterface)
-				return false;
-			if(type == typeof(IReadOnlySystem))
-				return false;
-			if(!typeof(IReadOnlySystem).IsAssignableFrom(type))
-				return false;
-			if(!systemsInstance.ContainsKey(type))
-				return false;
-			systemsInstance.Remove(type);
-			RemoveSystem(type);
-			return true;
-		}
-
 		private void AddSystem(Type type)
 		{
 			if(!systemsReference.ContainsKey(type))
-				return;
-			//There's no system instance class assigned.
-			if(!systemsInstance.ContainsKey(type))
-				return;
-			ISystem system;
-			try
 			{
-				system = Activator.CreateInstance(systemsInstance[type]) as ISystem;
+				var system = systemCreator.Invoke(type);
+
+				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
+
+				SystemPriorityChanged(system);
+				systemsType.Add(type, system);
+				systemsReference.Add(type, 1);
+
+				system.Engine = this;
+				Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 			}
-			catch(Exception e)
+			else
 			{
-				Debug.WriteLine(e);
-				return;
+				++systemsReference[type];
 			}
-
-			systemsType.Add(type, system);
-
-			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
-			SystemPriorityChanged(system);
-
-			system.Engine = this;
-			Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 		}
 
 		private void RemoveSystem(Type type)
 		{
-			if(!systemsType.ContainsKey(type))
+			if(--systemsReference[type] > 0)
 				return;
 			var system = systemsType[type];
 
 			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
-			systems.Remove(system);
 
+			systems.Remove(system);
 			systemsType.Remove(type);
+			systemsReference.Remove(type);
+
 			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
+
 			if(updateState != TimeStep.None)
-			{
 				systemsRemoved.Push(system);
-			}
 			else
-			{
 				system.Dispose();
-			}
 		}
 
 		private void EntitySystemAdded(ISystemTypeAddMessage message)
 		{
-			if(!systemsReference.ContainsKey(message.Value))
-			{
-				systemsReference.Add(message.Value, 1);
-				AddSystem(message.Value);
-			}
-			else
-				++systemsReference[message.Value];
+			AddSystem(message.Value);
 		}
 
 		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
 		{
-			if(--systemsReference[message.Value] > 0)
-				return;
-			systemsReference.Remove(message.Value);
 			RemoveSystem(message.Value);
 		}
 
@@ -475,11 +409,17 @@ namespace Atlas.ECS.Components
 
 						//Calculate the number of fixed updates.
 						var fixedUpdates = 0;
-						while(totalFixedTime + deltaFixedTime < totalVariableTime)
+						while(totalFixedTime + deltaFixedTime <= totalVariableTime)
 						{
 							totalFixedTime += deltaFixedTime;
 							++fixedUpdates;
 						}
+
+						//Calculate when fixed-time and variable-time update weren't 1:1.
+						//Let the Systems decide how to use the value.
+						lagFixedTime += Math.Max(0, fixedUpdates - 1);
+						if(fixedUpdates == 1 && lagFixedTime > 0)
+							--lagFixedTime;
 
 						//Update all delta and total times.
 						DeltaVariableTime = deltaVariableTime;

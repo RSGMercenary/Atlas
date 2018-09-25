@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace Atlas.Core.Objects
+﻿namespace Atlas.ECS.Objects
 {
-	[Flags]
 	public enum ObjectState
 	{
 		Composing = 1,

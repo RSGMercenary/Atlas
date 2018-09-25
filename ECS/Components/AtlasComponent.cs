@@ -15,7 +15,7 @@ namespace Atlas.ECS.Components
 
 	}
 
-	public abstract class AtlasComponent<T> : EngineObject<T>, IComponent<T>
+	public abstract class AtlasComponent<T> : AtlasObject<T>, IComponent<T>
 		where T : class, IComponent
 	{
 		#region Static
@@ -156,17 +156,12 @@ namespace Atlas.ECS.Components
 
 		public IEntity AddManager(IEntity entity, Type type, int index)
 		{
-			if(entity == null)
+			type = type ?? GetType();
+			if(!type.IsInstanceOfType(this))
 				return null;
-			if(!managers.Contains(entity))
+			if(entity?.GetComponent(type) == this)
 			{
-				if(type == null)
-					type = GetType();
-				else if(type == typeof(IComponent))
-					return null;
-				else if(!type.IsInstanceOfType(this))
-					return null;
-				if(entity.GetComponent(type) == this)
+				if(!HasManager(entity))
 				{
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Insert(index, entity);
@@ -178,13 +173,13 @@ namespace Atlas.ECS.Components
 				}
 				else
 				{
-					if(entity.AddComponent(this, type, index) == null)
-						return null;
+					SetManagerIndex(entity, index);
 				}
 			}
 			else
 			{
-				SetManagerIndex(entity, index);
+				if(entity?.AddComponent(this, type, index) == null)
+					return null;
 			}
 			return entity;
 		}

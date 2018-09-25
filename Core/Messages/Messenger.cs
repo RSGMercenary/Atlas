@@ -4,52 +4,104 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Messages
 {
+	public static class Messenger
+	{
+		public static bool Self<TMessage>(TMessage message)
+			where TMessage : IMessage
+		{
+			return message.Messenger == message.CurrentMessenger;
+		}
+
+		public static bool All<TMessage>(TMessage message)
+			where TMessage : IMessage
+		{
+			return true;
+		}
+	}
+
 	public abstract class Messenger<TMessenger> : IMessenger<TMessenger>
 		where TMessenger : IMessenger
 	{
-		public static implicit operator bool(Messenger<TMessenger> instance)
-		{
-			return instance != null;
-		}
-
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
-		protected virtual void Messaging(IMessage message)
+		public Messenger()
 		{
-
+			Compose(true);
 		}
+
+		~Messenger()
+		{
+			Dispose(true);
+		}
+
+		public virtual void Compose()
+		{
+			Compose(false);
+		}
+
+		public virtual void Dispose()
+		{
+			Dispose(false);
+		}
+
+		private void Compose(bool constructor)
+		{
+			Composing(constructor);
+		}
+
+		private void Dispose(bool finalizer)
+		{
+			Disposing(finalizer);
+		}
+
+		/// <summary>
+		/// Called when this instance is being composed. Should not be called manually.
+		/// </summary>
+		protected virtual void Composing(bool constructor) { }
+
+		/// <summary>
+		/// Called when this instance is being disposed. Should not be called manually.
+		/// </summary>
+		protected virtual void Disposing(bool finalizer)
+		{
+			foreach(var message in new List<Type>(messages.Keys))
+			{
+				var signal = messages[message];
+				messages.Remove(message);
+				signal.Dispose();
+			}
+		}
+
+		protected virtual void Messaging(IMessage message) { }
 
 		public void AddListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<TMessenger>
 		{
-			AddListenerSlot(listener, 0);
+			(this as IMessenger).AddListener(listener, 0, null);
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
 			where TMessage : IMessage<TMessenger>
 		{
-			AddListenerSlot(listener, priority);
+			(this as IMessenger).AddListener(listener, priority, null);
 		}
 
-		protected ISlotBase AddListenerSlot<TMessage>(Action<TMessage> listener, int priority)
-			where TMessage : IMessage
+		public void AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
+			where TMessage : IMessage<TMessenger>
 		{
-			var type = typeof(TMessage);
-			if(!messages.ContainsKey(type))
-				messages.Add(type, CreateSignal<TMessage>());
-			return messages[type].Add(listener, priority);
+			(this as IMessenger).AddListener(listener, 0, validator);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+			where TMessage : IMessage<TMessenger>
+		{
+			(this as IMessenger).AddListener(listener, priority, validator);
 		}
 
 		public void RemoveListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<TMessenger>
 		{
 			(this as IMessenger).RemoveListener(listener);
-		}
-
-		protected virtual Signal<TMessage> CreateSignal<TMessage>()
-			where TMessage : IMessage
-		{
-			return new Signal<TMessage>();
 		}
 
 		#region IMessenger
@@ -68,12 +120,25 @@ namespace Atlas.Core.Messages
 
 		void IMessenger.AddListener<TMessage>(Action<TMessage> listener)
 		{
-			AddListenerSlot(listener, 0);
+			(this as IMessenger).AddListener(listener, 0, null);
 		}
 
 		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, int priority)
 		{
-			AddListenerSlot(listener, priority);
+			(this as IMessenger).AddListener(listener, priority, null);
+		}
+
+		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
+		{
+			(this as IMessenger).AddListener(listener, 0, validator);
+		}
+
+		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+		{
+			var type = typeof(TMessage);
+			if(!messages.ContainsKey(type))
+				messages.Add(type, new MessageSignal<TMessage>());
+			messages[type].Add(listener, priority, validator);
 		}
 
 		void IMessenger.RemoveListener<TMessage>(Action<TMessage> listener)

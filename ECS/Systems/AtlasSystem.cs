@@ -11,7 +11,7 @@ namespace Atlas.ECS.Systems
 
 	}
 
-	public abstract class AtlasSystem<T> : EngineObject<T>, ISystem<T>
+	public abstract class AtlasSystem<T> : AtlasObject<T>, ISystem<T>
 		where T : class, ISystem
 	{
 		private int priority = 0;
@@ -43,6 +43,10 @@ namespace Atlas.ECS.Systems
 		{
 			Priority = 0;
 			Sleeping = 0;
+			DeltaIntervalTime = 0;
+			TotalIntervalTime = 0;
+			TimeStep = TimeStep.Variable;
+			UpdateState = TimeStep.None;
 			base.Disposing(finalizer);
 		}
 
@@ -56,25 +60,36 @@ namespace Atlas.ECS.Systems
 					if(Engine == null && value.HasSystem(this))
 					{
 						base.Engine = value;
-						AddFamilies();
-						SyncTotalIntervalTime();
 					}
 				}
 				else
 				{
 					if(Engine != null && !Engine.HasSystem(this))
 					{
-						RemoveFamilies();
 						base.Engine = value;
-						SyncTotalIntervalTime();
 					}
 				}
 			}
 		}
 
-		protected virtual void AddFamilies() { }
+		protected override void ChangingEngine(IEngine current, IEngine previous)
+		{
+			if(current != null)
+			{
+				SyncTotalIntervalTime();
+				AddFamilies(current);
+			}
+			else
+			{
+				TotalIntervalTime = 0;
+				RemoveFamilies(previous);
+			}
+			base.ChangingEngine(current, previous);
+		}
 
-		protected virtual void RemoveFamilies() { }
+		protected virtual void AddFamilies(IEngine engine) { }
+
+		protected virtual void RemoveFamilies(IEngine engine) { }
 
 		#region Updating
 
@@ -117,7 +132,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Dispatch<ISleepMessage<IReadOnlySystem>>(new SleepMessage<IReadOnlySystem>(this, value, previous));
+				Dispatch<ISleepMessage<T>>(new SleepMessage<T>(this as T, value, previous));
 			}
 		}
 
@@ -145,7 +160,19 @@ namespace Atlas.ECS.Systems
 				var previous = deltaIntervalTime;
 				deltaIntervalTime = value;
 				Dispatch<IIntervalMessage>(new IntervalMessage(this, value, previous));
-				SyncTotalIntervalTime();
+				if(Engine != null)
+					SyncTotalIntervalTime();
+			}
+		}
+
+		public double TotalIntervalTime
+		{
+			get { return totalIntervalTime; }
+			private set
+			{
+				if(totalIntervalTime == value)
+					return;
+				totalIntervalTime = value;
 			}
 		}
 
@@ -156,9 +183,10 @@ namespace Atlas.ECS.Systems
 		{
 			if(deltaIntervalTime <= 0)
 				return;
-			totalIntervalTime = 0;
-			while(totalIntervalTime + deltaIntervalTime < Engine?.TotalVariableTime)
+			double totalIntervalTime = 0;
+			while(totalIntervalTime + deltaIntervalTime <= Engine.TotalVariableTime)
 				totalIntervalTime += deltaIntervalTime;
+			TotalIntervalTime = totalIntervalTime;
 		}
 
 		public TimeStep TimeStep
@@ -196,7 +224,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = updateState;
 				updateState = value;
-				Dispatch<IUpdateStateMessage<IReadOnlySystem>>(new UpdateStateMessage<IReadOnlySystem>(this, value, previous));
+				Dispatch<IUpdateStateMessage<T>>(new UpdateStateMessage<T>(this as T, value, previous));
 			}
 		}
 	}

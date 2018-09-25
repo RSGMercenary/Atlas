@@ -1,6 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Hierarchy;
-using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
@@ -10,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IEngineObject<IEntity>, IAutoDestroy<IEntity>, ISleep<IEntity>
+	public interface IEntity : IObject<IEntity>, IAutoDestroy<IEntity>, ISleep<IEntity>
 	{
 		#region Entities
 
@@ -48,7 +46,7 @@ namespace Atlas.ECS.Entities
 		/// <returns></returns>
 		IEntity GetHierarchy(string hierarchy);
 
-		bool SetHierarchy(string hierarchy, int index);
+		IEntity SetHierarchy(string hierarchy, int index);
 
 		IEntity GetChild(string localName);
 
@@ -64,7 +62,7 @@ namespace Atlas.ECS.Entities
 
 		IReadOnlyGroup<IEntity> Children { get; }
 
-		bool SetParent(IEntity parent = null, int index = int.MaxValue);
+		IEntity SetParent(IEntity parent = null, int index = int.MaxValue);
 
 		bool HasDescendant(IEntity descendant);
 
@@ -124,9 +122,10 @@ namespace Atlas.ECS.Entities
 
 		IComponent GetComponent(Type type);
 
-		Type GetComponentType(IComponent component);
+		TComponent GetComponent<TComponent>(Type type)
+			where TComponent : IComponent;
 
-		List<Type> GetComponentTypes(IComponent component);
+		Type GetComponentType(IComponent component);
 
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
@@ -232,7 +231,7 @@ namespace Atlas.ECS.Entities
 		bool RemoveSystem<TISystem>() where TISystem : ISystem;
 		bool RemoveSystems();
 
-		IReadOnlyCollection<Type> Systems { get; }
+		IReadOnlyGroup<Type> Systems { get; }
 
 		#endregion
 
@@ -248,16 +247,6 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
-
-		#endregion
-
-		#region Messages
-
-		void AddListener<TMessage>(Action<TMessage> listener, MessageHierarchy hierarchy)
-			where TMessage : IMessage<IEntity>;
-
-		void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageHierarchy hierarchy)
-			where TMessage : IMessage<IEntity>;
 
 		#endregion
 

@@ -54,17 +54,6 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		IReadOnlyGroup<IReadOnlySystem> Systems { get; }
 
-		bool AddSystemType<TSystem, TISystem>()
-			where TISystem : ISystem
-			where TSystem : TISystem, new();
-
-		bool AddSystemType(Type instance, Type type);
-
-		bool RemoveSystemType<TISystem>()
-			where TISystem : IReadOnlySystem;
-
-		bool RemoveSystemType(Type type);
-
 		/// <summary>
 		/// Returns if the Engine is managing a System with the given instance.
 		/// </summary>

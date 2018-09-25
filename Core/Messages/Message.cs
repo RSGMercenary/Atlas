@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Core.Messages
 {
-	public class Message
+	public class Message : IMessage
 	{
 		public IMessenger Messenger { get; }
 		public IMessenger CurrentMessenger { get; set; }

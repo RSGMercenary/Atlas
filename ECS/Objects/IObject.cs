@@ -1,10 +1,11 @@
 ﻿using Atlas.Core.Messages;
-using System;
+using Atlas.ECS.Components;
 
-namespace Atlas.Core.Objects
+namespace Atlas.ECS.Objects
 {
-	public interface IObject : IMessenger, IDisposable
+	public interface IObject : IMessenger
 	{
+		IEngine Engine { get; set; }
 		ObjectState State { get; }
 	}
 

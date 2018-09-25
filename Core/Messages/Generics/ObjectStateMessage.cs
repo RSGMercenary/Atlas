@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Objects;
+using Atlas.ECS.Objects;
 
 namespace Atlas.Core.Messages
 {
