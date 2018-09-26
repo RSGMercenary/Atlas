@@ -107,7 +107,7 @@ namespace Atlas.ECS.Systems
 				deltaTime = deltaIntervalTime;
 				if(Engine.TotalVariableTime - totalIntervalTime < deltaIntervalTime)
 					return;
-				totalIntervalTime += deltaIntervalTime;
+				TotalIntervalTime += deltaIntervalTime;
 			}
 
 			updateLock = true;
