@@ -122,7 +122,7 @@ namespace Atlas.Core.Messages
 			//...before dispatching externally.
 			var type = typeof(TMessage);
 			if(messages.ContainsKey(type))
-				((Signal<TMessage>)messages[type]).Dispatch(message);
+				(messages[type] as MessageSignal<TMessage>).Dispatch(message);
 		}
 
 		void IMessenger.AddListener<TMessage>(Action<TMessage> listener)
@@ -145,7 +145,7 @@ namespace Atlas.Core.Messages
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
 				messages.Add(type, new MessageSignal<TMessage>());
-			messages[type].Add(listener, priority, validator);
+			(messages[type] as MessageSignal<TMessage>).Add(listener, priority, validator);
 		}
 
 		void IMessenger.RemoveListener<TMessage>(Action<TMessage> listener)

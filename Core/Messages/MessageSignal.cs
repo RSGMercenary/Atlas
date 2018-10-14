@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Signals;
+using System;
 
 namespace Atlas.Core.Messages
 {
@@ -7,8 +8,13 @@ namespace Atlas.Core.Messages
 	{
 		protected override Slot<T> CreateGenericSlot()
 		{
-			var slot = base.CreateGenericSlot();
-			slot.Validator = Messenger.Self;
+			return new MessageSlot<T>();
+		}
+
+		public ISlot<T> Add(Action<T> listener, int priority, Func<T, bool> validator)
+		{
+			var slot = (MessageSlot<T>)Add(listener, priority);
+			slot.Validator = validator;
 			return slot;
 		}
 	}

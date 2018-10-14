@@ -84,20 +84,10 @@ namespace Atlas.Core.Signals
 
 		public ISlotBase Add(Delegate listener)
 		{
-			return Add(listener, 0, null);
+			return Add(listener, 0);
 		}
 
 		public ISlotBase Add(Delegate listener, int priority)
-		{
-			return Add(listener, priority, null);
-		}
-
-		public ISlotBase Add(Delegate listener, Delegate validator)
-		{
-			return Add(listener, 0, validator);
-		}
-
-		public ISlotBase Add(Delegate listener, int priority, Delegate validator)
 		{
 			if(listener == null)
 				return null;
@@ -117,7 +107,6 @@ namespace Atlas.Core.Signals
 			slot.Signal = this;
 			slot.Listener = listener;
 			slot.Priority = priority;
-			slot.Validator = validator;
 
 			PriorityChanged(slot, 0, 0);
 
@@ -216,7 +205,7 @@ namespace Atlas.Core.Signals
 		}
 	}
 
-	public class SignalBase<TSlot, TISlot, TDelegate, TValidator> : SignalBase, ISignalBase<TISlot, TDelegate, TValidator>
+	public class SignalBase<TSlot, TISlot, TDelegate, TValidator> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : Delegate
@@ -229,22 +218,12 @@ namespace Atlas.Core.Signals
 
 		public TISlot Add(TDelegate listener)
 		{
-			return base.Add(listener, 0, null) as TISlot;
+			return base.Add(listener, 0) as TISlot;
 		}
 
 		public TISlot Add(TDelegate listener, int priority)
 		{
-			return base.Add(listener, priority, null) as TISlot;
-		}
-
-		public TISlot Add(TDelegate listener, TValidator validator)
-		{
-			return base.Add(listener, 0, validator) as TISlot;
-		}
-
-		public TISlot Add(TDelegate listener, int priority, TValidator validator)
-		{
-			return base.Add(listener, priority, validator) as TISlot;
+			return base.Add(listener, priority) as TISlot;
 		}
 
 		public TISlot Get(TDelegate listener)

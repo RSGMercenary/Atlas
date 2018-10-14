@@ -16,8 +16,6 @@ namespace Atlas.Core.Signals
 
 		ISlotBase Add(Delegate listener);
 		ISlotBase Add(Delegate listener, int priority);
-		ISlotBase Add(Delegate listener, Delegate validator);
-		ISlotBase Add(Delegate listener, int priority, Delegate validator);
 
 		bool Remove(Delegate listener);
 
@@ -25,10 +23,9 @@ namespace Atlas.Core.Signals
 		bool RemoveAll();
 	}
 
-	public interface ISignalBase<TSlot, TDelegate, TValidator> : ISignalBase
+	public interface ISignalBase<TSlot, TDelegate> : ISignalBase
 		where TSlot : class, ISlotBase
 		where TDelegate : Delegate
-		where TValidator : Delegate
 	{
 		TSlot Get(TDelegate listener);
 		new TSlot Get(int index);
@@ -36,33 +33,31 @@ namespace Atlas.Core.Signals
 
 		TSlot Add(TDelegate listener);
 		TSlot Add(TDelegate listener, int priority);
-		TSlot Add(TDelegate listener, TValidator validator);
-		TSlot Add(TDelegate listener, int priority, TValidator validator);
 
 		bool Remove(TDelegate listener);
 	}
 
-	public interface ISignal : ISignalBase<ISlot, Action, Func<bool>>
+	public interface ISignal : ISignalBase<ISlot, Action>
 	{
 
 	}
 
-	public interface ISignal<T1> : ISignalBase<ISlot<T1>, Action<T1>, Func<T1, bool>>
+	public interface ISignal<T1> : ISignalBase<ISlot<T1>, Action<T1>>
 	{
 
 	}
 
-	public interface ISignal<T1, T2> : ISignalBase<ISlot<T1, T2>, Action<T1, T2>, Func<T1, T2, bool>>
+	public interface ISignal<T1, T2> : ISignalBase<ISlot<T1, T2>, Action<T1, T2>>
 	{
 
 	}
 
-	public interface ISignal<T1, T2, T3> : ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>, Func<T1, T2, T3, bool>>
+	public interface ISignal<T1, T2, T3> : ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>>
 	{
 
 	}
 
-	public interface ISignal<T1, T2, T3, T4> : ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>, Func<T1, T2, T3, T4, bool>>
+	public interface ISignal<T1, T2, T3, T4> : ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
 	{
 
 	}
