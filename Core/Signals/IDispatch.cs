@@ -1,10 +1,5 @@
 ﻿namespace Atlas.Core.Signals
 {
-	interface IDispatchDynamic
-	{
-		bool Dispatch(params object[] items);
-	}
-
 	interface IDispatch
 	{
 		bool Dispatch();
