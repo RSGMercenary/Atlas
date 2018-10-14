@@ -32,10 +32,12 @@ namespace Atlas.ECS.Components
 		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
-		private readonly Stopwatch timer = new Stopwatch();
-		private IReadOnlySystem currentSystem;
+		private readonly IEngineCreator creator;
 
+		private readonly Stopwatch timer = new Stopwatch();
 		private bool isRunning = false;
+
+		private IReadOnlySystem currentSystem;
 		private TimeStep updateState = TimeStep.None;
 
 		private double maxVariableTime = 0.25;
@@ -46,13 +48,17 @@ namespace Atlas.ECS.Components
 		private double deltaFixedTime = 1d / 60d;
 		private double totalFixedTime = 0;
 
-		private Func<Type, ISystem> systemCreator;
-
 		#endregion
 
-		public AtlasEngine(Func<Type, ISystem> systemCreator)
+		public AtlasEngine(IEngineCreator creator, double deltaFixedTime, double maxVariableTime) : this(creator)
 		{
-			this.systemCreator = systemCreator ?? throw new NullReferenceException();
+			DeltaFixedTime = deltaFixedTime;
+			MaxVariableTime = maxVariableTime;
+		}
+
+		public AtlasEngine(IEngineCreator creator)
+		{
+			this.creator = creator ?? throw new NullReferenceException();
 		}
 
 		protected override void Composing(bool constructor)
@@ -61,7 +67,7 @@ namespace Atlas.ECS.Components
 			if(instance == null)
 				instance = this;
 			else
-				throw new InvalidOperationException("A new AtlasEngine instance cannot be composed when one already exists.");
+				throw new InvalidOperationException($"A new {nameof(AtlasEngine)} instance cannot be composed when one already exists.");
 
 		}
 
@@ -74,15 +80,13 @@ namespace Atlas.ECS.Components
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			if(entity.Root != entity)
-				throw new InvalidOperationException($"{GetType()} must be added to the root Entity.");
+				throw new InvalidOperationException($"The {nameof(AtlasEngine)} must be added to the root {nameof(IEntity)}.");
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Messenger.All);
 			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Messenger.All);
 			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Messenger.All);
 			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Messenger.All);
 			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Messenger.All);
-			entity.AddListener<ISystemTypeAddMessage>(EntitySystemAdded, int.MinValue, Messenger.All);
-			entity.AddListener<ISystemTypeRemoveMessage>(EntitySystemRemoved, int.MinValue, Messenger.All);
 			AddEntity(entity);
 		}
 
@@ -94,8 +98,6 @@ namespace Atlas.ECS.Components
 			entity.RemoveListener<IGlobalNameMessage>(EntityGlobalNameChanged);
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
-			entity.RemoveListener<ISystemTypeAddMessage>(EntitySystemAdded);
-			entity.RemoveListener<ISystemTypeRemoveMessage>(EntitySystemRemoved);
 			base.RemovingManager(entity, index);
 		}
 
@@ -130,9 +132,6 @@ namespace Atlas.ECS.Components
 			entities.Add(entity);
 			entity.Engine = this;
 
-			foreach(var type in entity.Systems)
-				AddSystem(type);
-
 			foreach(var family in families)
 				family.AddEntity(entity);
 
@@ -153,9 +152,6 @@ namespace Atlas.ECS.Components
 				RemoveEntity(child);
 
 			Dispatch<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
-
-			foreach(var type in entity.Systems)
-				RemoveSystem(type);
 
 			foreach(var family in families)
 				family.RemoveEntity(entity);
@@ -188,18 +184,21 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
-		private void AddSystem(Type type)
+		public TSystem AddSystem<TSystem>()
+			where TSystem : ISystem
+		{
+			return (TSystem)AddSystem(typeof(TSystem));
+		}
+
+		public ISystem AddSystem(Type type)
 		{
 			if(!systemsReference.ContainsKey(type))
 			{
-				var system = systemCreator.Invoke(type);
-
+				var system = creator.CreateSystem(type);
 				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
-
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
 				systemsReference.Add(type, 1);
-
 				system.Engine = this;
 				Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 			}
@@ -207,10 +206,19 @@ namespace Atlas.ECS.Components
 			{
 				++systemsReference[type];
 			}
+			return systemsType[type];
 		}
 
-		private void RemoveSystem(Type type)
+		public void RemoveSystem<TSystem>()
+			where TSystem : ISystem
 		{
+			RemoveSystem(typeof(TSystem));
+		}
+
+		public void RemoveSystem(Type type)
+		{
+			if(!systemsReference.ContainsKey(type))
+				return;
 			if(--systemsReference[type] > 0)
 				return;
 			var system = systemsType[type];
@@ -223,16 +231,6 @@ namespace Atlas.ECS.Components
 
 			system.Engine = null;
 			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
-		}
-
-		private void EntitySystemAdded(ISystemTypeAddMessage message)
-		{
-			AddSystem(message.Value);
-		}
-
-		private void EntitySystemRemoved(ISystemTypeRemoveMessage message)
-		{
-			RemoveSystem(message.Value);
 		}
 
 		private void SystemPriorityChanged(IPriorityMessage message)
@@ -470,7 +468,7 @@ namespace Atlas.ECS.Components
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
 			{
-				var family = new AtlasFamily<TFamilyMember>();
+				var family = creator.CreateFamily<TFamilyMember>();
 				families.Add(family);
 				familiesType.Add(type, family);
 				familiesReference.Add(type, 1);
@@ -478,24 +476,23 @@ namespace Atlas.ECS.Components
 				foreach(var entity in entities)
 					family.AddEntity(entity);
 				Dispatch<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
-				return family;
 			}
 			else
 			{
 				++familiesReference[type];
-				return familiesType[type] as IFamily<TFamilyMember>;
 			}
+			return (IFamily<TFamilyMember>)familiesType[type];
 		}
 
 		public void RemoveFamily<TFamilyMember>()
 			where TFamilyMember : IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
-			if(!familiesType.ContainsKey(type))
+			if(!familiesReference.ContainsKey(type))
 				return;
-			var family = familiesType[type];
 			if(--familiesReference[type] > 0)
 				return;
+			var family = familiesType[type];
 			families.Remove(family);
 			familiesType.Remove(type);
 			familiesReference.Remove(type);

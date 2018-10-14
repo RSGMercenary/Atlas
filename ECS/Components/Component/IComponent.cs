@@ -6,12 +6,12 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IComponent : IObject, IAutoDestroy
+	public interface IComponent : IObject, IAutoDispose
 	{
 		/// <summary>
 		/// Determines whether <see cref="IObject.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
 		/// </summary>
-		new bool AutoDestroy { get; set; }
+		new bool AutoDispose { get; set; }
 
 		bool HasManager(IEntity entity);
 
@@ -185,7 +185,7 @@ namespace Atlas.ECS.Components
 		string ToInfoString(bool addManagers = true, int index = 0, string indent = "");
 	}
 
-	public interface IComponent<T> : IComponent, IObject<T>, IAutoDestroy<T>
+	public interface IComponent<T> : IComponent, IObject<T>, IAutoDispose<T>
 		where T : IComponent
 	{
 	}

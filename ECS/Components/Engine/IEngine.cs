@@ -47,6 +47,16 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
+		TSystem AddSystem<TSystem>()
+			where TSystem : ISystem;
+
+		ISystem AddSystem(Type type);
+
+		void RemoveSystem<TSystem>()
+			where TSystem : ISystem;
+
+		void RemoveSystem(Type type);
+
 		/// <summary>
 		/// A collection of all Systems managed by this Engine.
 		/// <para>Systems are added to and removed from the Engine by being managed

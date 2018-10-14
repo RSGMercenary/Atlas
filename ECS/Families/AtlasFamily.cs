@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IReadOnlyFamily>, IFamily<TFamilyMember>
+	public sealed class AtlasFamily<TFamilyMember> : AtlasObject<IReadOnlyFamily>, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();

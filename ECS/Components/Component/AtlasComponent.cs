@@ -38,7 +38,7 @@ namespace Atlas.ECS.Components
 		#endregion
 
 		private readonly Group<IEntity> managers = new Group<IEntity>();
-		private bool autoDestroy = true;
+		private bool autoDispose = true;
 		public bool IsShareable { get; } = false;
 
 		public AtlasComponent() : this(false)
@@ -56,7 +56,7 @@ namespace Atlas.ECS.Components
 			if(!finalizer)
 			{
 				RemoveManagers();
-				AutoDestroy = true;
+				AutoDispose = true;
 
 				//AtlasComponent derived class had Dispose() called
 				//manually. Pool reference for later reuse.
@@ -66,17 +66,17 @@ namespace Atlas.ECS.Components
 			base.Disposing(finalizer);
 		}
 
-		public bool AutoDestroy
+		public bool AutoDispose
 		{
-			get { return autoDestroy; }
+			get { return autoDispose; }
 			set
 			{
-				if(autoDestroy == value)
+				if(autoDispose == value)
 					return;
-				var previous = autoDestroy;
-				autoDestroy = value;
-				Dispatch<IAutoDestroyMessage<T>>(new AutoDestroyMessage<T>(this as T, value, previous));
-				if(autoDestroy && managers.Count <= 0)
+				var previous = autoDispose;
+				autoDispose = value;
+				Dispatch<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(this as T, value, previous));
+				if(autoDispose && managers.Count <= 0)
 					Dispose();
 			}
 		}
@@ -230,7 +230,7 @@ namespace Atlas.ECS.Components
 				RemovingManager(entity, index);
 				Dispatch<IManagerRemoveMessage>(new ManagerRemoveMessage(this, index, entity));
 				Dispatch<IManagerMessage>(new ManagerMessage(this));
-				if(autoDestroy && managers.Count <= 0)
+				if(autoDispose && managers.Count <= 0)
 					Dispose();
 			}
 			else
@@ -303,7 +303,7 @@ namespace Atlas.ECS.Components
 			info.AppendLine($"{indent}  Instance    = {GetType().FullName}");
 			if(Manager != null)
 				info.AppendLine($"{indent}  Interface   = {Manager.GetComponentType(this).FullName}");
-			info.AppendLine($"{indent}  {nameof(AutoDestroy)} = {AutoDestroy}");
+			info.AppendLine($"{indent}  {nameof(AutoDispose)} = {AutoDispose}");
 			info.AppendLine($"{indent}  {nameof(IsShareable)} = {IsShareable}");
 			if(IsShareable)
 			{

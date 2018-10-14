@@ -4,7 +4,6 @@ using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
-using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -37,13 +36,12 @@ namespace Atlas.ECS.Entities
 		private string localName = UniqueName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
+		private bool autoDispose = true;
 		private IEntity root;
 		private IEntity parent;
 		private int parentIndex = -1;
 		private readonly Group<IEntity> children = new Group<IEntity>();
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
-		private readonly Group<Type> systems = new Group<Type>();
-		private bool autoDestroy = true;
 
 		public AtlasEntity()
 		{
@@ -77,18 +75,11 @@ namespace Atlas.ECS.Entities
 				instance = null;
 			if(!finalizer)
 			{
-				//Order matters here!
-				//  |
-				// \ /
 				RemoveChildren();
 				RemoveComponents();
-				RemoveSystems();
-				// / \
-				//  |
-
 				GlobalName = UniqueName;
 				LocalName = UniqueName;
-				AutoDestroy = true;
+				AutoDispose = true;
 				Parent = null;
 				Sleeping = 0;
 				FreeSleeping = 0;
@@ -181,7 +172,7 @@ namespace Atlas.ECS.Entities
 				return null;
 			string[] localNames = hierarchy.Split('/');
 			IEntity entity = this;
-			foreach(string localName in localNames)
+			foreach(var localName in localNames)
 			{
 				if(string.IsNullOrWhiteSpace(localName))
 					continue;
@@ -578,7 +569,7 @@ namespace Atlas.ECS.Entities
 			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(index);
 			Sleeping += sleeping;
-			if(autoDestroy && parent == null)
+			if(autoDispose && parent == null)
 				Dispose();
 			return next;
 		}
@@ -738,83 +729,17 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#region Systems
-
-		public IReadOnlyGroup<Type> Systems
+		public bool AutoDispose
 		{
-			get { return systems; }
-		}
-
-		public bool HasSystem<TISystem>() where TISystem : ISystem
-		{
-			return HasSystem(typeof(TISystem));
-		}
-
-		public bool HasSystem(Type type)
-		{
-			return systems.Contains(type);
-		}
-
-		public bool AddSystem<TISystem>() where TISystem : ISystem
-		{
-			return AddSystem(typeof(TISystem));
-		}
-
-		public bool AddSystem(Type type)
-		{
-			if(type == null)
-				return false;
-			if(!type.IsInterface) //Type must be an interface.
-				return false;
-			if(type == typeof(ISystem)) //Type can't directly be ISystem.
-				return false;
-			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
-				return false;
-			if(systems.Contains(type))
-				return false;
-			systems.Add(type);
-			Dispatch<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
-			return true;
-		}
-
-		public bool RemoveSystem<TISystem>() where TISystem : ISystem
-		{
-			return RemoveSystem(typeof(TISystem));
-		}
-
-		public bool RemoveSystem(Type type)
-		{
-			if(type == null)
-				return false;
-			if(!systems.Contains(type))
-				return false;
-			systems.Remove(type);
-			Dispatch<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
-			return true;
-		}
-
-		public bool RemoveSystems()
-		{
-			if(systems.Count <= 0)
-				return false;
-			foreach(var system in new List<Type>(systems))
-				RemoveSystem(system);
-			return true;
-		}
-
-		#endregion
-
-		public bool AutoDestroy
-		{
-			get { return autoDestroy; }
+			get { return autoDispose; }
 			set
 			{
-				if(autoDestroy == value)
+				if(autoDispose == value)
 					return;
-				var previous = autoDestroy;
-				autoDestroy = value;
-				Dispatch<IAutoDestroyMessage<IEntity>>(new AutoDestroyMessage<IEntity>(this, value, previous));
-				if(autoDestroy && parent == null)
+				var previous = autoDispose;
+				autoDispose = value;
+				Dispatch<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(this, value, previous));
+				if(autoDispose && parent == null)
 					Dispose();
 			}
 		}
@@ -891,7 +816,7 @@ namespace Atlas.ECS.Entities
 			return GlobalName;
 		}
 
-		public string ToInfoString(int depth, bool addComponents, bool addEntities, bool addSystems, string indent = "")
+		public string ToInfoString(int depth, bool addComponents, bool addEntities, string indent = "")
 		{
 			var info = new StringBuilder();
 
@@ -899,7 +824,7 @@ namespace Atlas.ECS.Entities
 			info.AppendLine($"{indent}{name}");
 			info.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
 			info.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
-			info.AppendLine($"{indent}  {nameof(AutoDestroy)}  = {AutoDestroy}");
+			info.AppendLine($"{indent}  {nameof(AutoDispose)}  = {AutoDispose}");
 			info.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
 			info.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
 
@@ -910,18 +835,12 @@ namespace Atlas.ECS.Entities
 				foreach(var type in components.Keys)
 					info.Append(components[type].ToInfoString(addEntities, ++index, $"{indent}    "));
 			}
-			info.AppendLine($"{indent}  {nameof(Systems)}    ({systems.Count})");
-			if(addSystems)
-			{
-				foreach(var type in systems)
-					info.AppendLine($"{indent}    {type.FullName}");
-			}
 
 			info.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
 			if(depth != 0)
 			{
 				foreach(var child in children)
-					info.Append(child.ToInfoString(depth - 1, addComponents, addSystems, addEntities, $"{indent}    "));
+					info.Append(child.ToInfoString(depth - 1, addComponents, addEntities, $"{indent}    "));
 			}
 			return info.ToString();
 		}

@@ -2,20 +2,19 @@
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
-using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject<IEntity>, IAutoDestroy<IEntity>, ISleep<IEntity>
+	public interface IEntity : IObject<IEntity>, IAutoDispose<IEntity>, ISleep<IEntity>
 	{
 		#region Entities
 
 		/// <summary>
 		/// Determines whether <see cref="IObject.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
 		/// </summary>
-		new bool AutoDestroy { get; set; }
+		new bool AutoDispose { get; set; }
 
 		/// <summary>
 		/// This <see cref="IEntity"/>'s global name. This name is unique to its Engine.
@@ -219,22 +218,6 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#region Systems
-
-		bool HasSystem(Type type);
-		bool HasSystem<TISystem>() where TISystem : ISystem;
-
-		bool AddSystem(Type type);
-		bool AddSystem<TISystem>() where TISystem : ISystem;
-
-		bool RemoveSystem(Type type);
-		bool RemoveSystem<TISystem>() where TISystem : ISystem;
-		bool RemoveSystems();
-
-		IReadOnlyGroup<Type> Systems { get; }
-
-		#endregion
-
 		#region Sleeping
 
 		/// <summary>
@@ -263,6 +246,6 @@ namespace Atlas.ECS.Entities
 		/// <param name="addSystems">Adds systems to the output.</param>
 		/// <param name="indent"></param>
 		/// <returns></returns>
-		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, bool addSystems = true, string indent = "");
+		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, string indent = "");
 	}
 }
