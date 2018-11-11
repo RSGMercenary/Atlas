@@ -5,9 +5,9 @@ using System;
 
 namespace Atlas.ECS.Messages
 {
-	class SystemRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemRemoveMessage
+	class SystemRemoveMessage : KeyValueMessage<IEngine, Type, ISystem>, ISystemRemoveMessage
 	{
-		public SystemRemoveMessage(IEngine messenger, Type key, IReadOnlySystem value) : base(messenger, key, value)
+		public SystemRemoveMessage(IEngine messenger, Type key, ISystem value) : base(messenger, key, value)
 		{
 		}
 	}

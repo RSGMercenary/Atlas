@@ -7,15 +7,20 @@ using Atlas.ECS.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Atlas.ECS.Components
 {
-	public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
+	public abstract class AtlasEngine : AtlasEngine<IEngine>
+	{
+
+	}
+
+	public abstract class AtlasEngine<T> : AtlasComponent<T>, IEngine<T>
+		where T : class, IEngine
 	{
 		#region Static Singleton
 
-		private static AtlasEngine instance;
+		private static IEngine instance;
 
 		#endregion
 
@@ -32,12 +37,8 @@ namespace Atlas.ECS.Components
 		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
-		private readonly IEngineCreator creator;
-
-		private readonly Stopwatch timer = new Stopwatch();
-		private bool isRunning = false;
-
-		private IReadOnlySystem currentSystem;
+		private bool updateLock = false;
+		private ISystem currentSystem;
 		private TimeStep updateState = TimeStep.None;
 
 		private double maxVariableTime = 0.25;
@@ -50,15 +51,14 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		public AtlasEngine(IEngineCreator creator, double deltaFixedTime, double maxVariableTime) : this(creator)
+		#region Compose/Dispose
+
+		public AtlasEngine() { }
+
+		public AtlasEngine(double deltaFixedTime, double maxVariableTime)
 		{
 			DeltaFixedTime = deltaFixedTime;
 			MaxVariableTime = maxVariableTime;
-		}
-
-		public AtlasEngine(IEngineCreator creator)
-		{
-			this.creator = creator ?? throw new NullReferenceException();
 		}
 
 		protected override void Composing(bool constructor)
@@ -67,7 +67,7 @@ namespace Atlas.ECS.Components
 			if(instance == null)
 				instance = this;
 			else
-				throw new InvalidOperationException($"A new {nameof(AtlasEngine)} instance cannot be composed when one already exists.");
+				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be composed when one already exists.");
 
 		}
 
@@ -80,7 +80,7 @@ namespace Atlas.ECS.Components
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			if(entity.Root != entity)
-				throw new InvalidOperationException($"The {nameof(AtlasEngine)} must be added to the root {nameof(IEntity)}.");
+				throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Messenger.All);
 			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Messenger.All);
@@ -101,26 +101,11 @@ namespace Atlas.ECS.Components
 			base.RemovingManager(entity, index);
 		}
 
-		public IReadOnlyGroup<IEntity> Entities { get { return entities; } }
-		public IReadOnlyGroup<IReadOnlyFamily> Families { get { return families; } }
-		public IReadOnlyGroup<IReadOnlySystem> Systems { get { return systems; } }
+		#endregion
 
 		#region Entities
 
-		public bool HasEntity(string globalName)
-		{
-			return !string.IsNullOrWhiteSpace(globalName) && entitiesGlobalName.ContainsKey(globalName);
-		}
-
-		public bool HasEntity(IEntity entity)
-		{
-			return entity != null && entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
-		}
-
-		public IEntity GetEntity(string globalName)
-		{
-			return entitiesGlobalName.ContainsKey(globalName) ? entitiesGlobalName[globalName] : null;
-		}
+		#region Add/Remove
 
 		private void AddEntity(IEntity entity)
 		{
@@ -135,7 +120,7 @@ namespace Atlas.ECS.Components
 			foreach(var family in families)
 				family.AddEntity(entity);
 
-			Dispatch<IEntityAddMessage>(new EntityAddMessage(this, entity));
+			Message<IEntityAddMessage>(new EntityAddMessage(this, entity));
 
 			foreach(var child in entity.Children.Forward())
 				AddEntity(child);
@@ -151,7 +136,7 @@ namespace Atlas.ECS.Components
 			foreach(var child in entity.Children.Backward())
 				RemoveEntity(child);
 
-			Dispatch<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
+			Message<IEntityRemoveMessage>(new EntityRemoveMessage(this, entity));
 
 			foreach(var family in families)
 				family.RemoveEntity(entity);
@@ -160,6 +145,35 @@ namespace Atlas.ECS.Components
 			entities.Remove(entity);
 			entity.Engine = null;
 		}
+
+		#endregion
+
+		#region Get
+
+		public IReadOnlyGroup<IEntity> Entities { get { return entities; } }
+
+		public IEntity GetEntity(string globalName)
+		{
+			return entitiesGlobalName.ContainsKey(globalName) ? entitiesGlobalName[globalName] : null;
+		}
+
+		#endregion
+
+		#region Has
+
+		public bool HasEntity(string globalName)
+		{
+			return !string.IsNullOrWhiteSpace(globalName) && entitiesGlobalName.ContainsKey(globalName);
+		}
+
+		public bool HasEntity(IEntity entity)
+		{
+			return entity != null && entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
+		}
+
+		#endregion
+
+		#region Events
 
 		private void EntityChildAdded(IChildAddMessage message)
 		{
@@ -182,7 +196,11 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
+		#endregion
+
 		#region Systems
+
+		#region Add/Remove
 
 		public TSystem AddSystem<TSystem>()
 			where TSystem : ISystem
@@ -194,13 +212,13 @@ namespace Atlas.ECS.Components
 		{
 			if(!systemsReference.ContainsKey(type))
 			{
-				var system = creator.CreateSystem(type);
+				var system = CreateSystem(type);
 				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
 				systemsReference.Add(type, 1);
 				system.Engine = this;
-				Dispatch<ISystemAddMessage>(new SystemAddMessage(this, type, system));
+				Message<ISystemAddMessage>(new SystemAddMessage(this, type, system));
 			}
 			else
 			{
@@ -222,16 +240,63 @@ namespace Atlas.ECS.Components
 			if(--systemsReference[type] > 0)
 				return;
 			var system = systemsType[type];
-
 			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
-
 			systems.Remove(system);
 			systemsType.Remove(type);
 			systemsReference.Remove(type);
-
 			system.Engine = null;
-			Dispatch<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
+			Message<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
 		}
+
+		#endregion
+
+		#region Create
+
+		protected abstract ISystem CreateSystem(Type type);
+
+		#endregion
+
+		#region Get
+
+		public IReadOnlyGroup<ISystem> Systems { get { return systems; } }
+
+		public TISystem GetSystem<TISystem>() where TISystem : ISystem
+		{
+			return (TISystem)GetSystem(typeof(TISystem));
+		}
+
+		public ISystem GetSystem(Type type)
+		{
+			return systemsType.ContainsKey(type) ? systemsType[type] : null;
+		}
+
+		public ISystem GetSystem(int index)
+		{
+			return systems[index];
+		}
+
+		#endregion
+
+		#region Has
+
+		public bool HasSystem(ISystem system)
+		{
+			return systems.Contains(system);
+		}
+
+		public bool HasSystem<TISystem>() where TISystem : ISystem
+		{
+			return HasSystem(typeof(TISystem));
+		}
+
+		public bool HasSystem(Type type)
+		{
+			return systemsType.ContainsKey(type);
+		}
+
+		#endregion
+
+		#region Events
 
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
@@ -254,39 +319,122 @@ namespace Atlas.ECS.Components
 			systems.Insert(0, system);
 		}
 
-		public bool HasSystem(IReadOnlySystem system)
+		#endregion
+
+		#endregion
+
+		#region Families
+
+		#region Add/Remove
+
+		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			return systems.Contains(system as ISystem);
+			var type = typeof(TFamilyMember);
+			if(!familiesType.ContainsKey(type))
+			{
+				var family = CreateFamily<TFamilyMember>();
+				families.Add(family);
+				familiesType.Add(type, family);
+				familiesReference.Add(type, 1);
+				family.Engine = this;
+				foreach(var entity in entities)
+					family.AddEntity(entity);
+				Message<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
+			}
+			else
+			{
+				++familiesReference[type];
+			}
+			return (IFamily<TFamilyMember>)familiesType[type];
 		}
 
-		public bool HasSystem<TISystem>() where TISystem : IReadOnlySystem
+		public void RemoveFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
 		{
-			return HasSystem(typeof(TISystem));
-		}
-
-		public bool HasSystem(Type type)
-		{
-			return systemsType.ContainsKey(type);
-		}
-
-		public TISystem GetSystem<TISystem>() where TISystem : IReadOnlySystem
-		{
-			return (TISystem)GetSystem(typeof(TISystem));
-		}
-
-		public IReadOnlySystem GetSystem(Type type)
-		{
-			return systemsType.ContainsKey(type) ? systemsType[type] : null;
-		}
-
-		public IReadOnlySystem GetSystem(int index)
-		{
-			return systems[index];
+			var type = typeof(TFamilyMember);
+			if(!familiesReference.ContainsKey(type))
+				return;
+			if(--familiesReference[type] > 0)
+				return;
+			var family = familiesType[type];
+			families.Remove(family);
+			familiesType.Remove(type);
+			familiesReference.Remove(type);
+			family.Engine = null;
+			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
 		}
 
 		#endregion
 
+		#region Create
+
+		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
+		{
+			return new AtlasFamily<TFamilyMember>();
+		}
+
+		#endregion
+
+		#region Get
+
+		public IReadOnlyGroup<IReadOnlyFamily> Families { get { return families; } }
+
+		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
+		{
+			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
+		}
+
+		public IReadOnlyFamily GetFamily(Type type)
+		{
+			return familiesType.ContainsKey(type) ? familiesType[type] : null;
+		}
+
+		#endregion
+
+		#region Has
+
+		public bool HasFamily(IReadOnlyFamily family)
+		{
+			return familiesType.ContainsValue(family as IFamily);
+		}
+
+		public bool HasFamily<TFamilyMember>()
+			where TFamilyMember : IFamilyMember, new()
+		{
+			return HasFamily(typeof(TFamilyMember));
+		}
+
+		public bool HasFamily(Type type)
+		{
+			return familiesType.ContainsKey(type);
+		}
+
+		#endregion
+
+		#region Events
+
+		private void EntityComponentAdded(IComponentAddMessage message)
+		{
+			foreach(var family in families)
+				family.AddEntity(message.Messenger, message.Key);
+		}
+
+		private void EntityComponentRemoved(IComponentRemoveMessage message)
+		{
+			foreach(var family in families)
+				family.RemoveEntity(message.Messenger, message.Key);
+		}
+
+		#endregion
+
+		#endregion
+
 		#region Updates
+
+		#region Delta/total Times
 
 		public double MaxVariableTime
 		{
@@ -343,6 +491,10 @@ namespace Atlas.ECS.Components
 			}
 		}
 
+		#endregion
+
+		#region State
+
 		public TimeStep UpdateState
 		{
 			get { return updateState; }
@@ -352,11 +504,11 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = updateState;
 				updateState = value;
-				Dispatch<IUpdateStateMessage<IEngine>>(new UpdateStateMessage<IEngine>(this, value, previous));
+				Message<IUpdateStateMessage<IEngine>>(new UpdateStateMessage<IEngine>(this, value, previous));
 			}
 		}
 
-		public IReadOnlySystem CurrentSystem
+		public ISystem CurrentSystem
 		{
 			get { return currentSystem; }
 			private set
@@ -369,63 +521,50 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public bool IsRunning
+		#endregion
+
+		#region Fixed/Variable Update Loop
+
+		public void Update(double deltaTime)
 		{
-			get { return isRunning; }
-			set
+			if(updateLock)
+				return;
+			updateLock = true;
+
+			var deltaVariableTime = deltaTime;
+
+			//Cap delta time to avoid the "spiral of death".
+			if(deltaVariableTime > maxVariableTime)
+				deltaVariableTime = maxVariableTime;
+
+			var deltaFixedTime = DeltaFixedTime;
+			var totalFixedTime = TotalFixedTime;
+
+			//Calculate the number of fixed updates.
+			var fixedUpdates = 0;
+			while(totalFixedTime + deltaFixedTime <= totalVariableTime)
 			{
-				if(isRunning == value)
-					return;
-				isRunning = value;
-				//Only run again when the last Update()/timer is done.
-				//If the Engine is turned off and on during an Update()
-				//loop, while(isRunning) will catch it.
-				if(value && !timer.IsRunning)
-				{
-					timer.Restart();
-					var previousTime = 0d;
-					while(isRunning)
-					{
-						var currentTime = timer.Elapsed.TotalSeconds;
-
-						var deltaVariableTime = currentTime - previousTime;
-						previousTime = currentTime;
-
-						//Cap delta time to avoid the "spiral of death".
-						if(deltaVariableTime > maxVariableTime)
-							deltaVariableTime = maxVariableTime;
-
-						var deltaFixedTime = DeltaFixedTime;
-						var totalFixedTime = TotalFixedTime;
-
-						//Calculate the number of fixed updates.
-						var fixedUpdates = 0;
-						while(totalFixedTime + deltaFixedTime <= totalVariableTime)
-						{
-							totalFixedTime += deltaFixedTime;
-							++fixedUpdates;
-						}
-
-						//Calculate when fixed-time and variable-time update weren't 1:1.
-						//Let the Systems decide how to use the value.
-						lagFixedTime += Math.Max(0, fixedUpdates - 1);
-						if(fixedUpdates == 1 && lagFixedTime > 0)
-							--lagFixedTime;
-
-						//Update all delta and total times.
-						DeltaVariableTime = deltaVariableTime;
-						TotalVariableTime = totalVariableTime + deltaVariableTime;
-						TotalFixedTime = totalFixedTime;
-
-						//Run fixed-time and variable-time updates.
-						while(fixedUpdates-- > 0)
-							UpdateSystems(TimeStep.Fixed, deltaFixedTime);
-						UpdateSystems(TimeStep.Variable, deltaVariableTime);
-					}
-					DeltaVariableTime = 0;
-					timer.Stop();
-				}
+				totalFixedTime += deltaFixedTime;
+				++fixedUpdates;
 			}
+
+			//Calculate when fixed-time and variable-time updates weren't 1:1.
+			//Let the Systems decide how to use the value.
+			lagFixedTime += Math.Max(0, fixedUpdates - 1);
+			if(fixedUpdates == 1 && lagFixedTime > 0)
+				--lagFixedTime;
+
+			//Update all delta and total times.
+			DeltaVariableTime = deltaVariableTime;
+			TotalVariableTime = totalVariableTime + deltaVariableTime;
+			TotalFixedTime = totalFixedTime;
+
+			//Run fixed-time and variable-time updates.
+			while(fixedUpdates-- > 0)
+				UpdateSystems(TimeStep.Fixed, deltaFixedTime);
+			UpdateSystems(TimeStep.Variable, deltaVariableTime);
+
+			updateLock = false;
 		}
 
 		private void UpdateSystems(TimeStep timeStep, double deltaTime)
@@ -443,85 +582,6 @@ namespace Atlas.ECS.Components
 		}
 
 		#endregion
-
-		#region Families
-
-		public bool HasFamily(IReadOnlyFamily family)
-		{
-			return familiesType.ContainsValue(family as IFamily);
-		}
-
-		public bool HasFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
-		{
-			return HasFamily(typeof(TFamilyMember));
-		}
-
-		public bool HasFamily(Type type)
-		{
-			return familiesType.ContainsKey(type);
-		}
-
-		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
-		{
-			var type = typeof(TFamilyMember);
-			if(!familiesType.ContainsKey(type))
-			{
-				var family = creator.CreateFamily<TFamilyMember>();
-				families.Add(family);
-				familiesType.Add(type, family);
-				familiesReference.Add(type, 1);
-				family.Engine = this;
-				foreach(var entity in entities)
-					family.AddEntity(entity);
-				Dispatch<IFamilyAddMessage>(new FamilyAddMessage(this, type, family));
-			}
-			else
-			{
-				++familiesReference[type];
-			}
-			return (IFamily<TFamilyMember>)familiesType[type];
-		}
-
-		public void RemoveFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
-		{
-			var type = typeof(TFamilyMember);
-			if(!familiesReference.ContainsKey(type))
-				return;
-			if(--familiesReference[type] > 0)
-				return;
-			var family = familiesType[type];
-			families.Remove(family);
-			familiesType.Remove(type);
-			familiesReference.Remove(type);
-			family.Engine = null;
-			Dispatch<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
-		}
-
-		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
-		{
-			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
-		}
-
-		public IReadOnlyFamily GetFamily(Type type)
-		{
-			return familiesType.ContainsKey(type) ? familiesType[type] : null;
-		}
-
-		private void EntityComponentAdded(IComponentAddMessage message)
-		{
-			foreach(var family in families)
-				family.AddEntity(message.Messenger, message.Key);
-		}
-
-		private void EntityComponentRemoved(IComponentRemoveMessage message)
-		{
-			foreach(var family in families)
-				family.RemoveEntity(message.Messenger, message.Key);
-		}
 
 		#endregion
 	}

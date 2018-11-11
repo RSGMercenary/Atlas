@@ -14,9 +14,9 @@ namespace Atlas.ECS.Systems
 		where T : class, IFamilySystem
 		where TFamilyMember : IFamilyMember, new()
 	{
-		IReadOnlyFamily IReadOnlyFamilySystem.Family => Family;
+		IReadOnlyFamily IFamilySystem.Family => Family;
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
-		public bool UpdateSleepingEntities { get; set; } = false;
+		public bool UpdateSleepingEntities { get; protected set; } = false;
 
 		protected sealed override void Updating(double deltaTime)
 		{
@@ -43,16 +43,16 @@ namespace Atlas.ECS.Systems
 		{
 			base.AddFamilies(engine);
 			Family = engine.AddFamily<TFamilyMember>();
-			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
-			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
+			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
+			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
 			foreach(var member in Family.Members)
 				MemberAdded(Family, member);
 		}
 
 		protected override void RemoveFamilies(IEngine engine)
 		{
-			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(EntityAdded);
-			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(EntityRemoved);
+			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
+			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
 			foreach(var member in Family.Members)
 				MemberRemoved(Family, member);
 			engine.RemoveFamily<TFamilyMember>();
@@ -60,12 +60,12 @@ namespace Atlas.ECS.Systems
 			base.RemoveFamilies(engine);
 		}
 
-		private void EntityAdded(IFamilyMemberAddMessage<TFamilyMember> message)
+		private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message)
 		{
 			MemberAdded(message.Messenger, message.Value);
 		}
 
-		private void EntityRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message)
+		private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message)
 		{
 			MemberRemoved(message.Messenger, message.Value);
 		}

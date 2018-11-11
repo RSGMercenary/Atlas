@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.ECS.Messages
 {
-	public interface ISystemRemoveMessage : IKeyValueMessage<IEngine, Type, IReadOnlySystem>
+	public interface ISystemRemoveMessage : IKeyValueMessage<IEngine, Type, ISystem>
 	{
 
 	}

@@ -5,9 +5,9 @@ using System;
 
 namespace Atlas.ECS.Messages
 {
-	class SystemAddMessage : KeyValueMessage<IEngine, Type, IReadOnlySystem>, ISystemAddMessage
+	class SystemAddMessage : KeyValueMessage<IEngine, Type, ISystem>, ISystemAddMessage
 	{
-		public SystemAddMessage(IEngine messenger, Type key, IReadOnlySystem value) : base(messenger, key, value)
+		public SystemAddMessage(IEngine messenger, Type key, ISystem value) : base(messenger, key, value)
 		{
 		}
 	}

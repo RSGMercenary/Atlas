@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent<IEngine>, IUpdateState<IEngine>
+	public interface IEngine : IComponent, IUpdate
 	{
 		#region Entities
 
@@ -62,21 +62,21 @@ namespace Atlas.ECS.Components
 		/// <para>Systems are added to and removed from the Engine by being managed
 		/// as a Type to an Entity already in the Entity hierarchy.</para>
 		/// </summary>
-		IReadOnlyGroup<IReadOnlySystem> Systems { get; }
+		IReadOnlyGroup<ISystem> Systems { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a System with the given instance.
 		/// </summary>
 		/// <param name="system"></param>
 		/// <returns></returns>
-		bool HasSystem(IReadOnlySystem system);
+		bool HasSystem(ISystem system);
 
 		/// <summary>
 		/// Returns if the Engine is managing a System with the given Type.
 		/// </summary>
 		/// <typeparam name="TISystem"></typeparam>
 		/// <returns></returns>
-		bool HasSystem<TISystem>() where TISystem : IReadOnlySystem;
+		bool HasSystem<TISystem>() where TISystem : ISystem;
 
 		/// <summary>
 		/// Returns if the Engine is managing a System with the given Type.
@@ -90,14 +90,14 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		/// <typeparam name="TISystem"></typeparam>
 		/// <returns></returns>
-		TISystem GetSystem<TISystem>() where TISystem : IReadOnlySystem;
+		TISystem GetSystem<TISystem>() where TISystem : ISystem;
 
 		/// <summary>
 		/// Returns the System with the given Type.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		IReadOnlySystem GetSystem(Type type);
+		ISystem GetSystem(Type type);
 
 		/// <summary>
 		/// Returns the System at the given index. Systems are order
@@ -105,7 +105,7 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		/// <param name="index"></param>
 		/// <returns></returns>
-		IReadOnlySystem GetSystem(int index);
+		ISystem GetSystem(int index);
 
 		#endregion
 
@@ -192,17 +192,16 @@ namespace Atlas.ECS.Components
 		double TotalFixedTime { get; }
 
 		/// <summary>
-		/// Returns if the Engine is currently running. This is true
-		/// if the Engine is running, regardless of whether the Engine is
-		/// currently engaged in an update cycle.
-		/// </summary>
-		bool IsRunning { get; set; }
-
-		/// <summary>
 		/// The current System that's undergoing an Update().
 		/// </summary>
-		IReadOnlySystem CurrentSystem { get; }
+		ISystem CurrentSystem { get; }
 
 		#endregion
+	}
+
+	public interface IEngine<T> : IEngine, IComponent<T>, IUpdate<T>
+		where T : IEngine
+	{
+
 	}
 }

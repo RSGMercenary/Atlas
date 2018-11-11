@@ -3,7 +3,7 @@ using Atlas.ECS.Systems;
 
 namespace Atlas.ECS.Messages
 {
-	public interface IPriorityMessage : IPropertyMessage<IReadOnlySystem, int>
+	public interface IPriorityMessage : IPropertyMessage<ISystem, int>
 	{
 	}
 }

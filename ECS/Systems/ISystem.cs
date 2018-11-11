@@ -3,7 +3,7 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface IReadOnlySystem : IObject, ISleep, IUpdateState
+	public interface ISystem : IObject, ISleep, IUpdate
 	{
 		/// <summary>
 		/// The Priority of this System relative to other Systems in the Engine.
@@ -20,22 +20,12 @@ namespace Atlas.ECS.Systems
 		double TotalIntervalTime { get; }
 
 		/// <summary>
-		/// Determines whether the System is fixed-time, variable-time, or is event-based.
+		/// Determines whether the System is fixed-time, variable-time, or event-based.
 		/// </summary>
 		TimeStep TimeStep { get; }
 	}
 
-	public interface IReadOnlySystem<T> : IReadOnlySystem, IObject<T>, ISleep<T>, IUpdateState<T>
-		where T : IReadOnlySystem
-	{
-	}
-
-	public interface ISystem : IReadOnlySystem
-	{
-		void Update(double deltaTime);
-	}
-
-	public interface ISystem<T> : ISystem, IReadOnlySystem<T>
+	public interface ISystem<T> : ISystem, IObject<T>, ISleep<T>, IUpdate<T>
 		where T : ISystem
 	{
 	}
