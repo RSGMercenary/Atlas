@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Messages
 {
-	public class HierarchyValidator
+	public class HierarchyMessenger
 	{
 		public static Func<IMessage<IEntity>, bool> From(Hierarchy hierarchy)
 		{
