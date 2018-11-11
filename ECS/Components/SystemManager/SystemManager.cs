@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -78,7 +79,7 @@ namespace Atlas.ECS.Components
 				return false;
 			systems.Add(type);
 			Engine?.AddSystem(type);
-			//Dispatch<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
+			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
 			return true;
 		}
 
@@ -95,7 +96,7 @@ namespace Atlas.ECS.Components
 				return false;
 			systems.Remove(type);
 			Engine?.RemoveSystem(type);
-			//Dispatch<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
+			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
 			return true;
 		}
 
