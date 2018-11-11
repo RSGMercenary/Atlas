@@ -113,7 +113,7 @@ namespace Atlas.Core.Messages
 
 		#region IMessenger
 
-		public virtual void Dispatch<TMessage>(TMessage message)
+		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage
 		{
 			message.CurrentMessenger = this;
