@@ -3,13 +3,13 @@ using System.Diagnostics;
 
 namespace Atlas.ECS.Components.Engine
 {
-	public class UpdateProvider
+	public class EngineUpdater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
 		private readonly Action<double> update;
 		private bool isRunning = false;
 
-		public UpdateProvider(Action<double> update)
+		public EngineUpdater(Action<double> update)
 		{
 			this.update = update ?? throw new NullReferenceException();
 		}
