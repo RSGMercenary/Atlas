@@ -30,6 +30,4 @@ namespace Atlas.ECS.Families
 	{
 
 	}
-
-
 }

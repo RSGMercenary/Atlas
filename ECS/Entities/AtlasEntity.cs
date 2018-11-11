@@ -109,7 +109,7 @@ namespace Atlas.ECS.Entities
 					return;
 				string previous = globalName;
 				globalName = value;
-				Dispatch<IGlobalNameMessage>(new GlobalNameMessage(this, value, previous));
+				Message<IGlobalNameMessage>(new GlobalNameMessage(this, value, previous));
 			}
 		}
 
@@ -130,7 +130,7 @@ namespace Atlas.ECS.Entities
 					return;
 				string previous = localName;
 				localName = value;
-				Dispatch<ILocalNameMessage>(new LocalNameMessage(this, value, previous));
+				Message<ILocalNameMessage>(new LocalNameMessage(this, value, previous));
 			}
 		}
 
@@ -360,7 +360,7 @@ namespace Atlas.ECS.Entities
 			}
 			components.Add(type, component);
 			component.AddManager(this, type, index);
-			Dispatch<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
+			Message<IComponentAddMessage>(new ComponentAddMessage(this, type, component));
 			return component;
 		}
 
@@ -384,7 +384,7 @@ namespace Atlas.ECS.Entities
 			var component = components[type];
 			components.Remove(type);
 			component.RemoveManager(this, type);
-			Dispatch<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
+			Message<IComponentRemoveMessage>(new ComponentRemoveMessage(this, type, component));
 			return component;
 		}
 
@@ -421,7 +421,7 @@ namespace Atlas.ECS.Entities
 					return;
 				var previous = root;
 				root = value;
-				Dispatch<IRootMessage>(new RootMessage(this, value, previous));
+				Message<IRootMessage>(new RootMessage(this, value, previous));
 			}
 		}
 
@@ -475,8 +475,8 @@ namespace Atlas.ECS.Entities
 					if(HasChild(child.LocalName))
 						child.LocalName = UniqueName;
 					children.Insert(index, child);
-					Dispatch<IChildAddMessage>(new ChildAddMessage(this, index, child));
-					Dispatch<IChildrenMessage>(new ChildrenMessage(this));
+					Message<IChildAddMessage>(new ChildAddMessage(this, index, child));
+					Message<IChildrenMessage>(new ChildrenMessage(this));
 				}
 				else
 				{
@@ -501,8 +501,8 @@ namespace Atlas.ECS.Entities
 					return null;
 				int index = children.IndexOf(child);
 				children.Remove(child);
-				Dispatch<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
-				Dispatch<IChildrenMessage>(new ChildrenMessage(this));
+				Message<IChildRemoveMessage>(new ChildRemoveMessage(this, index, child));
+				Message<IChildrenMessage>(new ChildrenMessage(this));
 			}
 			else
 			{
@@ -566,7 +566,7 @@ namespace Atlas.ECS.Entities
 				if(!IsFreeSleeping && next.IsSleeping)
 					++sleeping;
 			}
-			Dispatch<IParentMessage>(new ParentMessage(this, next, previous));
+			Message<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(index);
 			Sleeping += sleeping;
 			if(autoDispose && parent == null)
@@ -624,7 +624,7 @@ namespace Atlas.ECS.Entities
 
 			children.RemoveAt(previous);
 			children.Insert(index, child);
-			Dispatch<IChildrenMessage>(new ChildrenMessage(this));
+			Message<IChildrenMessage>(new ChildrenMessage(this));
 			return true;
 		}
 
@@ -643,7 +643,7 @@ namespace Atlas.ECS.Entities
 		{
 			if(!children.Swap(index1, index2))
 				return false;
-			Dispatch<IChildrenMessage>(new ChildrenMessage(this));
+			Message<IChildrenMessage>(new ChildrenMessage(this));
 			return true;
 		}
 
@@ -658,7 +658,7 @@ namespace Atlas.ECS.Entities
 				return;
 			int previous = parentIndex;
 			parentIndex = value;
-			Dispatch<IParentIndexMessage>(new ParentIndexMessage(this, value, previous));
+			Message<IParentIndexMessage>(new ParentIndexMessage(this, value, previous));
 		}
 
 		#endregion
@@ -674,7 +674,7 @@ namespace Atlas.ECS.Entities
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Dispatch<ISleepMessage<IEntity>>(new SleepMessage<IEntity>(this, value, previous));
+				Message<ISleepMessage<IEntity>>(new SleepMessage<IEntity>(this, value, previous));
 			}
 		}
 
@@ -699,7 +699,7 @@ namespace Atlas.ECS.Entities
 					return;
 				int previous = freeSleeping;
 				freeSleeping = value;
-				Dispatch<IFreeSleepMessage>(new FreeSleepMessage(this, value, previous));
+				Message<IFreeSleepMessage>(new FreeSleepMessage(this, value, previous));
 				if(parent == null)
 					return;
 				if(value > 0 && previous <= 0)
@@ -738,7 +738,7 @@ namespace Atlas.ECS.Entities
 					return;
 				var previous = autoDispose;
 				autoDispose = value;
-				Dispatch<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(this, value, previous));
+				Message<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(this, value, previous));
 				if(autoDispose && parent == null)
 					Dispose();
 			}
@@ -746,14 +746,14 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		public sealed override void Dispatch<TMessage>(TMessage message)
+		public sealed override void Message<TMessage>(TMessage message)
 		{
 			//Keep track of what child told the parent to Dispatch().
 			var previousTarget = message.CurrentMessenger;
 
 			//Standard Dispatch() call.
 			//Set CurrentMessenger and Dispatch() event by type;
-			base.Dispatch(message);
+			base.Message(message);
 
 			//Send Message to children.
 			foreach(var child in children)
@@ -761,7 +761,7 @@ namespace Atlas.ECS.Entities
 				//Don't send Message back to child that told this to Dispatch().
 				if(child == previousTarget)
 					continue;
-				child.Dispatch(message);
+				child.Message(message);
 				//Reset CurrentTarget back to this so
 				//the next child (and parent) can block messaging from its original source.
 				message.CurrentMessenger = this;
@@ -772,7 +772,7 @@ namespace Atlas.ECS.Entities
 			{
 				//Don't send Message back to parent that told this to Dispatch().
 				if(Parent != previousTarget)
-					Parent.Dispatch(message);
+					Parent.Message(message);
 			}
 			else
 			{

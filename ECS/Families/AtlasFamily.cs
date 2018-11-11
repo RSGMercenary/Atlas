@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	public sealed class AtlasFamily<TFamilyMember> : AtlasObject<IReadOnlyFamily>, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IReadOnlyFamily>, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
@@ -131,7 +131,7 @@ namespace Atlas.ECS.Families
 			}
 			members.Add(member);
 			entities.Add(entity, member);
-			Dispatch<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(this, member));
+			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(this, member));
 		}
 
 		private void Remove(IEntity entity)
@@ -141,7 +141,7 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
-			Dispatch<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(this, member));
+			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(this, member));
 
 			if(Engine == null || Engine.UpdateState == TimeStep.None)
 			{

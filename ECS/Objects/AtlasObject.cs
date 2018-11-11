@@ -20,7 +20,7 @@ namespace Atlas.ECS.Objects
 				var previous = engine;
 				engine = value;
 				ChangingEngine(value, previous);
-				Dispatch<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
+				Message<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
 			}
 		}
 
@@ -38,7 +38,7 @@ namespace Atlas.ECS.Objects
 					return;
 				var previous = state;
 				state = value;
-				Dispatch<IObjectStateMessage<T>>(new ObjectStateMessage<T>(this as T, value, previous));
+				Message<IObjectStateMessage<T>>(new ObjectStateMessage<T>(this as T, value, previous));
 			}
 		}
 
