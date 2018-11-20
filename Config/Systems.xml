@@ -1,7 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
-<Systems>
-	<System>
-		<Interface>AtlasTesting.Testing.Systems.ITestSystem1</Interface>
-		<Instance>AtlasTesting.Testing.Systems.TestSystem1</Instance>
-	</System>
-</Systems>
