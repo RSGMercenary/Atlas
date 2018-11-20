@@ -4,11 +4,9 @@ using Atlas.ECS.Messages;
 
 namespace Atlas.ECS.Objects
 {
-	public abstract class AtlasObject<T> : Messenger<T>, IObject<T>
-		where T : class, IObject
+	public abstract class AtlasObject : Messenger, IObject
 	{
 		private IEngine engine;
-		private ObjectState state = ObjectState.Disposed;
 
 		public virtual IEngine Engine
 		{
@@ -20,44 +18,13 @@ namespace Atlas.ECS.Objects
 				var previous = engine;
 				engine = value;
 				ChangingEngine(value, previous);
-				Message<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
+				Message<IEngineMessage>(new EngineMessage(this, value, previous));
 			}
 		}
 
 		protected virtual void ChangingEngine(IEngine current, IEngine previous)
 		{
 
-		}
-
-		public ObjectState State
-		{
-			get { return state; }
-			private set
-			{
-				if(state == value)
-					return;
-				var previous = state;
-				state = value;
-				Message<IObjectStateMessage<T>>(new ObjectStateMessage<T>(this as T, value, previous));
-			}
-		}
-
-		public override void Compose()
-		{
-			if(state != ObjectState.Disposed)
-				return;
-			State = ObjectState.Composing;
-			base.Compose();
-			State = ObjectState.Composed;
-		}
-
-		public override void Dispose()
-		{
-			if(state != ObjectState.Composed)
-				return;
-			State = ObjectState.Disposing;
-			base.Dispose();
-			State = ObjectState.Disposed;
 		}
 	}
 }

@@ -24,9 +24,4 @@ namespace Atlas.ECS.Systems
 		/// </summary>
 		TimeStep TimeStep { get; }
 	}
-
-	public interface ISystem<T> : ISystem, IObject<T>, ISleep<T>, IUpdate<T>
-		where T : ISystem
-	{
-	}
 }

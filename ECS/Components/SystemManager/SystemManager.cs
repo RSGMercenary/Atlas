@@ -1,12 +1,12 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.ECS.Messages;
+using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public class SystemManager : AtlasComponent<ISystemManager>, ISystemManager
+	public class SystemManager : AtlasComponent, ISystemManager
 	{
 		private readonly Group<Type> systems = new Group<Type>();
 

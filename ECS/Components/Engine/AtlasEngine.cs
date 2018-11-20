@@ -1,22 +1,18 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
+using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Families;
-using Atlas.ECS.Messages;
 using Atlas.ECS.Systems;
+using Atlas.ECS.Systems.Messages;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasEngine : AtlasEngine<IEngine>
-	{
-
-	}
-
-	public abstract class AtlasEngine<T> : AtlasComponent<T>, IEngine<T>
-		where T : class, IEngine
+	public abstract class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -53,22 +49,17 @@ namespace Atlas.ECS.Components
 
 		#region Compose/Dispose
 
-		public AtlasEngine() { }
-
-		public AtlasEngine(double deltaFixedTime, double maxVariableTime)
+		public AtlasEngine(double deltaFixedTime, double maxVariableTime) : this()
 		{
 			DeltaFixedTime = deltaFixedTime;
 			MaxVariableTime = maxVariableTime;
 		}
 
-		protected override void Composing(bool constructor)
+		public AtlasEngine()
 		{
-			base.Composing(constructor);
-			if(instance == null)
-				instance = this;
-			else
-				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be composed when one already exists.");
-
+			if(instance != null)
+				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be instantiated when one already exists.");
+			instance = this;
 		}
 
 		protected override void Disposing(bool finalizer)
@@ -504,7 +495,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = updateState;
 				updateState = value;
-				Message<IUpdateStateMessage<IEngine>>(new UpdateStateMessage<IEngine>(this, value, previous));
+				Message<IUpdateStateMessage>(new UpdateStateMessage(this, value, previous));
 			}
 		}
 

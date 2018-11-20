@@ -7,7 +7,7 @@ namespace Atlas.ECS.Components
 
 	}
 
-	public interface IEntityBuilder<T> : IComponent<T>, IEntityBuilder
+	public interface IEntityBuilder<T> : IComponent, IEntityBuilder
 		where T : IEntityBuilder
 	{
 	}

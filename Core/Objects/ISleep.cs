@@ -7,9 +7,4 @@ namespace Atlas.Core.Objects
 		bool IsSleeping { get; set; }
 		int Sleeping { get; }
 	}
-
-	public interface ISleep<T> : ISleep, IMessenger<T>
-		where T : ISleep
-	{
-	}
 }

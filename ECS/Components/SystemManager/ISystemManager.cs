@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface ISystemManager : IComponent<ISystemManager>
+	public interface ISystemManager : IComponent
 	{
 		bool HasSystem(Type type);
 		bool HasSystem<TISystem>() where TISystem : ISystem;

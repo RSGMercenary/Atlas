@@ -8,14 +8,7 @@ namespace Atlas.ECS.Systems
 		bool UpdateSleepingEntities { get; }
 	}
 
-	public interface IFamilySystem<T> : IFamilySystem, ISystem<T>
-		where T : IFamilySystem
-	{
-
-	}
-
-	public interface IFamilySystem<T, TFamilyMember> : IFamilySystem<T>
-		where T : IFamilySystem
+	public interface IFamilySystem<TFamilyMember> : IFamilySystem
 		where TFamilyMember : IFamilyMember, new()
 	{
 		new IReadOnlyFamily<TFamilyMember> Family { get; }

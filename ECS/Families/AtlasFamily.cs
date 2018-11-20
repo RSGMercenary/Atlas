@@ -4,7 +4,7 @@ using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Messages;
+using Atlas.ECS.Families.Messages;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IReadOnlyFamily>, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : AtlasObject, IFamily<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
@@ -150,16 +150,16 @@ namespace Atlas.ECS.Families
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdateStateMessage<IEngine>>(PoolMembers);
+				Engine.AddListener<IUpdateStateMessage>(PoolMembers);
 			}
 		}
 
-		private void PoolMembers(IUpdateStateMessage<IEngine> message)
+		private void PoolMembers(IUpdateStateMessage message)
 		{
 			//Clean up update listener.
 			if(message.CurrentValue != TimeStep.None)
 				return;
-			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(PoolMembers);
+			message.Messenger.RemoveListener<IUpdateStateMessage>(PoolMembers);
 			while(removed.Count > 0)
 				DisposeMember(removed.Pop());
 			if(Engine == null)

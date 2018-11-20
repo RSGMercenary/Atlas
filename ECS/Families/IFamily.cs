@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IObject<IReadOnlyFamily>
+	public interface IReadOnlyFamily : IObject
 	{
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 	}

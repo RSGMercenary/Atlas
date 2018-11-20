@@ -1,17 +1,10 @@
 ﻿using Atlas.ECS.Components;
 using Atlas.ECS.Families;
-using Atlas.ECS.Messages;
+using Atlas.ECS.Families.Messages;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasFamilySystem<IFamilySystem, TFamilyMember>
-		where TFamilyMember : IFamilyMember, new()
-	{
-
-	}
-
-	public abstract class AtlasFamilySystem<T, TFamilyMember> : AtlasSystem<T>, IFamilySystem<T, TFamilyMember>
-		where T : class, IFamilySystem
+	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : IFamilyMember, new()
 	{
 		IReadOnlyFamily IFamilySystem.Family => Family;

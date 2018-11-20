@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject<IEntity>, IAutoDispose<IEntity>, ISleep<IEntity>
+	public interface IEntity : IObject, IAutoDispose, ISleep
 	{
 		#region Entities
 
@@ -51,17 +51,39 @@ namespace Atlas.ECS.Entities
 
 		IEntity RemoveChild(string localName);
 
+		#endregion
+
 		#region Hierarchy
 
+		#region Root
+
 		IEntity Root { get; }
+
+		int RootIndex { get; }
+
+		#endregion
+
+		#region Parent
 
 		IEntity Parent { get; set; }
 
 		int ParentIndex { get; set; }
 
+		IEntity SetParent(IEntity parent, int index);
+
+		#endregion
+
+		#region Get
+
 		IReadOnlyGroup<IEntity> Children { get; }
 
-		IEntity SetParent(IEntity parent = null, int index = int.MaxValue);
+		IEntity GetChild(int index);
+
+		int GetChildIndex(IEntity child);
+
+		#endregion
+
+		#region Has
 
 		bool HasDescendant(IEntity descendant);
 
@@ -71,7 +93,9 @@ namespace Atlas.ECS.Entities
 
 		bool HasSibling(IEntity sibling);
 
-		int GetChildIndex(IEntity child);
+		#endregion
+
+		#region Set
 
 		bool SetChildIndex(IEntity child, int index);
 
@@ -79,15 +103,17 @@ namespace Atlas.ECS.Entities
 
 		bool SwapChildren(int index1, int index2);
 
-		IEntity GetChild(int index);
+		#endregion
+
+		#region Add
 
 		IEntity AddChild(IEntity child);
 
 		IEntity AddChild(IEntity child, int index);
 
-		bool AddChildren(params IEntity[] children);
+		#endregion
 
-		bool AddChildren(int index, params IEntity[] children);
+		#region Remove
 
 		IEntity RemoveChild(IEntity child);
 

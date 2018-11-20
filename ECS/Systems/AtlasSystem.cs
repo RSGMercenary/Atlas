@@ -1,18 +1,12 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
-using Atlas.ECS.Messages;
 using Atlas.ECS.Objects;
+using Atlas.ECS.Systems.Messages;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasSystem : AtlasSystem<ISystem>
-	{
-
-	}
-
-	public abstract class AtlasSystem<T> : AtlasObject<T>, ISystem<T>
-		where T : class, ISystem
+	public abstract class AtlasSystem : AtlasObject, ISystem
 	{
 		private int priority = 0;
 		private int sleeping = 0;
@@ -134,7 +128,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage<T>>(new SleepMessage<T>(this as T, value, previous));
+				Message<ISleepMessage>(new SleepMessage(this, value, previous));
 			}
 		}
 
@@ -200,7 +194,8 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = timeStep;
 				timeStep = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
+				//TO-DO Make this its own message class.
+				//Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
 			}
 		}
 
@@ -226,7 +221,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = updateState;
 				updateState = value;
-				Message<IUpdateStateMessage<T>>(new UpdateStateMessage<T>(this as T, value, previous));
+				Message<IUpdateStateMessage>(new UpdateStateMessage(this, value, previous));
 			}
 		}
 	}

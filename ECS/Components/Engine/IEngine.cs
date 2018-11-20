@@ -198,10 +198,4 @@ namespace Atlas.ECS.Components
 
 		#endregion
 	}
-
-	public interface IEngine<T> : IEngine, IComponent<T>, IUpdate<T>
-		where T : IEngine
-	{
-
-	}
 }
