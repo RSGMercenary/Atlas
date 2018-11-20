@@ -8,18 +8,10 @@ namespace Atlas.Core.Collections.Pool
 		private readonly Stack<T> stack = new Stack<T>();
 		private int maxCount = -1;
 		private readonly Func<T> creator;
-		private readonly Action<T> onRemove;
-		private readonly Func<T, bool> onAdd;
 
 		public Pool(Func<T> creator)
 		{
 			this.creator = creator;
-		}
-
-		public Pool(Func<T> creator, Action<T> onRemove = null, Func<T, bool> onAdd = null) : this(creator)
-		{
-			this.onRemove = onRemove;
-			this.onAdd = onAdd;
 		}
 
 		public Pool(Func<T> creator, int maxCount) : this(creator)
@@ -27,51 +19,11 @@ namespace Atlas.Core.Collections.Pool
 			MaxCount = maxCount;
 		}
 
+		#region Size
+
 		public int Count
 		{
 			get { return stack.Count; }
-		}
-
-		public bool AddAll()
-		{
-			if(maxCount <= 0)
-				return false;
-			if(stack.Count >= maxCount)
-				return false;
-			while(stack.Count < maxCount)
-				if(!Add(creator.Invoke()))
-					return false;
-			return true;
-		}
-
-		public bool RemoveAll()
-		{
-			if(stack.Count <= 0)
-				return false;
-			while(stack.Count > 0)
-				stack.Pop();
-			return true;
-		}
-
-		public bool Add(T value)
-		{
-			if(value == null)
-				return false;
-			if(typeof(T) != value.GetType())
-				return false;
-			if(maxCount >= 0 && stack.Count >= maxCount)
-				return false;
-			if(onAdd != null && !onAdd.Invoke(value))
-				return false;
-			stack.Push(value);
-			return true;
-		}
-
-		public T Remove()
-		{
-			var value = stack.Count > 0 ? stack.Pop() : creator.Invoke();
-			onRemove?.Invoke(value);
-			return value;
 		}
 
 		public int MaxCount
@@ -89,14 +41,61 @@ namespace Atlas.Core.Collections.Pool
 			}
 		}
 
+		#endregion
+
+		#region Add
+
+		public bool Add(T value)
+		{
+			if(value == null)
+				return false;
+			if(typeof(T) != value.GetType())
+				return false;
+			if(maxCount >= 0 && stack.Count >= maxCount)
+				return false;
+			stack.Push(value);
+			return true;
+		}
+
 		public bool Add(object value)
 		{
 			return Add((T)value);
+		}
+
+		public bool AddAll()
+		{
+			if(maxCount <= 0)
+				return false;
+			if(stack.Count >= maxCount)
+				return false;
+			while(stack.Count < maxCount)
+				Add(creator.Invoke());
+			return true;
+		}
+
+		#endregion
+
+		#region Remove
+
+		public T Remove()
+		{
+			return stack.Count > 0 ? stack.Pop() : creator.Invoke();
 		}
 
 		object IReadOnlyPool.Remove()
 		{
 			return Remove();
 		}
+
+		public bool RemoveAll()
+		{
+			if(stack.Count <= 0)
+				return false;
+			while(stack.Count > 0)
+				stack.Pop();
+			return true;
+		}
+
+		#endregion
 	}
 }
