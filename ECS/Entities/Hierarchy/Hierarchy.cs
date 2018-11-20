@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.ECS.Messages
+namespace Atlas.ECS.Entities
 {
 	[Flags]
 	public enum Hierarchy

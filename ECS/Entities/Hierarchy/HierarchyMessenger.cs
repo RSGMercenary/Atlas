@@ -1,8 +1,7 @@
 ﻿using Atlas.Core.Messages;
-using Atlas.ECS.Entities;
 using System;
 
-namespace Atlas.ECS.Messages
+namespace Atlas.ECS.Entities
 {
 	public class HierarchyMessenger
 	{
