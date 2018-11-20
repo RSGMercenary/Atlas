@@ -3,17 +3,17 @@ using System;
 
 namespace Atlas.Core.Messages
 {
-	public class MessageSignal<T> : Signal<T>
-		where T : IMessage
+	public class MessageSignal<TMessage> : Signal<TMessage>
+		where TMessage : IMessage
 	{
-		protected override Slot<T> CreateGenericSlot()
+		protected override Slot<TMessage> CreateGenericSlot()
 		{
-			return new MessageSlot<T>();
+			return new MessageSlot<TMessage>();
 		}
 
-		public ISlot<T> Add(Action<T> listener, int priority, Func<T, bool> validator)
+		public ISlot<TMessage> Add(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
 		{
-			var slot = (MessageSlot<T>)Add(listener, priority);
+			var slot = (MessageSlot<TMessage>)Add(listener, priority);
 			slot.Validator = validator;
 			return slot;
 		}

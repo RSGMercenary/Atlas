@@ -3,12 +3,12 @@ using System;
 
 namespace Atlas.Core.Messages
 {
-	public class MessageSlot<T> : Slot<T>
-		where T : IMessage
+	public class MessageSlot<TMessage> : Slot<TMessage>
+		where TMessage : IMessage
 	{
-		public Func<T, bool> Validator { get; set; } = Messenger.Self;
+		public Func<TMessage, bool> Validator { get; set; } = Messenger.Self;
 
-		public override bool Dispatch(T item1)
+		public override bool Dispatch(TMessage item1)
 		{
 			if(Validator != null && !Validator(item1))
 				return false;

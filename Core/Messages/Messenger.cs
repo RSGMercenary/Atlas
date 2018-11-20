@@ -4,8 +4,10 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Messages
 {
-	public static class Messenger
+	public abstract class Messenger : IMessenger
 	{
+		#region Static
+
 		public static bool Self<TMessage>(TMessage message)
 			where TMessage : IMessage
 		{
@@ -17,16 +19,14 @@ namespace Atlas.Core.Messages
 		{
 			return true;
 		}
-	}
 
-	public abstract class Messenger<TMessenger> : IMessenger<TMessenger>
-		where TMessenger : IMessenger
-	{
+		#endregion
+
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
 		public Messenger()
 		{
-			Compose(true);
+
 		}
 
 		~Messenger()
@@ -34,34 +34,17 @@ namespace Atlas.Core.Messages
 			Dispose(true);
 		}
 
-		public virtual void Compose()
-		{
-			Compose(false);
-		}
-
 		public virtual void Dispose()
 		{
 			Dispose(false);
 		}
 
-		private void Compose(bool constructor)
-		{
-			Composing(constructor);
-			if(!constructor)
-				GC.ReRegisterForFinalize(this);
-		}
-
 		private void Dispose(bool finalizer)
 		{
 			Disposing(finalizer);
-			if(!finalizer)
-				GC.SuppressFinalize(this);
+			//if(!finalizer)
+			//GC.SuppressFinalize(this);
 		}
-
-		/// <summary>
-		/// Called when this instance is being composed. Should not be called manually.
-		/// </summary>
-		protected virtual void Composing(bool constructor) { }
 
 		/// <summary>
 		/// Called when this instance is being disposed. Should not be called manually.
@@ -79,40 +62,6 @@ namespace Atlas.Core.Messages
 			}
 		}
 
-		protected virtual void Messaging(IMessage message) { }
-
-		public void AddListener<TMessage>(Action<TMessage> listener)
-			where TMessage : IMessage<TMessenger>
-		{
-			(this as IMessenger).AddListener(listener, 0, null);
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
-			where TMessage : IMessage<TMessenger>
-		{
-			(this as IMessenger).AddListener(listener, priority, null);
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
-			where TMessage : IMessage<TMessenger>
-		{
-			(this as IMessenger).AddListener(listener, 0, validator);
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
-			where TMessage : IMessage<TMessenger>
-		{
-			(this as IMessenger).AddListener(listener, priority, validator);
-		}
-
-		public void RemoveListener<TMessage>(Action<TMessage> listener)
-			where TMessage : IMessage<TMessenger>
-		{
-			(this as IMessenger).RemoveListener(listener);
-		}
-
-		#region IMessenger
-
 		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage
 		{
@@ -125,22 +74,28 @@ namespace Atlas.Core.Messages
 				(messages[type] as MessageSignal<TMessage>).Dispatch(message);
 		}
 
-		void IMessenger.AddListener<TMessage>(Action<TMessage> listener)
+		protected virtual void Messaging(IMessage message) { }
+
+		public void AddListener<TMessage>(Action<TMessage> listener)
+			where TMessage : IMessage
 		{
-			(this as IMessenger).AddListener(listener, 0, null);
+			AddListener(listener, 0, Self);
 		}
 
-		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, int priority)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
+			where TMessage : IMessage
 		{
-			(this as IMessenger).AddListener(listener, priority, null);
+			AddListener(listener, priority, Self);
 		}
 
-		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
+		public void AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
+			where TMessage : IMessage
 		{
-			(this as IMessenger).AddListener(listener, 0, validator);
+			AddListener(listener, 0, validator);
 		}
 
-		void IMessenger.AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+			where TMessage : IMessage
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
@@ -148,7 +103,8 @@ namespace Atlas.Core.Messages
 			(messages[type] as MessageSignal<TMessage>).Add(listener, priority, validator);
 		}
 
-		void IMessenger.RemoveListener<TMessage>(Action<TMessage> listener)
+		public void RemoveListener<TMessage>(Action<TMessage> listener)
+			where TMessage : IMessage
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
@@ -160,7 +116,5 @@ namespace Atlas.Core.Messages
 			messages.Remove(type);
 			signal.Dispose();
 		}
-
-		#endregion
 	}
 }
