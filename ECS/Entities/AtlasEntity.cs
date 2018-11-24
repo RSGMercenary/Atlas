@@ -530,7 +530,7 @@ namespace Atlas.ECS.Entities
 			if(children.Count <= 0)
 				return false;
 			foreach(var child in children.Backward())
-				child.Dispose();
+				child.Parent = null;
 			return true;
 		}
 
@@ -869,7 +869,7 @@ namespace Atlas.ECS.Entities
 			return GlobalName;
 		}
 
-		public string ToInfoString(int depth, bool addComponents, bool addEntities, string indent = "")
+		public string ToInfoString(int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "")
 		{
 			var info = new StringBuilder();
 

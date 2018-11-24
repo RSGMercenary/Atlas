@@ -8,11 +8,23 @@ namespace Atlas.ECS.Components
 {
 	public class SystemManager : AtlasComponent, ISystemManager
 	{
-		private readonly Group<Type> systems = new Group<Type>();
+		private readonly Group<Type> types = new Group<Type>();
 
 		public SystemManager()
 		{
 
+		}
+
+		public SystemManager(params Type[] types) : this(types as IEnumerable<Type>)
+		{
+			foreach(var type in types)
+				AddSystem(type);
+		}
+
+		public SystemManager(IEnumerable<Type> types)
+		{
+			foreach(var type in types)
+				AddSystem(type);
 		}
 
 		protected override void Disposing(bool finalizer)
@@ -24,22 +36,16 @@ namespace Atlas.ECS.Components
 			base.Disposing(finalizer);
 		}
 
-		public SystemManager(IEnumerable<Type> types)
-		{
-			foreach(var type in types)
-				AddSystem(type);
-		}
-
 		protected override void ChangingEngine(IEngine current, IEngine previous)
 		{
 			if(current != null)
 			{
-				foreach(var type in systems)
+				foreach(var type in types)
 					current.AddSystem(type);
 			}
 			else
 			{
-				foreach(var type in systems)
+				foreach(var type in types)
 					previous.RemoveSystem(type);
 			}
 			base.ChangingEngine(current, previous);
@@ -47,7 +53,7 @@ namespace Atlas.ECS.Components
 
 		public IReadOnlyGroup<Type> Systems
 		{
-			get { return systems; }
+			get { return types; }
 		}
 
 		public bool HasSystem<TISystem>() where TISystem : ISystem
@@ -57,7 +63,7 @@ namespace Atlas.ECS.Components
 
 		public bool HasSystem(Type type)
 		{
-			return systems.Contains(type);
+			return types.Contains(type);
 		}
 
 		public bool AddSystem<TISystem>() where TISystem : ISystem
@@ -75,9 +81,9 @@ namespace Atlas.ECS.Components
 				return false;
 			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
 				return false;
-			if(systems.Contains(type))
+			if(types.Contains(type))
 				return false;
-			systems.Add(type);
+			types.Add(type);
 			Engine?.AddSystem(type);
 			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
 			return true;
@@ -92,9 +98,9 @@ namespace Atlas.ECS.Components
 		{
 			if(type == null)
 				return false;
-			if(!systems.Contains(type))
+			if(!types.Contains(type))
 				return false;
-			systems.Remove(type);
+			types.Remove(type);
 			Engine?.RemoveSystem(type);
 			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
 			return true;
@@ -102,10 +108,10 @@ namespace Atlas.ECS.Components
 
 		public bool RemoveSystems()
 		{
-			if(systems.Count <= 0)
+			if(types.Count <= 0)
 				return false;
-			foreach(var system in systems)
-				RemoveSystem(system);
+			foreach(var type in types)
+				RemoveSystem(type);
 			return true;
 		}
 	}

@@ -132,7 +132,7 @@ namespace Atlas.ECS.Components
 		/// <typeparam name="TFamilyType"></typeparam>
 		/// <returns></returns>
 		bool HasFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new();
+			where TFamilyMember : class, IFamilyMember, new();
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given Type.
@@ -147,7 +147,7 @@ namespace Atlas.ECS.Components
 		/// <typeparam name="TFamilyMember"></typeparam>
 		/// <returns></returns>
 		IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new();
+			where TFamilyMember : class, IFamilyMember, new();
 
 		/// <summary>
 		/// Returns the Family with the given Type.
@@ -157,10 +157,10 @@ namespace Atlas.ECS.Components
 		IReadOnlyFamily GetFamily(Type type);
 
 		IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new();
+			where TFamilyMember : class, IFamilyMember, new();
 
 		void RemoveFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new();
+			where TFamilyMember : class, IFamilyMember, new();
 
 		#endregion
 

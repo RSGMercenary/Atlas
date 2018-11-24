@@ -5,7 +5,7 @@ using Atlas.ECS.Families.Messages;
 namespace Atlas.ECS.Systems
 {
 	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
-		where TFamilyMember : IFamilyMember, new()
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 		IReadOnlyFamily IFamilySystem.Family => Family;
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }

@@ -13,7 +13,7 @@ using System.Reflection;
 namespace Atlas.ECS.Families
 {
 	sealed class AtlasFamily<TFamilyMember> : AtlasObject, IFamily<TFamilyMember>
-		where TFamilyMember : IFamilyMember, new()
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
 		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();

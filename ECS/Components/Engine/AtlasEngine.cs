@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Loggers;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components.Messages;
@@ -319,7 +320,7 @@ namespace Atlas.ECS.Components
 		#region Add/Remove
 
 		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
+			where TFamilyMember : class, IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
@@ -341,7 +342,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public void RemoveFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
+			where TFamilyMember : class, IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
 			if(!familiesReference.ContainsKey(type))
@@ -361,7 +362,7 @@ namespace Atlas.ECS.Components
 		#region Create
 
 		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
+			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return new AtlasFamily<TFamilyMember>();
 		}
@@ -373,7 +374,7 @@ namespace Atlas.ECS.Components
 		public IReadOnlyGroup<IReadOnlyFamily> Families { get { return families; } }
 
 		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
+			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
 		}
@@ -393,7 +394,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public bool HasFamily<TFamilyMember>()
-			where TFamilyMember : IFamilyMember, new()
+			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return HasFamily(typeof(TFamilyMember));
 		}
@@ -560,16 +561,23 @@ namespace Atlas.ECS.Components
 
 		private void UpdateSystems(TimeStep timeStep, double deltaTime)
 		{
-			UpdateState = timeStep;
-			foreach(var system in systems)
+			try
 			{
-				if(system.TimeStep != timeStep)
-					continue;
-				CurrentSystem = system;
-				system.Update(deltaTime);
-				CurrentSystem = null;
+				UpdateState = timeStep;
+				foreach(var system in systems)
+				{
+					if(system.TimeStep != timeStep)
+						continue;
+					CurrentSystem = system;
+					system.Update(deltaTime);
+					CurrentSystem = null;
+				}
+				UpdateState = TimeStep.None;
 			}
-			UpdateState = TimeStep.None;
+			catch(Exception e)
+			{
+				Log.Exception(e);
+			}
 		}
 
 		#endregion
