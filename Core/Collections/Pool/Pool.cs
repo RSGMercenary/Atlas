@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Atlas.Core.Collections.Pool
 {
 	public class Pool<T> : IPool<T>
+		where T : class
 	{
 		private readonly Stack<T> stack = new Stack<T>();
 		private int maxCount = -1;
@@ -59,7 +60,7 @@ namespace Atlas.Core.Collections.Pool
 
 		public bool Add(object value)
 		{
-			return Add((T)value);
+			return Add(value as T);
 		}
 
 		public bool AddAll()

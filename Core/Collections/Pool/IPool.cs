@@ -17,6 +17,7 @@
 	}
 
 	public interface IReadOnlyPool<T> : IReadOnlyPool
+		where T : class
 	{
 		new T Remove();
 	}
@@ -28,6 +29,7 @@
 	}
 
 	public interface IPool<T> : IPool, IReadOnlyPool<T>
+		where T : class
 	{
 		bool Add(T value);
 	}
