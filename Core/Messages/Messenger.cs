@@ -31,34 +31,26 @@ namespace Atlas.Core.Messages
 
 		~Messenger()
 		{
-			Dispose(true);
+			Destroying();
 		}
 
 		public virtual void Dispose()
 		{
-			Dispose(false);
+			Disposing();
 		}
 
-		private void Dispose(bool finalizer)
-		{
-			Disposing(finalizer);
-			//if(!finalizer)
-			//GC.SuppressFinalize(this);
-		}
+		protected virtual void Destroying() { }
 
 		/// <summary>
 		/// Called when this instance is being disposed. Should not be called manually.
 		/// </summary>
-		protected virtual void Disposing(bool finalizer)
+		protected virtual void Disposing()
 		{
-			if(!finalizer)
+			foreach(var message in new List<Type>(messages.Keys))
 			{
-				foreach(var message in new List<Type>(messages.Keys))
-				{
-					var signal = messages[message];
-					messages.Remove(message);
-					signal.Dispose();
-				}
+				var signal = messages[message];
+				messages.Remove(message);
+				signal.Dispose();
 			}
 		}
 

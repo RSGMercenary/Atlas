@@ -2,16 +2,18 @@
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IObject
+	public interface IReadOnlyFamily : IObject, IEnumerable
 	{
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 	}
 
-	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily
-		where TFamilyMember : IFamilyMember, new()
+	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily, IEnumerable<TFamilyMember>
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }
 	}
@@ -26,7 +28,7 @@ namespace Atlas.ECS.Families
 	}
 
 	public interface IFamily<TFamilyMember> : IFamily, IReadOnlyFamily<TFamilyMember>
-		where TFamilyMember : IFamilyMember, new()
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 
 	}

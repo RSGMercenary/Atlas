@@ -11,7 +11,7 @@ namespace Atlas.ECS.Systems
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
-		protected sealed override void Updating(float deltaTime)
+		protected sealed override void SystemUpdate(float deltaTime)
 		{
 			FamilyUpdate(deltaTime);
 		}
@@ -19,7 +19,7 @@ namespace Atlas.ECS.Systems
 		protected virtual void FamilyUpdate(float deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
-			foreach(var member in Family.Members)
+			foreach(var member in Family)
 			{
 				if(updateSleepingEntities || !member.Entity.IsSleeping)
 					MemberUpdate(deltaTime, member);
@@ -32,9 +32,9 @@ namespace Atlas.ECS.Systems
 
 		protected virtual void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		protected override void AddFamilies(IEngine engine)
+		protected override void AddingEngine(IEngine engine)
 		{
-			base.AddFamilies(engine);
+			base.AddingEngine(engine);
 			Family = engine.AddFamily<TFamilyMember>();
 			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
 			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
@@ -42,7 +42,7 @@ namespace Atlas.ECS.Systems
 				MemberAdded(Family, member);
 		}
 
-		protected override void RemoveFamilies(IEngine engine)
+		protected override void RemovingEngine(IEngine engine)
 		{
 			Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
 			Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
@@ -50,7 +50,7 @@ namespace Atlas.ECS.Systems
 				MemberRemoved(Family, member);
 			engine.RemoveFamily<TFamilyMember>();
 			Family = null;
-			base.RemoveFamilies(engine);
+			base.RemovingEngine(engine);
 		}
 
 		private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message)

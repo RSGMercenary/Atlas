@@ -3,7 +3,7 @@
 namespace Atlas.ECS.Families.Messages
 {
 	public interface IFamilyMemberRemoveMessage<TFamilyMember> : IValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>
-		where TFamilyMember : IFamilyMember, new()
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 
 	}

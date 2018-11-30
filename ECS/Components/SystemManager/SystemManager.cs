@@ -26,28 +26,24 @@ namespace Atlas.ECS.Components
 				AddSystem(type);
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Disposing()
 		{
-			if(!finalizer)
-			{
-				RemoveSystems();
-			}
-			base.Disposing(finalizer);
+			RemoveSystems();
+			base.Disposing();
 		}
 
-		protected override void ChangingEngine(IEngine current, IEngine previous)
+		protected override void AddingEngine(IEngine engine)
 		{
-			if(current != null)
-			{
-				foreach(var type in types)
-					current.AddSystem(type);
-			}
-			else
-			{
-				foreach(var type in types)
-					previous.RemoveSystem(type);
-			}
-			base.ChangingEngine(current, previous);
+			base.AddingEngine(engine);
+			foreach(var type in types)
+				engine.AddSystem(type);
+		}
+
+		protected override void RemovingEngine(IEngine engine)
+		{
+			foreach(var type in types)
+				engine.RemoveSystem(type);
+			base.RemovingEngine(engine);
 		}
 
 		public IReadOnlyGroup<Type> Systems

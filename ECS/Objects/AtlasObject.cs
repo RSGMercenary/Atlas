@@ -17,14 +17,16 @@ namespace Atlas.ECS.Objects
 					return;
 				var previous = engine;
 				engine = value;
-				ChangingEngine(value, previous);
+				if(value != null)
+					AddingEngine(value);
+				else
+					RemovingEngine(previous);
 				Message<IEngineMessage>(new EngineMessage(this, value, previous));
 			}
 		}
 
-		protected virtual void ChangingEngine(IEngine current, IEngine previous)
-		{
+		protected virtual void AddingEngine(IEngine engine) { }
 
-		}
+		protected virtual void RemovingEngine(IEngine engine) { }
 	}
 }

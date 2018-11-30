@@ -4,7 +4,9 @@ using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Objects;
+using Microsoft.Xna.Framework;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
@@ -14,19 +16,27 @@ namespace Atlas.ECS.Entities
 	{
 		#region Static
 
-		private static AtlasEntity instance;
+		private static IEntity instance;
 		public const string RootName = "Root";
 		public static string UniqueName { get { return $"Entity {Guid.NewGuid().ToString("N")}"; } }
 
-		private static Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity());
+		private static Pool<IEntity> pool = new Pool<IEntity>(() => new AtlasEntity());
 
-		public static IReadOnlyPool<AtlasEntity> Pool() { return pool; }
+		public static IReadOnlyPool<IEntity> Pool() { return pool; }
 
-		public static AtlasEntity Get(string globalName = "", string localName = "")
+		public static IEntity Get(string globalName, string localName)
+		{
+			var entity = Get(globalName, false);
+			entity.LocalName = localName;
+			return entity;
+		}
+
+		public static IEntity Get(string globalName, bool localName)
 		{
 			var entity = pool.Remove();
 			entity.GlobalName = globalName;
-			entity.localName = localName;
+			if(localName)
+				entity.LocalName = globalName;
 			return entity;
 		}
 
@@ -46,26 +56,33 @@ namespace Atlas.ECS.Entities
 		private readonly Group<IEntity> children = new Group<IEntity>();
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 
+		private Matrix globalMatrix;
+		private Matrix localMatrix;
+
 		#endregion
 
 		#region Construct / Finalize
 
 		public AtlasEntity()
 		{
-
+			LocalMatrix = Matrix.CreateScale(Vector3.One) *
+						  Matrix.CreateFromAxisAngle(Vector3.Backward, 0) *
+						  Matrix.CreateTranslation(Vector3.Zero);
 		}
 
-		public AtlasEntity(string globalName, string localName) : this(globalName)
+		public AtlasEntity(string globalName, string localName) : this(globalName, false)
 		{
 			LocalName = localName;
 		}
 
-		public AtlasEntity(string globalName)
+		public AtlasEntity(string globalName, bool local = false) : this()
 		{
 			GlobalName = globalName;
+			if(local)
+				LocalName = globalName;
 		}
 
-		public AtlasEntity(bool root)
+		public AtlasEntity(bool root) : this()
 		{
 			if(root)
 			{
@@ -78,25 +95,29 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Destroying()
 		{
 			if(this == instance)
 				instance = null;
-			if(!finalizer)
-			{
-				RemoveChildren();
-				RemoveComponents();
-				GlobalName = UniqueName;
-				LocalName = UniqueName;
-				AutoDispose = true;
-				Parent = null;
-				Sleeping = 0;
-				FreeSleeping = 0;
-				Root = null;
+			base.Destroying();
+		}
 
-				pool.Add(this);
-			}
-			base.Disposing(finalizer);
+		protected override void Disposing()
+		{
+			if(this == instance)
+				instance = null;
+			RemoveChildren();
+			RemoveComponents();
+			GlobalName = UniqueName;
+			LocalName = UniqueName;
+			AutoDispose = true;
+			Parent = null;
+			Sleeping = 0;
+			FreeSleeping = 0;
+			Root = null;
+
+			pool.Add(this);
+			base.Disposing();
 		}
 
 		#endregion
@@ -171,10 +192,10 @@ namespace Atlas.ECS.Entities
 
 		#region Components
 
-		public bool HasComponent<TIComponent>()
-			where TIComponent : IComponent
+		public bool HasComponent<TKey>()
+			where TKey : IComponent
 		{
-			return HasComponent(typeof(TIComponent));
+			return HasComponent(typeof(TKey));
 		}
 
 		public bool HasComponent(Type type)
@@ -182,23 +203,23 @@ namespace Atlas.ECS.Entities
 			return components.ContainsKey(type);
 		}
 
-		public TComponent GetComponent<TIComponent, TComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent
+		public TValue GetComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey
 		{
-			return (TComponent)GetComponent(typeof(TIComponent));
+			return GetComponent(typeof(TKey)) as TValue;
 		}
 
-		public TIComponent GetComponent<TIComponent>()
-			where TIComponent : IComponent
+		public TKeyValue GetComponent<TKeyValue>()
+			where TKeyValue : class, IComponent
 		{
-			return (TIComponent)GetComponent(typeof(TIComponent));
+			return GetComponent(typeof(TKeyValue)) as TKeyValue;
 		}
 
-		public TComponent GetComponent<TComponent>(Type type)
-			where TComponent : IComponent
+		public TValue GetComponent<TValue>(Type type)
+			where TValue : class, IComponent
 		{
-			return (TComponent)GetComponent(type);
+			return GetComponent(type) as TValue;
 		}
 
 		public IComponent GetComponent(Type type)
@@ -223,49 +244,63 @@ namespace Atlas.ECS.Entities
 			get { return components; }
 		}
 
+		#region Add
+
 		//New component with Type
-		public TComponent AddComponent<TComponent, TIComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent, new()
+		public TValue AddComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey, new()
 		{
-			return (TComponent)AddComponent(new TComponent(), typeof(TIComponent), 0);
+			return AddComponent(new TValue(), typeof(TKey), 0) as TValue;
 		}
 
 		//Component with Type
-		public TComponent AddComponent<TComponent, TIComponent>(TComponent component)
-			where TIComponent : IComponent
-			where TComponent : TIComponent
+		public TValue AddComponent<TKey, TValue>(TValue component)
+			where TKey : IComponent
+			where TValue : class, TKey
 		{
-			return (TComponent)AddComponent(component, typeof(TIComponent), int.MaxValue);
+			return AddComponent(component, typeof(TKey), int.MaxValue) as TValue;
 		}
 
 		//Component with Type, index
-		public TComponent AddComponent<TComponent, TIComponent>(TComponent component, int index)
-			where TIComponent : IComponent
-			where TComponent : TIComponent
+		public TValue AddComponent<TKey, TValue>(TValue component, int index)
+			where TKey : IComponent
+			where TValue : class, TKey
 		{
-			return (TComponent)AddComponent(component, typeof(TIComponent), index);
+			return AddComponent(component, typeof(TKey), index) as TValue;
 		}
 
 		//New Component
-		public TComponent AddComponent<TComponent>()
-			where TComponent : IComponent, new()
+		public TKeyValue AddComponent<TKeyValue>()
+			where TKeyValue : class, IComponent, new()
 		{
-			return (TComponent)AddComponent(new TComponent(), null, 0);
+			return AddComponent(new TKeyValue(), null, 0) as TKeyValue;
 		}
 
 		//Component
-		public TIComponent AddComponent<TIComponent>(TIComponent component)
-			where TIComponent : IComponent
+		public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
+			where TKeyValue : class, IComponent
 		{
-			return (TIComponent)AddComponent(component, typeof(TIComponent), int.MaxValue);
+			return AddComponent(component, typeof(TKeyValue), int.MaxValue) as TKeyValue;
 		}
 
 		//Component, index
-		public TIComponent AddComponent<TIComponent>(TIComponent component, int index)
-			where TIComponent : IComponent
+		public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
+			where TKeyValue : class, IComponent
 		{
-			return (TIComponent)AddComponent(component, typeof(TIComponent), index);
+			return AddComponent(component, typeof(TKeyValue), index) as TKeyValue;
+		}
+
+		public TValue AddComponent<TValue>(TValue component, Type type)
+			where TValue : class, IComponent
+		{
+			return AddComponent(component, type) as TValue;
+		}
+
+		public TValue AddComponent<TValue>(Type type)
+			where TValue : class, IComponent, new()
+		{
+			return AddComponent(new TValue(), type) as TValue;
 		}
 
 		public IComponent AddComponent(IComponent component)
@@ -286,10 +321,11 @@ namespace Atlas.ECS.Entities
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
 			type = type ?? component?.GetType();
-			if(!(bool)type?.IsInstanceOfType(component))
+			if(type == null || !type.IsInstanceOfType(component))
 				return null;
 			//The component isn't shareable and it already has a manager.
 			//Or this Entity alreay manages this Component.
+			//TO-DO Fix this so it handles all managers.
 			if(component.Manager != null)
 			{
 				if(component.Manager == this)
@@ -308,17 +344,19 @@ namespace Atlas.ECS.Entities
 			return component;
 		}
 
-		public TComponent RemoveComponent<TIComponent, TComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent
+		#endregion
+
+		public TValue RemoveComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey
 		{
-			return (TComponent)RemoveComponent(typeof(TIComponent));
+			return RemoveComponent(typeof(TKey)) as TValue;
 		}
 
-		public TIComponent RemoveComponent<TIComponent>()
-			where TIComponent : IComponent
+		public TKeyValue RemoveComponent<TKeyValue>()
+			where TKeyValue : class, IComponent
 		{
-			return (TIComponent)RemoveComponent(typeof(TIComponent));
+			return RemoveComponent(typeof(TKeyValue)) as TKeyValue;
 		}
 
 		public IComponent RemoveComponent(Type type)
@@ -426,6 +464,7 @@ namespace Atlas.ECS.Entities
 			}
 			Message<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(next != null ? index : -1);
+			SetMatrix();
 			Sleeping += sleeping;
 			if(autoDispose && parent == null)
 				Dispose();
@@ -451,15 +490,29 @@ namespace Atlas.ECS.Entities
 
 		#region Add
 
-		public IEntity AddChild(string globalName = "", string localName = "")
+		#region Pool
+
+		public IEntity AddChild(string globalName, string localName)
 		{
 			return AddChild(Get(globalName, localName), children.Count);
 		}
 
-		public IEntity AddChild(int index, string globalName = "", string localName = "")
+		public IEntity AddChild(string globalName, string localName, int index)
 		{
 			return AddChild(Get(globalName, localName), index);
 		}
+
+		public IEntity AddChild(string globalName, bool localName)
+		{
+			return AddChild(Get(globalName, localName), children.Count);
+		}
+
+		public IEntity AddChild(string globalName, bool localName, int index)
+		{
+			return AddChild(Get(globalName, localName), index);
+		}
+
+		#endregion
 
 		public IEntity AddChild(IEntity child)
 		{
@@ -541,6 +594,16 @@ namespace Atlas.ECS.Entities
 		public IReadOnlyGroup<IEntity> Children
 		{
 			get { return children; }
+		}
+
+		public IEnumerator<IEntity> GetEnumerator()
+		{
+			return children.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
 		}
 
 		public IEntity GetChild(string localName)
@@ -752,6 +815,45 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
+		#region Matrix
+
+		public Matrix GlobalMatrix
+		{
+			get { return globalMatrix; }
+			private set
+			{
+				if(globalMatrix == value)
+					return;
+				var previous = globalMatrix;
+				globalMatrix = value;
+				Message<IGlobalMatrixMessage>(new GlobalMatrixMessage(this, value, previous));
+			}
+		}
+
+		public Matrix LocalMatrix
+		{
+			get { return localMatrix; }
+			set
+			{
+				if(localMatrix == value)
+					return;
+				var previous = localMatrix;
+				localMatrix = value;
+				Message<ILocalMatrixMessage>(new LocalMatrixMessage(this, value, previous));
+				SetMatrix();
+			}
+		}
+
+		private void SetMatrix()
+		{
+			var matrix = localMatrix;
+			if(parent != null)
+				matrix *= parent.GlobalMatrix;
+			GlobalMatrix = matrix;
+		}
+
+		#endregion
+
 		#region Messages
 
 		public sealed override void Message<TMessage>(TMessage message)
@@ -812,6 +914,10 @@ namespace Atlas.ECS.Entities
 				else if(message is IChildrenMessage)
 				{
 					SetParentIndex(parent.GetChildIndex(this));
+				}
+				else if(message is IGlobalMatrixMessage)
+				{
+					SetMatrix();
 				}
 			}
 			if(message is IHierarchyMessage)

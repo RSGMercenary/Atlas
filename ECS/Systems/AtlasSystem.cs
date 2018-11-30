@@ -29,18 +29,15 @@ namespace Atlas.ECS.Systems
 			base.Dispose();
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Disposing()
 		{
-			if(!finalizer)
-			{
-				Priority = 0;
-				Sleeping = 0;
-				DeltaIntervalTime = 0;
-				TotalIntervalTime = 0;
-				TimeStep = TimeStep.Variable;
-				UpdateState = TimeStep.None;
-			}
-			base.Disposing(finalizer);
+			Priority = 0;
+			Sleeping = 0;
+			DeltaIntervalTime = 0;
+			TotalIntervalTime = 0;
+			TimeStep = TimeStep.Variable;
+			UpdateState = TimeStep.None;
+			base.Disposing();
 		}
 
 		public sealed override IEngine Engine
@@ -65,25 +62,18 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		protected override void ChangingEngine(IEngine current, IEngine previous)
+		protected override void AddingEngine(IEngine engine)
 		{
-			if(current != null)
-			{
-				SyncTotalIntervalTime();
-				AddFamilies(current);
-			}
-			else
-			{
-				TotalIntervalTime = 0;
-				RemoveFamilies(previous);
-				Dispose();
-			}
-			base.ChangingEngine(current, previous);
+			base.AddingEngine(engine);
+			SyncTotalIntervalTime();
 		}
 
-		protected virtual void AddFamilies(IEngine engine) { }
-
-		protected virtual void RemoveFamilies(IEngine engine) { }
+		protected override void RemovingEngine(IEngine engine)
+		{
+			TotalIntervalTime = 0;
+			base.RemovingEngine(engine);
+			Dispose();
+		}
 
 		#region Updating
 
@@ -106,14 +96,14 @@ namespace Atlas.ECS.Systems
 
 			updateLock = true;
 			UpdateState = TimeStep;
-			Updating(deltaTime);
+			SystemUpdate(deltaTime);
 			UpdateState = TimeStep.None;
 			updateLock = false;
 			if(Engine == null)
 				Dispose();
 		}
 
-		protected virtual void Updating(float deltaTime) { }
+		protected virtual void SystemUpdate(float deltaTime) { }
 
 		#endregion
 

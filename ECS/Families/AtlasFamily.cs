@@ -7,6 +7,7 @@ using Atlas.ECS.Entities;
 using Atlas.ECS.Families.Messages;
 using Atlas.ECS.Objects;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -31,13 +32,6 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
-
-		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members
-		{
-			get { return members; }
-		}
-
 		public sealed override void Dispose()
 		{
 			//Can't destroy Family mid-update.
@@ -46,14 +40,28 @@ namespace Atlas.ECS.Families
 			base.Dispose();
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Disposing()
 		{
-			if(!finalizer)
-			{
-				//TO-DO
-				//Do some clean up please! 
-			}
-			base.Disposing(finalizer);
+			//TO-DO
+			//Do some clean up maybe? Or let the GC handle it.
+			base.Disposing();
+		}
+
+		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
+
+		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members
+		{
+			get { return members; }
+		}
+
+		public IEnumerator<TFamilyMember> GetEnumerator()
+		{
+			return members.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
 		}
 
 		public sealed override IEngine Engine
@@ -78,13 +86,10 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		protected override void ChangingEngine(IEngine current, IEngine previous)
+		protected override void RemovingEngine(IEngine engine)
 		{
-			if(current == null)
-			{
-				Dispose();
-			}
-			base.ChangingEngine(current, previous);
+			base.RemovingEngine(engine);
+			Dispose();
 		}
 
 		public void AddEntity(IEntity entity)

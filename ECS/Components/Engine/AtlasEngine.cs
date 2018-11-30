@@ -62,10 +62,16 @@ namespace Atlas.ECS.Components
 			instance = this;
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Destroying()
 		{
 			instance = null;
-			base.Disposing(finalizer);
+			base.Destroying();
+		}
+
+		protected override void Disposing()
+		{
+			instance = null;
+			base.Disposing();
 		}
 
 		protected override void AddingManager(IEntity entity, int index)

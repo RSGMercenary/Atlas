@@ -46,19 +46,17 @@ namespace Atlas.ECS.Components
 			IsShareable = isShareable;
 		}
 
-		protected override void Disposing(bool finalizer)
+		protected override void Disposing()
 		{
-			if(!finalizer)
-			{
-				RemoveManagers();
-				AutoDispose = true;
+			RemoveManagers();
+			AutoDispose = true;
 
-				//AtlasComponent derived class had Dispose() called
-				//manually. Pool reference for later reuse.
-				if(pools.ContainsKey(GetType()))
-					pools[GetType()].Add(this);
-			}
-			base.Disposing(finalizer);
+			//AtlasComponent derived class had Dispose() called
+			//manually. Pool reference for later reuse.
+			if(pools.ContainsKey(GetType()))
+				pools[GetType()].Add(this);
+
+			base.Disposing();
 		}
 
 		public bool AutoDispose

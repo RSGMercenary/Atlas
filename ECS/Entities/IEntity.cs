@@ -2,12 +2,13 @@
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject, IAutoDispose, ISleep
+	public interface IEntity : IObject, IAutoDispose, ISleep, IEnumerable<IEntity>
 	{
 		#region Entities
 
@@ -30,8 +31,10 @@ namespace Atlas.ECS.Entities
 		/// </summary>
 		string LocalName { get; set; }
 
-		IEntity AddChild(string globalName = "", string localName = "");
-		IEntity AddChild(int index, string globalName = "", string localName = "");
+		IEntity AddChild(string globalName, string localName);
+		IEntity AddChild(string globalName, string localName, int index);
+		IEntity AddChild(string globalName, bool localName = false);
+		IEntity AddChild(string globalName, bool localName, int index);
 
 		bool HasChild(string localName);
 
@@ -129,8 +132,8 @@ namespace Atlas.ECS.Entities
 
 		#region Has
 
-		bool HasComponent<TIComponent>()
-			where TIComponent : IComponent;
+		bool HasComponent<TKey>()
+			where TKey : IComponent;
 
 		bool HasComponent(Type type);
 
@@ -138,17 +141,17 @@ namespace Atlas.ECS.Entities
 
 		#region Get
 
-		TComponent GetComponent<TIComponent, TComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent;
+		TValue GetComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey;
 
-		TIComponent GetComponent<TIComponent>()
-			where TIComponent : IComponent;
+		TKeyValue GetComponent<TKeyValue>()
+			where TKeyValue : class, IComponent;
 
 		IComponent GetComponent(Type type);
 
-		TComponent GetComponent<TComponent>(Type type)
-			where TComponent : IComponent;
+		TValue GetComponent<TValue>(Type type)
+			where TValue : class, IComponent;
 
 		Type GetComponentType(IComponent component);
 
@@ -161,62 +164,68 @@ namespace Atlas.ECS.Entities
 		/// <summary>
 		/// Adds a Component to the Entity with a new instance.
 		/// </summary>
-		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent, TIComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent, new();
+		TValue AddComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey, new();
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance.
 		/// </summary>
-		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent, TIComponent>(TComponent component)
-			where TIComponent : IComponent
-			where TComponent : TIComponent;
+		TValue AddComponent<TKey, TValue>(TValue component)
+			where TKey : IComponent
+			where TValue : class, TKey;
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance and index.
 		/// </summary>
-		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent, TIComponent>(TComponent component, int index)
-			where TIComponent : IComponent
-			where TComponent : TIComponent;
+		TValue AddComponent<TKey, TValue>(TValue component, int index)
+			where TKey : IComponent
+			where TValue : class, TKey;
 
 		/// <summary>
 		/// Adds a Component to the Entity with a new instance.
 		/// </summary>
-		/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
+		/// <typeparam name="TKeyValue">The instance Type of the Component.</typeparam>
 		/// <returns></returns>
-		TComponent AddComponent<TComponent>()
-			where TComponent : IComponent, new();
+		TKeyValue AddComponent<TKeyValue>()
+			where TKeyValue : class, IComponent, new();
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance.
 		/// </summary>
-		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TKeyValue">The interface Type of the Component.</typeparam>
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
-		TIComponent AddComponent<TIComponent>(TIComponent component)
-			where TIComponent : IComponent;
+		TKeyValue AddComponent<TKeyValue>(TKeyValue component)
+			where TKeyValue : class, IComponent;
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance and index.
 		/// </summary>
-		/// <typeparam name="TIComponent">The interface Type of the Component.</typeparam>
+		/// <typeparam name="TKeyValue">The interface Type of the Component.</typeparam>
 		/// <param name="component">The instance of the Component.</param>
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
-		TIComponent AddComponent<TIComponent>(TIComponent component, int index)
-			where TIComponent : IComponent;
+		TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
+			where TKeyValue : class, IComponent;
+
+		TValue AddComponent<TValue>(TValue component, Type type)
+			where TValue : class, IComponent;
+
+		TValue AddComponent<TValue>(Type type)
+			where TValue : class, IComponent, new();
 
 		IComponent AddComponent(IComponent component);
 		IComponent AddComponent(IComponent component, Type type);
@@ -227,12 +236,12 @@ namespace Atlas.ECS.Entities
 
 		#region Remove
 
-		TComponent RemoveComponent<TIComponent, TComponent>()
-			where TIComponent : IComponent
-			where TComponent : TIComponent;
+		TValue RemoveComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey;
 
-		TIComponent RemoveComponent<TIComponent>()
-			where TIComponent : IComponent;
+		TKeyValue RemoveComponent<TKeyValue>()
+			where TKeyValue : class, IComponent;
 
 		IComponent RemoveComponent(Type type);
 
@@ -259,6 +268,15 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
+		#region Matrix
+
+		Matrix GlobalMatrix { get; }
+		Matrix LocalMatrix { get; set; }
+
+		#endregion
+
+		#region Info Strings
+
 		string AncestorsToString(int depth = -1, bool localNames = true, string indent = "");
 
 		string DescendantsToString(int depth = -1, bool localNames = true, string indent = "");
@@ -273,5 +291,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="indent"></param>
 		/// <returns></returns>
 		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, string indent = "");
+
+		#endregion
 	}
 }

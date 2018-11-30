@@ -9,7 +9,7 @@ namespace Atlas.ECS.Systems
 	}
 
 	public interface IFamilySystem<TFamilyMember> : IFamilySystem
-		where TFamilyMember : IFamilyMember, new()
+		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyFamily<TFamilyMember> Family { get; }
 	}
