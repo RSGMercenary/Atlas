@@ -15,9 +15,9 @@ namespace Atlas.ECS.Systems
 		/// The delay between updates. This is useful for Systems that don't have to
 		/// update every loop. Systems will update once the Interval has been reached.
 		/// </summary>
-		double DeltaIntervalTime { get; }
+		float DeltaIntervalTime { get; }
 
-		double TotalIntervalTime { get; }
+		float TotalIntervalTime { get; }
 
 		/// <summary>
 		/// Determines whether the System is fixed-time, variable-time, or event-based.

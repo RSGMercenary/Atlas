@@ -6,10 +6,10 @@ namespace Atlas.ECS.Components.Engine
 	public class EngineUpdater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
-		private readonly Action<double> update;
+		private readonly Action<float> update;
 		private bool isRunning = false;
 
-		public EngineUpdater(Action<double> update)
+		public EngineUpdater(Action<float> update)
 		{
 			this.update = update ?? throw new NullReferenceException();
 		}
@@ -28,10 +28,10 @@ namespace Atlas.ECS.Components.Engine
 				if(value && !timer.IsRunning)
 				{
 					timer.Restart();
-					var previousTime = 0d;
+					var previousTime = 0f;
 					while(isRunning)
 					{
-						var currentTime = timer.Elapsed.TotalSeconds;
+						var currentTime = (float)timer.Elapsed.TotalSeconds;
 						update(currentTime - previousTime);
 						previousTime = currentTime;
 					}

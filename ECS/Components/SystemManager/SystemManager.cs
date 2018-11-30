@@ -17,8 +17,7 @@ namespace Atlas.ECS.Components
 
 		public SystemManager(params Type[] types) : this(types as IEnumerable<Type>)
 		{
-			foreach(var type in types)
-				AddSystem(type);
+
 		}
 
 		public SystemManager(IEnumerable<Type> types)
@@ -56,9 +55,10 @@ namespace Atlas.ECS.Components
 			get { return types; }
 		}
 
-		public bool HasSystem<TISystem>() where TISystem : ISystem
+		public bool HasSystem<TKey>()
+			where TKey : class, ISystem, new()
 		{
-			return HasSystem(typeof(TISystem));
+			return HasSystem(typeof(TKey));
 		}
 
 		public bool HasSystem(Type type)
@@ -66,16 +66,17 @@ namespace Atlas.ECS.Components
 			return types.Contains(type);
 		}
 
-		public bool AddSystem<TISystem>() where TISystem : ISystem
+		public bool AddSystem<TKey>()
+			where TKey : class, ISystem, new()
 		{
-			return AddSystem(typeof(TISystem));
+			return AddSystem(typeof(TKey));
 		}
 
 		public bool AddSystem(Type type)
 		{
 			if(type == null)
 				return false;
-			if(!type.IsInterface) //Type must be an interface.
+			if(type.IsInterface) //Type must be an interface.
 				return false;
 			if(type == typeof(ISystem)) //Type can't directly be ISystem.
 				return false;
@@ -89,9 +90,10 @@ namespace Atlas.ECS.Components
 			return true;
 		}
 
-		public bool RemoveSystem<TISystem>() where TISystem : ISystem
+		public bool RemoveSystem<TKey>()
+			where TKey : class, ISystem, new()
 		{
-			return RemoveSystem(typeof(TISystem));
+			return RemoveSystem(typeof(TKey));
 		}
 
 		public bool RemoveSystem(Type type)

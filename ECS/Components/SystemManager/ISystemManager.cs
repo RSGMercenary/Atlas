@@ -7,13 +7,16 @@ namespace Atlas.ECS.Components
 	public interface ISystemManager : IComponent
 	{
 		bool HasSystem(Type type);
-		bool HasSystem<TISystem>() where TISystem : ISystem;
+		bool HasSystem<TKey>()
+			where TKey : class, ISystem, new();
 
 		bool AddSystem(Type type);
-		bool AddSystem<TISystem>() where TISystem : ISystem;
+		bool AddSystem<TKey>()
+			where TKey : class, ISystem, new();
 
 		bool RemoveSystem(Type type);
-		bool RemoveSystem<TISystem>() where TISystem : ISystem;
+		bool RemoveSystem<TKey>()
+			where TKey : class, ISystem, new();
 		bool RemoveSystems();
 
 		IReadOnlyGroup<Type> Systems { get; }

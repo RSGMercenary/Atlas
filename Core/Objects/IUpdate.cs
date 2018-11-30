@@ -4,7 +4,7 @@ namespace Atlas.Core.Objects
 {
 	public interface IUpdate : IMessenger
 	{
-		void Update(double deltaTime);
+		void Update(float deltaTime);
 		TimeStep UpdateState { get; }
 	}
 }

@@ -11,12 +11,12 @@ namespace Atlas.ECS.Systems
 		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
-		protected sealed override void Updating(double deltaTime)
+		protected sealed override void Updating(float deltaTime)
 		{
 			FamilyUpdate(deltaTime);
 		}
 
-		protected virtual void FamilyUpdate(double deltaTime)
+		protected virtual void FamilyUpdate(float deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
 			foreach(var member in Family.Members)
@@ -26,7 +26,7 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		protected virtual void MemberUpdate(double deltaTime, TFamilyMember member) { }
+		protected virtual void MemberUpdate(float deltaTime, TFamilyMember member) { }
 
 		protected virtual void MemberAdded(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
 

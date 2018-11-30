@@ -35,7 +35,7 @@ namespace Atlas.ECS.Families
 
 		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members
 		{
-			get { return members as IReadOnlyGroup<IFamilyMember>; }
+			get { return members; }
 		}
 
 		public sealed override void Dispose()

@@ -48,12 +48,12 @@ namespace Atlas.ECS.Components
 		#region Systems
 
 		TSystem AddSystem<TSystem>()
-			where TSystem : ISystem;
+			where TSystem : class, ISystem, new();
 
 		ISystem AddSystem(Type type);
 
 		void RemoveSystem<TSystem>()
-			where TSystem : ISystem;
+			where TSystem : class, ISystem, new();
 
 		void RemoveSystem(Type type);
 
@@ -169,27 +169,27 @@ namespace Atlas.ECS.Components
 		/// <summary>
 		/// The max delta time between updates. Prevents the update loop "spiral of death".
 		/// </summary>
-		double MaxVariableTime { get; set; }
+		float MaxVariableTime { get; set; }
 
 		/// <summary>
 		/// The delta time between variable-time updates. This is set every loop.
 		/// </summary>
-		double DeltaVariableTime { get; }
+		float DeltaVariableTime { get; }
 
 		/// <summary>
 		/// The total time running variable-time updates. This is set every loop.
 		/// </summary>
-		double TotalVariableTime { get; }
+		float TotalVariableTime { get; }
 
 		/// <summary>
 		/// The delta time between fixed-time updates. This is set manually.
 		/// </summary>
-		double DeltaFixedTime { get; set; }
+		float DeltaFixedTime { get; set; }
 
 		/// <summary>
 		/// The total time running fixed-time updates. This is set every loop.
 		/// </summary>
-		double TotalFixedTime { get; }
+		float TotalFixedTime { get; }
 
 		/// <summary>
 		/// The current System that's undergoing an Update().

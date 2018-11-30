@@ -10,8 +10,8 @@ namespace Atlas.ECS.Systems
 	{
 		private int priority = 0;
 		private int sleeping = 0;
-		private double totalIntervalTime = 0;
-		private double deltaIntervalTime = 0;
+		private float totalIntervalTime = 0;
+		private float deltaIntervalTime = 0;
 		private TimeStep timeStep = TimeStep.Variable;
 		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;
@@ -87,7 +87,7 @@ namespace Atlas.ECS.Systems
 
 		#region Updating
 
-		public void Update(double deltaTime)
+		public void Update(float deltaTime)
 		{
 			if(IsSleeping)
 				return;
@@ -113,7 +113,7 @@ namespace Atlas.ECS.Systems
 				Dispose();
 		}
 
-		protected virtual void Updating(double deltaTime) { }
+		protected virtual void Updating(float deltaTime) { }
 
 		#endregion
 
@@ -146,7 +146,7 @@ namespace Atlas.ECS.Systems
 
 		#endregion
 
-		public double DeltaIntervalTime
+		public float DeltaIntervalTime
 		{
 			get { return deltaIntervalTime; }
 			protected set
@@ -161,7 +161,7 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		public double TotalIntervalTime
+		public float TotalIntervalTime
 		{
 			get { return totalIntervalTime; }
 			private set
@@ -179,7 +179,7 @@ namespace Atlas.ECS.Systems
 		{
 			if(deltaIntervalTime <= 0)
 				return;
-			double totalIntervalTime = 0;
+			float totalIntervalTime = 0;
 			while(totalIntervalTime + deltaIntervalTime <= Engine.TotalVariableTime)
 				totalIntervalTime += deltaIntervalTime;
 			TotalIntervalTime = totalIntervalTime;
@@ -199,6 +199,9 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
+		/// <summary>
+		/// Priority goes -1 -> 1
+		/// </summary>
 		public int Priority
 		{
 			get { return priority; }

@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Loggers;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components.Messages;
@@ -13,7 +12,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasEngine : AtlasComponent, IEngine
+	public sealed class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -38,19 +37,19 @@ namespace Atlas.ECS.Components
 		private ISystem currentSystem;
 		private TimeStep updateState = TimeStep.None;
 
-		private double maxVariableTime = 0.25;
-		private double deltaVariableTime = 0;
-		private double totalVariableTime = 0;
+		private float maxVariableTime = 0.25f;
+		private float deltaVariableTime = 0;
+		private float totalVariableTime = 0;
 
 		private int lagFixedTime = 0;
-		private double deltaFixedTime = 1d / 60d;
-		private double totalFixedTime = 0;
+		private float deltaFixedTime = 1f / 60f;
+		private float totalFixedTime = 0;
 
 		#endregion
 
 		#region Compose/Dispose
 
-		public AtlasEngine(double deltaFixedTime, double maxVariableTime) : this()
+		public AtlasEngine(float deltaFixedTime, float maxVariableTime) : this()
 		{
 			DeltaFixedTime = deltaFixedTime;
 			MaxVariableTime = maxVariableTime;
@@ -195,16 +194,16 @@ namespace Atlas.ECS.Components
 		#region Add/Remove
 
 		public TSystem AddSystem<TSystem>()
-			where TSystem : ISystem
+			where TSystem : class, ISystem, new()
 		{
-			return (TSystem)AddSystem(typeof(TSystem));
+			return AddSystem(typeof(TSystem)) as TSystem;
 		}
 
 		public ISystem AddSystem(Type type)
 		{
 			if(!systemsReference.ContainsKey(type))
 			{
-				var system = CreateSystem(type);
+				var system = Activator.CreateInstance(type) as ISystem;
 				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
@@ -220,7 +219,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public void RemoveSystem<TSystem>()
-			where TSystem : ISystem
+			where TSystem : class, ISystem, new()
 		{
 			RemoveSystem(typeof(TSystem));
 		}
@@ -239,12 +238,6 @@ namespace Atlas.ECS.Components
 			system.Engine = null;
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(this, type, system));
 		}
-
-		#endregion
-
-		#region Create
-
-		protected abstract ISystem CreateSystem(Type type);
 
 		#endregion
 
@@ -325,7 +318,7 @@ namespace Atlas.ECS.Components
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
 			{
-				var family = CreateFamily<TFamilyMember>();
+				var family = new AtlasFamily<TFamilyMember>();
 				families.Add(family);
 				familiesType.Add(type, family);
 				familiesReference.Add(type, 1);
@@ -355,16 +348,6 @@ namespace Atlas.ECS.Components
 			familiesReference.Remove(type);
 			family.Engine = null;
 			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(this, type, family));
-		}
-
-		#endregion
-
-		#region Create
-
-		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
-		{
-			return new AtlasFamily<TFamilyMember>();
 		}
 
 		#endregion
@@ -428,7 +411,7 @@ namespace Atlas.ECS.Components
 
 		#region Delta/total Times
 
-		public double MaxVariableTime
+		public float MaxVariableTime
 		{
 			get { return maxVariableTime; }
 			set
@@ -439,7 +422,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public double DeltaVariableTime
+		public float DeltaVariableTime
 		{
 			get { return deltaVariableTime; }
 			private set
@@ -450,7 +433,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public double TotalVariableTime
+		public float TotalVariableTime
 		{
 			get { return totalVariableTime; }
 			private set
@@ -461,7 +444,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public double DeltaFixedTime
+		public float DeltaFixedTime
 		{
 			get { return deltaFixedTime; }
 			set
@@ -472,7 +455,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public double TotalFixedTime
+		public float TotalFixedTime
 		{
 			get { return totalFixedTime; }
 			private set
@@ -517,7 +500,7 @@ namespace Atlas.ECS.Components
 
 		#region Fixed/Variable Update Loop
 
-		public void Update(double deltaTime)
+		public void Update(float deltaTime)
 		{
 			if(updateLock)
 				return;
@@ -559,25 +542,18 @@ namespace Atlas.ECS.Components
 			updateLock = false;
 		}
 
-		private void UpdateSystems(TimeStep timeStep, double deltaTime)
+		private void UpdateSystems(TimeStep timeStep, float deltaTime)
 		{
-			try
+			UpdateState = timeStep;
+			foreach(var system in systems)
 			{
-				UpdateState = timeStep;
-				foreach(var system in systems)
-				{
-					if(system.TimeStep != timeStep)
-						continue;
-					CurrentSystem = system;
-					system.Update(deltaTime);
-					CurrentSystem = null;
-				}
-				UpdateState = TimeStep.None;
+				if(system.TimeStep != timeStep)
+					continue;
+				CurrentSystem = system;
+				system.Update(deltaTime);
+				CurrentSystem = null;
 			}
-			catch(Exception e)
-			{
-				Log.Exception(e);
-			}
+			UpdateState = TimeStep.None;
 		}
 
 		#endregion
