@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components.Messages
 {
-	public interface IFamilyAddMessage : IKeyValueMessage<IEngine, Type, IReadOnlyFamily>
+	public interface IFamilyAddMessage : IKeyValueMessage<IEngine, Type, IFamily>
 	{
 
 	}

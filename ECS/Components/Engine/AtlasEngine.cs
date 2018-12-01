@@ -318,7 +318,7 @@ namespace Atlas.ECS.Components
 
 		#region Add/Remove
 
-		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
+		public IFamily<TFamilyMember> AddFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
@@ -360,15 +360,15 @@ namespace Atlas.ECS.Components
 
 		#region Get
 
-		public IReadOnlyGroup<IReadOnlyFamily> Families { get { return families; } }
+		public IReadOnlyGroup<IFamily> Families { get { return families; } }
 
-		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
+		public IFamily<TFamilyMember> GetFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
 		}
 
-		public IReadOnlyFamily GetFamily(Type type)
+		public IFamily GetFamily(Type type)
 		{
 			return familiesType.ContainsKey(type) ? familiesType[type] : null;
 		}
@@ -377,9 +377,9 @@ namespace Atlas.ECS.Components
 
 		#region Has
 
-		public bool HasFamily(IReadOnlyFamily family)
+		public bool HasFamily(IFamily family)
 		{
-			return familiesType.ContainsValue(family as IFamily);
+			return familiesType.ContainsValue(family);
 		}
 
 		public bool HasFamily<TFamilyMember>()

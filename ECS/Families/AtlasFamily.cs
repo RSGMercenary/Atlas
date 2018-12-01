@@ -47,12 +47,8 @@ namespace Atlas.ECS.Families
 			base.Disposing();
 		}
 
+		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
 		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
-
-		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members
-		{
-			get { return members; }
-		}
 
 		public IEnumerator<TFamilyMember> GetEnumerator()
 		{
@@ -62,6 +58,11 @@ namespace Atlas.ECS.Families
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
+		}
+
+		public void Sort(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sort, Func<TFamilyMember, TFamilyMember, int> compare)
+		{
+			sort(members, compare);
 		}
 
 		public sealed override IEngine Engine
@@ -120,6 +121,8 @@ namespace Atlas.ECS.Families
 
 		private void Add(IEntity entity)
 		{
+			if(entity.Engine != Engine)
+				return;
 			if(entities.ContainsKey(entity))
 				return;
 			foreach(var type in components.Keys)
@@ -141,6 +144,8 @@ namespace Atlas.ECS.Families
 
 		private void Remove(IEntity entity)
 		{
+			if(entity.Engine != Engine)
+				return;
 			if(!entities.ContainsKey(entity))
 				return;
 			var member = entities[entity];

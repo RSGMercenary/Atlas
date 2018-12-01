@@ -7,19 +7,10 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IObject, IEnumerable
+	public interface IFamily : IObject, IEnumerable
 	{
 		IReadOnlyGroup<IFamilyMember> Members { get; }
-	}
 
-	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily, IEnumerable<TFamilyMember>
-		where TFamilyMember : class, IFamilyMember, new()
-	{
-		new IReadOnlyGroup<TFamilyMember> Members { get; }
-	}
-
-	public interface IFamily : IReadOnlyFamily
-	{
 		void AddEntity(IEntity entity);
 		void RemoveEntity(IEntity entity);
 
@@ -27,9 +18,19 @@ namespace Atlas.ECS.Families
 		void RemoveEntity(IEntity entity, Type type);
 	}
 
-	public interface IFamily<TFamilyMember> : IFamily, IReadOnlyFamily<TFamilyMember>
+	public interface IFamily<TFamilyMember> : IFamily, IEnumerable<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
+		new IReadOnlyGroup<TFamilyMember> Members { get; }
 
+		/// <summary>
+		/// Sorts the Members based on sorting algorithms and comparing methods.
+		/// Sorting algorithms in <see cref="Core.Utilites.Sort"/> can be used depending on
+		/// the performance needs of a given System.
+		/// <para>This should be done before beginning to update Members.</para>
+		/// </summary>
+		/// <param name="sort"></param>
+		/// <param name="compare"></param>
+		void Sort(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sort, Func<TFamilyMember, TFamilyMember, int> compare);
 	}
 }

@@ -7,8 +7,8 @@ namespace Atlas.ECS.Systems
 	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
-		IReadOnlyFamily IFamilySystem.Family => Family;
-		public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
+		IFamily IFamilySystem.Family => Family;
+		public IFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
 		protected sealed override void SystemUpdate(float deltaTime)
@@ -28,9 +28,9 @@ namespace Atlas.ECS.Systems
 
 		protected virtual void MemberUpdate(float deltaTime, TFamilyMember member) { }
 
-		protected virtual void MemberAdded(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
+		protected virtual void MemberAdded(IFamily<TFamilyMember> family, TFamilyMember member) { }
 
-		protected virtual void MemberRemoved(IReadOnlyFamily<TFamilyMember> family, TFamilyMember member) { }
+		protected virtual void MemberRemoved(IFamily<TFamilyMember> family, TFamilyMember member) { }
 
 		protected override void AddingEngine(IEngine engine)
 		{

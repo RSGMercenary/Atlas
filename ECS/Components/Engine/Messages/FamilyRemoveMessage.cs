@@ -4,9 +4,9 @@ using System;
 
 namespace Atlas.ECS.Components.Messages
 {
-	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyRemoveMessage
+	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IFamily>, IFamilyRemoveMessage
 	{
-		public FamilyRemoveMessage(IEngine messenger, Type key, IReadOnlyFamily value) : base(messenger, key, value)
+		public FamilyRemoveMessage(IEngine messenger, Type key, IFamily value) : base(messenger, key, value)
 		{
 		}
 	}
