@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool
 {
 	public class Pool<T> : IPool<T>
-		where T : class
+		where T : class, new()
 	{
 		private readonly Stack<T> stack = new Stack<T>();
 		private int maxCount = -1;
-		private readonly Func<T> creator;
 
-		public Pool(Func<T> creator)
-		{
-			this.creator = creator;
-		}
+		public Pool() { }
 
-		public Pool(Func<T> creator, int maxCount) : this(creator)
+		public Pool(int maxCount)
 		{
 			MaxCount = maxCount;
 		}
@@ -70,7 +65,7 @@ namespace Atlas.Core.Collections.Pool
 			if(stack.Count >= maxCount)
 				return false;
 			while(stack.Count < maxCount)
-				Add(creator.Invoke());
+				Add(new T());
 			return true;
 		}
 
@@ -80,7 +75,7 @@ namespace Atlas.Core.Collections.Pool
 
 		public T Remove()
 		{
-			return stack.Count > 0 ? stack.Pop() : creator.Invoke();
+			return stack.Count > 0 ? stack.Pop() : new T();
 		}
 
 		object IReadOnlyPool.Remove()

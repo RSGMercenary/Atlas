@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Atlas.Core.Collections.Pool;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -14,13 +15,13 @@ namespace Atlas.Core.Collections.Group
 		}
 
 		private readonly List<GroupItem> items = new List<GroupItem>();
-		private readonly Stack<GroupItem> pooled = new Stack<GroupItem>();
 		private readonly Stack<GroupItem> removed = new Stack<GroupItem>();
+		private readonly Pool<GroupItem> pool = new Pool<GroupItem>();
 		private int iterators = 0;
 
 		private GroupItem GetItem(T value)
 		{
-			var item = pooled.Count > 0 ? pooled.Pop() : new GroupItem();
+			var item = pool.Remove();
 			item.Value = value;
 			item.IsRemoved = false;
 			return item;
@@ -30,8 +31,7 @@ namespace Atlas.Core.Collections.Group
 		{
 			element.Value = default;
 			//Leave IsRemoved = true for now. Seems cleaner.
-			pooled.Push(element);
-
+			pool.Add(element);
 		}
 
 		public void Add(T value)

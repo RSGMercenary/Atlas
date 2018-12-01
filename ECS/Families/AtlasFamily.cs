@@ -20,7 +20,7 @@ namespace Atlas.ECS.Families
 		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
 		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
 		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
-		private readonly Pool<TFamilyMember> pooled = new Pool<TFamilyMember>(() => new TFamilyMember());
+		private readonly Pool<TFamilyMember> pool = new Pool<TFamilyMember>();
 
 		public AtlasFamily()
 		{
@@ -128,7 +128,7 @@ namespace Atlas.ECS.Families
 					return;
 			}
 			var family = typeof(TFamilyMember);
-			var member = pooled.Remove();
+			var member = pool.Remove();
 			member.Entity = entity;
 			foreach(var type in components.Keys)
 			{
@@ -177,7 +177,7 @@ namespace Atlas.ECS.Families
 			member.Entity = null;
 			foreach(var type in components.Keys)
 				family.GetProperty(components[type]).SetValue(member, null);
-			pooled.Add(member);
+			pool.Add(member);
 		}
 	}
 }

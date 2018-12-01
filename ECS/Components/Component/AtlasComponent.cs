@@ -15,17 +15,19 @@ namespace Atlas.ECS.Components
 	{
 		#region Static
 
-		private static Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
+		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
-		public static IReadOnlyPool<TComponent> Pool<TComponent>() where TComponent : AtlasComponent, new()
+		public static IReadOnlyPool<TComponent> Pool<TComponent>()
+			where TComponent : AtlasComponent, new()
 		{
 			var type = typeof(TComponent);
 			if(!pools.ContainsKey(type))
-				pools.Add(type, new Pool<TComponent>(() => new TComponent()));
+				pools.Add(type, new Pool<TComponent>());
 			return pools[type] as IReadOnlyPool<TComponent>;
 		}
 
-		public static TComponent Get<TComponent>() where TComponent : AtlasComponent, new()
+		public static TComponent Get<TComponent>()
+			where TComponent : AtlasComponent, new()
 		{
 			return Pool<TComponent>().Remove();
 		}

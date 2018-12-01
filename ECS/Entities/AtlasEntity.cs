@@ -20,9 +20,9 @@ namespace Atlas.ECS.Entities
 		public const string RootName = "Root";
 		public static string UniqueName { get { return $"Entity {Guid.NewGuid().ToString("N")}"; } }
 
-		private static Pool<IEntity> pool = new Pool<IEntity>(() => new AtlasEntity());
+		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>();
 
-		public static IReadOnlyPool<IEntity> Pool() { return pool; }
+		public static IReadOnlyPool<AtlasEntity> Pool() { return pool; }
 
 		public static IEntity Get(string globalName, string localName)
 		{
