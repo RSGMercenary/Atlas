@@ -36,7 +36,7 @@ namespace Atlas.Core.Collections.Group
 
 		public void Add(T value)
 		{
-			items.Add(GetItem(value));
+			Insert(items.Count, value);
 		}
 
 		public void Insert(int index, T value)
@@ -71,7 +71,21 @@ namespace Atlas.Core.Collections.Group
 		public T this[int index]
 		{
 			get { return items[index].Value; }
-			set { items[index].Value = value; }
+			set
+			{
+				//TO-DO
+				//I think this should handle sorting algorithms
+				//swapping order during iteration.
+				if(iterators > 0)
+				{
+					RemoveAt(index);
+					Insert(index, value);
+				}
+				else
+				{
+					items[index].Value = value;
+				}
+			}
 		}
 
 		public int IndexOf(T value)
