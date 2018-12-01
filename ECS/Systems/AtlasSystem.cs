@@ -195,7 +195,7 @@ namespace Atlas.ECS.Systems
 		public int Priority
 		{
 			get { return priority; }
-			protected set
+			set
 			{
 				if(priority == value)
 					return;

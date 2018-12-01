@@ -300,7 +300,7 @@ namespace Atlas.ECS.Components
 
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
-			SystemPriorityChanged(message.Messenger as ISystem);
+			SystemPriorityChanged(message.Messenger);
 		}
 
 		private void SystemPriorityChanged(ISystem system)

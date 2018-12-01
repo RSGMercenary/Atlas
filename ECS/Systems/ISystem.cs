@@ -9,7 +9,7 @@ namespace Atlas.ECS.Systems
 		/// The Priority of this System relative to other Systems in the Engine.
 		/// Systems are updated from lowest-to-highest Priority value.
 		/// </summary>
-		int Priority { get; }
+		int Priority { get; set; }
 
 		/// <summary>
 		/// The delay between updates. This is useful for Systems that don't have to
