@@ -6,7 +6,7 @@ namespace Atlas.Framework.Components.Render
 {
 	public interface IRenderer2D : IComponent
 	{
-		SpriteBatch Renderer { get; }
-		Color Background { get; set; }
+		SpriteBatch SpriteBatch { get; }
+		Color BackgroundColor { get; set; }
 	}
 }

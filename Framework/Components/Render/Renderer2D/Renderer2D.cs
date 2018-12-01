@@ -6,12 +6,12 @@ namespace Atlas.Framework.Components.Render
 {
 	public class Renderer2D : AtlasComponent, IRenderer2D
 	{
-		public SpriteBatch Renderer { get; private set; }
-		public Color Background { get; set; } = Color.Black;
+		public SpriteBatch SpriteBatch { get; private set; }
+		public Color BackgroundColor { get; set; } = Color.Black;
 
 		public Renderer2D(GraphicsDevice graphics)
 		{
-			Renderer = new SpriteBatch(graphics);
+			SpriteBatch = new SpriteBatch(graphics);
 		}
 	}
 }

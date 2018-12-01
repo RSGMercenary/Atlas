@@ -11,8 +11,8 @@ namespace Atlas.Framework.Systems.Render
 {
 	public class Render2DSystem : AtlasSystem
 	{
-		private IReadOnlyFamily<Renderer2DMember> renderers;
-		private IReadOnlyFamily<Render2DMember> renders;
+		private IFamily<Renderer2DMember> renderers;
+		private IFamily<Render2DMember> renders;
 
 		public Render2DSystem()
 		{
@@ -38,16 +38,15 @@ namespace Atlas.Framework.Systems.Render
 
 		protected override void SystemUpdate(float deltaTime)
 		{
-			var entityCount = Engine.Entities.Count;
 			//There should only be 1 Renderer2D at all times.
 			foreach(var renderer in renderers)
 			{
-				renderer.Renderer.Renderer.GraphicsDevice.Clear(renderer.Renderer.Background);
-				renderer.Renderer.Renderer.Begin(SpriteSortMode.FrontToBack);
+				renderer.Renderer.SpriteBatch.GraphicsDevice.Clear(renderer.Renderer.BackgroundColor);
+				renderer.Renderer.SpriteBatch.Begin(SpriteSortMode.FrontToBack);
 				foreach(var render in renders)
 				{
 					render.Entity.GlobalMatrix.Decompose(out var scale, out var rotation, out var position);
-					renderer.Renderer.Renderer.Draw(render.Render.Texture,
+					renderer.Renderer.SpriteBatch.Draw(render.Render.Texture,
 						  new Vector2(position.X, position.Y),
 						  null,
 						  Color.White,
@@ -55,9 +54,9 @@ namespace Atlas.Framework.Systems.Render
 						  render.Render.Origin,
 						  new Vector2(scale.X, scale.Y),
 						  SpriteEffects.None,
-						  render.Entity.RootIndex / entityCount);
+						  1 / (render.Entity.RootIndex + 1));
 				}
-				renderer.Renderer.Renderer.End();
+				renderer.Renderer.SpriteBatch.End();
 			}
 		}
 	}
