@@ -32,7 +32,7 @@ namespace Atlas.Framework.Entities
 			game.IsMouseVisible = true;
 
 			var root = new AtlasEntity(true);
-			root.AddComponent<IEngine>(new AtlasEngine());
+			root.AddComponent<IEngine>(new AtlasTestEngine());
 			root.AddComponent<IRenderer2D>(new Renderer2D(game.GraphicsDevice));
 			root.AddComponent<ITransform2D>(new Transform2D());
 

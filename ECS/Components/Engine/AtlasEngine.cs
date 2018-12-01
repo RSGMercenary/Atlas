@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public sealed class AtlasEngine : AtlasComponent, IEngine
+	public abstract class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -197,6 +197,15 @@ namespace Atlas.ECS.Components
 
 		#region Systems
 
+		#region Create
+
+		protected virtual ISystem CreateSystem(Type type)
+		{
+			return Activator.CreateInstance(type) as ISystem;
+		}
+
+		#endregion
+
 		#region Add/Remove
 
 		public TSystem AddSystem<TSystem>()
@@ -209,7 +218,7 @@ namespace Atlas.ECS.Components
 		{
 			if(!systemsReference.ContainsKey(type))
 			{
-				var system = Activator.CreateInstance(type) as ISystem;
+				var system = CreateSystem(type);
 				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
@@ -316,6 +325,16 @@ namespace Atlas.ECS.Components
 
 		#region Families
 
+		#region Create
+
+		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+			where TFamilyMember : class, IFamilyMember, new()
+		{
+			return new AtlasFamily<TFamilyMember>();
+		}
+
+		#endregion
+
 		#region Add/Remove
 
 		public IFamily<TFamilyMember> AddFamily<TFamilyMember>()
@@ -324,7 +343,7 @@ namespace Atlas.ECS.Components
 			var type = typeof(TFamilyMember);
 			if(!familiesType.ContainsKey(type))
 			{
-				var family = new AtlasFamily<TFamilyMember>();
+				var family = CreateFamily<TFamilyMember>();
 				families.Add(family);
 				familiesType.Add(type, family);
 				familiesReference.Add(type, 1);
