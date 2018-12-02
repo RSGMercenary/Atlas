@@ -72,10 +72,6 @@ namespace Atlas.ECS.Components
 		{
 			if(type == null)
 				return false;
-			if(type.IsInterface) //Type must be an interface.
-				return false;
-			if(type == typeof(ISystem)) //Type can't directly be ISystem.
-				return false;
 			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
 				return false;
 			if(types.Contains(type))
