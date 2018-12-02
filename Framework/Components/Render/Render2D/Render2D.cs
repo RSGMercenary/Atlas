@@ -8,6 +8,7 @@ namespace Atlas.Framework.Components.Render
 	public class Render2D : AtlasComponent, IRender2D
 	{
 		public Texture2D Texture { get; set; }
+		public Color Color { get; set; } = Color.White;
 		public Vector2 Origin { get; set; }
 
 		public Render2D(Texture2D texture)
