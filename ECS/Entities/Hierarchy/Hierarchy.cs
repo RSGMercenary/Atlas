@@ -11,6 +11,7 @@ namespace Atlas.ECS.Entities
 		Child = 8,
 		Ancestor = 16,
 		Descendent = 32,
-		All = Self | Sibling | Parent | Child | Ancestor | Descendent
+		Root = 64,
+		All = Self | Sibling | Parent | Child | Ancestor | Descendent | Root
 	}
 }
