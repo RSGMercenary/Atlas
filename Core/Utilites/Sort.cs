@@ -10,13 +10,13 @@ namespace Atlas.Core.Utilites
 	{
 		#region Bubble
 
-		public static void Bubble<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Bubble<T>(IList<T> list, Func<T, T, int> compare)
 		{
 			for(int i = list.Count - 1; i > 0; i--)
 			{
 				for(int j = 0; j < i; j++)
 				{
-					if(sort(list[j], list[j + 1]) > 0)
+					if(compare(list[j], list[j + 1]) > 0)
 						Swap(list, j, j + 1);
 				}
 			}
@@ -26,7 +26,7 @@ namespace Atlas.Core.Utilites
 
 		#region Insertion
 
-		public static void Insertion<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Insertion<T>(IList<T> list, Func<T, T, int> compare)
 		{
 			int count = list.Count;
 			for(int i = 1; i < count; ++i)
@@ -35,7 +35,7 @@ namespace Atlas.Core.Utilites
 
 				var value = list[i];
 
-				while((j >= 0) && sort(list[j], value) > 0)
+				while((j >= 0) && compare(list[j], value) > 0)
 				{
 					list[j + 1] = list[j];
 					--j;
@@ -48,12 +48,12 @@ namespace Atlas.Core.Utilites
 
 		#region Quick
 
-		public static void Quick<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Quick<T>(IList<T> list, Func<T, T, int> compare)
 		{
-			Quick(list, 0, list.Count - 1, sort);
+			Quick(list, 0, list.Count - 1, compare);
 		}
 
-		private static void Quick<T>(IList<T> list, int left, int right, Func<T, T, int> sort)
+		private static void Quick<T>(IList<T> list, int left, int right, Func<T, T, int> compare)
 		{
 			int leftHold = left;
 			int rightHold = right;
@@ -64,12 +64,12 @@ namespace Atlas.Core.Utilites
 
 			while(right >= left)
 			{
-				if(sort(list[left], list[pivot]) >= 0
-					&& sort(list[right], list[pivot]) < 0)
+				if(compare(list[left], list[pivot]) >= 0
+					&& compare(list[right], list[pivot]) < 0)
 					Swap(list, left, right);
-				else if(sort(list[left], list[pivot]) >= 0)
+				else if(compare(list[left], list[pivot]) >= 0)
 					right--;
-				else if(sort(list[right], list[pivot]) < 0)
+				else if(compare(list[right], list[pivot]) < 0)
 					left++;
 				else
 				{
@@ -80,23 +80,23 @@ namespace Atlas.Core.Utilites
 			Swap(list, pivot, right);
 			pivot = right;
 			if(pivot > leftHold)
-				Quick(list, leftHold, pivot, sort);
+				Quick(list, leftHold, pivot, compare);
 			if(rightHold > pivot + 1)
-				Quick(list, pivot + 1, rightHold, sort);
+				Quick(list, pivot + 1, rightHold, compare);
 		}
 
 		#endregion
 
 		#region Selection
 
-		public static void Selection<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Selection<T>(IList<T> list, Func<T, T, int> compare)
 		{
 			for(int i = 0; i < list.Count - 1; i++)
 			{
 				int min = i;
 				for(int j = i + 1; j < list.Count; j++)
 				{
-					if(sort(list[j], list[min]) < 0)
+					if(compare(list[j], list[min]) < 0)
 						min = j;
 				}
 				Swap(list, i, min);
@@ -107,36 +107,36 @@ namespace Atlas.Core.Utilites
 
 		#region Heap
 
-		public static void Heap<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Heap<T>(IList<T> list, Func<T, T, int> compare)
 		{
 			int count = list.Count;
 
 			for(int index = count / 2 - 1; index >= 0; --index)
-				Heap(list, count, index, sort);
+				Heap(list, count, index, compare);
 
 			for(int index = count - 1; index >= 0; --index)
 			{
 				Swap(list, 0, index);
-				Heap(list, index, 0, sort);
+				Heap(list, index, 0, compare);
 			}
 		}
 
-		private static void Heap<T>(IList<T> list, int count, int index, Func<T, T, int> sort)
+		private static void Heap<T>(IList<T> list, int count, int index, Func<T, T, int> compare)
 		{
 			int largest = index;
 			int left = 2 * index + 1;
 			int right = 2 * index + 2;
 
-			if(left < count && sort(list[left], list[largest]) > 0)
+			if(left < count && compare(list[left], list[largest]) > 0)
 				largest = left;
 
-			if(right < count && sort(list[right], list[largest]) > 0)
+			if(right < count && compare(list[right], list[largest]) > 0)
 				largest = right;
 
 			if(largest != index)
 			{
 				Swap(list, index, largest);
-				Heap(list, count, largest, sort);
+				Heap(list, count, largest, compare);
 			}
 		}
 
@@ -144,14 +144,14 @@ namespace Atlas.Core.Utilites
 
 		#region Merge
 
-		public static void Merge<T>(IList<T> list, Func<T, T, int> sort)
+		public static void Merge<T>(IList<T> list, Func<T, T, int> compare)
 		{
-			var copy = MergeCopy(list, sort);
+			var copy = MergeCopy(list, compare);
 			for(int i = 0; i < list.Count; ++i)
 				list[i] = copy[i];
 		}
 
-		private static IList<T> MergeCopy<T>(IList<T> list, Func<T, T, int> sort)
+		private static IList<T> MergeCopy<T>(IList<T> list, Func<T, T, int> compare)
 		{
 			if(list.Count <= 1)
 				return list;
@@ -167,15 +167,15 @@ namespace Atlas.Core.Utilites
 			for(int i = mid; i < list.Count; i++)
 				right.Add(list[i]);
 
-			return Merge(MergeCopy(left, sort), MergeCopy(right, sort), sort);
+			return Merge(MergeCopy(left, compare), MergeCopy(right, compare), compare);
 		}
 
-		private static IList<T> Merge<T>(IList<T> left, IList<T> right, Func<T, T, int> sort)
+		private static IList<T> Merge<T>(IList<T> left, IList<T> right, Func<T, T, int> compare)
 		{
 			var list = new List<T>();
 
 			while(left.Count > 0 && right.Count > 0)
-				if(sort(left[0], right[0]) > 0)
+				if(compare(left[0], right[0]) > 0)
 				{
 					list.Add(right[0]);
 					right.RemoveAt(0);
