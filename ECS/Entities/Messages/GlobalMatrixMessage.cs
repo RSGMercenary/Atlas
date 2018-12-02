@@ -5,8 +5,11 @@ namespace Atlas.ECS.Entities.Messages
 {
 	class GlobalMatrixMessage : PropertyMessage<IEntity, Matrix>, IGlobalMatrixMessage
 	{
-		public GlobalMatrixMessage(IEntity messenger, Matrix current, Matrix previous) : base(messenger, current, previous)
+		public bool Hierarchy { get; }
+
+		public GlobalMatrixMessage(IEntity messenger, Matrix current, Matrix previous, bool hierarchy) : base(messenger, current, previous)
 		{
+			Hierarchy = hierarchy;
 		}
 	}
 }
