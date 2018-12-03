@@ -16,18 +16,30 @@ namespace Atlas.ECS.Families
 	sealed class AtlasFamily<TFamilyMember> : AtlasObject, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
+		#region Fields
+
+		//Reflection Fields
+		private readonly Type family;
+		private readonly BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
+
+		//Family Members
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
 		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
-		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
+
+		//Pooling
 		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
 		private readonly Pool<TFamilyMember> pool = new Pool<TFamilyMember>();
 
+		#endregion
+
+		#region Compose / Dispose
+
 		public AtlasFamily()
 		{
-			foreach(var field in typeof(TFamilyMember).GetFields(BindingFlags.Instance | BindingFlags.Public))
+			family = typeof(TFamilyMember);
+			foreach(var field in typeof(TFamilyMember).GetFields(flags))
 			{
-				if(field.Name == "Entity")
-					continue;
 				components.Add(field.FieldType, field.Name);
 			}
 		}
@@ -35,7 +47,7 @@ namespace Atlas.ECS.Families
 		public sealed override void Dispose()
 		{
 			//Can't destroy Family mid-update.
-			if(removed.Count > 0)
+			if(Engine != null || removed.Count > 0)
 				return;
 			base.Dispose();
 		}
@@ -46,6 +58,16 @@ namespace Atlas.ECS.Families
 			//Do some clean up maybe? Or let the GC handle it.
 			base.Disposing();
 		}
+
+		protected override void RemovingEngine(IEngine engine)
+		{
+			base.RemovingEngine(engine);
+			Dispose();
+		}
+
+		#endregion
+
+		#region Iteration
 
 		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
 		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
@@ -60,10 +82,9 @@ namespace Atlas.ECS.Families
 			return GetEnumerator();
 		}
 
-		public void Sort(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sort, Func<TFamilyMember, TFamilyMember, int> compare)
-		{
-			sort(members, compare);
-		}
+		#endregion
+
+		#region Engine
 
 		public sealed override IEngine Engine
 		{
@@ -87,11 +108,9 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		protected override void RemovingEngine(IEngine engine)
-		{
-			base.RemovingEngine(engine);
-			Dispose();
-		}
+		#endregion
+
+		#region Member Add/Remove
 
 		public void AddEntity(IEntity entity)
 		{
@@ -130,13 +149,7 @@ namespace Atlas.ECS.Families
 				if(!entity.HasComponent(type))
 					return;
 			}
-			var family = typeof(TFamilyMember);
-			var member = pool.Remove();
-			member.Entity = entity;
-			foreach(var type in components.Keys)
-			{
-				family.GetField(components[type]).SetValue(member, entity.GetComponent(type));
-			}
+			var member = SetMemberValues(pool.Remove(), entity, true);
 			members.Add(member);
 			entities.Add(entity, member);
 			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(this, member));
@@ -164,6 +177,10 @@ namespace Atlas.ECS.Families
 			}
 		}
 
+		#endregion
+
+		#region Member Pooling
+
 		private void PoolMembers(IUpdateStateMessage message)
 		{
 			//Clean up update listener.
@@ -178,11 +195,29 @@ namespace Atlas.ECS.Families
 
 		private void DisposeMember(TFamilyMember member)
 		{
-			var family = typeof(TFamilyMember);
-			member.Entity = null;
-			foreach(var type in components.Keys)
-				family.GetProperty(components[type]).SetValue(member, null);
-			pool.Add(member);
+			pool.Add(SetMemberValues(member, null, false));
 		}
+
+		#endregion
+
+		#region Utility Methods
+
+		private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
+		{
+			family.BaseType.GetField("entity", flags).SetValue(member, entity);
+			foreach(var type in components.Keys)
+			{
+				var component = add ? entity.GetComponent(type) : null;
+				family.GetField(components[type], flags).SetValue(member, component);
+			}
+			return member;
+		}
+
+		public void Sort(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sort, Func<TFamilyMember, TFamilyMember, int> compare)
+		{
+			sort(members, compare);
+		}
+
+		#endregion
 	}
 }

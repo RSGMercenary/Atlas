@@ -4,6 +4,6 @@ namespace Atlas.ECS.Families
 {
 	public interface IFamilyMember
 	{
-		IEntity Entity { get; set; }
+		IEntity Entity { get; }
 	}
 }
