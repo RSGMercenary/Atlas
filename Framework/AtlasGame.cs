@@ -34,9 +34,9 @@ namespace Atlas.Framework
 			root.AddComponent<IGameManager>(new GameManager(game));
 			root.AddComponent<ITransform2D>(new Transform2D());
 			root.AddComponent<ISystemManager>(new SystemManager(
-				typeof(Camera2DSystem),
-				typeof(Cursor2DSystem),
-				typeof(Render2DSystem)));
+				typeof(ICamera2DSystem),
+				typeof(ICursor2DSystem),
+				typeof(IRender2DSystem)));
 
 			//Back GUI. Drawn under the world. (X, Y) coordinates are at (0, 0).
 			//Not sure what it could be used for, but... I set it up.

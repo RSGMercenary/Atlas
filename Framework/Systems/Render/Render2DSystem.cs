@@ -10,7 +10,7 @@ using System;
 
 namespace Atlas.Framework.Systems.Render
 {
-	public class Render2DSystem : AtlasSystem
+	public class Render2DSystem : AtlasSystem, IRender2DSystem
 	{
 		private IFamily<GameManagerMember> games;
 		private IFamily<Render2DMember> renders;

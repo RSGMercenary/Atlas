@@ -10,7 +10,7 @@ using System;
 
 namespace Atlas.Framework.Systems.Transform
 {
-	public class Camera2DSystem : AtlasSystem
+	public class Camera2DSystem : AtlasSystem, ICamera2DSystem
 	{
 		private IFamily<GameManagerMember> games;
 		private IFamily<Camera2DMember> cameras;
