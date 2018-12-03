@@ -24,7 +24,7 @@ namespace Atlas.ECS.Systems
 		public sealed override void Dispose()
 		{
 			//Can't destroy System mid-update.
-			if(updateState != TimeStep.None)
+			if(Engine != null || updateState != TimeStep.None)
 				return;
 			base.Dispose();
 		}
