@@ -5,14 +5,17 @@ using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Families;
+using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using Atlas.ECS.Systems.Messages;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasEngine : AtlasComponent, IEngine
+	public sealed class AtlasEngine : AtlasComponent, IEngine
 	{
 		#region Static Singleton
 
@@ -22,44 +25,49 @@ namespace Atlas.ECS.Components
 
 		#region Fields
 
+		//ECS Groups
 		private readonly Group<IEntity> entities = new Group<IEntity>();
 		private readonly Group<IFamily> families = new Group<IFamily>();
 		private readonly Group<ISystem> systems = new Group<ISystem>();
 
+		//ECS Dictionaries
 		private readonly Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
 		private readonly Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
 		private readonly Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
 
+		//Reference Counting
 		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
+		//Update State
 		private bool updateLock = false;
 		private ISystem currentSystem;
 		private TimeStep updateState = TimeStep.None;
 
+		//Variable Time
 		private float maxVariableTime = 0.25f;
 		private float deltaVariableTime = 0;
 		private float totalVariableTime = 0;
 
+		//Fixed Time
 		private int lagFixedTime = 0;
 		private float deltaFixedTime = 1f / 60f;
 		private float totalFixedTime = 0;
+
+		//Configuration
+		private string configPath = "";
+		private JToken config;
 
 		#endregion
 
 		#region Compose/Dispose
 
-		public AtlasEngine(float deltaFixedTime, float maxVariableTime) : this()
-		{
-			DeltaFixedTime = deltaFixedTime;
-			MaxVariableTime = maxVariableTime;
-		}
-
-		public AtlasEngine()
+		public AtlasEngine(string configPath = "EngineConfig.json")
 		{
 			if(instance != null)
 				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be instantiated when one already exists.");
 			instance = this;
+			ConfigPath = string.IsNullOrWhiteSpace(configPath) ? "EngineConfig.json" : configPath;
 		}
 
 		protected override void Destroying()
@@ -96,6 +104,36 @@ namespace Atlas.ECS.Components
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
 			base.RemovingManager(entity, index);
+		}
+
+		#endregion
+
+		#region Configuration
+
+		public string ConfigPath
+		{
+			get { return configPath; }
+			set
+			{
+				if(configPath == value)
+					return;
+				configPath = value;
+				ParseConfig();
+			}
+		}
+
+		private void ParseConfig()
+		{
+			ConfigCreator.Create(configPath);
+			config = JToken.Parse(File.ReadAllText(configPath));
+			DeltaFixedTime = ParseValue(nameof(DeltaFixedTime), DeltaFixedTime);
+			MaxVariableTime = ParseValue(nameof(MaxVariableTime), MaxVariableTime);
+		}
+
+		private T ParseValue<T>(string path, T defaultValue)
+			where T : struct
+		{
+			return config.SelectToken(path)?.Value<T>() ?? defaultValue;
 		}
 
 		#endregion
@@ -199,9 +237,24 @@ namespace Atlas.ECS.Components
 
 		#region Create
 
-		protected virtual ISystem CreateSystem(Type type)
+		private ISystem CreateSystem(Type type)
 		{
-			return Activator.CreateInstance(type) as ISystem;
+			var systems = config.SelectToken("Systems") as JArray;
+			foreach(var system in systems)
+			{
+				if(system.SelectToken("Key").Value<string>() != type.FullName)
+					continue;
+
+				var fullName = system.SelectToken("Value").Value<string>();
+				var assembly = fullName.Split('.')[0];
+
+				type = Type.GetType($"{fullName}, {assembly}", true, true);
+				var instance = (ISystem)Activator.CreateInstance(type);
+				instance.Priority = systems.IndexOf(system);
+
+				return instance;
+			}
+			throw new NullReferenceException($"Couldn't find a System to instantiate for {type.FullName}.");
 		}
 
 		#endregion
@@ -327,7 +380,7 @@ namespace Atlas.ECS.Components
 
 		#region Create
 
-		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+		private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return new AtlasFamily<TFamilyMember>();
