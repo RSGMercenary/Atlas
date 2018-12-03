@@ -6,7 +6,7 @@ namespace Atlas.Framework.Families.Physics
 {
 	public class VelocityToTransform2DMember : AtlasFamilyMember
 	{
-		public ITransform2D Transform { get; set; }
-		public IVelocity2D Velocity { get; set; }
+		public IVelocity2D Velocity;
+		public ITransform2D Transform;
 	}
 }

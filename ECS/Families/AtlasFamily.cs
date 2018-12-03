@@ -24,11 +24,11 @@ namespace Atlas.ECS.Families
 
 		public AtlasFamily()
 		{
-			foreach(var property in typeof(TFamilyMember).GetProperties(BindingFlags.Instance | BindingFlags.Public))
+			foreach(var field in typeof(TFamilyMember).GetFields(BindingFlags.Instance | BindingFlags.Public))
 			{
-				if(property.Name == "Entity")
+				if(field.Name == "Entity")
 					continue;
-				components.Add(property.PropertyType, property.Name);
+				components.Add(field.FieldType, field.Name);
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace Atlas.ECS.Families
 			member.Entity = entity;
 			foreach(var type in components.Keys)
 			{
-				family.GetProperty(components[type]).SetValue(member, entity.GetComponent(type));
+				family.GetField(components[type]).SetValue(member, entity.GetComponent(type));
 			}
 			members.Add(member);
 			entities.Add(entity, member);

@@ -5,6 +5,6 @@ namespace Atlas.Framework.Families.Render
 {
 	public class Render2DMember : AtlasFamilyMember
 	{
-		public IRender2D Render { get; set; }
+		public IRender2D Render;
 	}
 }
