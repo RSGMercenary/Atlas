@@ -5,6 +5,7 @@ namespace Atlas.Framework.Families
 {
 	public class GameManagerMember : AtlasFamilyMember
 	{
-		public IGameManager GameManager;
+		private IGameManager gameManager;
+		public IGameManager GameManager { get { return gameManager; } }
 	}
 }
