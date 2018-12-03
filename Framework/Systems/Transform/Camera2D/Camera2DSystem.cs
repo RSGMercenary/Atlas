@@ -51,16 +51,16 @@ namespace Atlas.Framework.Systems.Transform
 					var rotation = camera.Transform.Rotation;
 					var scale = camera.Transform.Scale;
 
-					if(camera.Camera.Position != null)
+					if(camera.Camera.FollowPosition != null)
 					{
-						var positionMatrix = camera.Camera.Position.GlobalMatrix * world;
+						var positionMatrix = camera.Camera.FollowPosition.GlobalMatrix * world;
 						var translation = positionMatrix.Translation;
 						position = new Vector2(translation.X, translation.Y);
 					}
 
-					if(camera.Camera.Rotation != null)
+					if(camera.Camera.FollowRotation != null)
 					{
-						var rotationMatrix = camera.Camera.Rotation.GlobalMatrix * world;
+						var rotationMatrix = camera.Camera.FollowRotation.GlobalMatrix * world;
 						rotationMatrix.Decompose(out var scl, out var rot, out var pos);
 						rotation = (float)Math.Atan2(rot.Z, rot.W) * 2;
 					}

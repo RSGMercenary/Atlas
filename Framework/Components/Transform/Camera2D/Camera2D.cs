@@ -5,8 +5,8 @@ namespace Atlas.Framework.Components.Transform
 {
 	public class Camera2D : AtlasComponent, ICamera2D
 	{
-		public IEntity Position { get; set; }
-		public IEntity Rotation { get; set; }
+		public IEntity FollowPosition { get; set; }
+		public IEntity FollowRotation { get; set; }
 
 		public Camera2D() { }
 
@@ -14,16 +14,16 @@ namespace Atlas.Framework.Components.Transform
 
 		public Camera2D(IEntity position, IEntity rotation)
 		{
-			Position = position;
-			Rotation = rotation;
+			FollowPosition = position;
+			FollowRotation = rotation;
 		}
 
-		public IEntity Focus
+		public IEntity Follow
 		{
 			set
 			{
-				Position = value;
-				Rotation = value;
+				FollowPosition = value;
+				FollowRotation = value;
 			}
 		}
 	}

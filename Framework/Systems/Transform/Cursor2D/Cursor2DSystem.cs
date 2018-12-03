@@ -17,7 +17,9 @@ namespace Atlas.Framework.Systems.Transform
 		protected override void MemberUpdate(float deltaTime, Cursor2DMember member)
 		{
 			var transform = member.Transform as ICursorTransform2D;
-			if(transform.IsDisabled)
+			transform.FollowPosition = member.Cursor.FollowPosition;
+			transform.FollowRotation = false;// member.Cursor.FollowRotation;
+			if(!transform.FollowPosition)
 				return;
 			var state = Mouse.GetState();
 			transform.Position = new Vector2(state.X, state.Y);

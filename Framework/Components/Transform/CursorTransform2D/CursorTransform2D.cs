@@ -5,43 +5,37 @@ namespace Atlas.Framework.Components.Transform
 {
 	public class CursorTransform2D : Transform2D, ICursorTransform2D
 	{
-		private int disabled = 0;
+		private bool followPosition = true;
+		private bool followRotation = true;
 
 		public CursorTransform2D()
 		{
 
 		}
 
-		public bool IsDisabled
+		public bool FollowPosition
 		{
-			get { return disabled > 0; }
+			get { return followPosition; }
 			set
 			{
-				if(value)
-					++Disabled;
-				else
-					--Disabled;
+				if(followPosition == value)
+					return;
+				followPosition = value;
+				//Send message
+				SetMatrix();
 			}
 		}
 
-		public int Disabled
+		public bool FollowRotation
 		{
-			get { return disabled; }
-			private set
+			get { return followRotation; }
+			set
 			{
-				if(disabled == value)
+				if(followRotation == value)
 					return;
-				int previous = disabled;
-				disabled = value;
+				followRotation = value;
 				//Send message
-				if(value > 0 && previous <= 0)
-				{
-					SetMatrix();
-				}
-				else if(value <= 0 && previous > 0)
-				{
-					SetMatrix();
-				}
+				SetMatrix();
 			}
 		}
 
@@ -50,15 +44,21 @@ namespace Atlas.Framework.Components.Transform
 		//other than a HUD layer.
 		protected override Matrix CreateLocalMatrix()
 		{
-			if(IsDisabled)
-				return base.CreateLocalMatrix();
+			var position = Position;
+			var rotation = Rotation;
 
-			var world = Matrix.Invert(Manager.Parent.GlobalMatrix);
-			world.Decompose(out var scl, out var rot, out var pos);
-			var position = Vector2.Transform(Position, world);
-			var rotation = (float)Math.Atan2(rot.Z, rot.W) * 2; ;
+			if(followPosition || followRotation)
+			{
+				var world = Matrix.Invert(Manager.Parent.GlobalMatrix);
+				world.Decompose(out var scl, out var rot, out var pos);
+				if(followPosition)
+					position = Vector2.Transform(position, world);
+				if(followRotation)
+					rotation += (float)Math.Atan2(rot.Z, rot.W) * 2;
+			}
+
 			return Matrix.CreateScale(new Vector3(Scale, 1)) *
-				   Matrix.CreateRotationZ(Rotation + rotation) *
+				   Matrix.CreateRotationZ(rotation) *
 				   Matrix.CreateTranslation(new Vector3(position, 0));
 		}
 	}
