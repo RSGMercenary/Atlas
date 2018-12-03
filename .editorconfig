@@ -31,7 +31,7 @@ dotnet_style_parentheses_in_other_binary_operators = always_for_clarity:silent
 dotnet_style_parentheses_in_other_operators = never_if_unnecessary:silent 
 # Modifier preferences 
 dotnet_style_require_accessibility_modifiers = true:error 
-dotnet_style_readonly_field = true:suggestion 
+dotnet_style_readonly_field = true:silent 
 # Expression-level preferences 
 dotnet_style_object_initializer = true:silent 
 dotnet_style_collection_initializer = true:silent 
