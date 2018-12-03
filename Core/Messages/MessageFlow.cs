@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Atlas.ECS.Entities
+namespace Atlas.Core.Messages
 {
 	[Flags]
-	public enum Hierarchy
+	public enum MessageFlow
 	{
 		Self = 1,
 		Sibling = 2,
@@ -12,6 +12,8 @@ namespace Atlas.ECS.Entities
 		Ancestor = 16,
 		Descendent = 32,
 		Root = 64,
+		Up = Parent | Ancestor | Root,
+		Down = Child | Descendent,
 		All = Self | Sibling | Parent | Child | Ancestor | Descendent | Root
 	}
 }
