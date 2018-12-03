@@ -464,7 +464,7 @@ namespace Atlas.ECS.Entities
 			}
 			Message<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(next != null ? index : -1);
-			SetMatrix();
+			SetMatrix(true);
 			Sleeping += sleeping;
 			if(autoDispose && parent == null)
 				Dispose();
@@ -820,14 +820,6 @@ namespace Atlas.ECS.Entities
 		public Matrix GlobalMatrix
 		{
 			get { return globalMatrix; }
-			private set
-			{
-				if(globalMatrix == value)
-					return;
-				var previous = globalMatrix;
-				globalMatrix = value;
-				Message<IGlobalMatrixMessage>(new GlobalMatrixMessage(this, value, previous));
-			}
 		}
 
 		public Matrix LocalMatrix
@@ -840,16 +832,18 @@ namespace Atlas.ECS.Entities
 				var previous = localMatrix;
 				localMatrix = value;
 				Message<ILocalMatrixMessage>(new LocalMatrixMessage(this, value, previous));
-				SetMatrix();
+				SetMatrix(false);
 			}
 		}
 
-		private void SetMatrix()
+		private void SetMatrix(bool hierarchy)
 		{
-			var matrix = localMatrix;
+			var value = localMatrix;
 			if(parent != null)
-				matrix *= parent.GlobalMatrix;
-			GlobalMatrix = matrix;
+				value *= parent.GlobalMatrix;
+			var previous = globalMatrix;
+			globalMatrix = value;
+			Message<IGlobalMatrixMessage>(new GlobalMatrixMessage(this, value, previous, hierarchy));
 		}
 
 		#endregion
@@ -917,7 +911,7 @@ namespace Atlas.ECS.Entities
 				}
 				else if(message is IGlobalMatrixMessage)
 				{
-					SetMatrix();
+					SetMatrix(true);
 				}
 			}
 			if(message is IHierarchyMessage)
