@@ -1,7 +1,7 @@
 ﻿using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
 
-namespace Atlas.Framework.Components.Render
+namespace Atlas.Framework.Components.Transform
 {
 	public class Camera2D : AtlasComponent, ICamera2D
 	{
@@ -16,6 +16,15 @@ namespace Atlas.Framework.Components.Render
 		{
 			Position = position;
 			Rotation = rotation;
+		}
+
+		public IEntity Focus
+		{
+			set
+			{
+				Position = value;
+				Rotation = value;
+			}
 		}
 	}
 }
