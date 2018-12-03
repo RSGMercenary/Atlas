@@ -17,7 +17,6 @@ namespace Atlas.Framework.Systems.Render
 		public Render2DSystem()
 		{
 			TimeStep = TimeStep.Variable;
-			Priority = (int)SystemPriority.Render2D;
 		}
 
 		protected override void AddingEngine(IEngine engine)

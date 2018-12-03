@@ -9,7 +9,6 @@ namespace Atlas.Framework.Systems.Physics
 		public VelocityToTransform2DSystem()
 		{
 			TimeStep = TimeStep.Fixed;
-			Priority = (int)SystemPriority.VelocityToTransform2D;
 		}
 
 		protected override void MemberUpdate(float deltaTime, VelocityToTransform2DMember member)

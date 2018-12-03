@@ -7,7 +7,7 @@ namespace Atlas.Framework.Systems.Transform
 	{
 		public Rotate2DSystem()
 		{
-			Priority = (int)SystemPriority.TestRotate2D;
+
 		}
 
 		protected override void MemberUpdate(float deltaTime, Rotate2DMember member)
