@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Atlas.ECS.Components.Engine
+namespace Atlas.ECS.Objects
 {
 	public class EngineUpdater
 	{

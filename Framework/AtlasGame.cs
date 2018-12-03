@@ -57,7 +57,8 @@ namespace Atlas.Framework
 			var front = root.AddChild("Front GUI", true);
 			front.AddComponent<ITransform2D>(new Transform2D());
 
-			//The cursor. Goes in front of all other object.
+			//The cursor. Goes in front of all other objects by default, but can also be placed
+			//anywhere in the hierarchy to have it draw under/over other things.
 			var cursor = root.AddChild("Cursor", true);
 			cursor.AddComponent<ITransform2D>(new CursorTransform2D());
 			cursor.AddComponent<ICursor2D>(new Cursor2D());
