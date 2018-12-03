@@ -43,14 +43,15 @@ namespace Atlas.Framework
 			var back = root.AddChild("Back GUI", true);
 			back.AddComponent<ITransform2D>(new Transform2D());
 
-			/*
-			Where the magic happens. The world is positioned and optionally rotated
-			based on the Target IEntity the camera is looking at. The camera's
-			Transform scale determines how zoomed in the world is.
-			*/
-			var world = root.AddChild("World", true);
-			world.AddComponent<ITransform2D>(new CameraTransform2D());
-			world.AddComponent<ICamera2D>(new Camera2D());
+			//Where the magic happens. The camera is positioned and optionally rotated
+			//based on what IEntity the camera is looking at. The camera's
+			//Transform scale determines how zoomed in the world is.
+			var camera = root.AddChild("Camera", true);
+
+			//Custom Transform that lets you use the Transform in world coordinates
+			//but calculates the Entity Matrix to compensate.
+			camera.AddComponent<ITransform2D>(new CameraTransform2D());
+			camera.AddComponent<ICamera2D>(new Camera2D());
 
 			//Front GUI. Drawn over the world. (X, Y) coordinates are at (0, 0).
 			//Use this to add layers for HUDs, menus, popups, etc.
@@ -60,6 +61,9 @@ namespace Atlas.Framework
 			//The cursor. Goes in front of all other objects by default, but can also be placed
 			//anywhere in the hierarchy to have it draw under/over other things.
 			var cursor = root.AddChild("Cursor", true);
+
+			//Custom Transform that lets you use the Transform in mouse/screen coordinates
+			//when actively following, but calculates the Entity Matrix to compensate.
 			cursor.AddComponent<ITransform2D>(new CursorTransform2D());
 			cursor.AddComponent<ICursor2D>(new Cursor2D());
 			cursor.AddComponent<IRender2D>(new Render2D(new Texture2D(game.GraphicsDevice, 5, 5), Color.White));
