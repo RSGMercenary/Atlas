@@ -27,7 +27,7 @@ namespace Atlas.Framework
 		/// </para>
 		/// </summary>
 		/// <returns></returns>
-		public static IEngine Create(Game game)
+		public static AtlasEngine Create(Game game)
 		{
 			var root = new AtlasEntity(true);
 			root.AddComponent<IEngine>(new AtlasEngine());
@@ -68,7 +68,7 @@ namespace Atlas.Framework
 			cursor.AddComponent<ICursor2D>(new Cursor2D());
 			cursor.AddComponent<IRender2D>(new Render2D(new Texture2D(game.GraphicsDevice, 5, 5), Color.White));
 
-			return root.GetComponent<IEngine>();
+			return root.GetComponent<IEngine, AtlasEngine>();
 		}
 	}
 }

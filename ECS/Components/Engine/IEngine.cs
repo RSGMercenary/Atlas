@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent, IUpdate
+	public interface IEngine : IComponent, IUpdateState
 	{
 		#region Entities
 
@@ -169,27 +169,27 @@ namespace Atlas.ECS.Components
 		/// <summary>
 		/// The max delta time between updates. Prevents the update loop "spiral of death".
 		/// </summary>
-		float MaxVariableTime { get; set; }
+		double MaxVariableTime { get; set; }
 
 		/// <summary>
 		/// The delta time between variable-time updates. This is set every loop.
 		/// </summary>
-		float DeltaVariableTime { get; }
+		double DeltaVariableTime { get; }
 
 		/// <summary>
 		/// The total time running variable-time updates. This is set every loop.
 		/// </summary>
-		float TotalVariableTime { get; }
+		double TotalVariableTime { get; }
 
 		/// <summary>
 		/// The delta time between fixed-time updates. This is set manually.
 		/// </summary>
-		float DeltaFixedTime { get; set; }
+		double DeltaFixedTime { get; set; }
 
 		/// <summary>
 		/// The total time running fixed-time updates. This is set every loop.
 		/// </summary>
-		float TotalFixedTime { get; }
+		double TotalFixedTime { get; }
 
 		/// <summary>
 		/// The current System that's undergoing an Update().

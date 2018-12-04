@@ -45,14 +45,14 @@ namespace Atlas.ECS.Components
 		private TimeStep updateState = TimeStep.None;
 
 		//Variable Time
-		private float maxVariableTime = 0.25f;
-		private float deltaVariableTime = 0;
-		private float totalVariableTime = 0;
+		private double maxVariableTime = 0.25f;
+		private double deltaVariableTime = 0;
+		private double totalVariableTime = 0;
 
 		//Fixed Time
 		private int lagFixedTime = 0;
-		private float deltaFixedTime = 1f / 60f;
-		private float totalFixedTime = 0;
+		private double deltaFixedTime = 1f / 60f;
+		private double totalFixedTime = 0;
 
 		//Configuration
 		private string configPath = "";
@@ -489,7 +489,7 @@ namespace Atlas.ECS.Components
 
 		#region Delta/total Times
 
-		public float MaxVariableTime
+		public double MaxVariableTime
 		{
 			get { return maxVariableTime; }
 			set
@@ -500,7 +500,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public float DeltaVariableTime
+		public double DeltaVariableTime
 		{
 			get { return deltaVariableTime; }
 			private set
@@ -511,7 +511,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public float TotalVariableTime
+		public double TotalVariableTime
 		{
 			get { return totalVariableTime; }
 			private set
@@ -522,7 +522,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public float DeltaFixedTime
+		public double DeltaFixedTime
 		{
 			get { return deltaFixedTime; }
 			set
@@ -533,7 +533,7 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public float TotalFixedTime
+		public double TotalFixedTime
 		{
 			get { return totalFixedTime; }
 			private set
@@ -578,7 +578,7 @@ namespace Atlas.ECS.Components
 
 		#region Fixed/Variable Update Loop
 
-		public void Update(float deltaTime)
+		public void Update(double deltaTime)
 		{
 			if(updateLock)
 				return;
@@ -620,7 +620,7 @@ namespace Atlas.ECS.Components
 			updateLock = false;
 		}
 
-		private void UpdateSystems(TimeStep timeStep, float deltaTime)
+		private void UpdateSystems(TimeStep timeStep, double deltaTime)
 		{
 			UpdateState = timeStep;
 			foreach(var system in systems)
@@ -628,7 +628,7 @@ namespace Atlas.ECS.Components
 				if(system.TimeStep != timeStep)
 					continue;
 				CurrentSystem = system;
-				system.Update(deltaTime);
+				system.Update((float)deltaTime);
 				CurrentSystem = null;
 			}
 			UpdateState = TimeStep.None;
