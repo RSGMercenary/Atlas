@@ -22,7 +22,7 @@ namespace Atlas.Framework.Components.Transform
 					return;
 				followPosition = value;
 				//Send message
-				SetMatrix();
+				Dirty();
 			}
 		}
 
@@ -35,7 +35,7 @@ namespace Atlas.Framework.Components.Transform
 					return;
 				followRotation = value;
 				//Send message
-				SetMatrix();
+				Dirty();
 			}
 		}
 
@@ -49,7 +49,7 @@ namespace Atlas.Framework.Components.Transform
 
 			if(followPosition || followRotation)
 			{
-				var world = Matrix.Invert(Manager.Parent.GlobalMatrix);
+				var world = Matrix.Invert(Parent.Matrix);
 				world.Decompose(out var scl, out var rot, out var pos);
 				if(followPosition)
 					position = Vector2.Transform(position, world);

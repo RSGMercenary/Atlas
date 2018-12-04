@@ -1,38 +1,32 @@
 ﻿using Atlas.ECS.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Linq;
 
 namespace Atlas.Framework.Components.Render
 {
-	public class Render2D : AtlasComponent, IRender2D
+	public abstract class Render2D : AtlasComponent, IRender2D
 	{
-		public Texture2D Texture { get; set; }
+		private int visible = 0;
+
 		public Color Color { get; set; } = Color.White;
-		public Vector2 Origin { get; set; }
+		public Rectangle? Crop { get; set; }
+		public Vector2 Center { get; set; }
+		public SpriteEffects Effects { get; set; } = SpriteEffects.None;
 
-		public Render2D(Texture2D texture)
+		public Render2D() { }
+
+		public bool IsVisible
 		{
-			Texture = texture;
+			get { return visible > -1; }
+			set
+			{
+				if(value)
+					++visible;
+				else
+					--visible;
+			}
 		}
 
-		public Render2D(Texture2D texture, Color fill)
-		{
-			Texture = texture;
-			Fill(fill);
-		}
-
-		public Render2D(Texture2D texture, Vector2 origin, Color fill)
-		{
-			Texture = texture;
-			Origin = origin;
-			Fill(fill);
-		}
-
-		public void Fill(Color color)
-		{
-			var range = Texture.Width * Texture.Height;
-			Texture.SetData(Enumerable.Range(0, range).Select(p => color).ToArray());
-		}
+		public abstract void Draw(SpriteBatch batch, Vector2 scale, float rotation, Vector2 position, float layer);
 	}
 }

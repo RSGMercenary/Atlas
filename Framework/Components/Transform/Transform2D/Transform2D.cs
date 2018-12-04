@@ -1,4 +1,5 @@
-﻿using Atlas.Core.Utilites;
+﻿using Atlas.Core.Messages;
+using Atlas.Core.Utilites;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Entities.Messages;
@@ -8,11 +9,22 @@ namespace Atlas.Framework.Components.Transform
 {
 	public class Transform2D : AtlasComponent, ITransform2D
 	{
-		private bool recalculate = true;
+		#region Fields
+
+		private ITransform2D parent;
+		private Matrix matrix;
+		private Matrix local;
 
 		private Vector2 position;
 		private Vector2 scale;
 		private float rotation;
+
+		private bool dirty = false;
+		private bool recalculate = true;
+
+		#endregion
+
+		#region Constructors
 
 		public Transform2D() : this(new Vector2(0, 0)) { }
 		public Transform2D(Vector2 position) : this(position, 0) { }
@@ -23,17 +35,93 @@ namespace Atlas.Framework.Components.Transform
 			Set(position, rotation, scale);
 		}
 
+		#endregion
+
+		#region Add / Remove Manager
+
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
-			entity.AddListener<IGlobalMatrixMessage>(SetMatrix);
-			SetMatrix();
+			entity.AddListener<IParentMessage>(ParentChanged);
+			entity.AddListener<IComponentAddMessage>(ComponentAdded);
+			entity.AddListener<IComponentRemoveMessage>(ComponentRemoved);
+			Parent = entity.GetAncestorComponent<ITransform2D>();
 		}
 
 		protected override void RemovingManager(IEntity entity, int index)
 		{
-			entity.RemoveListener<IGlobalMatrixMessage>(SetMatrix);
+			entity.RemoveListener<IParentMessage>(ParentChanged);
+			entity.RemoveListener<IComponentAddMessage>(ComponentAdded);
+			entity.RemoveListener<IComponentRemoveMessage>(ComponentRemoved);
+			Parent = null;
 			base.RemovingManager(entity, index);
+		}
+
+		#endregion
+
+		#region Messages
+
+		private void ParentChanged(IParentMessage message)
+		{
+			SetParent(message);
+		}
+
+		private void ComponentAdded(IComponentAddMessage message)
+		{
+			if(message.Key != typeof(ITransform2D))
+				return;
+			SetParent(message);
+		}
+
+		private void ComponentRemoved(IComponentRemoveMessage message)
+		{
+			if(message.Key != typeof(ITransform2D))
+				return;
+			SetParent(message);
+		}
+
+		private void SetParent(IMessage<IEntity> message)
+		{
+			if(Manager.HasAncestor(message.Messenger))
+				Parent = Manager.GetAncestorComponent<ITransform2D>();
+		}
+
+		#endregion
+
+		protected void Dirty()
+		{
+			dirty = true;
+		}
+
+		public ITransform2D Parent
+		{
+			get { return parent; }
+			private set
+			{
+				if(parent == value)
+					return;
+				var previous = parent;
+				parent = value;
+			}
+		}
+
+		public Matrix Matrix
+		{
+			get
+			{
+				SetMatrix();
+				return matrix;
+			}
+		}
+
+		protected void SetMatrix()
+		{
+			if(dirty)
+				local = CreateLocalMatrix();
+			dirty = false;
+			matrix = local;
+			if(parent != null)
+				matrix *= parent.Matrix;
 		}
 
 		#region Position
@@ -46,8 +134,7 @@ namespace Atlas.Framework.Components.Transform
 				if(position == value)
 					return;
 				position = value;
-				//Send event
-				SetMatrix();
+				Dirty();
 			}
 		}
 
@@ -75,8 +162,7 @@ namespace Atlas.Framework.Components.Transform
 				if(scale == value)
 					return;
 				scale = value;
-				//Send event
-				SetMatrix();
+				Dirty();
 			}
 		}
 
@@ -111,54 +197,17 @@ namespace Atlas.Framework.Components.Transform
 				if(rotation == value)
 					return;
 				rotation = value;
-				//Send event
-				SetMatrix();
+				Dirty();
 			}
 		}
 
 		#endregion
 
-		/// <summary>
-		/// Set all Transform values in bulk before applying changes to the Entity's LocalMatrix.
-		/// Reduces the amount of recalculations and messages that get sent.
-		/// </summary>
-		/// <param name="position"></param>
-		/// <param name="rotation"></param>
-		/// <param name="scale"></param>
 		public void Set(Vector2 position, float rotation, Vector2 scale)
 		{
-			Recalculate = false;
 			Position = position;
 			Rotation = rotation;
 			Scale = scale;
-			Recalculate = true;
-		}
-
-		protected bool Recalculate
-		{
-			get { return recalculate; }
-			set
-			{
-				if(recalculate == value)
-					return;
-				recalculate = value;
-				if(recalculate)
-					SetMatrix();
-			}
-		}
-
-		private void SetMatrix(IGlobalMatrixMessage message)
-		{
-			if(message.Hierarchy)
-				SetMatrix();
-		}
-
-		protected void SetMatrix()
-		{
-			if(!recalculate)
-				return;
-			if(Manager != null)
-				Manager.LocalMatrix = CreateLocalMatrix();
 		}
 
 		protected virtual Matrix CreateLocalMatrix()

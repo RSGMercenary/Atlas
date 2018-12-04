@@ -6,8 +6,12 @@ namespace Atlas.Framework.Components.Render
 {
 	public interface IRender2D : IComponent
 	{
-		Texture2D Texture { get; set; }
+		bool IsVisible { get; set; }
 		Color Color { get; set; }
-		Vector2 Origin { get; set; }
+		Rectangle? Crop { get; set; }
+		Vector2 Center { get; set; }
+		SpriteEffects Effects { get; set; }
+
+		void Draw(SpriteBatch batch, Vector2 scale, float rotation, Vector2 position, float layer);
 	}
 }

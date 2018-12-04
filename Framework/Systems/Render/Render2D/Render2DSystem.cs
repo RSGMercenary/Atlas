@@ -40,22 +40,25 @@ namespace Atlas.Framework.Systems.Render
 		{
 			foreach(var game in games)
 			{
-				game.GameManager.SpriteBatch.GraphicsDevice.Clear(game.GameManager.BackgroundColor);
-				game.GameManager.SpriteBatch.Begin(SpriteSortMode.BackToFront);
+				var batch = game.GameManager.SpriteBatch;
+				batch.GraphicsDevice.Clear(game.GameManager.BackgroundColor);
+				batch.Begin(SpriteSortMode.BackToFront);
 				foreach(var render in renders)
 				{
-					render.Entity.GlobalMatrix.Decompose(out var scale, out var rotation, out var position);
-					game.GameManager.SpriteBatch.Draw(render.Render.Texture,
-						  new Vector2(position.X, position.Y),
-						  null,
-						  render.Render.Color,
-						  (float)Math.Atan2(rotation.Z, rotation.W) * 2,
-						  render.Render.Origin,
-						  new Vector2(scale.X, scale.Y),
-						  SpriteEffects.None,
-						  1f / (render.Entity.RootIndex + 1));
+					if(!render.Render.IsVisible)
+						return;
+
+					render.Transform.Matrix.Decompose(out var scale, out var rotation, out var position);
+					render.Render.Draw
+						(
+							batch,
+							new Vector2(scale.X, scale.Y),
+							(float)Math.Atan2(rotation.Z, rotation.W) * 2,
+							new Vector2(position.X, position.Y),
+							1f / (render.Entity.RootIndex + 1)
+						);
 				}
-				game.GameManager.SpriteBatch.End();
+				batch.End();
 			}
 		}
 	}

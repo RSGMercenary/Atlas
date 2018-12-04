@@ -66,7 +66,7 @@ namespace Atlas.Framework
 			//when actively following, but calculates the Entity Matrix to compensate.
 			cursor.AddComponent<ITransform2D>(new CursorTransform2D());
 			cursor.AddComponent<ICursor2D>(new Cursor2D());
-			cursor.AddComponent<IRender2D>(new Render2D(new Texture2D(game.GraphicsDevice, 5, 5), Color.White));
+			cursor.AddComponent<IRender2D>(new RenderTexture2D(new Texture2D(game.GraphicsDevice, 5, 5), Color.White));
 
 			return root.GetComponent<IEngine, AtlasEngine>();
 		}

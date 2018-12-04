@@ -19,18 +19,16 @@ namespace Atlas.Framework.Components.Transform
 				if(center == value)
 					return;
 				center = value;
-				SetMatrix();
+				Dirty();
 			}
 		}
 
 		public void Set(Vector2 position, float rotation, Vector2 scale, Vector2 center)
 		{
-			Recalculate = false;
 			Position = position;
 			Rotation = rotation;
 			Scale = scale;
 			Center = center;
-			Recalculate = true;
 		}
 
 		//This makes it so the camera always has the target centered on screen

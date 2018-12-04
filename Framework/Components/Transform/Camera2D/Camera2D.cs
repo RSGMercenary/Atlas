@@ -1,24 +1,23 @@
 ﻿using Atlas.ECS.Components;
-using Atlas.ECS.Entities;
 
 namespace Atlas.Framework.Components.Transform
 {
 	public class Camera2D : AtlasComponent, ICamera2D
 	{
-		public IEntity FollowPosition { get; set; }
-		public IEntity FollowRotation { get; set; }
+		public ITransform2D FollowPosition { get; set; }
+		public ITransform2D FollowRotation { get; set; }
 
 		public Camera2D() { }
 
-		public Camera2D(IEntity position) : this(position, null) { }
+		public Camera2D(ITransform2D position) : this(position, null) { }
 
-		public Camera2D(IEntity position, IEntity rotation)
+		public Camera2D(ITransform2D position, ITransform2D rotation)
 		{
 			FollowPosition = position;
 			FollowRotation = rotation;
 		}
 
-		public IEntity Follow
+		public ITransform2D Follow
 		{
 			set
 			{
