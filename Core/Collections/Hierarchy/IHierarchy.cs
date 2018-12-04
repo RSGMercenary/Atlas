@@ -1,12 +1,10 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Messages;
-using System;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Hierarchy
 {
 	public interface IReadOnlyHierarchy<T> : IEnumerable<T>
-		where T : IReadOnlyHierarchy<T>, IMessenger
+		where T : IReadOnlyHierarchy<T>
 	{
 		T Root { get; }
 		int RootIndex { get; }
@@ -24,8 +22,8 @@ namespace Atlas.Core.Collections.Hierarchy
 		bool HasSibling(T sibling);
 	}
 
-	public interface IHierarchy<T> : IReadOnlyHierarchy<T>, IDisposable
-		where T : IHierarchy<T>, IMessenger
+	public interface IHierarchy<T> : IReadOnlyHierarchy<T>
+		where T : IHierarchy<T>
 	{
 		new T Parent { get; set; }
 		new int ParentIndex { get; set; }
