@@ -1,14 +1,13 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject, IAutoDispose, ISleep, IEnumerable<IEntity>
+	public interface IEntity : IObject, IAutoDispose, ISleep, IHierarchy<IEntity>
 	{
 		#region Entities
 
@@ -56,78 +55,6 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#region Hierarchy
-
-		#region Root
-
-		IEntity Root { get; }
-
-		int RootIndex { get; }
-
-		#endregion
-
-		#region Parent
-
-		IEntity Parent { get; set; }
-
-		int ParentIndex { get; set; }
-
-		IEntity SetParent(IEntity parent, int index);
-
-		#endregion
-
-		#region Get
-
-		IReadOnlyGroup<IEntity> Children { get; }
-
-		IEntity GetChild(int index);
-
-		int GetChildIndex(IEntity child);
-
-		#endregion
-
-		#region Has
-
-		bool HasDescendant(IEntity descendant);
-
-		bool HasAncestor(IEntity ancestor);
-
-		bool HasChild(IEntity child);
-
-		bool HasSibling(IEntity sibling);
-
-		#endregion
-
-		#region Set
-
-		bool SetChildIndex(IEntity child, int index);
-
-		bool SwapChildren(IEntity child1, IEntity child2);
-
-		bool SwapChildren(int index1, int index2);
-
-		#endregion
-
-		#region Add
-
-		IEntity AddChild(IEntity child);
-
-		IEntity AddChild(IEntity child, int index);
-
-		#endregion
-
-		#region Remove
-
-		IEntity RemoveChild(IEntity child);
-
-		IEntity RemoveChild(int index);
-
-		bool RemoveChildren();
-
-		#endregion
-
-		#endregion
-
 		#region Components
 
 		#region Has
@@ -156,6 +83,9 @@ namespace Atlas.ECS.Entities
 		Type GetComponentType(IComponent component);
 
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
+
+		TKeyValue GetAncestorComponent<TKeyValue>()
+			where TKeyValue : class, IComponent;
 
 		#endregion
 
@@ -265,13 +195,6 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
-
-		#endregion
-
-		#region Matrix
-
-		Matrix GlobalMatrix { get; }
-		Matrix LocalMatrix { get; set; }
 
 		#endregion
 

@@ -4,7 +4,6 @@ using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Objects;
-using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace Atlas.ECS.Entities
 
 		private static IEntity instance;
 		public const string RootName = "Root";
-		public static string UniqueName { get { return $"Entity {Guid.NewGuid().ToString("N")}"; } }
+		public static string UniqueName { get { return $"Entity { Guid.NewGuid().ToString("N")}"; } }
 
 		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>();
 
@@ -44,8 +43,8 @@ namespace Atlas.ECS.Entities
 
 		#region Fields
 
-		private string globalName = UniqueName;
-		private string localName = UniqueName;
+		private string globalName;
+		private string localName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private bool autoDispose = true;
@@ -56,42 +55,31 @@ namespace Atlas.ECS.Entities
 		private readonly Group<IEntity> children = new Group<IEntity>();
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 
-		private Matrix globalMatrix;
-		private Matrix localMatrix;
-
 		#endregion
 
 		#region Construct / Finalize
 
-		public AtlasEntity()
-		{
-			LocalMatrix = Matrix.CreateScale(Vector3.One) *
-						  Matrix.CreateFromAxisAngle(Vector3.Backward, 0) *
-						  Matrix.CreateTranslation(Vector3.Zero);
-		}
+		public AtlasEntity() : this("", "", false) { }
+		public AtlasEntity(string name) : this(name, name) { }
+		public AtlasEntity(string name, bool local) : this(local ? "" : name, local ? name : "") { }
+		public AtlasEntity(bool root) : this("", "", root) { }
+		public AtlasEntity(string globalName, string localName) : this(globalName, localName, false) { }
 
-		public AtlasEntity(string globalName, string localName) : this(globalName, false)
-		{
-			LocalName = localName;
-		}
-
-		public AtlasEntity(string globalName, bool local = false) : this()
-		{
-			GlobalName = globalName;
-			if(local)
-				LocalName = globalName;
-		}
-
-		public AtlasEntity(bool root) : this()
+		private AtlasEntity(string globalName, string localName, bool root)
 		{
 			if(root)
 			{
 				if(instance != null)
 					throw new InvalidOperationException($"A new root {GetType().Name} instance cannot be instantiated when one already exists.");
-				globalName = RootName;
-				localName = RootName;
+				this.globalName = RootName;
+				this.localName = RootName;
 				this.root = this;
 				instance = this;
+			}
+			else
+			{
+				GlobalName = globalName;
+				LocalName = localName;
 			}
 		}
 
@@ -107,14 +95,14 @@ namespace Atlas.ECS.Entities
 			if(this == instance)
 				instance = null;
 			RemoveChildren();
+			Parent = null;
+			Root = null;
 			RemoveComponents();
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
 			AutoDispose = true;
-			Parent = null;
 			Sleeping = 0;
 			FreeSleeping = 0;
-			Root = null;
 
 			pool.Add(this);
 			base.Disposing();
@@ -134,11 +122,14 @@ namespace Atlas.ECS.Entities
 				if(this == instance || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
-					return;
-				if(globalName == value)
-					return;
-				if(Engine != null && Engine.HasEntity(value))
-					return;
+					value = UniqueName;
+				else
+				{
+					if(globalName == value)
+						return;
+					if(Engine != null && Engine.HasEntity(value))
+						return;
+				}
 				string previous = globalName;
 				globalName = value;
 				Message<IGlobalNameMessage>(new GlobalNameMessage(this, value, previous));
@@ -155,11 +146,14 @@ namespace Atlas.ECS.Entities
 				if(this == instance || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
-					return;
-				if(localName == value)
-					return;
-				if(parent != null && parent.HasChild(value))
-					return;
+					value = UniqueName;
+				else
+				{
+					if(localName == value)
+						return;
+					if(parent != null && parent.HasChild(value))
+						return;
+				}
 				string previous = localName;
 				localName = value;
 				Message<ILocalNameMessage>(new LocalNameMessage(this, value, previous));
@@ -242,6 +236,20 @@ namespace Atlas.ECS.Entities
 		public IReadOnlyDictionary<Type, IComponent> Components
 		{
 			get { return components; }
+		}
+
+		public TKeyValue GetAncestorComponent<TKeyValue>()
+			where TKeyValue : class, IComponent
+		{
+			var ancestor = parent;
+			while(ancestor != null)
+			{
+				var component = ancestor.GetComponent<TKeyValue>();
+				if(component != null)
+					return component;
+				ancestor = ancestor.Parent;
+			}
+			return null;
 		}
 
 		#region Add
@@ -346,6 +354,8 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
+		#region Remove
+
 		public TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
 			where TValue : class, TKey
@@ -386,6 +396,8 @@ namespace Atlas.ECS.Entities
 			}
 			return true;
 		}
+
+		#endregion
 
 		#endregion
 
@@ -464,7 +476,6 @@ namespace Atlas.ECS.Entities
 			}
 			Message<IParentMessage>(new ParentMessage(this, next, previous));
 			SetParentIndex(next != null ? index : -1);
-			SetMatrix(true);
 			Sleeping += sleeping;
 			if(autoDispose && parent == null)
 				Dispose();
@@ -721,9 +732,16 @@ namespace Atlas.ECS.Entities
 
 		public bool HasSibling(IEntity sibling)
 		{
-			if(sibling == this)
+			if(parent == null)
 				return false;
-			return parent?.HasChild(sibling) ?? false;
+			foreach(var child in parent)
+			{
+				if(child == this)
+					continue;
+				if(child == sibling)
+					return true;
+			}
+			return false;
 		}
 
 		#endregion
@@ -815,39 +833,6 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#region Matrix
-
-		public Matrix GlobalMatrix
-		{
-			get { return globalMatrix; }
-		}
-
-		public Matrix LocalMatrix
-		{
-			get { return localMatrix; }
-			set
-			{
-				if(localMatrix == value)
-					return;
-				var previous = localMatrix;
-				localMatrix = value;
-				Message<ILocalMatrixMessage>(new LocalMatrixMessage(this, value, previous));
-				SetMatrix(false);
-			}
-		}
-
-		private void SetMatrix(bool hierarchy)
-		{
-			var value = localMatrix;
-			if(parent != null)
-				value *= parent.GlobalMatrix;
-			var previous = globalMatrix;
-			globalMatrix = value;
-			Message<IGlobalMatrixMessage>(new GlobalMatrixMessage(this, value, previous, hierarchy));
-		}
-
-		#endregion
-
 		#region Messages
 
 		public sealed override void Message<TMessage>(TMessage message)
@@ -908,10 +893,6 @@ namespace Atlas.ECS.Entities
 				else if(message is IChildrenMessage)
 				{
 					SetParentIndex(parent.GetChildIndex(this));
-				}
-				else if(message is IGlobalMatrixMessage)
-				{
-					SetMatrix(true);
 				}
 			}
 			if(message is IHierarchyMessage)
