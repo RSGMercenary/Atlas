@@ -21,6 +21,7 @@ namespace Atlas.ECS.Families
 		//Reflection Fields
 		private readonly Type family;
 		private readonly BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+		private readonly string entityField;
 		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
 
 		//Family Members
@@ -38,7 +39,9 @@ namespace Atlas.ECS.Families
 		public AtlasFamily()
 		{
 			family = typeof(TFamilyMember);
-			foreach(var field in typeof(TFamilyMember).GetFields(flags))
+			//Gets the private backing fields of the Entity and component properties.
+			entityField = family.BaseType.GetFields(flags)[0].Name;
+			foreach(var field in family.GetFields(flags))
 			{
 				components.Add(field.FieldType, field.Name);
 			}
@@ -204,7 +207,7 @@ namespace Atlas.ECS.Families
 
 		private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
 		{
-			family.BaseType.GetField("entity", flags).SetValue(member, entity);
+			family.BaseType.GetField(entityField, flags).SetValue(member, entity);
 			foreach(var type in components.Keys)
 			{
 				var component = add ? entity.GetComponent(type) : null;

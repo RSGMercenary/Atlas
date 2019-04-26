@@ -6,10 +6,7 @@ namespace Atlas.Framework.Families.Render
 {
 	public class Render2DMember : AtlasFamilyMember
 	{
-		private ITransform2D transform;
-		public ITransform2D Transform { get { return transform; } }
-
-		private IRender2D render;
-		public IRender2D Render { get { return render; } }
+		public ITransform2D Transform { get; }
+		public IRender2D Render { get; }
 	}
 }

@@ -5,10 +5,7 @@ namespace Atlas.Framework.Families.Transform
 {
 	public class Cursor2DMember : AtlasFamilyMember
 	{
-		private ITransform2D transform;
-		public ITransform2D Transform { get { return transform; } }
-
-		private ICursor2D cursor;
-		public ICursor2D Cursor { get { return cursor; } }
+		public ITransform2D Transform { get; }
+		public ICursor2D Cursor { get; }
 	}
 }
