@@ -6,7 +6,8 @@ namespace Atlas.Framework.Components.Transform
 	public interface ITransform2D : IComponent
 	{
 		//ITransform2D Parent { get; }
-		Matrix Matrix { get; }
+		Matrix Global { get; }
+		Matrix Local { get; }
 
 		Vector2 Position { get; set; }
 		Vector2 Scale { get; set; }

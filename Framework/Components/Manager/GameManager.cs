@@ -8,15 +8,12 @@ namespace Atlas.Framework.Components.Manager
 	public class GameManager : AtlasComponent, IGameManager
 	{
 		public Game Game { get; private set; }
-		public Color BackgroundColor { get; set; }
+		public Color BackgroundColor { get; set; } = Color.Black;
 		public SpriteBatch SpriteBatch { get; private set; }
 
-		public GameManager(Game game) : this(game, Color.Black) { }
-
-		public GameManager(Game game, Color backgroundColor)
+		public GameManager(Game game)
 		{
 			Game = game;
-			BackgroundColor = backgroundColor;
 			SpriteBatch = new SpriteBatch(game.GraphicsDevice);
 
 			game.Content.RootDirectory = "Content";

@@ -12,15 +12,15 @@ namespace Atlas.Framework.Components.Transform
 		#region Fields
 
 		private ITransform2D parent;
-		private Matrix matrix;
+		private Matrix global;
 		private Matrix local;
 
 		private Vector2 position;
 		private Vector2 scale;
 		private float rotation;
 
-		private bool dirty = false;
-		private bool recalculate = true;
+		private bool globalDirty = true;
+		private bool localDirty = false;
 
 		#endregion
 
@@ -90,7 +90,7 @@ namespace Atlas.Framework.Components.Transform
 
 		protected void Dirty()
 		{
-			dirty = true;
+			localDirty = true;
 		}
 
 		public ITransform2D Parent
@@ -102,26 +102,33 @@ namespace Atlas.Framework.Components.Transform
 					return;
 				var previous = parent;
 				parent = value;
+				globalDirty = true;
 			}
 		}
 
-		public Matrix Matrix
+		public Matrix Global
 		{
 			get
 			{
-				SetMatrix();
-				return matrix;
+				if(localDirty || globalDirty)
+				{
+					global = Local;
+					if(parent != null)
+						global *= parent.Global;
+				}
+				return global;
 			}
 		}
 
-		protected void SetMatrix()
+		public Matrix Local
 		{
-			if(dirty)
-				local = CreateLocalMatrix();
-			dirty = false;
-			matrix = local;
-			if(parent != null)
-				matrix *= parent.Matrix;
+			get
+			{
+				if(localDirty)
+					local = CreateLocalMatrix();
+				localDirty = false;
+				return local;
+			}
 		}
 
 		#region Position
@@ -180,7 +187,8 @@ namespace Atlas.Framework.Components.Transform
 
 		public float ScaleXY
 		{
-			get { return (scale.X * scale.Y) / 2; }
+			//TO-DO this is messed up!
+			get { return scale.X; }
 			set { Scale = new Vector2(value, value); }
 		}
 

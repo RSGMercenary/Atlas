@@ -5,21 +5,18 @@ using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Families;
-using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using Atlas.ECS.Systems.Messages;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace Atlas.ECS.Components
 {
-	public sealed class AtlasEngine : AtlasComponent, IEngine
+	public class AtlasEngine : AtlasComponent, IEngine
 	{
-		#region Static Singleton
+		#region Static
 
-		private static IEngine instance;
+		private static IEngine singleton;
 
 		#endregion
 
@@ -54,32 +51,33 @@ namespace Atlas.ECS.Components
 		private double deltaFixedTime = 1f / 60f;
 		private double totalFixedTime = 0;
 
-		//Configuration
-		private string configPath = "";
-		private JToken config;
-
 		#endregion
 
 		#region Compose/Dispose
 
-		public AtlasEngine(string configPath = "EngineConfig.json")
+		public AtlasEngine()
 		{
-			if(instance != null)
+			if(singleton != null)
 				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be instantiated when one already exists.");
-			instance = this;
-			ConfigPath = string.IsNullOrWhiteSpace(configPath) ? "EngineConfig.json" : configPath;
+			singleton = this;
 		}
 
 		protected override void Destroying()
 		{
-			instance = null;
+			RemoveSingleton();
 			base.Destroying();
 		}
 
 		protected override void Disposing()
 		{
-			instance = null;
+			RemoveSingleton();
 			base.Disposing();
+		}
+
+		private void RemoveSingleton()
+		{
+			if(singleton == this)
+				singleton = null;
 		}
 
 		protected override void AddingManager(IEntity entity, int index)
@@ -104,36 +102,6 @@ namespace Atlas.ECS.Components
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
 			base.RemovingManager(entity, index);
-		}
-
-		#endregion
-
-		#region Configuration
-
-		public string ConfigPath
-		{
-			get { return configPath; }
-			set
-			{
-				if(configPath == value)
-					return;
-				configPath = value;
-				ParseConfig();
-			}
-		}
-
-		private void ParseConfig()
-		{
-			ConfigCreator.Create(configPath);
-			config = JToken.Parse(File.ReadAllText(configPath));
-			DeltaFixedTime = ParseValue(nameof(DeltaFixedTime), DeltaFixedTime);
-			MaxVariableTime = ParseValue(nameof(MaxVariableTime), MaxVariableTime);
-		}
-
-		private T ParseValue<T>(string path, T defaultValue)
-			where T : struct
-		{
-			return config.SelectToken(path)?.Value<T>() ?? defaultValue;
 		}
 
 		#endregion
@@ -237,24 +205,9 @@ namespace Atlas.ECS.Components
 
 		#region Create
 
-		private ISystem CreateSystem(Type type)
+		protected virtual ISystem CreateSystem(Type type)
 		{
-			var systems = config.SelectToken("Systems") as JArray;
-			foreach(var system in systems)
-			{
-				if(system.SelectToken("Key").Value<string>() != type.FullName)
-					continue;
-
-				var fullName = system.SelectToken("Value").Value<string>();
-				var assembly = fullName.Split('.')[0];
-
-				type = Type.GetType($"{fullName}, {assembly}", true, true);
-				var instance = (ISystem)Activator.CreateInstance(type);
-				instance.Priority = systems.IndexOf(system);
-
-				return instance;
-			}
-			throw new NullReferenceException($"Couldn't find a System to instantiate for {type.FullName}.");
+			return (ISystem)Activator.CreateInstance(type);
 		}
 
 		#endregion
@@ -380,7 +333,7 @@ namespace Atlas.ECS.Components
 
 		#region Create
 
-		private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
 			return new AtlasFamily<TFamilyMember>();

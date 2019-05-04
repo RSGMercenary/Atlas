@@ -72,9 +72,6 @@ namespace Atlas.ECS.Families
 
 		#region Iteration
 
-		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
-		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
-
 		public IEnumerator<TFamilyMember> GetEnumerator()
 		{
 			return members.GetEnumerator();
@@ -111,6 +108,19 @@ namespace Atlas.ECS.Families
 			}
 		}
 
+		#endregion
+
+		#region Get
+		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
+
+		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
+
+		IFamilyMember IFamily.GetMember(IEntity entity) => GetMember(entity);
+
+		public TFamilyMember GetMember(IEntity entity)
+		{
+			return entities.ContainsKey(entity) ? entities[entity] : null;
+		}
 		#endregion
 
 		#region Member Add/Remove

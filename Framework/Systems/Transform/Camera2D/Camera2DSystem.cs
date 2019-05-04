@@ -45,7 +45,7 @@ namespace Atlas.Framework.Systems.Transform
 
 				foreach(var camera in cameras)
 				{
-					var world = Matrix.Invert(camera.Transform.Matrix);
+					var world = Matrix.Invert(camera.Transform.Global);
 
 					var position = camera.Transform.Position;
 					var rotation = camera.Transform.Rotation;
@@ -53,14 +53,14 @@ namespace Atlas.Framework.Systems.Transform
 
 					if(camera.Camera.FollowPosition != null)
 					{
-						var positionMatrix = camera.Camera.FollowPosition.Matrix * world;
+						var positionMatrix = camera.Camera.FollowPosition.Global * world;
 						var translation = positionMatrix.Translation;
 						position = new Vector2(translation.X, translation.Y);
 					}
 
 					if(camera.Camera.FollowRotation != null)
 					{
-						var rotationMatrix = camera.Camera.FollowRotation.Matrix * world;
+						var rotationMatrix = camera.Camera.FollowRotation.Global * world;
 						rotationMatrix.Decompose(out var scl, out var rot, out var pos);
 						rotation = (float)Math.Atan2(rot.Z, rot.W) * 2;
 					}

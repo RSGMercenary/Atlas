@@ -1,23 +1,22 @@
 ﻿using Atlas.ECS.Components;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Atlas.Framework.Components.Render
 {
 	public abstract class Render2D : AtlasComponent, IRender2D
 	{
-		private int visible = 0;
+		private int visible = 1;
 
 		public Color Color { get; set; } = Color.White;
+
 		public Rectangle? Crop { get; set; }
 		public Vector2 Center { get; set; }
-		public SpriteEffects Effects { get; set; } = SpriteEffects.None;
 
 		public Render2D() { }
 
 		public bool IsVisible
 		{
-			get { return visible > -1; }
+			get { return visible > 0; }
 			set
 			{
 				if(value)
@@ -27,6 +26,16 @@ namespace Atlas.Framework.Components.Render
 			}
 		}
 
-		public abstract void Draw(SpriteBatch batch, Vector2 scale, float rotation, Vector2 position, float layer);
+		public Color GlobalColor
+		{
+			get
+			{
+				var c = Color.ToVector4();
+				var render = Manager?.GetAncestorComponent<IRender2D>();
+				if(render != null)
+					c *= render.GlobalColor.ToVector4();
+				return new Color(c);
+			}
+		}
 	}
 }

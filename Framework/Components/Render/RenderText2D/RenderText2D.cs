@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework.Graphics;
 
 namespace Atlas.Framework.Components.Render
 {
@@ -14,11 +13,6 @@ namespace Atlas.Framework.Components.Render
 		{
 			Font = font;
 			Text = text;
-		}
-
-		public override void Draw(SpriteBatch batch, Vector2 scale, float rotation, Vector2 position, float layer)
-		{
-			batch.DrawString(Font, Text, position, Color, rotation, Center, scale, Effects, layer);
 		}
 	}
 }

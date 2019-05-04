@@ -6,10 +6,10 @@ namespace Atlas.ECS.Objects
 	public class EngineUpdater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
-		private readonly Action<float> update;
+		private readonly Action<double> update;
 		private bool isRunning = false;
 
-		public EngineUpdater(Action<float> update)
+		public EngineUpdater(Action<double> update)
 		{
 			this.update = update ?? throw new NullReferenceException();
 		}

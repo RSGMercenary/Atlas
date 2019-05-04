@@ -36,10 +36,5 @@ namespace Atlas.Framework.Components.Render
 			var range = Texture.Width * Texture.Height;
 			Texture.SetData(Enumerable.Range(0, range).Select(p => color).ToArray());
 		}
-
-		public override void Draw(SpriteBatch batch, Vector2 scale, float rotation, Vector2 position, float layer)
-		{
-			batch.Draw(Texture, position, Crop, Color, rotation, Center, scale, Effects, layer);
-		}
 	}
 }

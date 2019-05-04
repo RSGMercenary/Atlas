@@ -15,7 +15,7 @@ namespace Atlas.ECS.Entities
 	{
 		#region Static
 
-		private static IEntity instance;
+		private static IEntity singleton;
 		public const string RootName = "Root";
 		public static string UniqueName { get { return $"Entity { Guid.NewGuid().ToString("N")}"; } }
 
@@ -49,7 +49,6 @@ namespace Atlas.ECS.Entities
 		private int freeSleeping = 0;
 		private bool autoDispose = true;
 		private IEntity root;
-		private int rootIndex = 0;
 		private IEntity parent;
 		private int parentIndex = -1;
 		private readonly Group<IEntity> children = new Group<IEntity>();
@@ -69,12 +68,12 @@ namespace Atlas.ECS.Entities
 		{
 			if(root)
 			{
-				if(instance != null)
+				if(singleton != null)
 					throw new InvalidOperationException($"A new root {GetType().Name} instance cannot be instantiated when one already exists.");
 				this.globalName = RootName;
 				this.localName = RootName;
 				this.root = this;
-				instance = this;
+				singleton = this;
 			}
 			else
 			{
@@ -85,15 +84,13 @@ namespace Atlas.ECS.Entities
 
 		protected override void Destroying()
 		{
-			if(this == instance)
-				instance = null;
+			RemoveSingleton();
 			base.Destroying();
 		}
 
 		protected override void Disposing()
 		{
-			if(this == instance)
-				instance = null;
+			RemoveSingleton();
 			RemoveChildren();
 			Parent = null;
 			Root = null;
@@ -108,6 +105,12 @@ namespace Atlas.ECS.Entities
 			base.Disposing();
 		}
 
+		private void RemoveSingleton()
+		{
+			if(singleton == this)
+				singleton = null;
+		}
+
 		#endregion
 
 		#region Names
@@ -119,7 +122,7 @@ namespace Atlas.ECS.Entities
 			{
 				//Prevents the Root from changing names and other
 				//Entities from chaning their names to Root.
-				if(this == instance || value == RootName)
+				if(this == singleton || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					value = UniqueName;
@@ -143,7 +146,7 @@ namespace Atlas.ECS.Entities
 			{
 				//Prevents the Root from changing names and other
 				//Entities from chaning their names to Root.
-				if(this == instance || value == RootName)
+				if(this == singleton || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					value = UniqueName;
@@ -421,19 +424,6 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		public int RootIndex
-		{
-			get { return rootIndex; }
-			private set
-			{
-				if(rootIndex == value)
-					return;
-				var previous = rootIndex;
-				rootIndex = value;
-				Message<IRootIndexMessage>(new RootIndexMessage(this, value, previous));
-			}
-		}
-
 		#endregion
 
 		#region Parent
@@ -448,7 +438,7 @@ namespace Atlas.ECS.Entities
 		{
 			//Prevent changing the Parent of the Root Entity.
 			//The Root must be the absolute bottom of the hierarchy.
-			if(this == instance)
+			if(this == singleton)
 				return null;
 			if(parent == next)
 				return null;
@@ -895,17 +885,6 @@ namespace Atlas.ECS.Entities
 					SetParentIndex(parent.GetChildIndex(this));
 				}
 			}
-			if(message is IHierarchyMessage)
-			{
-				RootIndex = (message as IHierarchyMessage).Value;
-			}
-			if(parent == null)
-			{
-				if(message is IChildrenMessage)
-					Message<IHierarchyMessage>(new HierarchyMessage(this));
-				else if(message is IParentMessage && message.Messenger == this)
-					Message<IHierarchyMessage>(new HierarchyMessage(this));
-			}
 			base.Messaging(message);
 		}
 
@@ -940,7 +919,7 @@ namespace Atlas.ECS.Entities
 			if(depth != 0)
 			{
 				foreach(var child in children)
-					text.Append(child.DescendantsToString(depth - 1, localNames, indent + "  "));
+					text.Append(child.DescendantsToString(--depth, localNames, indent + "  "));
 			}
 			return text.ToString();
 		}
@@ -954,14 +933,13 @@ namespace Atlas.ECS.Entities
 		{
 			var info = new StringBuilder();
 
-			var name = (this == instance) ? RootName : $"Child {parentIndex + 1}";
+			var name = (this == singleton) ? RootName : $"Child {parentIndex + 1}";
 			info.AppendLine($"{indent}{name}");
 			info.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
 			info.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
 			info.AppendLine($"{indent}  {nameof(AutoDispose)}  = {AutoDispose}");
 			info.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
 			info.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
-			info.AppendLine($"{indent}  {nameof(RootIndex)}    = {RootIndex}");
 
 			info.AppendLine($"{indent}  {nameof(Components)} ({components.Count})");
 			if(addComponents)
@@ -975,7 +953,7 @@ namespace Atlas.ECS.Entities
 			if(depth != 0)
 			{
 				foreach(var child in children)
-					info.Append(child.ToInfoString(depth - 1, addComponents, addEntities, $"{indent}    "));
+					info.Append(child.ToInfoString(--depth, addComponents, addEntities, $"{indent}    "));
 			}
 			return info.ToString();
 		}

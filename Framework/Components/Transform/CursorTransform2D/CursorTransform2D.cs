@@ -49,7 +49,7 @@ namespace Atlas.Framework.Components.Transform
 
 			if(followPosition || followRotation)
 			{
-				var world = Matrix.Invert(Parent.Matrix);
+				var world = Matrix.Invert(Parent.Global);
 				world.Decompose(out var scl, out var rot, out var pos);
 				if(followPosition)
 					position = Vector2.Transform(position, world);

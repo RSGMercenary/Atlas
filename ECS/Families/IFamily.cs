@@ -11,6 +11,8 @@ namespace Atlas.ECS.Families
 	{
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 
+		IFamilyMember GetMember(IEntity entity);
+
 		void AddEntity(IEntity entity);
 		void RemoveEntity(IEntity entity);
 
@@ -22,6 +24,8 @@ namespace Atlas.ECS.Families
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }
+
+		new TFamilyMember GetMember(IEntity entity);
 
 		/// <summary>
 		/// Sorts the Members based on sorting algorithms and comparing methods.

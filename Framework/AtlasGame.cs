@@ -30,7 +30,7 @@ namespace Atlas.Framework
 		public static AtlasEngine Create(Game game)
 		{
 			var root = new AtlasEntity(true);
-			root.AddComponent<IEngine>(new AtlasEngine());
+			root.AddComponent<IEngine>(new JsonEngine());
 			root.AddComponent<IGameManager>(new GameManager(game));
 			root.AddComponent<ITransform2D>(new Transform2D());
 			root.AddComponent<ISystemManager>(new SystemManager(
