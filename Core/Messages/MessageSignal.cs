@@ -11,10 +11,10 @@ namespace Atlas.Core.Messages
 			return new MessageSlot<TMessage>();
 		}
 
-		public ISlot<TMessage> Add(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+		public ISlot<TMessage> Add(Action<TMessage> listener, int priority, MessageFlow flow)
 		{
 			var slot = (MessageSlot<TMessage>)Add(listener, priority);
-			slot.Validator = validator;
+			slot.Flow = flow;
 			return slot;
 		}
 	}

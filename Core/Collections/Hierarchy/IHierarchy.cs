@@ -7,9 +7,9 @@ namespace Atlas.Core.Collections.Hierarchy
 		where T : IReadOnlyHierarchy<T>
 	{
 		T Root { get; }
-		int RootIndex { get; }
 
 		T Parent { get; }
+
 		int ParentIndex { get; }
 
 		IReadOnlyGroup<T> Children { get; }

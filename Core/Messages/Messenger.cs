@@ -6,22 +6,6 @@ namespace Atlas.Core.Messages
 {
 	public abstract class Messenger : IMessenger
 	{
-		#region Static
-
-		public static bool Self<TMessage>(TMessage message)
-			where TMessage : IMessage
-		{
-			return message.Messenger == message.CurrentMessenger;
-		}
-
-		public static bool All<TMessage>(TMessage message)
-			where TMessage : IMessage
-		{
-			return true;
-		}
-
-		#endregion
-
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
 		public Messenger()
@@ -71,28 +55,28 @@ namespace Atlas.Core.Messages
 		public void AddListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage
 		{
-			AddListener(listener, 0, Self);
+			AddListener(listener, 0, MessageFlow.Self);
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
 			where TMessage : IMessage
 		{
-			AddListener(listener, priority, Self);
+			AddListener(listener, priority, MessageFlow.Self);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, Func<TMessage, bool> validator)
+		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow flow)
 			where TMessage : IMessage
 		{
-			AddListener(listener, 0, validator);
+			AddListener(listener, 0, flow);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Func<TMessage, bool> validator)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow flow)
 			where TMessage : IMessage
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
 				messages.Add(type, new MessageSignal<TMessage>());
-			(messages[type] as MessageSignal<TMessage>).Add(listener, priority, validator);
+			(messages[type] as MessageSignal<TMessage>).Add(listener, priority, flow);
 		}
 
 		public void RemoveListener<TMessage>(Action<TMessage> listener)

@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Hierarchy;
+﻿using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject, IAutoDispose, ISleep, IHierarchy<IEntity>
+	public interface IEntity : IObject, IAutoDispose, ISleep, IHierarchyMessenger<IEntity>
 	{
 		#region Entities
 
@@ -85,6 +85,9 @@ namespace Atlas.ECS.Entities
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
 		TKeyValue GetAncestorComponent<TKeyValue>()
+			where TKeyValue : class, IComponent;
+
+		IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
 			where TKeyValue : class, IComponent;
 
 		#endregion

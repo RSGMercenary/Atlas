@@ -255,6 +255,21 @@ namespace Atlas.ECS.Entities
 			return null;
 		}
 
+		public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
+			where TKeyValue : class, IComponent
+		{
+			var components = new List<TKeyValue>();
+			foreach(var child in children)
+			{
+				var component = child.GetComponent<TKeyValue>();
+				if(component != null)
+					components.Add(component);
+				else
+					components.AddRange(child.GetDescendantComponents<TKeyValue>());
+			}
+			return components;
+		}
+
 		#region Add
 
 		//New component with Type
@@ -827,37 +842,74 @@ namespace Atlas.ECS.Entities
 
 		public sealed override void Message<TMessage>(TMessage message)
 		{
-			//Keep track of what child told the parent to Dispatch().
+			Message(message, MessageFlow.All);
+		}
+
+		public void Message<TMessage>(TMessage message, MessageFlow flow)
+			where TMessage : IMessage
+		{
+			//Keep track of what told 'this' to Message().
+			//Prevents endless recursion.
 			var previousMessenger = message.CurrentMessenger;
 
 			//Standard Message() call.
-			//Set CurrentMessenger and Message() event by type;
+			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
 			base.Message(message);
 
-			//Send Message to children.
-			foreach(var child in children)
+			if(flow != MessageFlow.All && root == this && flow.HasFlag(MessageFlow.Root))
+				return;
+
+			if(flow == MessageFlow.All || flow.HasFlag(MessageFlow.Descendent) ||
+				(flow.HasFlag(MessageFlow.Child) && message.Messenger == this) ||
+				(flow.HasFlag(MessageFlow.Sibling) && HasChild(message.Messenger as IEntity)))
 			{
-				//Don't send Message back to child that told this to Message().
-				if(child == previousMessenger)
-					continue;
-				child.Message(message);
-				//Reset CurrentMessenger back to this so the next child (and parent)
-				//can block messaging from its original source.
+				//Send Message to children.
+				foreach(var child in children)
+				{
+					//Don't send Message back to the child that told 'this' to Message().
+					if(child == previousMessenger)
+						continue;
+					child.Message(message, flow);
+					//Reset CurrentMessenger to 'this' so the next child (and parent)
+					//can block messaging from 'this' parent messenger.
+					message.CurrentMessenger = this;
+				}
+			}
+
+			if(flow == MessageFlow.All || (flow.HasFlag(MessageFlow.Parent) && message.Messenger == this) ||
+				(flow.HasFlag(MessageFlow.Ancestor) && !HasSibling(previousMessenger as IEntity)))
+			{
+				//Send Message to parent.
+				//Don't send Message back to the parent that told 'this' to Message().
+				if(parent != previousMessenger)
+					parent?.Message(message, flow);
 				message.CurrentMessenger = this;
 			}
 
-			//Send Message to parent.
-			if(parent != null)
+			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
+			if(flow != MessageFlow.All && parent != null && flow.HasFlag(MessageFlow.Sibling) &&
+				message.Messenger == this)
 			{
-				//Don't send Message back to parent that told this to Message().
-				if(parent != previousMessenger)
-					parent.Message(message);
+				foreach(var sibling in parent)
+				{
+					//Don't send Message back to the sibling that told 'this' to Message().
+					if(sibling == this)
+						continue;
+					sibling.Message(message, flow);
+					//Reset CurrentMessenger to 'this' so the next sibling
+					//can block 'this' sibling messenger.
+					message.CurrentMessenger = this;
+				}
 			}
-			else
+
+			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
+			if(flow != MessageFlow.All && root != null && flow.HasFlag(MessageFlow.Root) &&
+				message.Messenger == this && !flow.HasFlag(MessageFlow.Ancestor) &&
+				!(flow.HasFlag(MessageFlow.Parent) && parent == root))
 			{
-				//Parent is null. Can't traverse the hierarchy anymore.
-				//Pool message for reuse.
-				//PoolManager.Push(message);
+				if(root != this)
+					root?.Message(message, flow);
+				message.CurrentMessenger = this;
 			}
 		}
 
