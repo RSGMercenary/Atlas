@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Atlas.ECS.Objects
+namespace Atlas.Core.Objects
 {
-	public class EngineUpdater
+	public class Updater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
 		private readonly Action<double> update;
 		private bool isRunning = false;
 
-		public EngineUpdater(Action<double> update)
+		public Updater(Action<double> update)
 		{
 			this.update = update ?? throw new NullReferenceException();
 		}
@@ -23,15 +23,15 @@ namespace Atlas.ECS.Objects
 					return;
 				isRunning = value;
 				//Only run again when the last Update()/timer is done.
-				//If the Engine is turned off and on during an Update()
+				//If the Updater is turned off and on during an Update()
 				//loop, while(isRunning) will catch it.
 				if(value && !timer.IsRunning)
 				{
 					timer.Restart();
-					var previousTime = 0f;
+					var previousTime = 0d;
 					while(isRunning)
 					{
-						var currentTime = (float)timer.Elapsed.TotalSeconds;
+						var currentTime = timer.Elapsed.TotalSeconds;
 						update(currentTime - previousTime);
 						previousTime = currentTime;
 					}
