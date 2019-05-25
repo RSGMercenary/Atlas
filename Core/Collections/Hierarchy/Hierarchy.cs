@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Atlas.Core.Messages
+namespace Atlas.Core.Collections.Hierarchy
 {
 	[Flags]
-	public enum MessageFlow
+	public enum Hierarchy
 	{
 		Self = 1,
 		Sibling = 2,

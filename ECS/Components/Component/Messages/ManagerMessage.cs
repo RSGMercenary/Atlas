@@ -2,9 +2,10 @@
 
 namespace Atlas.ECS.Components.Messages
 {
-	class ManagerMessage : Message<IComponent>, IManagerMessage
+	class ManagerMessage<T> : Message<T>, IManagerMessage<T>
+		where T : IComponent
 	{
-		public ManagerMessage(IComponent messenger) : base(messenger)
+		public ManagerMessage(T messenger) : base(messenger)
 		{
 
 		}

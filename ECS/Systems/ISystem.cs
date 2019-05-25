@@ -3,7 +3,7 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface ISystem : IObject, ISleep, IUpdateState
+	public interface ISystem : IObject<ISystem>, ISleep, IUpdateState
 	{
 		void Update(float deltaTime);
 

@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : AtlasObject, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
@@ -186,7 +186,7 @@ namespace Atlas.ECS.Families
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdateStateMessage>(PoolMembers);
+				Engine.AddListener<IUpdateStateMessage<IEngine>>(PoolMembers);
 			}
 		}
 
@@ -194,12 +194,12 @@ namespace Atlas.ECS.Families
 
 		#region Member Pooling
 
-		private void PoolMembers(IUpdateStateMessage message)
+		private void PoolMembers(IUpdateStateMessage<IEngine> message)
 		{
 			//Clean up update listener.
 			if(message.CurrentValue != TimeStep.None)
 				return;
-			message.Messenger.RemoveListener<IUpdateStateMessage>(PoolMembers);
+			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(PoolMembers);
 			while(removed.Count > 0)
 				DisposeMember(removed.Pop());
 			if(Engine == null)

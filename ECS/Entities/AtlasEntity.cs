@@ -1,6 +1,8 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
+using Atlas.Core.Signals;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Objects;
@@ -11,7 +13,7 @@ using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public sealed class AtlasEntity : AtlasObject, IEntity
+	public sealed class AtlasEntity : AtlasObject<IEntity>, IEntity
 	{
 		#region Static
 
@@ -764,7 +766,7 @@ namespace Atlas.ECS.Entities
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage>(new SleepMessage(this, value, previous));
+				Message<ISleepMessage<IEntity>>(new SleepMessage<IEntity>(this, value, previous));
 			}
 		}
 
@@ -830,7 +832,7 @@ namespace Atlas.ECS.Entities
 					return;
 				var previous = autoDispose;
 				autoDispose = value;
-				Message<IAutoDisposeMessage>(new AutoDisposeMessage(this, value, previous));
+				Message<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(this, value, previous));
 				if(autoDispose && parent == null)
 					Dispose();
 			}
@@ -840,13 +842,30 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		public sealed override void Message<TMessage>(TMessage message)
+		protected override Signal<TMessage> CreateSignal<TMessage>()
 		{
-			Message(message, MessageFlow.All);
+			return new HierarchySignal<TMessage, IEntity>();
 		}
 
-		public void Message<TMessage>(TMessage message, MessageFlow flow)
-			where TMessage : IMessage
+		public void AddListener<TMessage>(Action<TMessage> listener, Hierarchy messenger)
+			where TMessage : IMessage<IEntity>
+		{
+			AddListener(listener, 0, messenger);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Hierarchy messenger)
+			where TMessage : IMessage<IEntity>
+		{
+			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, IEntity>).Messenger = messenger;
+		}
+
+		public sealed override void Message<TMessage>(TMessage message)
+		{
+			Message(message, Hierarchy.All);
+		}
+
+		public void Message<TMessage>(TMessage message, Hierarchy flow)
+			where TMessage : IMessage<IEntity>
 		{
 			//Keep track of what told 'this' to Message().
 			//Prevents endless recursion.
@@ -856,12 +875,12 @@ namespace Atlas.ECS.Entities
 			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
 			base.Message(message);
 
-			if(flow != MessageFlow.All && root == this && flow.HasFlag(MessageFlow.Root))
+			if(flow != Hierarchy.All && root == this && flow.HasFlag(Hierarchy.Root))
 				return;
 
-			if(flow == MessageFlow.All || flow.HasFlag(MessageFlow.Descendent) ||
-				(flow.HasFlag(MessageFlow.Child) && message.Messenger == this) ||
-				(flow.HasFlag(MessageFlow.Sibling) && HasChild(message.Messenger as IEntity)))
+			if(flow == Hierarchy.All || flow.HasFlag(Hierarchy.Descendent) ||
+				(flow.HasFlag(Hierarchy.Child) && message.Messenger == this) ||
+				(flow.HasFlag(Hierarchy.Sibling) && HasChild(message.Messenger as IEntity)))
 			{
 				//Send Message to children.
 				foreach(var child in children)
@@ -876,8 +895,8 @@ namespace Atlas.ECS.Entities
 				}
 			}
 
-			if(flow == MessageFlow.All || (flow.HasFlag(MessageFlow.Parent) && message.Messenger == this) ||
-				(flow.HasFlag(MessageFlow.Ancestor) && !HasSibling(previousMessenger as IEntity)))
+			if(flow == Hierarchy.All || (flow.HasFlag(Hierarchy.Parent) && message.Messenger == this) ||
+				(flow.HasFlag(Hierarchy.Ancestor) && !HasSibling(previousMessenger as IEntity)))
 			{
 				//Send Message to parent.
 				//Don't send Message back to the parent that told 'this' to Message().
@@ -887,7 +906,7 @@ namespace Atlas.ECS.Entities
 			}
 
 			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
-			if(flow != MessageFlow.All && parent != null && flow.HasFlag(MessageFlow.Sibling) &&
+			if(flow != Hierarchy.All && parent != null && flow.HasFlag(Hierarchy.Sibling) &&
 				message.Messenger == this)
 			{
 				foreach(var sibling in parent)
@@ -903,9 +922,9 @@ namespace Atlas.ECS.Entities
 			}
 
 			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
-			if(flow != MessageFlow.All && root != null && flow.HasFlag(MessageFlow.Root) &&
-				message.Messenger == this && !flow.HasFlag(MessageFlow.Ancestor) &&
-				!(flow.HasFlag(MessageFlow.Parent) && parent == root))
+			if(flow != Hierarchy.All && root != null && flow.HasFlag(Hierarchy.Root) &&
+				message.Messenger == this && !flow.HasFlag(Hierarchy.Ancestor) &&
+				!(flow.HasFlag(Hierarchy.Parent) && parent == root))
 			{
 				if(root != this)
 					root?.Message(message, flow);
@@ -913,15 +932,15 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		protected override void Messaging(IMessage message)
+		protected override void Messaging(IMessage<IEntity> message)
 		{
 			if(message.Messenger == parent)
 			{
-				if(message is ISleepMessage)
+				if(message is ISleepMessage<IEntity>)
 				{
 					if(!IsFreeSleeping)
 					{
-						var cast = message as ISleepMessage;
+						var cast = message as ISleepMessage<IEntity>;
 						if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
 							++Sleeping;
 						else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)

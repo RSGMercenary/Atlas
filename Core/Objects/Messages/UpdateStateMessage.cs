@@ -2,9 +2,10 @@
 
 namespace Atlas.Core.Messages
 {
-	class UpdateStateMessage : PropertyMessage<IUpdateState, TimeStep>, IUpdateStateMessage
+	class UpdateStateMessage<T> : PropertyMessage<T, TimeStep>, IUpdateStateMessage<T>
+		where T : IUpdateState
 	{
-		public UpdateStateMessage(IUpdateState messenger, TimeStep current, TimeStep previous) : base(messenger, current, previous)
+		public UpdateStateMessage(T messenger, TimeStep current, TimeStep previous) : base(messenger, current, previous)
 		{
 		}
 	}

@@ -7,7 +7,7 @@ using System;
 
 namespace Atlas.ECS.Components
 {
-	public interface IEngine : IComponent, IUpdateState
+	public interface IEngine : IComponent<IEngine>, IUpdateState
 	{
 		#region Entities
 

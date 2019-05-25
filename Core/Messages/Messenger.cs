@@ -4,7 +4,8 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Messages
 {
-	public abstract class Messenger : IMessenger
+	public abstract class Messenger<T> : IMessenger<T>
+		where T : class, IMessenger
 	{
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
@@ -39,7 +40,7 @@ namespace Atlas.Core.Messages
 		}
 
 		public virtual void Message<TMessage>(TMessage message)
-			where TMessage : IMessage
+			where TMessage : IMessage<T>
 		{
 			message.CurrentMessenger = this;
 			//Pass around message internally...
@@ -47,40 +48,34 @@ namespace Atlas.Core.Messages
 			//...before dispatching externally.
 			var type = typeof(TMessage);
 			if(messages.ContainsKey(type))
-				(messages[type] as MessageSignal<TMessage>).Dispatch(message);
+				(messages[type] as Signal<TMessage>).Dispatch(message);
 		}
 
-		protected virtual void Messaging(IMessage message) { }
+		protected virtual void Messaging(IMessage<T> message) { }
 
 		public void AddListener<TMessage>(Action<TMessage> listener)
-			where TMessage : IMessage
+			where TMessage : IMessage<T>
 		{
-			AddListener(listener, 0, MessageFlow.Self);
+			AddListenerSlot(listener);
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
-			where TMessage : IMessage
+			where TMessage : IMessage<T>
 		{
-			AddListener(listener, priority, MessageFlow.Self);
+			AddListenerSlot(listener, priority);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow flow)
-			where TMessage : IMessage
-		{
-			AddListener(listener, 0, flow);
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow flow)
-			where TMessage : IMessage
+		protected ISlot<TMessage> AddListenerSlot<TMessage>(Action<TMessage> listener, int priority = 0)
+			where TMessage : IMessage<T>
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
-				messages.Add(type, new MessageSignal<TMessage>());
-			(messages[type] as MessageSignal<TMessage>).Add(listener, priority, flow);
+				messages.Add(type, CreateSignal<TMessage>());
+			return (messages[type] as Signal<TMessage>).Add(listener, priority);
 		}
 
 		public void RemoveListener<TMessage>(Action<TMessage> listener)
-			where TMessage : IMessage
+			where TMessage : IMessage<T>
 		{
 			var type = typeof(TMessage);
 			if(!messages.ContainsKey(type))
@@ -91,6 +86,12 @@ namespace Atlas.Core.Messages
 				return;
 			messages.Remove(type);
 			signal.Dispose();
+		}
+
+		protected virtual Signal<TMessage> CreateSignal<TMessage>()
+			where TMessage : IMessage<T>
+		{
+			return new Signal<TMessage>();
 		}
 	}
 }

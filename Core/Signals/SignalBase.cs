@@ -108,7 +108,7 @@ namespace Atlas.Core.Signals
 			slot.Listener = listener;
 			slot.Priority = priority;
 
-			PriorityChanged(slot, 0, 0);
+			PriorityChanged(slot);
 
 			IsDisposed = false;
 
@@ -120,7 +120,7 @@ namespace Atlas.Core.Signals
 			return new SlotBase();
 		}
 
-		internal void PriorityChanged(SlotBase slot, int current, int previous)
+		internal void PriorityChanged(SlotBase slot)
 		{
 			slots.Remove(slot);
 

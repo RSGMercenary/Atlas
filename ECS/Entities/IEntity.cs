@@ -1,4 +1,5 @@
-﻿using Atlas.Core.Messages;
+﻿using Atlas.Core.Collections.Hierarchy;
+using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
@@ -7,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject, IAutoDispose, ISleep, IHierarchyMessenger<IEntity>
+	public interface IEntity : IObject<IEntity>, IAutoDispose, ISleep, IHierarchy<IEntity>
 	{
 		#region Entities
 
@@ -198,6 +199,19 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
+
+		#endregion
+
+		#region Messages
+
+		void AddListener<TMessage>(Action<TMessage> listener, Hierarchy flow)
+			where TMessage : IMessage<IEntity>;
+
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, Hierarchy flow)
+			where TMessage : IMessage<IEntity>;
+
+		void Message<TMessage>(TMessage message, Hierarchy flow)
+			where TMessage : IMessage<IEntity>;
 
 		#endregion
 

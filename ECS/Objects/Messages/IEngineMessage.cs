@@ -4,7 +4,8 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Messages
 {
-	public interface IEngineMessage : IPropertyMessage<IObject, IEngine>
+	public interface IEngineMessage<T> : IPropertyMessage<T, IEngine>
+		where T : IObject
 	{
 	}
 }

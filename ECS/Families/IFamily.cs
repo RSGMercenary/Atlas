@@ -20,7 +20,7 @@ namespace Atlas.ECS.Families
 		void RemoveEntity(IEntity entity, Type type);
 	}
 
-	public interface IFamily<TFamilyMember> : IFamily, IEnumerable<TFamilyMember>
+	public interface IFamily<TFamilyMember> : IFamily, IObject<IFamily<TFamilyMember>>, IEnumerable<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }

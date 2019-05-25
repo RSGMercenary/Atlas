@@ -37,13 +37,10 @@ namespace Atlas.Core.Signals
 			get { return priority; }
 			set
 			{
-				if(priority != value)
-				{
-					int previous = priority;
-					priority = value;
-					if(Signal != null)
-						(Signal as SignalBase).PriorityChanged(this, value, previous);
-				}
+				if(priority == value)
+					return;
+				priority = value;
+				(Signal as SignalBase)?.PriorityChanged(this);
 			}
 		}
 	}

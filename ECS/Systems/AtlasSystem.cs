@@ -6,7 +6,7 @@ using Atlas.ECS.Systems.Messages;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasSystem : AtlasObject, ISystem
+	public abstract class AtlasSystem : AtlasObject<ISystem>, ISystem
 	{
 		private int priority = 0;
 		private int sleeping = 0;
@@ -118,7 +118,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage>(new SleepMessage(this, value, previous));
+				Message<ISleepMessage<ISystem>>(new SleepMessage<ISystem>(this, value, previous));
 			}
 		}
 
@@ -184,8 +184,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = timeStep;
 				timeStep = value;
-				//TO-DO Make this its own message class.
-				//Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
 			}
 		}
 
@@ -214,7 +213,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = updateState;
 				updateState = value;
-				Message<IUpdateStateMessage>(new UpdateStateMessage(this, value, previous));
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
 			}
 		}
 	}

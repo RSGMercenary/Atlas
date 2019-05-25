@@ -7,4 +7,10 @@ namespace Atlas.ECS.Objects
 	{
 		IEngine Engine { get; set; }
 	}
+
+	public interface IObject<in T> : IMessenger<T>, IObject
+		where T : IObject
+	{
+
+	}
 }

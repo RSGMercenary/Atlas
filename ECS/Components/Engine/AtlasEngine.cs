@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components.Messages;
@@ -12,7 +13,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public class AtlasEngine : AtlasComponent, IEngine
+	public class AtlasEngine : AtlasComponent<IEngine>, IEngine
 	{
 		#region Static
 
@@ -85,11 +86,11 @@ namespace Atlas.ECS.Components
 			if(entity.Root != entity)
 				throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, MessageFlow.All);
-			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, MessageFlow.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageFlow.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageFlow.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageFlow.All);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Hierarchy.All);
+			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Hierarchy.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Hierarchy.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Hierarchy.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Hierarchy.All);
 			AddEntity(entity);
 		}
 
@@ -510,7 +511,7 @@ namespace Atlas.ECS.Components
 					return;
 				var previous = updateState;
 				updateState = value;
-				Message<IUpdateStateMessage>(new UpdateStateMessage(this, value, previous));
+				Message<IUpdateStateMessage<IEngine>>(new UpdateStateMessage<IEngine>(this, value, previous));
 			}
 		}
 

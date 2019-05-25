@@ -3,9 +3,10 @@ using Atlas.ECS.Entities;
 
 namespace Atlas.ECS.Components.Messages
 {
-	class ManagerRemoveMessage : KeyValueMessage<IComponent, int, IEntity>, IManagerRemoveMessage
+	class ManagerRemoveMessage<T> : KeyValueMessage<T, int, IEntity>, IManagerRemoveMessage<T>
+		where T : IComponent
 	{
-		public ManagerRemoveMessage(IComponent messenger, int key, IEntity value) : base(messenger, key, value)
+		public ManagerRemoveMessage(T messenger, int key, IEntity value) : base(messenger, key, value)
 		{
 		}
 	}

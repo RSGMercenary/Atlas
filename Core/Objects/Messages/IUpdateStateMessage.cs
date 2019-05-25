@@ -2,7 +2,8 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IUpdateStateMessage : IPropertyMessage<IUpdateState, TimeStep>
+	public interface IUpdateStateMessage<T> : IPropertyMessage<T, TimeStep>
+		where T : IUpdateState
 	{
 	}
 }
