@@ -205,11 +205,10 @@ namespace Atlas.Core.Signals
 		}
 	}
 
-	public class SignalBase<TSlot, TISlot, TDelegate, TValidator> : SignalBase, ISignalBase<TISlot, TDelegate>
+	public class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : Delegate
-		where TValidator : Delegate
 	{
 		public SignalBase()
 		{
