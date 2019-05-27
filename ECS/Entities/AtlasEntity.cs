@@ -173,16 +173,10 @@ namespace Atlas.ECS.Entities
 			get { return base.Engine; }
 			set
 			{
-				if(value != null)
-				{
-					if(Engine == null && value.HasEntity(this))
-						base.Engine = value;
-				}
-				else
-				{
-					if(Engine != null && !Engine.HasEntity(this))
-						base.Engine = value;
-				}
+				if(value != null && Engine == null && value.HasEntity(this))
+					base.Engine = value;
+				else if(value == null && Engine != null && !Engine.HasEntity(this))
+					base.Engine = value;
 			}
 		}
 

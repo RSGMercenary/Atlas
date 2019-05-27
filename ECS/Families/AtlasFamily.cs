@@ -91,20 +91,10 @@ namespace Atlas.ECS.Families
 			get { return base.Engine; }
 			set
 			{
-				if(value != null)
-				{
-					if(Engine == null && value.HasFamily(this))
-					{
-						base.Engine = value;
-					}
-				}
-				else
-				{
-					if(Engine != null && !Engine.HasFamily(this))
-					{
-						base.Engine = value;
-					}
-				}
+				if(value != null && Engine == null && value.HasFamily(this))
+					base.Engine = value;
+				else if(value == null && Engine != null && !Engine.HasFamily(this))
+					base.Engine = value;
 			}
 		}
 

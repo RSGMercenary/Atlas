@@ -18,10 +18,10 @@ namespace Atlas.ECS.Objects
 					return;
 				var previous = engine;
 				engine = value;
+				if(previous != null)
+					RemovingEngine(previous);
 				if(value != null)
 					AddingEngine(value);
-				else
-					RemovingEngine(previous);
 				Message<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
 			}
 		}
