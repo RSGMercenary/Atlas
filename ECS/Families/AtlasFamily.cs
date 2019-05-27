@@ -16,11 +16,14 @@ namespace Atlas.ECS.Families
 	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
+		#region Static
+		private static readonly BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+		#endregion
+
 		#region Fields
 
 		//Reflection Fields
 		private readonly Type family;
-		private readonly BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
 		private readonly string entityField;
 		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
 
@@ -42,9 +45,7 @@ namespace Atlas.ECS.Families
 			//Gets the private backing fields of the Entity and component properties.
 			entityField = family.BaseType.GetFields(flags)[0].Name;
 			foreach(var field in family.GetFields(flags))
-			{
 				components.Add(field.FieldType, field.Name);
-			}
 		}
 
 		public sealed override void Dispose()
