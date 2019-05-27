@@ -84,10 +84,9 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		protected override void Destroying()
+		~AtlasEntity()
 		{
 			RemoveSingleton();
-			base.Destroying();
 		}
 
 		protected override void Disposing()

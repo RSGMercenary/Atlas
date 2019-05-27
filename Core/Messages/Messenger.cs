@@ -14,17 +14,10 @@ namespace Atlas.Core.Messages
 
 		}
 
-		~Messenger()
-		{
-			Destroying();
-		}
-
 		public virtual void Dispose()
 		{
 			Disposing();
 		}
-
-		protected virtual void Destroying() { }
 
 		/// <summary>
 		/// Called when this instance is being disposed. Should not be called manually.

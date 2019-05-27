@@ -63,10 +63,9 @@ namespace Atlas.ECS.Components
 			singleton = this;
 		}
 
-		protected override void Destroying()
+		~AtlasEngine()
 		{
 			RemoveSingleton();
-			base.Destroying();
 		}
 
 		protected override void Disposing()
