@@ -49,7 +49,7 @@ namespace Atlas.ECS.Components
 
 		//Fixed Time
 		private int lagFixedTime = 0;
-		private double deltaFixedTime = 1f / 60f;
+		private double deltaFixedTime = 1d / 60d;
 		private double totalFixedTime = 0;
 
 		#endregion

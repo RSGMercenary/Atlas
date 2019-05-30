@@ -11,7 +11,7 @@ namespace Atlas.Core.Objects
 
 		public Updater(Action<double> update)
 		{
-			this.update = update ?? throw new NullReferenceException();
+			this.update = update ?? throw new NullReferenceException("No method to call for updates.");
 		}
 
 		public bool IsRunning

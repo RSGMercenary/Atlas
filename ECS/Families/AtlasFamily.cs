@@ -2,6 +2,7 @@
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
+using Atlas.Core.Utilites;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families.Messages;
@@ -23,9 +24,8 @@ namespace Atlas.ECS.Families
 		#region Fields
 
 		//Reflection Fields
-		private readonly Type family;
-		private readonly string entityField;
-		private readonly Dictionary<Type, string> components = new Dictionary<Type, string>();
+		private readonly FieldInfo entityField;
+		private readonly Dictionary<Type, FieldInfo> components = new Dictionary<Type, FieldInfo>();
 
 		//Family Members
 		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
@@ -41,16 +41,26 @@ namespace Atlas.ECS.Families
 
 		public AtlasFamily()
 		{
-			family = typeof(TFamilyMember);
 			//Gets the private backing fields of the Entity and component properties.
-			entityField = family.BaseType.GetFields(flags)[0].Name;
-			foreach(var field in family.GetFields(flags))
-				components.Add(field.FieldType, field.Name);
+			foreach(var field in typeof(TFamilyMember).FindFields(flags))
+			{
+				if(field.FieldType == typeof(IEntity))
+				{
+					if(entityField == null)
+						entityField = field;
+					else
+						throw new InvalidOperationException($"{typeof(TFamilyMember).Name} can't have multiple {nameof(IEntity)} properties.");
+				}
+				else if(typeof(IComponent).IsAssignableFrom(field.FieldType))
+					components.Add(field.FieldType, field);
+				else
+					throw new InvalidOperationException($"{typeof(TFamilyMember).Name}'s {field.FieldType.Name} is not an {nameof(IComponent)}.");
+			}
 		}
 
 		public sealed override void Dispose()
 		{
-			//Can't destroy Family mid-update.
+			//Can't dispose Family mid-update.
 			if(Engine != null || removed.Count > 0)
 				return;
 			base.Dispose();
@@ -129,17 +139,13 @@ namespace Atlas.ECS.Families
 		public void AddEntity(IEntity entity, Type componentType)
 		{
 			if(components.ContainsKey(componentType))
-			{
 				Add(entity);
-			}
 		}
 
 		public void RemoveEntity(IEntity entity, Type componentType)
 		{
 			if(components.ContainsKey(componentType))
-			{
 				Remove(entity);
-			}
 		}
 
 		private void Add(IEntity entity)
@@ -208,12 +214,9 @@ namespace Atlas.ECS.Families
 
 		private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
 		{
-			family.BaseType.GetField(entityField, flags).SetValue(member, entity);
+			entityField.SetValue(member, entity);
 			foreach(var type in components.Keys)
-			{
-				var component = add ? entity.GetComponent(type) : null;
-				family.GetField(components[type], flags).SetValue(member, component);
-			}
+				components[type].SetValue(member, add ? entity.GetComponent(type) : null);
 			return member;
 		}
 
