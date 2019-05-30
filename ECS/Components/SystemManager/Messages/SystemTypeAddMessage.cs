@@ -5,7 +5,7 @@ namespace Atlas.ECS.Components.Messages
 {
 	class SystemTypeAddMessage : ValueMessage<ISystemManager, Type>, ISystemTypeAddMessage
 	{
-		public SystemTypeAddMessage(ISystemManager messenger, Type value) : base(messenger, value)
+		public SystemTypeAddMessage(Type value) : base(value)
 		{
 		}
 	}

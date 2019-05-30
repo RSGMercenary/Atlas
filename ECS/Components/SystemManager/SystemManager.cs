@@ -78,7 +78,7 @@ namespace Atlas.ECS.Components
 				return false;
 			types.Add(type);
 			Engine?.AddSystem(type);
-			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(this, type));
+			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(type));
 			return true;
 		}
 
@@ -96,7 +96,7 @@ namespace Atlas.ECS.Components
 				return false;
 			types.Remove(type);
 			Engine?.RemoveSystem(type);
-			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(this, type));
+			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(type));
 			return true;
 		}
 

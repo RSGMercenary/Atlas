@@ -19,7 +19,7 @@ namespace Atlas.Core.Collections.Hierarchy
 		private bool CanDispatch(TMessage message)
 		{
 			var first = message.Messenger;
-			var current = message.CurrentMessenger as T;
+			var current = message.CurrentMessenger;
 			if(Messenger == Hierarchy.All)
 				return true;
 			if(Messenger.HasFlag(Hierarchy.Self) && current == first)

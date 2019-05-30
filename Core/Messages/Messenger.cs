@@ -35,7 +35,8 @@ namespace Atlas.Core.Messages
 		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage<T>
 		{
-			message.CurrentMessenger = this;
+			(message as IMessage).Messenger = this;
+			(message as IMessage).CurrentMessenger = this;
 			//Pass around message internally...
 			Messaging(message);
 			//...before dispatching externally.

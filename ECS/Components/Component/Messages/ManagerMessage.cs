@@ -3,9 +3,9 @@
 namespace Atlas.ECS.Components.Messages
 {
 	class ManagerMessage<T> : Message<T>, IManagerMessage<T>
-		where T : IComponent
+		where T : class, IComponent
 	{
-		public ManagerMessage(T messenger) : base(messenger)
+		public ManagerMessage()
 		{
 
 		}

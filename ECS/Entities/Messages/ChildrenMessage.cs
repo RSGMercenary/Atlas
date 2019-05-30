@@ -4,7 +4,7 @@ namespace Atlas.ECS.Entities.Messages
 {
 	class ChildrenMessage : Message<IEntity>, IChildrenMessage
 	{
-		public ChildrenMessage(IEntity messenger) : base(messenger)
+		public ChildrenMessage()
 		{
 
 		}

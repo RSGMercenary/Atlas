@@ -156,7 +156,7 @@ namespace Atlas.ECS.Families
 			var member = SetMemberValues(pool.Remove(), entity, true);
 			members.Add(member);
 			entities.Add(entity, member);
-			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(this, member));
+			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
 		}
 
 		private void Remove(IEntity entity)
@@ -168,7 +168,7 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
-			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(this, member));
+			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(member));
 
 			if(Engine == null || Engine.UpdateState == TimeStep.None)
 			{

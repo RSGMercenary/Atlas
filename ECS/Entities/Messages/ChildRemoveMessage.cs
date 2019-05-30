@@ -4,7 +4,7 @@ namespace Atlas.ECS.Entities.Messages
 {
 	class ChildRemoveMessage : KeyValueMessage<IEntity, int, IEntity>, IChildRemoveMessage
 	{
-		public ChildRemoveMessage(IEntity messenger, int key, IEntity value) : base(messenger, key, value)
+		public ChildRemoveMessage(int key, IEntity value) : base(key, value)
 		{
 		}
 	}

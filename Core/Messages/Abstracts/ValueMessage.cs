@@ -1,9 +1,9 @@
 ﻿namespace Atlas.Core.Messages
 {
 	public abstract class ValueMessage<TMessenger, TValue> : Message<TMessenger>, IValueMessage<TMessenger, TValue>
-		where TMessenger : IMessenger
+		where TMessenger : class, IMessenger
 	{
-		public ValueMessage(TMessenger messenger, TValue value) : base(messenger)
+		public ValueMessage(TValue value)
 		{
 			Value = value;
 		}

@@ -5,7 +5,7 @@ namespace Atlas.ECS.Components.Messages
 {
 	class SystemTypeRemoveMessage : ValueMessage<ISystemManager, Type>, ISystemTypeRemoveMessage
 	{
-		public SystemTypeRemoveMessage(ISystemManager messenger, Type value) : base(messenger, value)
+		public SystemTypeRemoveMessage(Type value) : base(value)
 		{
 		}
 	}

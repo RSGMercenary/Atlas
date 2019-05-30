@@ -108,7 +108,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = sleeping;
 				sleeping = value;
-				Message<ISleepMessage<ISystem>>(new SleepMessage<ISystem>(this, value, previous));
+				Message<ISleepMessage<ISystem>>(new SleepMessage<ISystem>(value, previous));
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = deltaIntervalTime;
 				deltaIntervalTime = value;
-				Message<IIntervalMessage>(new IntervalMessage(this, value, previous));
+				Message<IIntervalMessage>(new IntervalMessage(value, previous));
 				if(Engine != null)
 					SyncTotalIntervalTime();
 			}
@@ -174,7 +174,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = timeStep;
 				timeStep = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
 			}
 		}
 
@@ -190,7 +190,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message<IPriorityMessage>(new PriorityMessage(this, value, previous));
+				Message<IPriorityMessage>(new PriorityMessage(value, previous));
 			}
 		}
 
@@ -203,7 +203,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = updateState;
 				updateState = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(this, value, previous));
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
 			}
 		}
 	}

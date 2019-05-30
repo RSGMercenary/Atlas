@@ -22,7 +22,7 @@ namespace Atlas.ECS.Objects
 					RemovingEngine(previous);
 				if(value != null)
 					AddingEngine(value);
-				Message<IEngineMessage<T>>(new EngineMessage<T>(this as T, value, previous));
+				Message<IEngineMessage<T>>(new EngineMessage<T>(value, previous));
 			}
 		}
 

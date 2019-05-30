@@ -6,7 +6,7 @@ namespace Atlas.ECS.Components.Messages
 {
 	class SystemAddMessage : KeyValueMessage<IEngine, Type, ISystem>, ISystemAddMessage
 	{
-		public SystemAddMessage(IEngine messenger, Type key, ISystem value) : base(messenger, key, value)
+		public SystemAddMessage(Type key, ISystem value) : base(key, value)
 		{
 		}
 	}
