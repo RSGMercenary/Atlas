@@ -7,7 +7,7 @@ namespace Atlas.Core.Messages
 
 	}
 
-	public interface IMessenger<in T> : IMessenger
+	public interface IMessenger<T> : IMessenger
 		where T : IMessenger
 	{
 		void AddListener<TMessage>(Action<TMessage> listener)
