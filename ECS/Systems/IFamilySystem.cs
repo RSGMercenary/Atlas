@@ -2,15 +2,11 @@
 
 namespace Atlas.ECS.Systems
 {
-	public interface IFamilySystem : ISystem
-	{
-		IFamily Family { get; }
-		bool UpdateSleepingEntities { get; }
-	}
-
-	public interface IFamilySystem<TFamilyMember> : IFamilySystem
+	public interface IFamilySystem<out TFamilyMember> : ISystem
 		where TFamilyMember : class, IFamilyMember, new()
 	{
-		new IFamily<TFamilyMember> Family { get; }
+		IFamily<TFamilyMember> Family { get; }
+
+		bool UpdateSleepingEntities { get; }
 	}
 }

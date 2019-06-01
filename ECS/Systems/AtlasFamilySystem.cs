@@ -7,7 +7,6 @@ namespace Atlas.ECS.Systems
 	public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
-		IFamily IFamilySystem.Family => Family;
 		public IFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
