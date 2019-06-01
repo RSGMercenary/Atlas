@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Static
@@ -66,13 +66,6 @@ namespace Atlas.ECS.Families
 			base.Dispose();
 		}
 
-		protected override void Disposing()
-		{
-			//TO-DO
-			//Do some clean up maybe? Or let the GC handle it.
-			base.Disposing();
-		}
-
 		protected override void RemovingEngine(IEngine engine)
 		{
 			base.RemovingEngine(engine);
@@ -112,6 +105,7 @@ namespace Atlas.ECS.Families
 		#endregion
 
 		#region Get
+
 		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
 
 		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
@@ -122,30 +116,20 @@ namespace Atlas.ECS.Families
 		{
 			return entities.ContainsKey(entity) ? entities[entity] : null;
 		}
+
 		#endregion
 
-		#region Member Add/Remove
+		#region Add
 
 		public void AddEntity(IEntity entity)
 		{
 			Add(entity);
 		}
 
-		public void RemoveEntity(IEntity entity)
-		{
-			Remove(entity);
-		}
-
 		public void AddEntity(IEntity entity, Type componentType)
 		{
 			if(components.ContainsKey(componentType))
 				Add(entity);
-		}
-
-		public void RemoveEntity(IEntity entity, Type componentType)
-		{
-			if(components.ContainsKey(componentType))
-				Remove(entity);
 		}
 
 		private void Add(IEntity entity)
@@ -163,6 +147,21 @@ namespace Atlas.ECS.Families
 			members.Add(member);
 			entities.Add(entity, member);
 			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
+		}
+
+		#endregion
+
+		#region Remove
+
+		public void RemoveEntity(IEntity entity)
+		{
+			Remove(entity);
+		}
+
+		public void RemoveEntity(IEntity entity, Type componentType)
+		{
+			if(components.ContainsKey(componentType))
+				Remove(entity);
 		}
 
 		private void Remove(IEntity entity)
@@ -189,7 +188,7 @@ namespace Atlas.ECS.Families
 
 		#endregion
 
-		#region Member Pooling
+		#region Pooling
 
 		private void PoolMembers(IUpdateStateMessage<IEngine> message)
 		{
@@ -210,7 +209,7 @@ namespace Atlas.ECS.Families
 
 		#endregion
 
-		#region Utility Methods
+		#region Helpers
 
 		private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
 		{
@@ -220,9 +219,9 @@ namespace Atlas.ECS.Families
 			return member;
 		}
 
-		public void Sort(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sort, Func<TFamilyMember, TFamilyMember, int> compare)
+		public void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare)
 		{
-			sort(members, compare);
+			Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
 		}
 
 		#endregion

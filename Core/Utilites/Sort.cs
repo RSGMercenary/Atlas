@@ -3,10 +3,20 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Utilites
 {
+	public enum Sort
+	{
+		Bubble,
+		Heap,
+		Insertion,
+		Merge,
+		Quick,
+		Selection
+	}
+
 	/// <summary>
 	/// Sorting algorithms found at http://www.codecodex.com/wiki.
 	/// </summary>
-	public static class Sort
+	public static class Sorter
 	{
 		#region Bubble
 
@@ -203,6 +213,20 @@ namespace Atlas.Core.Utilites
 			var temp = list[index2];
 			list[index2] = list[index1];
 			list[index1] = temp;
+		}
+
+		public static Action<IList<T>, Func<T, T, int>> Get<T>(Sort type)
+		{
+			switch(type)
+			{
+				case Sort.Bubble: return Bubble;
+				case Sort.Heap: return Heap;
+				case Sort.Insertion: return Insertion;
+				case Sort.Merge: return Merge;
+				case Sort.Quick: return Quick;
+				case Sort.Selection: return Selection;
+				default: throw new NotImplementedException($"No sort implementation for {type.ToString()}.");
+			}
 		}
 	}
 }
