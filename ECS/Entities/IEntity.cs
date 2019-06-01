@@ -5,6 +5,7 @@ using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Atlas.ECS.Entities
 {
@@ -230,7 +231,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="addSystems">Adds systems to the output.</param>
 		/// <param name="indent"></param>
 		/// <returns></returns>
-		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, string indent = "");
+		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, string indent = "", StringBuilder text = null);
 
 		#endregion
 	}

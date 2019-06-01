@@ -294,33 +294,33 @@ namespace Atlas.ECS.Components
 			}
 		}
 
-		public string ToInfoString(bool addEntities, int index = 0, string indent = "")
+		public string ToInfoString(bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
 		{
-			var info = new StringBuilder();
-			info.Append($"{indent}Component");
+			text = text ?? new StringBuilder();
+			text.Append($"{indent}Component");
 			if(index > 0)
-				info.Append($" {index}");
-			info.AppendLine();
-			info.AppendLine($"{indent}  Instance    = {GetType().FullName}");
+				text.Append($" {index}");
+			text.AppendLine();
+			text.AppendLine($"{indent}  Instance    = {GetType().FullName}");
 			if(Manager != null)
-				info.AppendLine($"{indent}  Interface   = {Manager.GetComponentType(this).FullName}");
-			info.AppendLine($"{indent}  {nameof(AutoDispose)} = {AutoDispose}");
-			info.AppendLine($"{indent}  {nameof(IsShareable)} = {IsShareable}");
+				text.AppendLine($"{indent}  Interface   = {Manager.GetComponentType(this).FullName}");
+			text.AppendLine($"{indent}  {nameof(AutoDispose)} = {AutoDispose}");
+			text.AppendLine($"{indent}  {nameof(IsShareable)} = {IsShareable}");
 			if(IsShareable)
 			{
-				info.AppendLine($"{indent}  Entities ({managers.Count})");
+				text.AppendLine($"{indent}  Entities ({managers.Count})");
 				if(addEntities)
 				{
 					index = 0;
 					foreach(var entity in managers)
 					{
-						info.AppendLine($"{indent}    Entity {++index}");
-						info.AppendLine($"{indent}      Interface  = {entity.GetComponentType(this).FullName}");
-						info.AppendLine($"{indent}      {nameof(entity.GlobalName)} = {entity.GlobalName}");
+						text.AppendLine($"{indent}    Entity {++index}");
+						text.AppendLine($"{indent}      Interface  = {entity.GetComponentType(this).FullName}");
+						text.AppendLine($"{indent}      {nameof(entity.GlobalName)} = {entity.GlobalName}");
 					}
 				}
 			}
-			return info.ToString();
+			return text.ToString();
 		}
 	}
 }

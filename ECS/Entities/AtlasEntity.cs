@@ -993,33 +993,33 @@ namespace Atlas.ECS.Entities
 			return GlobalName;
 		}
 
-		public string ToInfoString(int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "")
+		public string ToInfoString(int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "", StringBuilder text = null)
 		{
-			var info = new StringBuilder();
+			text = text ?? new StringBuilder();
 
 			var name = (this == singleton) ? RootName : $"Child {parentIndex + 1}";
-			info.AppendLine($"{indent}{name}");
-			info.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
-			info.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
-			info.AppendLine($"{indent}  {nameof(AutoDispose)}  = {AutoDispose}");
-			info.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
-			info.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
+			text.AppendLine($"{indent}{name}");
+			text.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
+			text.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
+			text.AppendLine($"{indent}  {nameof(AutoDispose)}  = {AutoDispose}");
+			text.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
+			text.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
 
-			info.AppendLine($"{indent}  {nameof(Components)} ({components.Count})");
+			text.AppendLine($"{indent}  {nameof(Components)} ({components.Count})");
 			if(addComponents)
 			{
 				int index = 0;
 				foreach(var type in components.Keys)
-					info.Append(components[type].ToInfoString(addEntities, ++index, $"{indent}    "));
+					components[type].ToInfoString(addEntities, ++index, $"{indent}    ", text);
 			}
 
-			info.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
+			text.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
 			if(depth != 0)
 			{
 				foreach(var child in children)
-					info.Append(child.ToInfoString(--depth, addComponents, addEntities, $"{indent}    "));
+					child.ToInfoString(--depth, addComponents, addEntities, $"{indent}    ", text);
 			}
-			return info.ToString();
+			return text.ToString();
 		}
 
 		#endregion

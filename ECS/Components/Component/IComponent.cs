@@ -3,6 +3,7 @@ using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
+using System.Text;
 
 namespace Atlas.ECS.Components
 {
@@ -182,7 +183,7 @@ namespace Atlas.ECS.Components
 		/// <param name="index">The index of this Component when being printed with an Entity's ToString().</param>
 		/// <param name="indent">Indentation used for formatting the ToString() correctly.</param>
 		/// <returns></returns>
-		string ToInfoString(bool addManagers = true, int index = 0, string indent = "");
+		string ToInfoString(bool addManagers = true, int index = 0, string indent = "", StringBuilder text = null);
 	}
 
 	public interface IComponent<T> : IObject<T>, IComponent
