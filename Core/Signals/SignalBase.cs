@@ -146,11 +146,6 @@ namespace Atlas.Core.Signals
 			return false;
 		}
 
-		/// <summary>
-		/// Removes the Slot/listener at the given index.
-		/// </summary>
-		/// <param name="index"></param>
-		/// <returns></returns>
 		public bool Remove(int index)
 		{
 			if(index < 0)
