@@ -10,15 +10,9 @@ namespace Atlas.ECS.Components
 	{
 		private readonly Group<Type> types = new Group<Type>();
 
-		public SystemManager()
-		{
+		public SystemManager() { }
 
-		}
-
-		public SystemManager(params Type[] types) : this(types as IEnumerable<Type>)
-		{
-
-		}
+		public SystemManager(params Type[] types) : this(types as IEnumerable<Type>) { }
 
 		public SystemManager(IEnumerable<Type> types)
 		{
