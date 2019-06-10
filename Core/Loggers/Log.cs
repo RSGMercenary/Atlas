@@ -1,40 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Atlas.Core.Loggers
 {
 	public static class Log
 	{
-		private static ILogger logger = new DebugLogger();
+		private static List<ILogger> loggers = new List<ILogger>() { new DebugLogger() };
 
-		/// <summary>
-		/// This Logger will be used everywhere. Set this
-		/// to any ILogger you want to log messages with.
-		/// </summary>
-		public static ILogger Logger
+		public static IEnumerable<ILogger> Loggers
 		{
-			get { return logger; }
-			set { logger = value ?? new DebugLogger(); }
-
+			get { return loggers; }
+			set
+			{
+				loggers.Clear();
+				loggers.AddRange(value);
+			}
 		}
 
 		public static void Info(object info)
 		{
-			Logger.Info(info, 1);
+			foreach(var logger in loggers)
+				logger.Info(info, 1);
 		}
 
 		public static void Warning(object warning)
 		{
-			Logger.Warning(warning, 1);
+			foreach(var logger in loggers)
+				logger.Warning(warning, 1);
 		}
 
 		public static void Error(object error)
 		{
-			Logger.Error(error, 1);
+			foreach(var logger in loggers)
+				logger.Error(error, 1);
 		}
 
 		public static void Exception(Exception exception)
 		{
-			Logger.Exception(exception, 1);
+			foreach(var logger in loggers)
+				logger.Exception(exception, 1);
 		}
 	}
 }
