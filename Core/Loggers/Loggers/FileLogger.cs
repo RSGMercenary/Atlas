@@ -12,7 +12,7 @@ namespace Atlas.Core.Loggers
 		public FileLogger(bool verbose, string path) : base(verbose)
 		{
 			Path = path;
-			//To-DO Possibly limit the file size or number of lines.
+			//TO-DO Possibly limit the file size or number of lines.
 			File.Delete(Path);
 		}
 
