@@ -23,7 +23,7 @@ namespace Atlas.Core.Signals
 		bool RemoveAll();
 	}
 
-	public interface ISignalBase<TSlot, TDelegate> : ISignalBase
+	public interface ISignalBase<out TSlot, in TDelegate> : ISignalBase
 		where TSlot : ISlotBase
 		where TDelegate : Delegate
 	{

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Signals
 {
-	public class SignalBase : ISignalBase, IDisposable
+	public abstract class SignalBase : ISignalBase, IDisposable
 	{
 		public static implicit operator bool(SignalBase signal)
 		{
@@ -115,15 +115,11 @@ namespace Atlas.Core.Signals
 			return slot;
 		}
 
-		protected virtual SlotBase CreateSlot()
-		{
-			return new SlotBase();
-		}
+		protected abstract SlotBase CreateSlot();
 
 		internal void PriorityChanged(SlotBase slot)
 		{
 			slots.Remove(slot);
-
 			for(int index = slots.Count; index > 0; --index)
 			{
 				if(slots[index - 1].Priority <= slot.Priority)
@@ -132,7 +128,6 @@ namespace Atlas.Core.Signals
 					return;
 				}
 			}
-
 			slots.Insert(0, slot);
 		}
 
@@ -180,32 +175,28 @@ namespace Atlas.Core.Signals
 			if(slots.Count <= 0)
 				return false;
 			while(slots.Count > 0)
-			{
 				Remove(slots.Count - 1);
-			}
 			return true;
 		}
 
 		protected bool Dispatch<TSlot>(Action<TSlot> dispatcher)
 			where TSlot : ISlotBase
 		{
-			if(slots.Count > 0)
+			if(slots.Count <= 0)
+				return false;
+			++Dispatching;
+			foreach(TSlot slot in Slots)
+				dispatcher.Invoke(slot);
+			if(--Dispatching == 0)
 			{
-				++Dispatching;
-				foreach(TSlot slot in Slots)
-					dispatcher.Invoke(slot);
-				if(--Dispatching == 0)
-				{
-					while(slotsRemoved.Count > 0)
-						DisposeSlot(slotsRemoved.Pop());
-				}
-				return true;
+				while(slotsRemoved.Count > 0)
+					DisposeSlot(slotsRemoved.Pop());
 			}
-			return false;
+			return true;
 		}
 	}
 
-	public class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
+	public abstract class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
 		where TISlot : class, ISlotBase
 		where TDelegate : Delegate
