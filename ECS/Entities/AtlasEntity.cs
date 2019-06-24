@@ -929,20 +929,19 @@ namespace Atlas.ECS.Entities
 		{
 			if(message.Messenger == parent)
 			{
-				if(message is ISleepMessage<IEntity>)
+				if(message is ISleepMessage<IEntity> sleepMessage)
 				{
 					if(!IsFreeSleeping)
 					{
-						var cast = message as ISleepMessage<IEntity>;
-						if(cast.CurrentValue > 0 && cast.PreviousValue <= 0)
+						if(sleepMessage.CurrentValue > 0 && sleepMessage.PreviousValue <= 0)
 							++Sleeping;
-						else if(cast.CurrentValue <= 0 && cast.PreviousValue > 0)
+						else if(sleepMessage.CurrentValue <= 0 && sleepMessage.PreviousValue > 0)
 							--Sleeping;
 					}
 				}
-				else if(message is IRootMessage)
+				else if(message is IRootMessage rootMessage)
 				{
-					Root = (message as IRootMessage).Messenger.Root;
+					Root = rootMessage.Messenger.Root;
 				}
 				else if(message is IChildrenMessage)
 				{
