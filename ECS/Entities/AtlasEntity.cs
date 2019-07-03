@@ -840,13 +840,13 @@ namespace Atlas.ECS.Entities
 			return new HierarchySignal<TMessage, IEntity>();
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, Hierarchy messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, Tree messenger)
 			where TMessage : IMessage<IEntity>
 		{
 			AddListener(listener, 0, messenger);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Hierarchy messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Tree messenger)
 			where TMessage : IMessage<IEntity>
 		{
 			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, IEntity>).Messenger = messenger;
@@ -854,10 +854,10 @@ namespace Atlas.ECS.Entities
 
 		public sealed override void Message<TMessage>(TMessage message)
 		{
-			Message(message, Hierarchy.All);
+			Message(message, Tree.All);
 		}
 
-		public void Message<TMessage>(TMessage message, Hierarchy flow)
+		public void Message<TMessage>(TMessage message, Tree flow)
 			where TMessage : IMessage<IEntity>
 		{
 			//Keep track of what told 'this' to Message().
@@ -868,12 +868,12 @@ namespace Atlas.ECS.Entities
 			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
 			base.Message(message);
 
-			if(flow != Hierarchy.All && root == this && flow.HasFlag(Hierarchy.Root))
+			if(flow != Tree.All && root == this && flow.HasFlag(Tree.Root))
 				return;
 
-			if(flow == Hierarchy.All || flow.HasFlag(Hierarchy.Descendent) ||
-				(flow.HasFlag(Hierarchy.Child) && message.Messenger == this) ||
-				(flow.HasFlag(Hierarchy.Sibling) && HasChild(message.Messenger as IEntity)))
+			if(flow == Tree.All || flow.HasFlag(Tree.Descendent) ||
+				(flow.HasFlag(Tree.Child) && message.Messenger == this) ||
+				(flow.HasFlag(Tree.Sibling) && HasChild(message.Messenger)))
 			{
 				//Send Message to children.
 				foreach(var child in children)
@@ -888,8 +888,8 @@ namespace Atlas.ECS.Entities
 				}
 			}
 
-			if(flow == Hierarchy.All || (flow.HasFlag(Hierarchy.Parent) && message.Messenger == this) ||
-				(flow.HasFlag(Hierarchy.Ancestor) && !HasSibling(previousMessenger)))
+			if(flow == Tree.All || (flow.HasFlag(Tree.Parent) && message.Messenger == this) ||
+				(flow.HasFlag(Tree.Ancestor) && !HasSibling(previousMessenger)))
 			{
 				//Send Message to parent.
 				//Don't send Message back to the parent that told 'this' to Message().
@@ -899,7 +899,7 @@ namespace Atlas.ECS.Entities
 			}
 
 			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
-			if(flow != Hierarchy.All && parent != null && flow.HasFlag(Hierarchy.Sibling) &&
+			if(flow != Tree.All && parent != null && flow.HasFlag(Tree.Sibling) &&
 				message.Messenger == this)
 			{
 				foreach(var sibling in parent)
@@ -915,9 +915,9 @@ namespace Atlas.ECS.Entities
 			}
 
 			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
-			if(flow != Hierarchy.All && root != null && flow.HasFlag(Hierarchy.Root) &&
-				message.Messenger == this && !flow.HasFlag(Hierarchy.Ancestor) &&
-				!(flow.HasFlag(Hierarchy.Parent) && parent == root))
+			if(flow != Tree.All && root != null && flow.HasFlag(Tree.Root) &&
+				message.Messenger == this && !flow.HasFlag(Tree.Ancestor) &&
+				!(flow.HasFlag(Tree.Parent) && parent == root))
 			{
 				if(root != this)
 					root?.Message(message, flow);

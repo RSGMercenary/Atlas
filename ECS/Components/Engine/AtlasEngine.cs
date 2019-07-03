@@ -85,11 +85,11 @@ namespace Atlas.ECS.Components
 			if(entity.Root != entity)
 				throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Hierarchy.All);
-			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Hierarchy.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Hierarchy.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Hierarchy.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Hierarchy.All);
+			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Tree.All);
+			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Tree.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Tree.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Tree.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Tree.All);
 			AddEntity(entity);
 		}
 

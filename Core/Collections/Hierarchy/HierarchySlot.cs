@@ -7,7 +7,7 @@ namespace Atlas.Core.Collections.Hierarchy
 		where TMessage : IMessage<T>
 		where T : class, IMessenger, IHierarchy<T>
 	{
-		public Hierarchy Messenger { get; set; } = Hierarchy.Self;
+		public Tree Messenger { get; set; } = Tree.Self;
 
 		public override bool Dispatch(TMessage item1)
 		{
@@ -20,19 +20,19 @@ namespace Atlas.Core.Collections.Hierarchy
 		{
 			var first = message.Messenger;
 			var current = message.CurrentMessenger;
-			if(Messenger == Hierarchy.All)
+			if(Messenger == Tree.All)
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Self) && current == first)
+			if(Messenger.HasFlag(Tree.Self) && current == first)
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Parent) && current.Parent == first)
+			if(Messenger.HasFlag(Tree.Parent) && current.Parent == first)
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Child) && current == first.Parent)
+			if(Messenger.HasFlag(Tree.Child) && current == first.Parent)
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Sibling) && current.HasSibling(first))
+			if(Messenger.HasFlag(Tree.Sibling) && current.HasSibling(first))
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Ancestor) && current.HasAncestor(first))
+			if(Messenger.HasFlag(Tree.Ancestor) && current.HasAncestor(first))
 				return true;
-			if(Messenger.HasFlag(Hierarchy.Descendent) && current.HasDescendant(first))
+			if(Messenger.HasFlag(Tree.Descendent) && current.HasDescendant(first))
 				return true;
 			return false;
 		}

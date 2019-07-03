@@ -205,13 +205,13 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		void AddListener<TMessage>(Action<TMessage> listener, Hierarchy flow)
+		void AddListener<TMessage>(Action<TMessage> listener, Tree messenger)
 			where TMessage : IMessage<IEntity>;
 
-		void AddListener<TMessage>(Action<TMessage> listener, int priority, Hierarchy flow)
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, Tree messenger)
 			where TMessage : IMessage<IEntity>;
 
-		void Message<TMessage>(TMessage message, Hierarchy flow)
+		void Message<TMessage>(TMessage message, Tree messenger)
 			where TMessage : IMessage<IEntity>;
 
 		#endregion
