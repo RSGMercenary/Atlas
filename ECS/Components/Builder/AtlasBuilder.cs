@@ -71,11 +71,11 @@ namespace Atlas.ECS.Components
 
 		/// <summary>
 		/// Overridden 'Building()' methods will be invoked
-		/// sequentially from base classes to sub classes, instructing your subclass to begin building.
-		/// Once your sub class is finished building, call Built()
+		/// sequentially from base classes to sub classes (similar to a constructor), instructing your
+		/// subclass to begin building. Once your sub class is finished building, call Built()
 		/// so the Builder may proceed to build the next subclass.
 		/// </summary>
-		public void Built()
+		protected void Built()
 		{
 			if(state != BuildState.Building)
 				return;
