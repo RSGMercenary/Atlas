@@ -3,6 +3,11 @@ using System.Diagnostics;
 
 namespace Atlas.Core.Objects
 {
+	/// <summary>
+	/// Updater is a class used to test the update loop of the IEngine in environments where you don't have
+	/// a framework or other engine to provide an update loop for you. For example, in MonoGame the best practice
+	/// is to put your AtlasEngine.Update() call directly into Game.Update() so MonoGame can provide the time.
+	/// </summary>
 	public class Updater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
