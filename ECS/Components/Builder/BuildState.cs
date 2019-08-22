@@ -1,4 +1,4 @@
-﻿namespace Atlas.Core.Builders
+﻿namespace Atlas.ECS.Components
 {
 	public enum BuildState
 	{
