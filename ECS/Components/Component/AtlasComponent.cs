@@ -11,11 +11,6 @@ using System.Text;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasComponent : AtlasComponent<IComponent>
-	{
-
-	}
-
 	public abstract class AtlasComponent<T> : AtlasObject<T>, IComponent<T>
 		where T : class, IComponent
 	{
@@ -24,7 +19,7 @@ namespace Atlas.ECS.Components
 		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
 		public static IReadOnlyPool<TComponent> Pool<TComponent>()
-			where TComponent : AtlasComponent, new()
+			where TComponent : class, IComponent, new()
 		{
 			var type = typeof(TComponent);
 			if(!pools.ContainsKey(type))
@@ -33,7 +28,7 @@ namespace Atlas.ECS.Components
 		}
 
 		public static TComponent Get<TComponent>()
-			where TComponent : AtlasComponent, new()
+			where TComponent : class, IComponent, new()
 		{
 			return Pool<TComponent>().Remove();
 		}
