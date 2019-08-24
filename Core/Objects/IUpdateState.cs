@@ -1,8 +1,6 @@
-﻿using Atlas.Core.Messages;
-
-namespace Atlas.Core.Objects
+﻿namespace Atlas.Core.Objects
 {
-	public interface IUpdateState : IMessenger
+	public interface IUpdateState
 	{
 		TimeStep UpdateState { get; }
 	}

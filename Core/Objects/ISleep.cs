@@ -1,8 +1,6 @@
-﻿using Atlas.Core.Messages;
-
-namespace Atlas.Core.Objects
+﻿namespace Atlas.Core.Objects
 {
-	public interface ISleep : IMessenger
+	public interface ISleep
 	{
 		bool IsSleeping { get; set; }
 		int Sleeping { get; }

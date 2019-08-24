@@ -3,15 +3,9 @@ using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface ISystem : IObject<ISystem>, ISleep, IUpdateState
+	public interface ISystem : IObject<ISystem>, ISleep, IUpdateState, IPriority
 	{
 		void Update(float deltaTime);
-
-		/// <summary>
-		/// The Priority of this System relative to other Systems in the Engine.
-		/// Systems are updated from lowest-to-highest Priority value.
-		/// </summary>
-		int Priority { get; set; }
 
 		/// <summary>
 		/// The delay between updates. This is useful for Systems that don't have to

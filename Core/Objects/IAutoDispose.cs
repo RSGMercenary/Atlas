@@ -1,8 +1,6 @@
-﻿using Atlas.Core.Messages;
-
-namespace Atlas.Core.Objects
+﻿namespace Atlas.Core.Objects
 {
-	public interface IAutoDispose : IMessenger
+	public interface IAutoDispose
 	{
 		bool AutoDispose { get; set; }
 	}

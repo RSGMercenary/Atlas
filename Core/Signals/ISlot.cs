@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Atlas.Core.Objects;
+using System;
 
 namespace Atlas.Core.Signals
 {
-	public interface ISlotBase : IDisposable
+	public interface ISlotBase : IDisposable, IPriority
 	{
 		ISignalBase Signal { get; }
 		Delegate Listener { get; }
-		int Priority { get; set; }
 	}
 
 	public interface ISlotBase<out TSignal, out TListener> : ISlotBase

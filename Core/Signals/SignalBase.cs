@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Utilites;
 using System;
 using System.Collections.Generic;
 
@@ -119,16 +120,7 @@ namespace Atlas.Core.Signals
 
 		internal void PriorityChanged(SlotBase slot)
 		{
-			slots.Remove(slot);
-			for(int index = slots.Count; index > 0; --index)
-			{
-				if(slots[index - 1].Priority <= slot.Priority)
-				{
-					slots.Insert(index, slot);
-					return;
-				}
-			}
-			slots.Insert(0, slot);
+			Priority.Prioritize(slots, slot);
 		}
 
 		public bool Remove(Delegate listener)

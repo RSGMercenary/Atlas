@@ -2,6 +2,7 @@
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
+using Atlas.Core.Utilites;
 using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Entities.Messages;
@@ -281,18 +282,7 @@ namespace Atlas.ECS.Components
 
 		private void SystemPriorityChanged(ISystem system)
 		{
-			systems.Remove(system);
-
-			for(var index = systems.Count; index > 0; --index)
-			{
-				if(systems[index - 1].Priority <= system.Priority)
-				{
-					systems.Insert(index, system);
-					return;
-				}
-			}
-
-			systems.Insert(0, system);
+			Priority.Prioritize(systems, system);
 		}
 
 		#endregion
