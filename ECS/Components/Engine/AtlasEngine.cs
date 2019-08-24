@@ -15,12 +15,6 @@ namespace Atlas.ECS.Components
 {
 	public class AtlasEngine : AtlasComponent<IEngine>, IEngine
 	{
-		#region Static
-
-		private static IEngine singleton;
-
-		#endregion
-
 		#region Fields
 
 		//ECS Groups
@@ -55,30 +49,6 @@ namespace Atlas.ECS.Components
 		#endregion
 
 		#region Compose/Dispose
-
-		public AtlasEngine()
-		{
-			if(singleton != null)
-				throw new InvalidOperationException($"A new {GetType().Name} instance cannot be instantiated when one already exists.");
-			singleton = this;
-		}
-
-		~AtlasEngine()
-		{
-			RemoveSingleton();
-		}
-
-		protected override void Disposing()
-		{
-			RemoveSingleton();
-			base.Disposing();
-		}
-
-		private void RemoveSingleton()
-		{
-			if(singleton == this)
-				singleton = null;
-		}
 
 		protected override void AddingManager(IEntity entity, int index)
 		{
