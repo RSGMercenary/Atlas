@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Atlas.Core.Objects
+namespace Atlas.Core.Utilites
 {
 	/// <summary>
 	/// Updater is a class used to test the update loop of the IEngine in environments where you don't have
