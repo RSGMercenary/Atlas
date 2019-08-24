@@ -110,7 +110,7 @@ namespace Atlas.Core.Collections.Group
 
 		public bool Contains(T item)
 		{
-			return items.Find(element => { return element.Value.Equals(item); }) != null;
+			return items.Find(element => element.Value.Equals(item)) != null;
 		}
 
 		public void CopyTo(T[] array, int arrayIndex)
