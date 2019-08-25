@@ -1,14 +1,14 @@
 ﻿namespace Atlas.Core.Messages
 {
 	public class Message<TMessenger> : IMessage<TMessenger>
-		where TMessenger : class, IMessenger
+		where TMessenger : IMessenger
 	{
 		private TMessenger messenger;
 
 		public TMessenger Messenger
 		{
 			get => messenger;
-			private set => messenger = messenger ?? value;
+			private set => messenger = messenger != null ? messenger : value;
 		}
 
 		public TMessenger CurrentMessenger { get; private set; }

@@ -4,11 +4,6 @@ namespace Atlas.Core.Signals
 {
 	public class SlotBase : ISlotBase
 	{
-		public static implicit operator bool(SlotBase slot)
-		{
-			return slot != null;
-		}
-
 		private int priority = 0;
 		public ISignalBase Signal { get; internal set; }
 		public Delegate Listener { get; internal set; }

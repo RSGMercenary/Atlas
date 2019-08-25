@@ -5,7 +5,7 @@ using Atlas.ECS.Objects;
 namespace Atlas.ECS.Messages
 {
 	class EngineMessage<T> : PropertyMessage<T, IEngine>, IEngineMessage<T>
-		where T : class, IObject
+		where T : IObject
 	{
 		public EngineMessage(IEngine current, IEngine previous) : base(current, previous)
 		{

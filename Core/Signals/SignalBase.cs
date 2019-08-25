@@ -7,11 +7,6 @@ namespace Atlas.Core.Signals
 {
 	public abstract class SignalBase : ISignalBase, IDisposable
 	{
-		public static implicit operator bool(SignalBase signal)
-		{
-			return signal != null;
-		}
-
 		private readonly Group<SlotBase> slots = new Group<SlotBase>();
 		private readonly Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private readonly Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
@@ -93,7 +88,7 @@ namespace Atlas.Core.Signals
 			if(listener == null)
 				return null;
 			var slot = Get(listener) as SlotBase;
-			if(!slot)
+			if(slot == null)
 			{
 				if(slotsPooled.Count > 0)
 				{

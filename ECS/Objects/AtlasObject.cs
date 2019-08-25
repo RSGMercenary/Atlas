@@ -5,7 +5,7 @@ using Atlas.ECS.Messages;
 namespace Atlas.ECS.Objects
 {
 	public abstract class AtlasObject<T> : Messenger<T>, IObject<T>
-		where T : class, IObject
+		where T : IObject
 	{
 		private IEngine engine;
 

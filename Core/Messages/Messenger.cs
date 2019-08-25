@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Atlas.Core.Messages
 {
 	public abstract class Messenger<T> : IMessenger<T>
-		where T : class, IMessenger
+		where T : IMessenger
 	{
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
