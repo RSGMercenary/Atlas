@@ -3,7 +3,7 @@
 namespace Atlas.Core.Messages
 {
 	class AutoDisposeMessage<T> : PropertyMessage<T, bool>, IAutoDisposeMessage<T>
-		where T : class, IAutoDispose, IMessenger
+		where T : IAutoDispose, IMessenger
 	{
 		public AutoDisposeMessage(bool current, bool previous) : base(current, previous)
 		{
