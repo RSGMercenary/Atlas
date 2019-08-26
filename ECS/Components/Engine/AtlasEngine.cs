@@ -196,7 +196,7 @@ namespace Atlas.ECS.Components
 			if(!systemsReference.ContainsKey(type))
 			{
 				var system = CreateSystem(type);
-				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
+				system.AddListener<IPriorityMessage<ISystem>>(SystemPriorityChanged);
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
 				systemsReference.Add(type, 1);
@@ -223,7 +223,7 @@ namespace Atlas.ECS.Components
 			if(--systemsReference[type] > 0)
 				return;
 			var system = systemsType[type];
-			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
+			system.RemoveListener<IPriorityMessage<ISystem>>(SystemPriorityChanged);
 			systems.Remove(system);
 			systemsType.Remove(type);
 			systemsReference.Remove(type);
@@ -275,7 +275,7 @@ namespace Atlas.ECS.Components
 
 		#region Events
 
-		private void SystemPriorityChanged(IPriorityMessage message)
+		private void SystemPriorityChanged(IPriorityMessage<ISystem> message)
 		{
 			SystemPriorityChanged(message.Messenger);
 		}

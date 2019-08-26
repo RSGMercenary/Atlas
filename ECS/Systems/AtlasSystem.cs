@@ -190,7 +190,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message<IPriorityMessage>(new PriorityMessage(value, previous));
+				Message<IPriorityMessage<ISystem>>(new PriorityMessage<ISystem>(value, previous));
 			}
 		}
 
