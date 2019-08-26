@@ -12,7 +12,7 @@ using System.Text;
 namespace Atlas.ECS.Components
 {
 	public abstract class AtlasComponent<T> : AtlasObject<T>, IComponent<T>
-		where T : class, IComponent
+		where T : IComponent
 	{
 		#region Static
 
