@@ -175,7 +175,7 @@ namespace Atlas.ECS.Families
 			members.Remove(member);
 			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(member));
 
-			if(Engine == null || Engine.UpdateState == TimeStep.None)
+			if((Engine?.UpdateState ?? TimeStep.None) == TimeStep.None)
 			{
 				DisposeMember(member);
 			}
