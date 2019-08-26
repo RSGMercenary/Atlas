@@ -72,25 +72,25 @@ namespace Atlas.ECS.Entities
 
 		TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey;
+			where TValue : TKey;
 
 		TKeyValue GetComponent<TKeyValue>()
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		IComponent GetComponent(Type type);
 
 		TValue GetComponent<TValue>(Type type)
-			where TValue : class, IComponent;
+			where TValue : IComponent;
 
 		Type GetComponentType(IComponent component);
 
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
 		TKeyValue GetAncestorComponent<TKeyValue>()
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		#endregion
 
@@ -104,7 +104,7 @@ namespace Atlas.ECS.Entities
 		/// <returns></returns>
 		TValue AddComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey, new();
+			where TValue : TKey, new();
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance.
@@ -115,7 +115,7 @@ namespace Atlas.ECS.Entities
 		/// <returns></returns>
 		TValue AddComponent<TKey, TValue>(TValue component)
 			where TKey : IComponent
-			where TValue : class, TKey;
+			where TValue : TKey;
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance and index.
@@ -127,7 +127,7 @@ namespace Atlas.ECS.Entities
 		/// <returns></returns>
 		TValue AddComponent<TKey, TValue>(TValue component, int index)
 			where TKey : IComponent
-			where TValue : class, TKey;
+			where TValue : TKey;
 
 		/// <summary>
 		/// Adds a Component to the Entity with a new instance.
@@ -135,7 +135,7 @@ namespace Atlas.ECS.Entities
 		/// <typeparam name="TKeyValue">The instance Type of the Component.</typeparam>
 		/// <returns></returns>
 		TKeyValue AddComponent<TKeyValue>()
-			where TKeyValue : class, IComponent, new();
+			where TKeyValue : IComponent, new();
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance.
@@ -144,7 +144,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="Component">The instance of the Component.</param>
 		/// <returns></returns>
 		TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		/// <summary>
 		/// Adds a Component to the Entity with the given instance and index.
@@ -154,13 +154,13 @@ namespace Atlas.ECS.Entities
 		/// <param name="index">The index of the Entity within the Component.</param>
 		/// <returns></returns>
 		TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		TValue AddComponent<TValue>(TValue component, Type type)
-			where TValue : class, IComponent;
+			where TValue : IComponent;
 
 		TValue AddComponent<TValue>(Type type)
-			where TValue : class, IComponent, new();
+			where TValue : IComponent, new();
 
 		IComponent AddComponent(IComponent component);
 		IComponent AddComponent(IComponent component, Type type);
@@ -173,10 +173,10 @@ namespace Atlas.ECS.Entities
 
 		TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey;
+			where TValue : TKey;
 
 		TKeyValue RemoveComponent<TKeyValue>()
-			where TKeyValue : class, IComponent;
+			where TKeyValue : IComponent;
 
 		IComponent RemoveComponent(Type type);
 
