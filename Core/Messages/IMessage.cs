@@ -7,7 +7,7 @@
 		IMessenger CurrentMessenger { set; }
 	}
 
-	public interface IMessage<out TMessenger> : IMessage
+	public interface IMessage<TMessenger> : IMessage
 		where TMessenger : IMessenger
 	{
 		new TMessenger Messenger { get; }
