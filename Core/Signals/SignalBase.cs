@@ -180,7 +180,7 @@ namespace Atlas.Core.Signals
 
 	public abstract class SignalBase<TSlot, TISlot, TDelegate> : SignalBase, ISignalBase<TISlot, TDelegate>
 		where TSlot : SlotBase, TISlot, new()
-		where TISlot : class, ISlotBase
+		where TISlot : ISlotBase
 		where TDelegate : Delegate
 	{
 		public SignalBase()
@@ -190,17 +190,17 @@ namespace Atlas.Core.Signals
 
 		public TISlot Add(TDelegate listener)
 		{
-			return base.Add(listener, 0) as TISlot;
+			return (TISlot)base.Add(listener, 0);
 		}
 
 		public TISlot Add(TDelegate listener, int priority)
 		{
-			return base.Add(listener, priority) as TISlot;
+			return (TISlot)base.Add(listener, priority);
 		}
 
 		public TISlot Get(TDelegate listener)
 		{
-			return base.Get(listener) as TISlot;
+			return (TISlot)base.Get(listener);
 		}
 
 		public int GetIndex(TDelegate listener)
@@ -215,7 +215,7 @@ namespace Atlas.Core.Signals
 
 		public new TISlot Get(int index)
 		{
-			return base.Get(index) as TISlot;
+			return (TISlot)base.Get(index);
 		}
 
 		protected override SlotBase CreateSlot()
