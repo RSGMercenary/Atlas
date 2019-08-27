@@ -62,6 +62,12 @@ namespace Atlas.ECS.Components
 			base.Disposing();
 		}
 
+		private void TryAutoDispose()
+		{
+			if(autoDispose && managers.Count <= 0)
+				Dispose();
+		}
+
 		public bool AutoDispose
 		{
 			get { return autoDispose; }
@@ -72,8 +78,7 @@ namespace Atlas.ECS.Components
 				var previous = autoDispose;
 				autoDispose = value;
 				Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
-				if(autoDispose && managers.Count <= 0)
-					Dispose();
+				TryAutoDispose();
 			}
 		}
 
@@ -226,8 +231,7 @@ namespace Atlas.ECS.Components
 				RemovingManager(entity, index);
 				Message<IManagerRemoveMessage<T>>(new ManagerRemoveMessage<T>(index, entity));
 				Message<IManagerMessage<T>>(new ManagerMessage<T>());
-				if(autoDispose && managers.Count <= 0)
-					Dispose();
+				TryAutoDispose();
 			}
 			else
 			{

@@ -123,7 +123,7 @@ namespace Atlas.ECS.Entities
 			{
 				//Prevents the Root from changing names and other
 				//Entities from chaning their names to Root.
-				if(this == singleton || value == RootName)
+				if(this == Root || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					value = UniqueName;
@@ -131,7 +131,7 @@ namespace Atlas.ECS.Entities
 				{
 					if(globalName == value)
 						return;
-					if(Engine != null && Engine.HasEntity(value))
+					if(Engine?.HasEntity(value) ?? false)
 						return;
 				}
 				string previous = globalName;
@@ -147,7 +147,7 @@ namespace Atlas.ECS.Entities
 			{
 				//Prevents the Root from changing names and other
 				//Entities from chaning their names to Root.
-				if(this == singleton || value == RootName)
+				if(this == Root || value == RootName)
 					return;
 				if(string.IsNullOrWhiteSpace(value))
 					value = UniqueName;
@@ -155,7 +155,7 @@ namespace Atlas.ECS.Entities
 				{
 					if(localName == value)
 						return;
-					if(parent != null && parent.HasChild(value))
+					if(Parent?.HasChild(value) ?? false)
 						return;
 				}
 				string previous = localName;
