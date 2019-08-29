@@ -11,7 +11,9 @@ namespace Atlas.ECS.Components
 		private string configPath = "";
 		private JToken config;
 
-		public JsonEngine(string configPath = "EngineConfig.json")
+		public JsonEngine() : this("EngineConfig.json") { }
+
+		public JsonEngine(string configPath)
 		{
 			ConfigPath = string.IsNullOrWhiteSpace(configPath) ? "EngineConfig.json" : configPath;
 		}
