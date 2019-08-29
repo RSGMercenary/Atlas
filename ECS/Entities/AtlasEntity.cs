@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.Core.Signals;
@@ -17,7 +16,6 @@ namespace Atlas.ECS.Entities
 	{
 		#region Static
 
-		private static IEntity singleton;
 		public const string RootName = "Root";
 		public static string UniqueName { get { return $"Entity { Guid.NewGuid().ToString("N")}"; } }
 
@@ -44,18 +42,13 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Fields
-
 		private string globalName;
 		private string localName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private bool autoDispose = true;
-		private IEntity root;
-		private IEntity parent;
-		private int parentIndex = -1;
-		private readonly Group<IEntity> children = new Group<IEntity>();
+		private HierarchyMessenger<IEntity> hierarchy;
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
-
 		#endregion
 
 		#region Construct / Finalize
@@ -68,14 +61,11 @@ namespace Atlas.ECS.Entities
 
 		private AtlasEntity(string globalName, string localName, bool root)
 		{
+			hierarchy = new HierarchyMessenger<IEntity>(this, root);
 			if(root)
 			{
-				if(singleton != null)
-					throw new InvalidOperationException($"A new root {GetType().Name} instance cannot be instantiated when one already exists.");
 				this.globalName = RootName;
 				this.localName = RootName;
-				this.root = this;
-				singleton = this;
 			}
 			else
 			{
@@ -84,17 +74,9 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		~AtlasEntity()
-		{
-			RemoveSingleton();
-		}
-
 		protected override void Disposing()
 		{
-			RemoveSingleton();
-			RemoveChildren();
-			Parent = null;
-			Root = null;
+			hierarchy.Dispose();
 			RemoveComponents();
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
@@ -106,10 +88,10 @@ namespace Atlas.ECS.Entities
 			base.Disposing();
 		}
 
-		private void RemoveSingleton()
+		private void TryAutoDispose()
 		{
-			if(singleton == this)
-				singleton = null;
+			if(autoDispose && Parent == null)
+				Dispose();
 		}
 
 		#endregion
@@ -184,6 +166,8 @@ namespace Atlas.ECS.Entities
 
 		#region Components
 
+		#region Has
+
 		public bool HasComponent<TKey>()
 			where TKey : IComponent
 		{
@@ -195,23 +179,27 @@ namespace Atlas.ECS.Entities
 			return components.ContainsKey(type);
 		}
 
+		#endregion
+
+		#region Get
+
 		public TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey
+			where TValue : TKey
 		{
-			return GetComponent(typeof(TKey)) as TValue;
+			return (TValue)GetComponent(typeof(TKey));
 		}
 
 		public TKeyValue GetComponent<TKeyValue>()
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
-			return GetComponent(typeof(TKeyValue)) as TKeyValue;
+			return (TKeyValue)GetComponent(typeof(TKeyValue));
 		}
 
 		public TValue GetComponent<TValue>(Type type)
-			where TValue : class, IComponent
+			where TValue : IComponent
 		{
-			return GetComponent(type) as TValue;
+			return (TValue)GetComponent(type);
 		}
 
 		public IComponent GetComponent(Type type)
@@ -237,9 +225,9 @@ namespace Atlas.ECS.Entities
 		}
 
 		public TKeyValue GetAncestorComponent<TKeyValue>()
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
-			var ancestor = parent;
+			var ancestor = Parent;
 			while(ancestor != null)
 			{
 				var component = ancestor.GetComponent<TKeyValue>();
@@ -247,14 +235,14 @@ namespace Atlas.ECS.Entities
 					return component;
 				ancestor = ancestor.Parent;
 			}
-			return null;
+			return default;
 		}
 
 		public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
 			var components = new List<TKeyValue>();
-			foreach(var child in children)
+			foreach(var child in Children)
 			{
 				var component = child.GetComponent<TKeyValue>();
 				if(component != null)
@@ -265,63 +253,65 @@ namespace Atlas.ECS.Entities
 			return components;
 		}
 
+		#endregion
+
 		#region Add
 
 		//New component with Type
 		public TValue AddComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey, new()
+			where TValue : TKey, new()
 		{
-			return AddComponent(new TValue(), typeof(TKey), 0) as TValue;
+			return (TValue)AddComponent(new TValue(), typeof(TKey), 0);
 		}
 
 		//Component with Type
 		public TValue AddComponent<TKey, TValue>(TValue component)
 			where TKey : IComponent
-			where TValue : class, TKey
+			where TValue : TKey
 		{
-			return AddComponent(component, typeof(TKey), int.MaxValue) as TValue;
+			return (TValue)AddComponent(component, typeof(TKey), int.MaxValue);
 		}
 
 		//Component with Type, index
 		public TValue AddComponent<TKey, TValue>(TValue component, int index)
 			where TKey : IComponent
-			where TValue : class, TKey
+			where TValue : TKey
 		{
-			return AddComponent(component, typeof(TKey), index) as TValue;
+			return (TValue)AddComponent(component, typeof(TKey), index);
 		}
 
 		//New Component
 		public TKeyValue AddComponent<TKeyValue>()
-			where TKeyValue : class, IComponent, new()
+			where TKeyValue : IComponent, new()
 		{
-			return AddComponent(new TKeyValue(), null, 0) as TKeyValue;
+			return (TKeyValue)AddComponent(new TKeyValue(), null, 0);
 		}
 
 		//Component
 		public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
-			return AddComponent(component, typeof(TKeyValue), int.MaxValue) as TKeyValue;
+			return (TKeyValue)AddComponent(component, typeof(TKeyValue), int.MaxValue);
 		}
 
 		//Component, index
 		public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
-			return AddComponent(component, typeof(TKeyValue), index) as TKeyValue;
+			return (TKeyValue)AddComponent(component, typeof(TKeyValue), index);
 		}
 
 		public TValue AddComponent<TValue>(TValue component, Type type)
-			where TValue : class, IComponent
+			where TValue : IComponent
 		{
-			return AddComponent(component, type) as TValue;
+			return AddComponent(component, type);
 		}
 
 		public TValue AddComponent<TValue>(Type type)
-			where TValue : class, IComponent, new()
+			where TValue : IComponent, new()
 		{
-			return AddComponent(new TValue(), type) as TValue;
+			return AddComponent(new TValue(), type);
 		}
 
 		public IComponent AddComponent(IComponent component)
@@ -371,15 +361,15 @@ namespace Atlas.ECS.Entities
 
 		public TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : class, TKey
+			where TValue : TKey
 		{
-			return RemoveComponent(typeof(TKey)) as TValue;
+			return (TValue)RemoveComponent(typeof(TKey));
 		}
 
 		public TKeyValue RemoveComponent<TKeyValue>()
-			where TKeyValue : class, IComponent
+			where TKeyValue : IComponent
 		{
-			return RemoveComponent(typeof(TKeyValue)) as TKeyValue;
+			return (TKeyValue)RemoveComponent(typeof(TKeyValue));
 		}
 
 		public IComponent RemoveComponent(Type type)
@@ -420,18 +410,7 @@ namespace Atlas.ECS.Entities
 
 		public IEntity Root
 		{
-			get { return root; }
-			private set
-			{
-				//Only need this if Root setter becomes public
-				/*if(Parent?.Root != value)
-					return;*/
-				if(root == value)
-					return;
-				var previous = root;
-				root = value;
-				Message<IRootMessage>(new RootMessage(value, previous));
-			}
+			get { return hierarchy.Root; }
 		}
 
 		#endregion
@@ -440,61 +419,19 @@ namespace Atlas.ECS.Entities
 
 		public IEntity Parent
 		{
-			get { return parent; }
-			set { SetParent(value); }
+			get { return hierarchy.Parent; }
+			set { hierarchy.Parent = value; }
 		}
 
-		public IEntity SetParent(IEntity next = null, int index = int.MaxValue)
+		public IEntity SetParent(IEntity parent = null, int index = int.MaxValue)
 		{
-			//Prevent changing the Parent of the Root Entity.
-			//The Root must be the absolute bottom of the hierarchy.
-			if(this == singleton)
-				return null;
-			if(parent == next)
-				return null;
-			//Can't set a descendant of this as a parent.
-			if(HasDescendant(next))
-				return null;
-			Root = next?.Root;
-			var previous = parent;
-			int sleeping = 0;
-			//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
-			if(previous != null)
-			{
-				parent = null;
-				previous.RemoveChild(this);
-				if(!IsFreeSleeping && previous.IsSleeping)
-					--sleeping;
-			}
-			if(next != null)
-			{
-				parent = next;
-				index = Math.Max(0, Math.Min(index, next.Children.Count));
-				next.AddChild(this, index);
-				if(!IsFreeSleeping && next.IsSleeping)
-					++sleeping;
-			}
-			Message<IParentMessage>(new ParentMessage(next, previous));
-			SetParentIndex(next != null ? index : -1);
-			Sleeping += sleeping;
-			if(autoDispose && parent == null)
-				Dispose();
-			return next;
+			return hierarchy.SetParent(parent, index);
 		}
 
 		public int ParentIndex
 		{
-			get { return parentIndex; }
-			set { parent?.SetChildIndex(this, value); }
-		}
-
-		private void SetParentIndex(int value)
-		{
-			if(parentIndex == value)
-				return;
-			int previous = parentIndex;
-			parentIndex = value;
-			Message<IParentIndexMessage>(new ParentIndexMessage(value, previous));
+			get { return hierarchy.ParentIndex; }
+			set { hierarchy.ParentIndex = value; }
 		}
 
 		#endregion
@@ -505,7 +442,7 @@ namespace Atlas.ECS.Entities
 
 		public IEntity AddChild(string globalName, string localName)
 		{
-			return AddChild(Get(globalName, localName), children.Count);
+			return AddChild(Get(globalName, localName), Children.Count);
 		}
 
 		public IEntity AddChild(string globalName, string localName, int index)
@@ -515,7 +452,7 @@ namespace Atlas.ECS.Entities
 
 		public IEntity AddChild(string globalName, bool localName)
 		{
-			return AddChild(Get(globalName, localName), children.Count);
+			return AddChild(Get(globalName, localName), Children.Count);
 		}
 
 		public IEntity AddChild(string globalName, bool localName, int index)
@@ -527,32 +464,12 @@ namespace Atlas.ECS.Entities
 
 		public IEntity AddChild(IEntity child)
 		{
-			return AddChild(child, children.Count);
+			return AddChild(child, Children.Count);
 		}
 
 		public IEntity AddChild(IEntity child, int index)
 		{
-			if(child?.Parent == this)
-			{
-				if(!HasChild(child))
-				{
-					if(HasChild(child.LocalName))
-						child.LocalName = UniqueName;
-					children.Insert(index, child);
-					Message<IChildAddMessage>(new ChildAddMessage(index, child));
-					Message<IChildrenMessage>(new ChildrenMessage());
-				}
-				else
-				{
-					SetChildIndex(child, index);
-				}
-			}
-			else
-			{
-				if(child?.SetParent(this, index) == null)
-					return null;
-			}
-			return child;
+			return hierarchy.AddChild(child, index);
 		}
 
 		#endregion
@@ -561,27 +478,12 @@ namespace Atlas.ECS.Entities
 
 		public IEntity RemoveChild(IEntity child)
 		{
-			if(child == null)
-				return null;
-			if(child.Parent != this)
-			{
-				if(!HasChild(child))
-					return null;
-				int index = children.IndexOf(child);
-				children.Remove(child);
-				Message<IChildRemoveMessage>(new ChildRemoveMessage(index, child));
-				Message<IChildrenMessage>(new ChildrenMessage());
-			}
-			else
-			{
-				child.SetParent(null, -1);
-			}
-			return child;
+			return hierarchy.RemoveChild(child);
 		}
 
 		public IEntity RemoveChild(int index)
 		{
-			return RemoveChild(children[index]);
+			return hierarchy.RemoveChild(index);
 		}
 
 		public IEntity RemoveChild(string localName)
@@ -591,11 +493,7 @@ namespace Atlas.ECS.Entities
 
 		public bool RemoveChildren()
 		{
-			if(children.Count <= 0)
-				return false;
-			foreach(var child in children.Backward())
-				child.Parent = null;
-			return true;
+			return hierarchy.RemoveChildren();
 		}
 
 		#endregion
@@ -604,12 +502,12 @@ namespace Atlas.ECS.Entities
 
 		public IReadOnlyGroup<IEntity> Children
 		{
-			get { return children; }
+			get { return hierarchy.Children; }
 		}
 
 		public IEnumerator<IEntity> GetEnumerator()
 		{
-			return children.GetEnumerator();
+			return hierarchy.GetEnumerator();
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -619,7 +517,7 @@ namespace Atlas.ECS.Entities
 
 		public IEntity GetChild(string localName)
 		{
-			foreach(var child in children)
+			foreach(var child in Children)
 			{
 				if(child.LocalName == localName)
 					return child;
@@ -629,12 +527,12 @@ namespace Atlas.ECS.Entities
 
 		public IEntity GetChild(int index)
 		{
-			return children[index];
+			return hierarchy.GetChild(index);
 		}
 
 		public int GetChildIndex(IEntity child)
 		{
-			return children.IndexOf(child);
+			return hierarchy.GetChildIndex(child);
 		}
 
 		public IEntity GetHierarchy(string hierarchy)
@@ -663,43 +561,22 @@ namespace Atlas.ECS.Entities
 
 		public bool SetChildIndex(IEntity child, int index)
 		{
-			int previous = children.IndexOf(child);
-
-			if(previous == index)
-				return true;
-			if(previous < 0)
-				return false;
-
-			index = Math.Max(0, Math.Min(index, children.Count - 1));
-
-			children.RemoveAt(previous);
-			children.Insert(index, child);
-			Message<IChildrenMessage>(new ChildrenMessage());
-			return true;
+			return hierarchy.SetChildIndex(child, index);
 		}
 
 		public bool SwapChildren(IEntity child1, IEntity child2)
 		{
-			if(child1 == null)
-				return false;
-			if(child2 == null)
-				return false;
-			int index1 = children.IndexOf(child1);
-			int index2 = children.IndexOf(child2);
-			return SwapChildren(index1, index2);
+			return hierarchy.SwapChildren(child1, child2);
 		}
 
 		public bool SwapChildren(int index1, int index2)
 		{
-			if(!children.Swap(index1, index2))
-				return false;
-			Message<IChildrenMessage>(new ChildrenMessage());
-			return true;
+			return hierarchy.SwapChildren(index1, index2);
 		}
 
 		public IEntity SetHierarchy(string hierarchy, int index)
 		{
-			return SetParent(GetHierarchy(hierarchy) ?? parent, index);
+			return SetParent(GetHierarchy(hierarchy), index);
 		}
 
 		#endregion
@@ -713,35 +590,22 @@ namespace Atlas.ECS.Entities
 
 		public bool HasChild(IEntity child)
 		{
-			return children.Contains(child);
+			return hierarchy.HasChild(child);
 		}
 
 		public bool HasDescendant(IEntity descendant)
 		{
-			if(descendant == this)
-				return false;
-			while(descendant != null && descendant != this)
-				descendant = descendant.Parent;
-			return descendant == this;
+			return hierarchy.HasDescendant(descendant);
 		}
 
 		public bool HasAncestor(IEntity ancestor)
 		{
-			return ancestor?.HasDescendant(this) ?? false;
+			return hierarchy.HasAncestor(ancestor);
 		}
 
 		public bool HasSibling(IEntity sibling)
 		{
-			if(parent == null)
-				return false;
-			foreach(var child in parent)
-			{
-				if(child == this)
-					continue;
-				if(child == sibling)
-					return true;
-			}
-			return false;
+			return hierarchy.HasSibling(sibling);
 		}
 
 		#endregion
@@ -785,16 +649,16 @@ namespace Atlas.ECS.Entities
 				int previous = freeSleeping;
 				freeSleeping = value;
 				Message<IFreeSleepMessage>(new FreeSleepMessage(value, previous));
-				if(parent == null)
+				if(Parent == null)
 					return;
 				if(value > 0 && previous <= 0)
 				{
-					if(parent.IsSleeping)
+					if(Parent.IsSleeping)
 						--Sleeping;
 				}
 				else if(value <= 0 && previous > 0)
 				{
-					if(parent.IsSleeping)
+					if(Parent.IsSleeping)
 						++Sleeping;
 				}
 			}
@@ -826,8 +690,7 @@ namespace Atlas.ECS.Entities
 				var previous = autoDispose;
 				autoDispose = value;
 				Message<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(value, previous));
-				if(autoDispose && parent == null)
-					Dispose();
+				TryAutoDispose();
 			}
 		}
 
@@ -840,13 +703,13 @@ namespace Atlas.ECS.Entities
 			return new HierarchySignal<TMessage, IEntity>();
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, Tree messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
 			where TMessage : IMessage<IEntity>
 		{
 			AddListener(listener, 0, messenger);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Tree messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow messenger)
 			where TMessage : IMessage<IEntity>
 		{
 			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, IEntity>).Messenger = messenger;
@@ -854,80 +717,52 @@ namespace Atlas.ECS.Entities
 
 		public sealed override void Message<TMessage>(TMessage message)
 		{
-			Message(message, Tree.All);
+			Message(message, MessageFlow.All);
 		}
 
-		public void Message<TMessage>(TMessage message, Tree flow)
+		public void Message<TMessage>(TMessage message, MessageFlow flow)
 			where TMessage : IMessage<IEntity>
 		{
-			//Keep track of what told 'this' to Message().
-			//Prevents endless recursion.
-			var previousMessenger = message.CurrentMessenger;
-
-			//Standard Message() call.
-			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
-			base.Message(message);
-
-			if(flow != Tree.All && root == this && flow.HasFlag(Tree.Root))
-				return;
-
-			if(flow == Tree.All || flow.HasFlag(Tree.Descendent) ||
-				(flow.HasFlag(Tree.Child) && message.Messenger == this) ||
-				(flow.HasFlag(Tree.Sibling) && HasChild(message.Messenger)))
-			{
-				//Send Message to children.
-				foreach(var child in children)
-				{
-					//Don't send Message back to the child that told 'this' to Message().
-					if(child == previousMessenger)
-						continue;
-					child.Message(message, flow);
-					//Reset CurrentMessenger to 'this' so the next child (and parent)
-					//can block messaging from 'this' parent messenger.
-					(message as IMessage).CurrentMessenger = this;
-				}
-			}
-
-			if(flow == Tree.All || (flow.HasFlag(Tree.Parent) && message.Messenger == this) ||
-				(flow.HasFlag(Tree.Ancestor) && !HasSibling(previousMessenger)))
-			{
-				//Send Message to parent.
-				//Don't send Message back to the parent that told 'this' to Message().
-				if(parent != previousMessenger)
-					parent?.Message(message, flow);
-				(message as IMessage).CurrentMessenger = this;
-			}
-
-			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
-			if(flow != Tree.All && parent != null && flow.HasFlag(Tree.Sibling) &&
-				message.Messenger == this)
-			{
-				foreach(var sibling in parent)
-				{
-					//Don't send Message back to the sibling that told 'this' to Message().
-					if(sibling == this)
-						continue;
-					sibling.Message(message, flow);
-					//Reset CurrentMessenger to 'this' so the next sibling
-					//can block 'this' sibling messenger.
-					(message as IMessage).CurrentMessenger = this;
-				}
-			}
-
-			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
-			if(flow != Tree.All && root != null && flow.HasFlag(Tree.Root) &&
-				message.Messenger == this && !flow.HasFlag(Tree.Ancestor) &&
-				!(flow.HasFlag(Tree.Parent) && parent == root))
-			{
-				if(root != this)
-					root?.Message(message, flow);
-				(message as IMessage).CurrentMessenger = this;
-			}
+			hierarchy.Message(message, flow, base.Message);
 		}
 
 		protected override void Messaging(IMessage<IEntity> message)
 		{
-			if(message.Messenger == parent)
+			hierarchy.Messaging(message);
+
+			if(message.Messenger == message.CurrentMessenger)
+			{
+				if(message is IChildAddMessage<IEntity> childAddMessage)
+				{
+					bool nameTaken = false;
+					foreach(var child in Children)
+					{
+						if(child.LocalName != childAddMessage.Value.LocalName)
+							continue;
+						if(!nameTaken)
+							nameTaken = true;
+						else
+						{
+							childAddMessage.Value.LocalName = UniqueName;
+							break;
+						}
+					}
+				}
+				else if(message is IParentMessage<IEntity> parentMessage)
+				{
+					if(!IsFreeSleeping)
+					{
+						int sleeping = 0;
+						if(parentMessage.PreviousValue?.IsSleeping ?? false)
+							--sleeping;
+						if(parentMessage.CurrentValue?.IsSleeping ?? false)
+							++sleeping;
+						Sleeping += sleeping;
+					}
+					TryAutoDispose();
+				}
+			}
+			else if(message.Messenger == Parent)
 			{
 				if(message is ISleepMessage<IEntity> sleepMessage)
 				{
@@ -938,14 +773,6 @@ namespace Atlas.ECS.Entities
 						else if(sleepMessage.CurrentValue <= 0 && sleepMessage.PreviousValue > 0)
 							--Sleeping;
 					}
-				}
-				else if(message is IRootMessage rootMessage)
-				{
-					Root = rootMessage.Messenger.Root;
-				}
-				else if(message is IChildrenMessage)
-				{
-					SetParentIndex(parent.GetChildIndex(this));
 				}
 			}
 			base.Messaging(message);
@@ -958,8 +785,9 @@ namespace Atlas.ECS.Entities
 		public string AncestorsToString(int depth = -1, bool localNames = true, string indent = "")
 		{
 			var text = new StringBuilder();
-			if(parent != null && depth != 0)
+			if(Parent != null && depth != 0)
 			{
+				var parent = Parent;
 				text.Append(parent.AncestorsToString(depth - 1, localNames, indent));
 				var ancestor = parent;
 				while(ancestor != null && depth != 0)
@@ -981,7 +809,7 @@ namespace Atlas.ECS.Entities
 			text.AppendLine(localNames ? localName : globalName);
 			if(depth != 0)
 			{
-				foreach(var child in children)
+				foreach(var child in Children)
 					text.Append(child.DescendantsToString(--depth, localNames, indent + "  "));
 			}
 			return text.ToString();
@@ -996,7 +824,7 @@ namespace Atlas.ECS.Entities
 		{
 			text = text ?? new StringBuilder();
 
-			var name = (this == singleton) ? RootName : $"Child {parentIndex + 1}";
+			var name = (this == Root) ? RootName : $"Child {ParentIndex + 1}";
 			text.AppendLine($"{indent}{name}");
 			text.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
 			text.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
@@ -1012,10 +840,10 @@ namespace Atlas.ECS.Entities
 					components[type].ToInfoString(addEntities, ++index, $"{indent}    ", text);
 			}
 
-			text.AppendLine($"{indent}  {nameof(Children)}   ({children.Count})");
+			text.AppendLine($"{indent}  {nameof(Children)}   ({Children.Count})");
 			if(depth != 0)
 			{
-				foreach(var child in children)
+				foreach(var child in Children)
 					child.ToInfoString(--depth, addComponents, addEntities, $"{indent}    ", text);
 			}
 			return text.ToString();

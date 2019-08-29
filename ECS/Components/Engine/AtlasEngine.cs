@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.Core.Utilites;
@@ -8,7 +7,6 @@ using Atlas.ECS.Entities;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
-using Atlas.ECS.Systems.Messages;
 using System;
 using System.Collections.Generic;
 
@@ -56,19 +54,19 @@ namespace Atlas.ECS.Components
 			if(entity.Root != entity)
 				throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage>(EntityChildAdded, int.MinValue, Tree.All);
-			entity.AddListener<IRootMessage>(EntityRootChanged, int.MinValue, Tree.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Tree.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Tree.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Tree.All);
+			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, MessageFlow.All);
+			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, MessageFlow.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageFlow.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageFlow.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageFlow.All);
 			AddEntity(entity);
 		}
 
 		protected override void RemovingManager(IEntity entity, int index)
 		{
 			RemoveEntity(entity);
-			entity.RemoveListener<IChildAddMessage>(EntityChildAdded);
-			entity.RemoveListener<IRootMessage>(EntityRootChanged);
+			entity.RemoveListener<IChildAddMessage<IEntity>>(EntityChildAdded);
+			entity.RemoveListener<IRootMessage<IEntity>>(EntityRootChanged);
 			entity.RemoveListener<IGlobalNameMessage>(EntityGlobalNameChanged);
 			entity.RemoveListener<IComponentAddMessage>(EntityComponentAdded);
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
@@ -149,14 +147,14 @@ namespace Atlas.ECS.Components
 
 		#region Events
 
-		private void EntityChildAdded(IChildAddMessage message)
+		private void EntityChildAdded(IChildAddMessage<IEntity> message)
 		{
 			if(!entitiesGlobalName.ContainsKey(message.Value.GlobalName) ||
 				entitiesGlobalName[message.Value.GlobalName] != message.Value)
 				AddEntity(message.Value);
 		}
 
-		private void EntityRootChanged(IRootMessage message)
+		private void EntityRootChanged(IRootMessage<IEntity> message)
 		{
 			if(message.CurrentValue == null)
 				RemoveEntity(message.Messenger);

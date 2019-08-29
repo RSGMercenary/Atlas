@@ -1,7 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Collections.Hierarchy
+namespace Atlas.Core.Messages
 {
 	public interface IReadOnlyHierarchy<T> : IEnumerable<T>
 		where T : IReadOnlyHierarchy<T>

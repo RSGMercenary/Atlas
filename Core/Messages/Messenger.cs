@@ -4,14 +4,17 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Messages
 {
-	public abstract class Messenger<T> : IMessenger<T>
+	public class Messenger<T> : IMessenger<T>
 		where T : IMessenger
 	{
+		private readonly IMessenger target;
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
-		public Messenger()
-		{
+		public Messenger() : this(null) { }
 
+		public Messenger(IMessenger target)
+		{
+			this.target = target ?? this;
 		}
 
 		public virtual void Dispose()
@@ -35,8 +38,8 @@ namespace Atlas.Core.Messages
 		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage<T>
 		{
-			(message as IMessage).Messenger = this;
-			(message as IMessage).CurrentMessenger = this;
+			(message as IMessage).Messenger = target;
+			(message as IMessage).CurrentMessenger = target;
 			//Pass around message internally...
 			Messaging(message);
 			//...before dispatching externally.

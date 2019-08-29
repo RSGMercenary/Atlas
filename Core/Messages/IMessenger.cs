@@ -22,4 +22,17 @@ namespace Atlas.Core.Messages
 		void Message<TMessage>(TMessage message)
 			where TMessage : IMessage<TMessenger>;
 	}
+
+	public interface IHierarchyMessenger<TMessenger> : IMessenger<TMessenger>, IHierarchy<TMessenger>
+		where TMessenger : IMessenger, IHierarchy<TMessenger>
+	{
+		void AddListener<TMessage>(Action<TMessage> listener, MessageFlow flow)
+			where TMessage : IMessage<TMessenger>;
+
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow flow)
+			where TMessage : IMessage<TMessenger>;
+
+		void Message<TMessage>(TMessage message, MessageFlow flow)
+			where TMessage : IMessage<TMessenger>;
+	}
 }
