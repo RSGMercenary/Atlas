@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
@@ -7,7 +8,7 @@ using System.Text;
 
 namespace Atlas.ECS.Components
 {
-	public interface IComponent : IObject, IAutoDispose
+	public interface IComponent : IMessenger, IAutoDispose
 	{
 		/// <summary>
 		/// Determines whether <see cref="IObject.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
@@ -186,7 +187,7 @@ namespace Atlas.ECS.Components
 		string ToInfoString(bool addManagers = true, int index = 0, string indent = "", StringBuilder text = null);
 	}
 
-	public interface IComponent<T> : IObject<T>, IComponent
+	public interface IComponent<T> : IMessenger<T>, IComponent
 		where T : IComponent
 	{
 

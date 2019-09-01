@@ -3,16 +3,14 @@ using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Messages;
-using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Atlas.ECS.Components
 {
-	public abstract class AtlasComponent<T> : AtlasObject<T>, IComponent<T>
-		where T : IComponent
+	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
+		where T : class, IComponent
 	{
 		#region Static
 
@@ -35,14 +33,17 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
+		#region Fields
+
 		private readonly Group<IEntity> managers = new Group<IEntity>();
 		private bool autoDispose = true;
 		public bool IsShareable { get; } = false;
 
-		public AtlasComponent() : this(false)
-		{
+		#endregion
 
-		}
+		#region Construct / Dispose
+
+		public AtlasComponent() : this(false) { }
 
 		public AtlasComponent(bool isShareable)
 		{
@@ -70,7 +71,7 @@ namespace Atlas.ECS.Components
 
 		public bool AutoDispose
 		{
-			get { return autoDispose; }
+			get => autoDispose;
 			set
 			{
 				if(autoDispose == value)
@@ -82,25 +83,23 @@ namespace Atlas.ECS.Components
 			}
 		}
 
+		#endregion
+
+		#region Managers
+
 		public IEntity Manager
 		{
-			get { return !IsShareable && managers.Count > 0 ? managers[0] : null; }
+			get => !IsShareable && managers.Count > 0 ? managers[0] : null;
 		}
 
 		public IReadOnlyGroup<IEntity> Managers
 		{
-			get { return managers; }
+			get => managers;
 		}
 
-		public bool HasManager(IEntity entity)
-		{
-			return managers.Contains(entity);
-		}
+		public bool HasManager(IEntity entity) => managers.Contains(entity);
 
-		public int GetManagerIndex(IEntity entity)
-		{
-			return managers.IndexOf(entity);
-		}
+		public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
 
 		public bool SetManagerIndex(IEntity entity, int index)
 		{
@@ -130,31 +129,16 @@ namespace Atlas.ECS.Components
 		}
 
 		public IEntity AddManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent
-		{
-			return AddManager(entity, typeof(TIComponent), int.MaxValue);
-		}
+			where TIComponent : IComponent => AddManager(entity, typeof(TIComponent), int.MaxValue);
 
 		public IEntity AddManager<TIComponent>(IEntity entity, int index)
-			where TIComponent : IComponent
-		{
-			return AddManager(entity, typeof(TIComponent), index);
-		}
+			where TIComponent : IComponent => AddManager(entity, typeof(TIComponent), index);
 
-		public IEntity AddManager(IEntity entity)
-		{
-			return AddManager(entity, null);
-		}
+		public IEntity AddManager(IEntity entity) => AddManager(entity, null);
 
-		public IEntity AddManager(IEntity entity, Type type)
-		{
-			return AddManager(entity, type, int.MaxValue);
-		}
+		public IEntity AddManager(IEntity entity, Type type) => AddManager(entity, type, int.MaxValue);
 
-		public IEntity AddManager(IEntity entity, int index)
-		{
-			return AddManager(entity, null, index);
-		}
+		public IEntity AddManager(IEntity entity, int index) => AddManager(entity, null, index);
 
 		public IEntity AddManager(IEntity entity, Type type, int index)
 		{
@@ -167,8 +151,10 @@ namespace Atlas.ECS.Components
 				{
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Insert(index, entity);
+					/*
 					entity.AddListener<IEngineMessage<IEntity>>(EntityEngineChanged);
 					Engine = entity.Engine;
+					*/
 					AddingManager(entity, index);
 					Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index, entity));
 					Message<IManagerMessage<T>>(new ManagerMessage<T>());
@@ -193,10 +179,7 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		/// <param name="entity">The Entity that has been added.</param>
 		/// <param name="index">The current index of the Entity being added.</param>
-		protected virtual void AddingManager(IEntity entity, int index)
-		{
-
-		}
+		protected virtual void AddingManager(IEntity entity, int index) { }
 
 		public IEntity RemoveManager<TIComponent>(IEntity entity)
 			where TIComponent : IComponent
@@ -225,9 +208,11 @@ namespace Atlas.ECS.Components
 			{
 				int index = managers.IndexOf(entity);
 				managers.RemoveAt(index);
+				/*
 				entity.RemoveListener<IEngineMessage<IEntity>>(EntityEngineChanged);
 				if(managers.Count <= 0)
 					Engine = null;
+				*/
 				RemovingManager(entity, index);
 				Message<IManagerRemoveMessage<T>>(new ManagerRemoveMessage<T>(index, entity));
 				Message<IManagerMessage<T>>(new ManagerMessage<T>());
@@ -256,10 +241,7 @@ namespace Atlas.ECS.Components
 		/// </summary>
 		/// <param name="entity">The Entity that has been removed.</param>
 		/// <param name="index">The previous index of the Entity being removed.</param>
-		protected virtual void RemovingManager(IEntity entity, int index)
-		{
-
-		}
+		protected virtual void RemovingManager(IEntity entity, int index) { }
 
 		public bool RemoveManagers()
 		{
@@ -270,6 +252,11 @@ namespace Atlas.ECS.Components
 			return true;
 		}
 
+		#endregion
+
+
+		#region Engine
+		/*
 		private void EntityEngineChanged(IEngineMessage<IEntity> message)
 		{
 			Engine = message.CurrentValue;
@@ -277,7 +264,7 @@ namespace Atlas.ECS.Components
 
 		public sealed override IEngine Engine
 		{
-			get { return base.Engine; }
+			get => base.Engine;
 			set
 			{
 				int count = 0;
@@ -292,6 +279,10 @@ namespace Atlas.ECS.Components
 					base.Engine = value;
 			}
 		}
+		*/
+		#endregion
+
+		#region Info Strings
 
 		public string ToInfoString(bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
 		{
@@ -321,5 +312,7 @@ namespace Atlas.ECS.Components
 			}
 			return text.ToString();
 		}
+
+		#endregion
 	}
 }

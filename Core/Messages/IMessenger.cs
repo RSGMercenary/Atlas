@@ -19,6 +19,8 @@ namespace Atlas.Core.Messages
 		void RemoveListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<TMessenger>;
 
+		bool RemoveListeners();
+
 		void Message<TMessage>(TMessage message)
 			where TMessage : IMessage<TMessenger>;
 	}

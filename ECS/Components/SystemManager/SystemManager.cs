@@ -1,5 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Components.Messages;
+using Atlas.ECS.Entities;
+using Atlas.ECS.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -26,41 +28,62 @@ namespace Atlas.ECS.Components
 			base.Disposing();
 		}
 
-		protected override void AddingEngine(IEngine engine)
+		#region Engine/Systems
+
+		protected override void AddingManager(IEntity entity, int index)
 		{
-			base.AddingEngine(engine);
-			foreach(var type in types)
-				engine.AddSystem(type);
+			base.AddingManager(entity, index);
+			entity.AddListener<IEngineMessage<IEntity>>(UpdateSystems);
+			UpdateSystems(entity.Engine, true);
 		}
 
-		protected override void RemovingEngine(IEngine engine)
+		protected override void RemovingManager(IEntity entity, int index)
 		{
-			foreach(var type in types)
-				engine.RemoveSystem(type);
-			base.RemovingEngine(engine);
+			entity.RemoveListener<IEngineMessage<IEntity>>(UpdateSystems);
+			UpdateSystems(entity.Engine, false);
+			base.RemovingManager(entity, index);
 		}
 
-		public IReadOnlyGroup<Type> Systems
+		private void UpdateSystems(IEngineMessage<IEntity> message)
 		{
-			get { return types; }
+			UpdateSystems(message.PreviousValue, false);
+			UpdateSystems(message.CurrentValue, true);
 		}
+
+		private void UpdateSystems(IEngine engine, bool add)
+		{
+			if(engine == null)
+				return;
+			foreach(var type in types)
+			{
+				if(add)
+					engine.AddSystem(type);
+				else
+					engine.RemoveSystem(type);
+			}
+		}
+
+		#endregion
+
+		#region Get
+
+		public IReadOnlyGroup<Type> Systems => types;
+
+		#endregion
+
+		#region Has
 
 		public bool HasSystem<TKey>()
-			where TKey : class, ISystem, new()
-		{
-			return HasSystem(typeof(TKey));
-		}
+			where TKey : class, ISystem, new() => HasSystem(typeof(TKey));
 
-		public bool HasSystem(Type type)
-		{
-			return types.Contains(type);
-		}
+		public bool HasSystem(Type type) => types.Contains(type);
+
+		#endregion
+
+		#region Add
 
 		public bool AddSystem<TKey>()
-			where TKey : class, ISystem, new()
-		{
-			return AddSystem(typeof(TKey));
-		}
+			where TKey : class, ISystem, new() => AddSystem(typeof(TKey));
 
 		public bool AddSystem(Type type)
 		{
@@ -71,16 +94,17 @@ namespace Atlas.ECS.Components
 			if(types.Contains(type))
 				return false;
 			types.Add(type);
-			Engine?.AddSystem(type);
+			Manager?.Engine?.AddSystem(type);
 			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(type));
 			return true;
 		}
 
+		#endregion
+
+		#region Remove
+
 		public bool RemoveSystem<TKey>()
-			where TKey : class, ISystem, new()
-		{
-			return RemoveSystem(typeof(TKey));
-		}
+			where TKey : class, ISystem, new() => RemoveSystem(typeof(TKey));
 
 		public bool RemoveSystem(Type type)
 		{
@@ -89,7 +113,7 @@ namespace Atlas.ECS.Components
 			if(!types.Contains(type))
 				return false;
 			types.Remove(type);
-			Engine?.RemoveSystem(type);
+			Manager?.Engine?.RemoveSystem(type);
 			Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(type));
 			return true;
 		}
@@ -102,5 +126,7 @@ namespace Atlas.ECS.Components
 				RemoveSystem(type);
 			return true;
 		}
+
+		#endregion
 	}
 }

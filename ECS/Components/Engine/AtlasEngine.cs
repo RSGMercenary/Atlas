@@ -52,7 +52,7 @@ namespace Atlas.ECS.Components
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			if(entity.Root != entity)
-				throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
+				ThrowEngineRootException();
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, MessageFlow.All);
 			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, MessageFlow.All);
@@ -156,6 +156,8 @@ namespace Atlas.ECS.Components
 
 		private void EntityRootChanged(IRootMessage<IEntity> message)
 		{
+			if(message.Messenger == Manager)
+				ThrowEngineRootException();
 			if(message.CurrentValue == null)
 				RemoveEntity(message.Messenger);
 		}
@@ -164,6 +166,11 @@ namespace Atlas.ECS.Components
 		{
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
+		}
+
+		private void ThrowEngineRootException()
+		{
+			throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 		}
 
 		#endregion

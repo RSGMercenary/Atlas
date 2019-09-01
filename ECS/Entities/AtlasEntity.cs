@@ -1,7 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.Core.Signals;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Objects;
@@ -42,6 +41,7 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Fields
+
 		private string globalName;
 		private string localName;
 		private int sleeping = 0;
@@ -49,34 +49,31 @@ namespace Atlas.ECS.Entities
 		private bool autoDispose = true;
 		private HierarchyMessenger<IEntity> hierarchy;
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
+
 		#endregion
 
 		#region Construct / Finalize
 
 		public AtlasEntity() : this("", "", false) { }
 		public AtlasEntity(string name) : this(name, name) { }
-		public AtlasEntity(string name, bool local) : this(local ? "" : name, local ? name : "") { }
 		public AtlasEntity(bool root) : this("", "", root) { }
 		public AtlasEntity(string globalName, string localName) : this(globalName, localName, false) { }
 
 		private AtlasEntity(string globalName, string localName, bool root)
 		{
-			hierarchy = new HierarchyMessenger<IEntity>(this, root);
-			if(root)
-			{
-				this.globalName = RootName;
-				this.localName = RootName;
-			}
-			else
-			{
-				GlobalName = globalName;
-				LocalName = localName;
-			}
+			hierarchy = new HierarchyMessenger<IEntity>(this, Messaging);
+			hierarchy.IsRoot = root;
+			GlobalName = globalName;
+			LocalName = localName;
 		}
+
+		protected override IMessenger<IEntity> Messenger => hierarchy;
 
 		protected override void Disposing()
 		{
-			hierarchy.Dispose();
+			hierarchy.RemoveChildren();
+			hierarchy.Parent = null;
+			hierarchy.IsRoot = false;
 			RemoveComponents();
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
@@ -100,22 +97,11 @@ namespace Atlas.ECS.Entities
 
 		public string GlobalName
 		{
-			get { return globalName; }
+			get => globalName;
 			set
 			{
-				//Prevents the Root from changing names and other
-				//Entities from chaning their names to Root.
-				if(this == Root || value == RootName)
+				if(!IsValidName(globalName, ref value, s => Engine?.HasEntity(s) ?? false))
 					return;
-				if(string.IsNullOrWhiteSpace(value))
-					value = UniqueName;
-				else
-				{
-					if(globalName == value)
-						return;
-					if(Engine?.HasEntity(value) ?? false)
-						return;
-				}
 				string previous = globalName;
 				globalName = value;
 				Message<IGlobalNameMessage>(new GlobalNameMessage(value, previous));
@@ -124,26 +110,31 @@ namespace Atlas.ECS.Entities
 
 		public string LocalName
 		{
-			get { return localName; }
+			get => localName;
 			set
 			{
-				//Prevents the Root from changing names and other
-				//Entities from chaning their names to Root.
-				if(this == Root || value == RootName)
+				if(!IsValidName(localName, ref value, s => Parent?.HasChild(s) ?? false))
 					return;
-				if(string.IsNullOrWhiteSpace(value))
-					value = UniqueName;
-				else
-				{
-					if(localName == value)
-						return;
-					if(Parent?.HasChild(value) ?? false)
-						return;
-				}
 				string previous = localName;
 				localName = value;
 				Message<ILocalNameMessage>(new LocalNameMessage(value, previous));
 			}
+		}
+
+		private bool IsValidName(string current, ref string next, Func<string, bool> check)
+		{
+			if((next == RootName && !IsRoot) || (next != RootName && IsRoot))
+				return false;
+			if(string.IsNullOrWhiteSpace(next))
+				next = UniqueName;
+			else
+			{
+				if(current == next)
+					return false;
+				if(check.Invoke(next))
+					return false;
+			}
+			return true;
 		}
 
 		#endregion
@@ -152,7 +143,7 @@ namespace Atlas.ECS.Entities
 
 		public sealed override IEngine Engine
 		{
-			get { return base.Engine; }
+			get => base.Engine;
 			set
 			{
 				if(value != null && Engine == null && value.HasEntity(this))
@@ -169,15 +160,9 @@ namespace Atlas.ECS.Entities
 		#region Has
 
 		public bool HasComponent<TKey>()
-			where TKey : IComponent
-		{
-			return HasComponent(typeof(TKey));
-		}
+			where TKey : IComponent => HasComponent(typeof(TKey));
 
-		public bool HasComponent(Type type)
-		{
-			return components.ContainsKey(type);
-		}
+		public bool HasComponent(Type type) => components.ContainsKey(type);
 
 		#endregion
 
@@ -185,27 +170,15 @@ namespace Atlas.ECS.Entities
 
 		public TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey
-		{
-			return (TValue)GetComponent(typeof(TKey));
-		}
+			where TValue : TKey => (TValue)GetComponent(typeof(TKey));
 
 		public TKeyValue GetComponent<TKeyValue>()
-			where TKeyValue : IComponent
-		{
-			return (TKeyValue)GetComponent(typeof(TKeyValue));
-		}
+			where TKeyValue : IComponent => (TKeyValue)GetComponent(typeof(TKeyValue));
 
 		public TValue GetComponent<TValue>(Type type)
-			where TValue : IComponent
-		{
-			return (TValue)GetComponent(type);
-		}
+			where TValue : IComponent => (TValue)GetComponent(type);
 
-		public IComponent GetComponent(Type type)
-		{
-			return components.ContainsKey(type) ? components[type] : null;
-		}
+		public IComponent GetComponent(Type type) => components.ContainsKey(type) ? components[type] : null;
 
 		public Type GetComponentType(IComponent component)
 		{
@@ -221,7 +194,7 @@ namespace Atlas.ECS.Entities
 
 		public IReadOnlyDictionary<Type, IComponent> Components
 		{
-			get { return components; }
+			get => components;
 		}
 
 		public TKeyValue GetAncestorComponent<TKeyValue>()
@@ -257,77 +230,38 @@ namespace Atlas.ECS.Entities
 
 		#region Add
 
-		//New component with Type
 		public TValue AddComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey, new()
-		{
-			return (TValue)AddComponent(new TValue(), typeof(TKey), 0);
-		}
+			where TValue : TKey, new() => (TValue)AddComponent(new TValue(), typeof(TKey), 0);
 
-		//Component with Type
 		public TValue AddComponent<TKey, TValue>(TValue component)
 			where TKey : IComponent
-			where TValue : TKey
-		{
-			return (TValue)AddComponent(component, typeof(TKey), int.MaxValue);
-		}
+			where TValue : TKey => (TValue)AddComponent(component, typeof(TKey), int.MaxValue);
 
-		//Component with Type, index
 		public TValue AddComponent<TKey, TValue>(TValue component, int index)
 			where TKey : IComponent
-			where TValue : TKey
-		{
-			return (TValue)AddComponent(component, typeof(TKey), index);
-		}
+			where TValue : TKey => (TValue)AddComponent(component, typeof(TKey), index);
 
-		//New Component
 		public TKeyValue AddComponent<TKeyValue>()
-			where TKeyValue : IComponent, new()
-		{
-			return (TKeyValue)AddComponent(new TKeyValue(), null, 0);
-		}
+			where TKeyValue : IComponent, new() => (TKeyValue)AddComponent(new TKeyValue(), null, 0);
 
-		//Component
 		public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-			where TKeyValue : IComponent
-		{
-			return (TKeyValue)AddComponent(component, typeof(TKeyValue), int.MaxValue);
-		}
+			where TKeyValue : IComponent => (TKeyValue)AddComponent(component, typeof(TKeyValue), int.MaxValue);
 
-		//Component, index
 		public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-			where TKeyValue : IComponent
-		{
-			return (TKeyValue)AddComponent(component, typeof(TKeyValue), index);
-		}
+			where TKeyValue : IComponent => (TKeyValue)AddComponent(component, typeof(TKeyValue), index);
 
 		public TValue AddComponent<TValue>(TValue component, Type type)
-			where TValue : IComponent
-		{
-			return AddComponent(component, type);
-		}
+			where TValue : IComponent => AddComponent(component, type);
 
 		public TValue AddComponent<TValue>(Type type)
-			where TValue : IComponent, new()
-		{
-			return AddComponent(new TValue(), type);
-		}
+			where TValue : IComponent, new() => AddComponent(new TValue(), type);
 
-		public IComponent AddComponent(IComponent component)
-		{
-			return AddComponent(component, null, int.MaxValue);
-		}
+		public IComponent AddComponent(IComponent component) => AddComponent(component, null, int.MaxValue);
 
-		public IComponent AddComponent(IComponent component, Type type)
-		{
-			return AddComponent(component, type, int.MaxValue);
-		}
+		public IComponent AddComponent(IComponent component, Type type) => AddComponent(component, type, int.MaxValue);
 
-		public IComponent AddComponent(IComponent component, int index)
-		{
-			return AddComponent(component, null, index);
-		}
+		public IComponent AddComponent(IComponent component, int index) => AddComponent(component, null, index);
 
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
@@ -361,16 +295,10 @@ namespace Atlas.ECS.Entities
 
 		public TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey
-		{
-			return (TValue)RemoveComponent(typeof(TKey));
-		}
+			where TValue : TKey => (TValue)RemoveComponent(typeof(TKey));
 
 		public TKeyValue RemoveComponent<TKeyValue>()
-			where TKeyValue : IComponent
-		{
-			return (TKeyValue)RemoveComponent(typeof(TKeyValue));
-		}
+			where TKeyValue : IComponent => (TKeyValue)RemoveComponent(typeof(TKeyValue));
 
 		public IComponent RemoveComponent(Type type)
 		{
@@ -383,10 +311,7 @@ namespace Atlas.ECS.Entities
 			return component;
 		}
 
-		public IComponent RemoveComponent(IComponent component)
-		{
-			return RemoveComponent(GetComponentType(component));
-		}
+		public IComponent RemoveComponent(IComponent component) => RemoveComponent(GetComponentType(component));
 
 		public bool RemoveComponents()
 		{
@@ -394,9 +319,7 @@ namespace Atlas.ECS.Entities
 				return false;
 			//Can't Remove() from a Dictionary while iterating its Keys.
 			foreach(var type in new List<Type>(components.Keys))
-			{
 				RemoveComponent(type);
-			}
 			return true;
 		}
 
@@ -410,7 +333,13 @@ namespace Atlas.ECS.Entities
 
 		public IEntity Root
 		{
-			get { return hierarchy.Root; }
+			get => hierarchy.Root;
+		}
+
+		public bool IsRoot
+		{
+			get => hierarchy.IsRoot;
+			set => hierarchy.IsRoot = value;
 		}
 
 		#endregion
@@ -419,19 +348,16 @@ namespace Atlas.ECS.Entities
 
 		public IEntity Parent
 		{
-			get { return hierarchy.Parent; }
-			set { hierarchy.Parent = value; }
+			get => hierarchy.Parent;
+			set => hierarchy.Parent = value;
 		}
 
-		public IEntity SetParent(IEntity parent = null, int index = int.MaxValue)
-		{
-			return hierarchy.SetParent(parent, index);
-		}
+		public IEntity SetParent(IEntity parent = null, int index = int.MaxValue) => hierarchy.SetParent(parent, index);
 
 		public int ParentIndex
 		{
-			get { return hierarchy.ParentIndex; }
-			set { hierarchy.ParentIndex = value; }
+			get => hierarchy.ParentIndex;
+			set => hierarchy.ParentIndex = value;
 		}
 
 		#endregion
@@ -440,37 +366,19 @@ namespace Atlas.ECS.Entities
 
 		#region Pool
 
-		public IEntity AddChild(string globalName, string localName)
-		{
-			return AddChild(Get(globalName, localName), Children.Count);
-		}
+		public IEntity AddChild(string globalName, string localName) => AddChild(Get(globalName, localName), Children.Count);
 
-		public IEntity AddChild(string globalName, string localName, int index)
-		{
-			return AddChild(Get(globalName, localName), index);
-		}
+		public IEntity AddChild(string globalName, string localName, int index) => AddChild(Get(globalName, localName), index);
 
-		public IEntity AddChild(string globalName, bool localName)
-		{
-			return AddChild(Get(globalName, localName), Children.Count);
-		}
+		public IEntity AddChild(string globalName, bool localName) => AddChild(Get(globalName, localName), Children.Count);
 
-		public IEntity AddChild(string globalName, bool localName, int index)
-		{
-			return AddChild(Get(globalName, localName), index);
-		}
+		public IEntity AddChild(string globalName, bool localName, int index) => AddChild(Get(globalName, localName), index);
 
 		#endregion
 
-		public IEntity AddChild(IEntity child)
-		{
-			return AddChild(child, Children.Count);
-		}
+		public IEntity AddChild(IEntity child) => AddChild(child, Children.Count);
 
-		public IEntity AddChild(IEntity child, int index)
-		{
-			return hierarchy.AddChild(child, index);
-		}
+		public IEntity AddChild(IEntity child, int index) => hierarchy.AddChild(child, index);
 
 		#endregion
 
@@ -491,10 +399,7 @@ namespace Atlas.ECS.Entities
 			return RemoveChild(GetChild(localName));
 		}
 
-		public bool RemoveChildren()
-		{
-			return hierarchy.RemoveChildren();
-		}
+		public bool RemoveChildren() => hierarchy.RemoveChildren();
 
 		#endregion
 
@@ -502,18 +407,12 @@ namespace Atlas.ECS.Entities
 
 		public IReadOnlyGroup<IEntity> Children
 		{
-			get { return hierarchy.Children; }
+			get => hierarchy.Children;
 		}
 
-		public IEnumerator<IEntity> GetEnumerator()
-		{
-			return hierarchy.GetEnumerator();
-		}
+		public IEnumerator<IEntity> GetEnumerator() => hierarchy.GetEnumerator();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		public IEntity GetChild(string localName)
 		{
@@ -525,15 +424,9 @@ namespace Atlas.ECS.Entities
 			return null;
 		}
 
-		public IEntity GetChild(int index)
-		{
-			return hierarchy.GetChild(index);
-		}
+		public IEntity GetChild(int index) => hierarchy.GetChild(index);
 
-		public int GetChildIndex(IEntity child)
-		{
-			return hierarchy.GetChildIndex(child);
-		}
+		public int GetChildIndex(IEntity child) => hierarchy.GetChildIndex(child);
 
 		public IEntity GetHierarchy(string hierarchy)
 		{
@@ -559,54 +452,27 @@ namespace Atlas.ECS.Entities
 
 		#region Set
 
-		public bool SetChildIndex(IEntity child, int index)
-		{
-			return hierarchy.SetChildIndex(child, index);
-		}
+		public bool SetChildIndex(IEntity child, int index) => hierarchy.SetChildIndex(child, index);
 
-		public bool SwapChildren(IEntity child1, IEntity child2)
-		{
-			return hierarchy.SwapChildren(child1, child2);
-		}
+		public bool SwapChildren(IEntity child1, IEntity child2) => hierarchy.SwapChildren(child1, child2);
 
-		public bool SwapChildren(int index1, int index2)
-		{
-			return hierarchy.SwapChildren(index1, index2);
-		}
+		public bool SwapChildren(int index1, int index2) => hierarchy.SwapChildren(index1, index2);
 
-		public IEntity SetHierarchy(string hierarchy, int index)
-		{
-			return SetParent(GetHierarchy(hierarchy), index);
-		}
+		public IEntity SetHierarchy(string hierarchy, int index) => SetParent(GetHierarchy(hierarchy), index);
 
 		#endregion
 
 		#region Has
 
-		public bool HasChild(string localName)
-		{
-			return GetChild(localName) != null;
-		}
+		public bool HasChild(string localName) => GetChild(localName) != null;
 
-		public bool HasChild(IEntity child)
-		{
-			return hierarchy.HasChild(child);
-		}
+		public bool HasChild(IEntity child) => hierarchy.HasChild(child);
 
-		public bool HasDescendant(IEntity descendant)
-		{
-			return hierarchy.HasDescendant(descendant);
-		}
+		public bool HasDescendant(IEntity descendant) => hierarchy.HasDescendant(descendant);
 
-		public bool HasAncestor(IEntity ancestor)
-		{
-			return hierarchy.HasAncestor(ancestor);
-		}
+		public bool HasAncestor(IEntity ancestor) => hierarchy.HasAncestor(ancestor);
 
-		public bool HasSibling(IEntity sibling)
-		{
-			return hierarchy.HasSibling(sibling);
-		}
+		public bool HasSibling(IEntity sibling) => hierarchy.HasSibling(sibling);
 
 		#endregion
 
@@ -616,7 +482,7 @@ namespace Atlas.ECS.Entities
 
 		public int Sleeping
 		{
-			get { return sleeping; }
+			get => sleeping;
 			private set
 			{
 				if(sleeping == value)
@@ -629,7 +495,7 @@ namespace Atlas.ECS.Entities
 
 		public bool IsSleeping
 		{
-			get { return sleeping > 0; }
+			get => sleeping > 0;
 			set
 			{
 				if(value)
@@ -641,7 +507,7 @@ namespace Atlas.ECS.Entities
 
 		public int FreeSleeping
 		{
-			get { return freeSleeping; }
+			get => freeSleeping;
 			private set
 			{
 				if(freeSleeping == value)
@@ -666,7 +532,7 @@ namespace Atlas.ECS.Entities
 
 		public bool IsFreeSleeping
 		{
-			get { return freeSleeping > 0; }
+			get => freeSleeping > 0;
 			set
 			{
 				if(value)
@@ -682,7 +548,7 @@ namespace Atlas.ECS.Entities
 
 		public bool AutoDispose
 		{
-			get { return autoDispose; }
+			get => autoDispose;
 			set
 			{
 				if(autoDispose == value)
@@ -698,38 +564,26 @@ namespace Atlas.ECS.Entities
 
 		#region Messages
 
-		protected override Signal<TMessage> CreateSignal<TMessage>()
-		{
-			return new HierarchySignal<TMessage, IEntity>();
-		}
-
 		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
 			where TMessage : IMessage<IEntity>
 		{
-			AddListener(listener, 0, messenger);
+			hierarchy.AddListener(listener, messenger);
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow messenger)
 			where TMessage : IMessage<IEntity>
 		{
-			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, IEntity>).Messenger = messenger;
-		}
-
-		public sealed override void Message<TMessage>(TMessage message)
-		{
-			Message(message, MessageFlow.All);
+			hierarchy.AddListener(listener, priority, messenger);
 		}
 
 		public void Message<TMessage>(TMessage message, MessageFlow flow)
 			where TMessage : IMessage<IEntity>
 		{
-			hierarchy.Message(message, flow, base.Message);
+			hierarchy.Message(message, flow);
 		}
 
 		protected override void Messaging(IMessage<IEntity> message)
 		{
-			hierarchy.Messaging(message);
-
 			if(message.Messenger == message.CurrentMessenger)
 			{
 				if(message is IChildAddMessage<IEntity> childAddMessage)
@@ -760,6 +614,20 @@ namespace Atlas.ECS.Entities
 						Sleeping += sleeping;
 					}
 					TryAutoDispose();
+				}
+				else if(message is IRootMessage<IEntity> rootMessage)
+				{
+					if(rootMessage.CurrentValue == this)
+					{
+						GlobalName = RootName;
+						LocalName = RootName;
+					}
+					else if(rootMessage.PreviousValue == this)
+					{
+						string uniqueName = UniqueName;
+						GlobalName = uniqueName;
+						LocalName = uniqueName;
+					}
 				}
 			}
 			else if(message.Messenger == Parent)
@@ -824,7 +692,7 @@ namespace Atlas.ECS.Entities
 		{
 			text = text ?? new StringBuilder();
 
-			var name = (this == Root) ? RootName : $"Child {ParentIndex + 1}";
+			var name = (IsRoot) ? GlobalName : $"Child {ParentIndex + 1}";
 			text.AppendLine($"{indent}{name}");
 			text.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
 			text.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");

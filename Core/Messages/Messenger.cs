@@ -5,16 +5,18 @@ using System.Collections.Generic;
 namespace Atlas.Core.Messages
 {
 	public class Messenger<T> : IMessenger<T>
-		where T : IMessenger
+		where T : class, IMessenger
 	{
-		private readonly IMessenger target;
+		protected T Target { get; }
+		protected Action<IMessage<T>> Callout { get; }
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
 		public Messenger() : this(null) { }
 
-		public Messenger(IMessenger target)
+		public Messenger(T target, Action<IMessage<T>> callout = null)
 		{
-			this.target = target ?? this;
+			Target = target ?? this as T;
+			Callout = callout;
 		}
 
 		public virtual void Dispose()
@@ -22,24 +24,16 @@ namespace Atlas.Core.Messages
 			Disposing();
 		}
 
-		/// <summary>
-		/// Called when this instance is being disposed. Should not be called manually.
-		/// </summary>
 		protected virtual void Disposing()
 		{
-			foreach(var message in new List<Type>(messages.Keys))
-			{
-				var signal = messages[message];
-				messages.Remove(message);
-				signal.Dispose();
-			}
+			RemoveListeners();
 		}
 
 		public virtual void Message<TMessage>(TMessage message)
 			where TMessage : IMessage<T>
 		{
-			(message as IMessage).Messenger = target;
-			(message as IMessage).CurrentMessenger = target;
+			(message as IMessage).Messenger = Target;
+			(message as IMessage).CurrentMessenger = Target;
 			//Pass around message internally...
 			Messaging(message);
 			//...before dispatching externally.
@@ -48,7 +42,10 @@ namespace Atlas.Core.Messages
 				(messages[type] as Signal<TMessage>).Dispatch(message);
 		}
 
-		protected virtual void Messaging(IMessage<T> message) { }
+		protected virtual void Messaging(IMessage<T> message)
+		{
+			Callout?.Invoke(message);
+		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<T>
@@ -83,6 +80,19 @@ namespace Atlas.Core.Messages
 				return;
 			messages.Remove(type);
 			signal.Dispose();
+		}
+
+		public bool RemoveListeners()
+		{
+			if(messages.Count <= 0)
+				return false;
+			foreach(var message in new List<Type>(messages.Keys))
+			{
+				var signal = messages[message];
+				messages.Remove(message);
+				signal.Dispose();
+			}
+			return true;
 		}
 
 		protected virtual Signal<TMessage> CreateSignal<TMessage>()

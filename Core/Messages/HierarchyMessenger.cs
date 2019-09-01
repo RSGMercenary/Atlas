@@ -1,42 +1,41 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Signals;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Messages
 {
-	public sealed class HierarchyMessenger<T> : IHierarchy<T>
+	public class HierarchyMessenger<T> : Messenger<T>, IHierarchyMessenger<T>
 		where T : class, IHierarchyMessenger<T>
 	{
 		private T root;
 		private T parent;
 		private int parentIndex = -1;
 		private readonly Group<T> children = new Group<T>();
-		private readonly T target;
 
-		public HierarchyMessenger(T target) : this(target, false) { }
+		public HierarchyMessenger(T target, Action<IMessage<T>> callout = null) : base(target, callout) { }
 
-		public HierarchyMessenger(T target, bool root)
-		{
-			this.target = target;
-			this.root = root ? this.target : null;
-		}
-
-		public void Dispose()
+		public override void Dispose()
 		{
 			RemoveChildren();
 			Parent = null;
 			Root = null;
+			base.Dispose();
 		}
 
 		#region Messages
-		private void Message<TMessage>(TMessage message)
-			where TMessage : IMessage<T>
+		protected override Signal<TMessage> CreateSignal<TMessage>()
 		{
-			target.Message(message);
+			return new HierarchySignal<TMessage, T>();
 		}
 
-		public void Message<TMessage>(TMessage message, MessageFlow flow, Action<TMessage> baseMessage)
+		public override void Message<TMessage>(TMessage message)
+		{
+			Message(message, MessageFlow.All);
+		}
+
+		public void Message<TMessage>(TMessage message, MessageFlow flow)
 			where TMessage : IMessage<T>
 		{
 			//Keep track of what told 'this' to Message().
@@ -45,13 +44,13 @@ namespace Atlas.Core.Messages
 
 			//Standard Message() call.
 			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
-			baseMessage.Invoke(message);
+			base.Message(message);
 
-			if(flow != MessageFlow.All && root == target && flow.HasFlag(MessageFlow.Root))
+			if(flow != MessageFlow.All && root == Target && flow.HasFlag(MessageFlow.Root))
 				return;
 
 			if(flow == MessageFlow.All || flow.HasFlag(MessageFlow.Descendent) ||
-				(flow.HasFlag(MessageFlow.Child) && message.Messenger == target) ||
+				(flow.HasFlag(MessageFlow.Child) && message.Messenger == Target) ||
 				(flow.HasFlag(MessageFlow.Sibling) && HasChild(message.Messenger)))
 			{
 				//Send Message to children.
@@ -63,49 +62,48 @@ namespace Atlas.Core.Messages
 					child.Message(message, flow);
 					//Reset CurrentMessenger to 'this' so the next child (and parent)
 					//can block messaging from 'this' parent messenger.
-					(message as IMessage).CurrentMessenger = target;
+					(message as IMessage).CurrentMessenger = Target;
 				}
 			}
 
-			if(flow == MessageFlow.All || (flow.HasFlag(MessageFlow.Parent) && message.Messenger == target) ||
+			if(flow == MessageFlow.All || (flow.HasFlag(MessageFlow.Parent) && message.Messenger == Target) ||
 				(flow.HasFlag(MessageFlow.Ancestor) && !HasSibling(previousMessenger)))
 			{
 				//Send Message to parent.
 				//Don't send Message back to the parent that told 'this' to Message().
 				if(parent != previousMessenger)
 					parent?.Message(message, flow);
-				(message as IMessage).CurrentMessenger = target;
+				(message as IMessage).CurrentMessenger = Target;
 			}
 
 			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
 			if(flow != MessageFlow.All && parent != null && flow.HasFlag(MessageFlow.Sibling) &&
-				message.Messenger == target)
+				message.Messenger == Target)
 			{
 				foreach(var sibling in parent)
 				{
 					//Don't send Message back to the sibling that told 'this' to Message().
-					if(sibling == target)
+					if(sibling == Target)
 						continue;
 					sibling.Message(message, flow);
 					//Reset CurrentMessenger to 'this' so the next sibling
 					//can block 'this' sibling messenger.
-					(message as IMessage).CurrentMessenger = target;
+					(message as IMessage).CurrentMessenger = Target;
 				}
 			}
 
 			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
 			if(flow != MessageFlow.All && root != null && flow.HasFlag(MessageFlow.Root) &&
-				message.Messenger == target && !flow.HasFlag(MessageFlow.Ancestor) &&
+				message.Messenger == Target && !flow.HasFlag(MessageFlow.Ancestor) &&
 				!(flow.HasFlag(MessageFlow.Parent) && parent == root))
 			{
-				if(root != target)
+				if(root != Target)
 					root?.Message(message, flow);
-				(message as IMessage).CurrentMessenger = target;
+				(message as IMessage).CurrentMessenger = Target;
 			}
 		}
 
-		public void Messaging<TMessage>(TMessage message)
-			where TMessage : IMessage<T>
+		protected override void Messaging(IMessage<T> message)
 		{
 			if(message.Messenger == parent)
 			{
@@ -115,9 +113,22 @@ namespace Atlas.Core.Messages
 				}
 				else if(message is IChildrenMessage<T>)
 				{
-					SetParentIndex(parent.GetChildIndex(target));
+					SetParentIndex(parent.GetChildIndex(Target));
 				}
 			}
+			base.Messaging(message);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
+			where TMessage : IMessage<T>
+		{
+			AddListener(listener, 0, messenger);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow messenger)
+			where TMessage : IMessage<T>
+		{
+			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, T>).Messenger = messenger;
 		}
 		#endregion
 
@@ -134,6 +145,25 @@ namespace Atlas.Core.Messages
 				Message<IRootMessage<T>>(new RootMessage<T>(value, previous));
 			}
 		}
+
+		public bool IsRoot
+		{
+			get { return Target == root; }
+			set
+			{
+				if(IsRoot == value)
+					return;
+				if(value)
+				{
+					Parent = null;
+					Root = Target;
+				}
+				else
+				{
+					Root = null;
+				}
+			}
+		}
 		#endregion
 
 		#region Parent
@@ -146,14 +176,14 @@ namespace Atlas.Core.Messages
 		public int ParentIndex
 		{
 			get { return parentIndex; }
-			set { parent?.SetChildIndex(target, value); }
+			set { parent?.SetChildIndex(Target, value); }
 		}
 
 		public T SetParent(T next, int index = int.MaxValue)
 		{
 			//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
 			//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
-			if(target == root || target == next || HasDescendant(next))
+			if(Target == root || Target == next || HasDescendant(next))
 				return null;
 			Root = next?.Root;
 			var previous = parent;
@@ -161,13 +191,13 @@ namespace Atlas.Core.Messages
 			if(previous != null && previous != next)
 			{
 				parent = null;
-				previous.RemoveChild(target);
+				previous.RemoveChild(Target);
 			}
 			if(next != null)
 			{
 				parent = next;
 				index = Math.Max(0, Math.Min(index, next.Children.Count));
-				next.AddChild(target, index);
+				next.AddChild(Target, index);
 			}
 			if(previous != next)
 			{
@@ -195,7 +225,7 @@ namespace Atlas.Core.Messages
 
 		public T AddChild(T child, int index)
 		{
-			if(child?.Parent == target)
+			if(child?.Parent == Target)
 			{
 				if(!HasChild(child))
 				{
@@ -210,7 +240,7 @@ namespace Atlas.Core.Messages
 			}
 			else
 			{
-				if(child?.SetParent(target, index) == null)
+				if(child?.SetParent(Target, index) == null)
 					return null;
 			}
 			return child;
@@ -222,7 +252,7 @@ namespace Atlas.Core.Messages
 		{
 			if(child == null)
 				return null;
-			if(child.Parent != target)
+			if(child.Parent != Target)
 			{
 				if(!HasChild(child))
 					return null;
@@ -314,16 +344,16 @@ namespace Atlas.Core.Messages
 		#region Has
 		public bool HasDescendant(T descendant)
 		{
-			if(descendant == target)
+			if(descendant == Target)
 				return false;
-			while(descendant != null && descendant != target)
+			while(descendant != null && descendant != Target)
 				descendant = descendant.Parent;
-			return descendant == target;
+			return descendant == Target;
 		}
 
 		public bool HasAncestor(T ancestor)
 		{
-			return ancestor?.HasDescendant(target) ?? false;
+			return ancestor?.HasDescendant(Target) ?? false;
 		}
 
 		public bool HasChild(T child)
@@ -337,7 +367,7 @@ namespace Atlas.Core.Messages
 				return false;
 			foreach(var child in parent)
 			{
-				if(child == target)
+				if(child == Target)
 					continue;
 				if(child == sibling)
 					return true;

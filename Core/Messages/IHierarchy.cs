@@ -8,6 +8,8 @@ namespace Atlas.Core.Messages
 	{
 		T Root { get; }
 
+		bool IsRoot { get; }
+
 		T Parent { get; }
 
 		int ParentIndex { get; }
@@ -25,6 +27,8 @@ namespace Atlas.Core.Messages
 	public interface IHierarchy<T> : IReadOnlyHierarchy<T>
 		where T : IHierarchy<T>
 	{
+		new bool IsRoot { get; set; }
+
 		new T Parent { get; set; }
 		new int ParentIndex { get; set; }
 		T SetParent(T parent, int index);

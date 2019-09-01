@@ -1,17 +1,30 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Messages;
+using System;
 
 namespace Atlas.ECS.Objects
 {
-	public abstract class AtlasObject<T> : Messenger<T>, IObject<T>
-		where T : IObject
+	public abstract class AtlasObject<T> : IObject<T>
+		where T : class, IObject
 	{
+		#region Fields
+
 		private IEngine engine;
+		private IMessenger<T> messenger;
+
+		#endregion
+
+		protected virtual IMessenger<T> Messenger
+		{
+			get => messenger = messenger ?? new Messenger<T>(this as T, Messaging);
+		}
+
+		#region Engine
 
 		public virtual IEngine Engine
 		{
-			get { return engine; }
+			get => engine;
 			set
 			{
 				if(engine == value)
@@ -29,5 +42,48 @@ namespace Atlas.ECS.Objects
 		protected virtual void AddingEngine(IEngine engine) { }
 
 		protected virtual void RemovingEngine(IEngine engine) { }
+
+		#endregion
+
+		#region Messages
+
+		public void AddListener<TMessage>(Action<TMessage> listener) where TMessage : IMessage<T>
+		{
+			Messenger.AddListener(listener);
+		}
+
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority) where TMessage : IMessage<T>
+		{
+			Messenger.AddListener(listener);
+		}
+
+		public void RemoveListener<TMessage>(Action<TMessage> listener) where TMessage : IMessage<T>
+		{
+			Messenger.RemoveListener(listener);
+		}
+
+		public bool RemoveListeners()
+		{
+			return messenger.RemoveListeners();
+		}
+
+		public void Message<TMessage>(TMessage message) where TMessage : IMessage<T>
+		{
+			Messenger.Message(message);
+		}
+
+		protected virtual void Messaging(IMessage<T> message) { }
+
+		public virtual void Dispose()
+		{
+			Disposing();
+		}
+
+		protected virtual void Disposing()
+		{
+			RemoveListeners();
+		}
+
+		#endregion
 	}
 }
