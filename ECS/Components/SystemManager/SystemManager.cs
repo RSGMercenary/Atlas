@@ -1,7 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Components.Messages;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Messages;
+using Atlas.ECS.Objects.Messages;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;

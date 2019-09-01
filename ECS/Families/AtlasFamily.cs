@@ -17,10 +17,6 @@ namespace Atlas.ECS.Families
 	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
-		#region Static
-		private static readonly BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
-		#endregion
-
 		#region Fields
 
 		//Reflection Fields
@@ -41,8 +37,8 @@ namespace Atlas.ECS.Families
 
 		public AtlasFamily()
 		{
-			//Gets the private backing fields of the Entity and component properties.
-			foreach(var field in typeof(TFamilyMember).FindFields(flags))
+			//Gets the private backing fields of the Entity and Component properties.
+			foreach(var field in typeof(TFamilyMember).FindFields(BindingFlags.NonPublic | BindingFlags.Instance))
 			{
 				if(field.FieldType == typeof(IEntity))
 				{
@@ -92,7 +88,7 @@ namespace Atlas.ECS.Families
 
 		public sealed override IEngine Engine
 		{
-			get { return base.Engine; }
+			get => base.Engine;
 			set
 			{
 				if(value != null && Engine == null && value.HasFamily(this))
@@ -108,23 +104,17 @@ namespace Atlas.ECS.Families
 
 		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
 
-		public IReadOnlyGroup<TFamilyMember> Members { get { return members; } }
+		public IReadOnlyGroup<TFamilyMember> Members => members;
 
 		IFamilyMember IFamily.GetMember(IEntity entity) => GetMember(entity);
 
-		public TFamilyMember GetMember(IEntity entity)
-		{
-			return entities.ContainsKey(entity) ? entities[entity] : null;
-		}
+		public TFamilyMember GetMember(IEntity entity) => entities.ContainsKey(entity) ? entities[entity] : null;
 
 		#endregion
 
 		#region Add
 
-		public void AddEntity(IEntity entity)
-		{
-			Add(entity);
-		}
+		public void AddEntity(IEntity entity) => Add(entity);
 
 		public void AddEntity(IEntity entity, Type componentType)
 		{
@@ -153,10 +143,7 @@ namespace Atlas.ECS.Families
 
 		#region Remove
 
-		public void RemoveEntity(IEntity entity)
-		{
-			Remove(entity);
-		}
+		public void RemoveEntity(IEntity entity) => Remove(entity);
 
 		public void RemoveEntity(IEntity entity, Type componentType)
 		{

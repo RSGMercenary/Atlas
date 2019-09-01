@@ -67,8 +67,6 @@ namespace Atlas.ECS.Entities
 			LocalName = localName;
 		}
 
-		protected override IMessenger<IEntity> Messenger => hierarchy;
-
 		protected override void Disposing()
 		{
 			hierarchy.RemoveChildren();
@@ -563,6 +561,8 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Messages
+
+		protected override IMessenger<IEntity> Messenger => hierarchy;
 
 		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
 			where TMessage : IMessage<IEntity>

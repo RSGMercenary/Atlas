@@ -8,7 +8,7 @@ namespace Atlas.Core.Messages
 		where T : class, IMessenger
 	{
 		protected T Target { get; }
-		protected Action<IMessage<T>> Callout { get; }
+		private Action<IMessage<T>> Callout { get; }
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
 
 		public Messenger() : this(null) { }

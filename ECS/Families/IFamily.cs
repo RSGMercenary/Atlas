@@ -10,6 +10,11 @@ namespace Atlas.ECS.Families
 {
 	public interface IFamily : IObject, IEnumerable
 	{
+		/// <summary>
+		/// Automatically called on Families removed from the Engine.
+		/// </summary>
+		new void Dispose();
+
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 
 		IFamilyMember GetMember(IEntity entity);

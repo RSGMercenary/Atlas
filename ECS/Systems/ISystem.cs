@@ -5,6 +5,11 @@ namespace Atlas.ECS.Systems
 {
 	public interface ISystem : IObject<ISystem>, ISleep, IUpdateState, IPriority
 	{
+		/// <summary>
+		/// Automatically called on Systems removed from the Engine.
+		/// </summary>
+		new void Dispose();
+
 		void Update(float deltaTime);
 
 		/// <summary>

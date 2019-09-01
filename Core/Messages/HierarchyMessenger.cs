@@ -16,12 +16,12 @@ namespace Atlas.Core.Messages
 
 		public HierarchyMessenger(T target, Action<IMessage<T>> callout = null) : base(target, callout) { }
 
-		public override void Dispose()
+		protected override void Disposing()
 		{
 			RemoveChildren();
 			Parent = null;
 			Root = null;
-			base.Dispose();
+			base.Disposing();
 		}
 
 		#region Messages
@@ -135,7 +135,7 @@ namespace Atlas.Core.Messages
 		#region Root
 		public T Root
 		{
-			get { return root; }
+			get => root;
 			private set
 			{
 				if(root == value)
@@ -148,7 +148,7 @@ namespace Atlas.Core.Messages
 
 		public bool IsRoot
 		{
-			get { return Target == root; }
+			get => Target == root;
 			set
 			{
 				if(IsRoot == value)
@@ -169,14 +169,14 @@ namespace Atlas.Core.Messages
 		#region Parent
 		public T Parent
 		{
-			get { return parent; }
-			set { SetParent(value); }
+			get => parent;
+			set => SetParent(value);
 		}
 
 		public int ParentIndex
 		{
-			get { return parentIndex; }
-			set { parent?.SetChildIndex(Target, value); }
+			get => parentIndex;
+			set => parent?.SetChildIndex(Target, value);
 		}
 
 		public T SetParent(T next, int index = int.MaxValue)
@@ -218,10 +218,7 @@ namespace Atlas.Core.Messages
 		#endregion
 
 		#region Add
-		public T AddChild(T child)
-		{
-			return AddChild(child, children.Count);
-		}
+		public T AddChild(T child) => AddChild(child, children.Count);
 
 		public T AddChild(T child, int index)
 		{
@@ -268,10 +265,7 @@ namespace Atlas.Core.Messages
 			return child;
 		}
 
-		public T RemoveChild(int index)
-		{
-			return RemoveChild(children[index]);
-		}
+		public T RemoveChild(int index) => RemoveChild(children[index]);
 
 		public bool RemoveChildren()
 		{
@@ -318,27 +312,17 @@ namespace Atlas.Core.Messages
 		#endregion
 
 		#region Get
+
 		public IReadOnlyGroup<T> Children => children;
 
-		public T GetChild(int index)
-		{
-			return children[index];
-		}
+		public T GetChild(int index) => children[index];
 
-		public int GetChildIndex(T child)
-		{
-			return children.IndexOf(child);
-		}
+		public int GetChildIndex(T child) => children.IndexOf(child);
 
-		public IEnumerator<T> GetEnumerator()
-		{
-			return children.GetEnumerator();
-		}
+		public IEnumerator<T> GetEnumerator() => children.GetEnumerator();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
 		#endregion
 
 		#region Has
@@ -351,15 +335,9 @@ namespace Atlas.Core.Messages
 			return descendant == Target;
 		}
 
-		public bool HasAncestor(T ancestor)
-		{
-			return ancestor?.HasDescendant(Target) ?? false;
-		}
+		public bool HasAncestor(T ancestor) => ancestor?.HasDescendant(Target) ?? false;
 
-		public bool HasChild(T child)
-		{
-			return children.Contains(child);
-		}
+		public bool HasChild(T child) => children.Contains(child);
 
 		public bool HasSibling(T sibling)
 		{
