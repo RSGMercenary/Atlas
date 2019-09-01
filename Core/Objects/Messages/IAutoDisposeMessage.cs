@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IAutoDisposeMessage<T> : IPropertyMessage<T, bool>
+	public interface IAutoDisposeMessage<out T> : IPropertyMessage<T, bool>
 		where T : IAutoDispose, IMessenger
 	{
 	}

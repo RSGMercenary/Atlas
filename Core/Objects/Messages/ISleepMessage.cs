@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface ISleepMessage<T> : IPropertyMessage<T, int>
+	public interface ISleepMessage<out T> : IPropertyMessage<T, int>
 		where T : ISleep, IMessenger
 	{
 	}

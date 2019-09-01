@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IPriorityMessage<T> : IPropertyMessage<T, int>
+	public interface IPriorityMessage<out T> : IPropertyMessage<T, int>
 		where T : IPriority, IMessenger
 	{
 	}

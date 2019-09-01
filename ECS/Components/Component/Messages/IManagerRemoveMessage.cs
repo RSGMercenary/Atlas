@@ -3,7 +3,7 @@ using Atlas.ECS.Entities;
 
 namespace Atlas.ECS.Components.Messages
 {
-	public interface IManagerRemoveMessage<T> : IKeyValueMessage<T, int, IEntity>
+	public interface IManagerRemoveMessage<out T> : IKeyValueMessage<T, int, IEntity>
 		where T : IComponent
 	{
 

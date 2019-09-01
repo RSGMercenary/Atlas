@@ -1,6 +1,6 @@
 ﻿namespace Atlas.Core.Messages
 {
-	public interface IParentIndexMessage<T> : IPropertyMessage<T, int>
+	public interface IParentIndexMessage<out T> : IPropertyMessage<T, int>
 				where T : IMessenger, IHierarchy<T>
 
 	{
