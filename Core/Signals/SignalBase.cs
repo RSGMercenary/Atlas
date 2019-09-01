@@ -104,7 +104,7 @@ namespace Atlas.Core.Signals
 			slot.Listener = listener;
 			slot.Priority = priority;
 
-			PriorityChanged(slot);
+			Prioritize(slot);
 
 			IsDisposed = false;
 
@@ -113,7 +113,7 @@ namespace Atlas.Core.Signals
 
 		protected abstract SlotBase CreateSlot();
 
-		internal void PriorityChanged(SlotBase slot)
+		internal void Prioritize(SlotBase slot)
 		{
 			Priority.Prioritize(slots, slot);
 		}

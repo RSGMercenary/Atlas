@@ -35,7 +35,7 @@ namespace Atlas.Core.Signals
 				if(priority == value)
 					return;
 				priority = value;
-				(Signal as SignalBase)?.PriorityChanged(this);
+				(Signal as SignalBase)?.Prioritize(this);
 			}
 		}
 	}
