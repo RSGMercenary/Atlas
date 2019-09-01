@@ -63,11 +63,9 @@ namespace Atlas.ECS.Components
 			base.Disposing();
 		}
 
-		private void TryAutoDispose()
-		{
-			if(autoDispose && managers.Count <= 0)
-				Dispose();
-		}
+		#endregion
+
+		#region AutoDispose
 
 		public bool AutoDispose
 		{
@@ -81,6 +79,12 @@ namespace Atlas.ECS.Components
 				Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
 				TryAutoDispose();
 			}
+		}
+
+		private void TryAutoDispose()
+		{
+			if(autoDispose && managers.Count <= 0)
+				Dispose();
 		}
 
 		#endregion
@@ -253,7 +257,6 @@ namespace Atlas.ECS.Components
 		}
 
 		#endregion
-
 
 		#region Engine
 		/*
