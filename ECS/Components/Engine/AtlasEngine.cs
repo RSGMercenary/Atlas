@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.Core.Utilites;
@@ -51,14 +52,14 @@ namespace Atlas.ECS.Components
 
 		protected override void AddingManager(IEntity entity, int index)
 		{
-			if(entity.Root != entity)
-				ThrowEngineRootException();
 			base.AddingManager(entity, index);
-			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, MessageFlow.All);
-			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, MessageFlow.All);
-			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, MessageFlow.All);
-			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, MessageFlow.All);
-			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, MessageFlow.All);
+			if(!entity.IsRoot)
+				RemoveManager(entity);
+			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, Relation.All);
+			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, Relation.All);
+			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Relation.All);
+			entity.AddListener<IComponentAddMessage>(EntityComponentAdded, int.MinValue, Relation.All);
+			entity.AddListener<IComponentRemoveMessage>(EntityComponentRemoved, int.MinValue, Relation.All);
 			AddEntity(entity);
 		}
 
@@ -157,7 +158,7 @@ namespace Atlas.ECS.Components
 		private void EntityRootChanged(IRootMessage<IEntity> message)
 		{
 			if(message.Messenger == Manager)
-				ThrowEngineRootException();
+				RemoveManager(message.Messenger);
 			if(message.CurrentValue == null)
 				RemoveEntity(message.Messenger);
 		}
@@ -166,11 +167,6 @@ namespace Atlas.ECS.Components
 		{
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
-		}
-
-		private void ThrowEngineRootException()
-		{
-			throw new InvalidOperationException($"The {GetType().Name} must be added to the root {nameof(IEntity)}.");
 		}
 
 		#endregion

@@ -1,13 +1,14 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Messages;
 using Atlas.Core.Signals;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Messages
+namespace Atlas.Core.Collections.Hierarchy
 {
-	public abstract class HierarchyMessenger<T> : Messenger<T>, IHierarchyMessenger<T>
-		where T : class, IHierarchyMessenger<T>
+	public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
+		where T : class, IHierarchy<T>
 	{
 		private T root;
 		private T parent;
@@ -30,10 +31,10 @@ namespace Atlas.Core.Messages
 
 		public override void Message<TMessage>(TMessage message)
 		{
-			Message(message, MessageFlow.All);
+			Message(message, Relation.All);
 		}
 
-		public void Message<TMessage>(TMessage message, MessageFlow flow)
+		public void Message<TMessage>(TMessage message, Relation flow)
 			where TMessage : IMessage<T>
 		{
 			//Keep track of what told 'this' to Message().
@@ -44,12 +45,12 @@ namespace Atlas.Core.Messages
 			//Sets CurrentMessenger to 'this' and sends Message to TMessage listeners.
 			base.Message(message);
 
-			if(flow != MessageFlow.All && root == this && flow.HasFlag(MessageFlow.Root))
+			if(flow != Relation.All && root == this && flow.HasFlag(Relation.Root))
 				return;
 
-			if(flow == MessageFlow.All || flow.HasFlag(MessageFlow.Descendent) ||
-				(flow.HasFlag(MessageFlow.Child) && message.Messenger == this) ||
-				(flow.HasFlag(MessageFlow.Sibling) && HasChild(message.Messenger)))
+			if(flow == Relation.All || flow.HasFlag(Relation.Descendent) ||
+				(flow.HasFlag(Relation.Child) && message.Messenger == this) ||
+				(flow.HasFlag(Relation.Sibling) && HasChild(message.Messenger)))
 			{
 				//Send Message to children.
 				foreach(var child in children)
@@ -64,8 +65,8 @@ namespace Atlas.Core.Messages
 				}
 			}
 
-			if(flow == MessageFlow.All || (flow.HasFlag(MessageFlow.Parent) && message.Messenger == this) ||
-				(flow.HasFlag(MessageFlow.Ancestor) && !HasSibling(previousMessenger)))
+			if(flow == Relation.All || (flow.HasFlag(Relation.Parent) && message.Messenger == this) ||
+				(flow.HasFlag(Relation.Ancestor) && !HasSibling(previousMessenger)))
 			{
 				//Send Message to parent.
 				//Don't send Message back to the parent that told 'this' to Message().
@@ -75,7 +76,7 @@ namespace Atlas.Core.Messages
 			}
 
 			//Send Message to siblings ONLY if the message flow wasn't going to get there eventually.
-			if(flow != MessageFlow.All && parent != null && flow.HasFlag(MessageFlow.Sibling) &&
+			if(flow != Relation.All && parent != null && flow.HasFlag(Relation.Sibling) &&
 				message.Messenger == this)
 			{
 				foreach(var sibling in parent)
@@ -91,9 +92,9 @@ namespace Atlas.Core.Messages
 			}
 
 			//Send Message to root ONLY if the message flow wasn't going to get there eventually.
-			if(flow != MessageFlow.All && root != null && flow.HasFlag(MessageFlow.Root) &&
-				message.Messenger == this && !flow.HasFlag(MessageFlow.Ancestor) &&
-				!(flow.HasFlag(MessageFlow.Parent) && parent == root))
+			if(flow != Relation.All && root != null && flow.HasFlag(Relation.Root) &&
+				message.Messenger == this && !flow.HasFlag(Relation.Ancestor) &&
+				!(flow.HasFlag(Relation.Parent) && parent == root))
 			{
 				if(root != this)
 					root?.Message(message, flow);
@@ -117,13 +118,13 @@ namespace Atlas.Core.Messages
 			base.Messaging(message);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, Relation messenger)
 			where TMessage : IMessage<T>
 		{
 			AddListener(listener, 0, messenger);
 		}
 
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow messenger)
+		public void AddListener<TMessage>(Action<TMessage> listener, int priority, Relation messenger)
 			where TMessage : IMessage<T>
 		{
 			(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, T>).Messenger = messenger;

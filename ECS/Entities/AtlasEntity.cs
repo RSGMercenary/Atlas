@@ -1,4 +1,5 @@
-﻿using Atlas.Core.Collections.Pool;
+﻿using Atlas.Core.Collections.Hierarchy;
+using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
@@ -9,12 +10,12 @@ using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public sealed class AtlasEntity : HierarchyMessenger<IEntity>, IEntity
+	public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	{
 		#region Static
 
 		public const string RootName = "Root";
-		public static string UniqueName => $"Entity { Guid.NewGuid().ToString("N")}";
+		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
 		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>();
 
@@ -50,7 +51,7 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#region Construct / Finalize
+		#region Construct / Dispose
 
 		public AtlasEntity() : this("", "", false) { }
 		public AtlasEntity(string name) : this(name, name) { }
@@ -75,9 +76,10 @@ namespace Atlas.ECS.Entities
 			AutoDispose = true;
 			Sleeping = 0;
 			FreeSleeping = 0;
+			RemoveListeners();
 
 			pool.Add(this);
-			base.Disposing();
+			//base.Disposing();
 		}
 
 		#endregion

@@ -1,10 +1,11 @@
-﻿using Atlas.Core.Signals;
+﻿using Atlas.Core.Messages;
+using Atlas.Core.Signals;
 
-namespace Atlas.Core.Messages
+namespace Atlas.Core.Collections.Hierarchy
 {
 	public class HierarchySignal<TMessage, T> : Signal<TMessage>
 		where TMessage : IMessage<T>
-		where T : class, IHierarchyMessenger<T>
+		where T : class, IHierarchy<T>
 	{
 		protected override Slot<TMessage> CreateGenericSlot()
 		{

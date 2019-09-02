@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Atlas.Core.Messages
+namespace Atlas.Core.Collections.Hierarchy
 {
 	[Flags]
-	public enum MessageFlow
+	public enum Relation
 	{
 		Self = 1,
 		Sibling = 2,
@@ -14,6 +14,7 @@ namespace Atlas.Core.Messages
 		Root = 64,
 		Up = Parent | Ancestor | Root,
 		Down = Child | Descendent,
+		Side = Self | Sibling,
 		All = Self | Sibling | Parent | Child | Ancestor | Descendent | Root
 	}
 }

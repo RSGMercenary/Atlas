@@ -1,9 +1,11 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Messages;
+using System;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Messages
+namespace Atlas.Core.Collections.Hierarchy
 {
-	public interface IReadOnlyHierarchy<T> : IEnumerable<T>
+	public interface IReadOnlyHierarchy<T> : IMessenger<T>, IEnumerable<T>
 		where T : IReadOnlyHierarchy<T>
 	{
 		T Root { get; }
@@ -22,6 +24,15 @@ namespace Atlas.Core.Messages
 		bool HasAncestor(T ancestor);
 		bool HasChild(T child);
 		bool HasSibling(T sibling);
+
+		void AddListener<TMessage>(Action<TMessage> listener, Relation flow)
+			where TMessage : IMessage<T>;
+
+		void AddListener<TMessage>(Action<TMessage> listener, int priority, Relation flow)
+			where TMessage : IMessage<T>;
+
+		void Message<TMessage>(TMessage message, Relation flow)
+			where TMessage : IMessage<T>;
 	}
 
 	public interface IHierarchy<T> : IReadOnlyHierarchy<T>

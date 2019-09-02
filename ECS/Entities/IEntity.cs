@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Messages;
+﻿using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
 using Atlas.ECS.Objects;
@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject<IEntity>, IAutoDispose, ISleep, IHierarchyMessenger<IEntity>
+	public interface IEntity : IObject<IEntity>, IHierarchy<IEntity>, IAutoDispose, ISleep
 	{
 		#region Entities
 
