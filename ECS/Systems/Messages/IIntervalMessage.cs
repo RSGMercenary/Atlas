@@ -2,7 +2,5 @@
 
 namespace Atlas.ECS.Systems.Messages
 {
-	public interface IIntervalMessage : IPropertyMessage<ISystem, double>
-	{
-	}
+	public interface IIntervalMessage : IPropertyMessage<ISystem, double> { }
 }

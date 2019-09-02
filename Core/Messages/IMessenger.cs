@@ -2,10 +2,7 @@
 
 namespace Atlas.Core.Messages
 {
-	public interface IMessenger : IDisposable
-	{
-
-	}
+	public interface IMessenger : IDisposable { }
 
 	public interface IMessenger<TMessenger> : IMessenger
 		where TMessenger : IMessenger

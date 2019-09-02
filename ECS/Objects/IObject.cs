@@ -8,9 +8,5 @@ namespace Atlas.ECS.Objects
 		IEngine Engine { get; set; }
 	}
 
-	public interface IObject<T> : IMessenger<T>, IObject
-		where T : IObject
-	{
-
-	}
+	public interface IObject<T> : IMessenger<T>, IObject where T : IObject { }
 }

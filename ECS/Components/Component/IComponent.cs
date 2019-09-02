@@ -187,9 +187,5 @@ namespace Atlas.ECS.Components
 		string ToInfoString(bool addManagers = true, int index = 0, string indent = "", StringBuilder text = null);
 	}
 
-	public interface IComponent<T> : IMessenger<T>, IComponent
-		where T : IComponent
-	{
-
-	}
+	public interface IComponent<T> : IMessenger<T>, IComponent where T : IComponent { }
 }
