@@ -118,7 +118,7 @@ namespace Atlas.Core.Utilites
 
 		public static double Minimum(params double[] numbers)
 		{
-			double minimum = double.MaxValue;
+			double minimum = numbers[0];
 			foreach(var number in numbers)
 			{
 				if(number < minimum)
@@ -129,7 +129,7 @@ namespace Atlas.Core.Utilites
 
 		public static double Maximum(params double[] numbers)
 		{
-			double maximum = double.MinValue;
+			double maximum = numbers[0];
 			foreach(var number in numbers)
 			{
 				if(number > maximum)
@@ -142,9 +142,7 @@ namespace Atlas.Core.Utilites
 		{
 			double sum = 0;
 			foreach(var number in numbers)
-			{
 				sum += number;
-			}
 			return sum;
 		}
 
@@ -171,7 +169,7 @@ namespace Atlas.Core.Utilites
 
 		public static double[] Mode(params double[] numbers)
 		{
-			Dictionary<double, int> counts = new Dictionary<double, int>();
+			var counts = new Dictionary<double, int>();
 			int mode = 0;
 			double[] modes = new double[1];
 
