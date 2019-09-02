@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Atlas.Core.Objects;
+using System;
 using System.Diagnostics;
 
 namespace Atlas.Core.Utilites
@@ -11,10 +12,10 @@ namespace Atlas.Core.Utilites
 	public class Updater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
-		private readonly Action<double> update;
+		private readonly IUpdate<double> update;
 		private bool isRunning = false;
 
-		public Updater(Action<double> update)
+		public Updater(IUpdate<double> update)
 		{
 			this.update = update ?? throw new NullReferenceException("No method to call for updates.");
 		}
@@ -37,7 +38,7 @@ namespace Atlas.Core.Utilites
 					while(isRunning)
 					{
 						var currentTime = timer.Elapsed.TotalSeconds;
-						update(currentTime - previousTime);
+						update.Update(currentTime - previousTime);
 						previousTime = currentTime;
 					}
 					timer.Stop();

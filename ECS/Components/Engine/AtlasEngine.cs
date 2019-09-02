@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components
 {
-	public class AtlasEngine : AtlasComponent<IEngine>, IEngine
+	public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	{
 		#region Fields
 
