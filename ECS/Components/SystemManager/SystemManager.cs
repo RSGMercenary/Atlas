@@ -73,8 +73,7 @@ namespace Atlas.ECS.Components
 
 		#region Has
 
-		public bool HasSystem<TKey>()
-			where TKey : class, ISystem, new() => HasSystem(typeof(TKey));
+		public bool HasSystem<TKey>() where TKey : class, ISystem, new() => HasSystem(typeof(TKey));
 
 		public bool HasSystem(Type type) => types.Contains(type);
 
@@ -82,8 +81,7 @@ namespace Atlas.ECS.Components
 
 		#region Add
 
-		public bool AddSystem<TKey>()
-			where TKey : class, ISystem, new() => AddSystem(typeof(TKey));
+		public bool AddSystem<TKey>() where TKey : class, ISystem, new() => AddSystem(typeof(TKey));
 
 		public bool AddSystem(Type type)
 		{
@@ -103,8 +101,7 @@ namespace Atlas.ECS.Components
 
 		#region Remove
 
-		public bool RemoveSystem<TKey>()
-			where TKey : class, ISystem, new() => RemoveSystem(typeof(TKey));
+		public bool RemoveSystem<TKey>() where TKey : class, ISystem, new() => RemoveSystem(typeof(TKey));
 
 		public bool RemoveSystem(Type type)
 		{
