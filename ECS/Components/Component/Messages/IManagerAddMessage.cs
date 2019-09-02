@@ -6,6 +6,5 @@ namespace Atlas.ECS.Components.Messages
 	public interface IManagerAddMessage<out T> : IKeyValueMessage<T, int, IEntity>
 		where T : IComponent
 	{
-
 	}
 }

@@ -4,8 +4,5 @@ using System;
 
 namespace Atlas.ECS.Components.Messages
 {
-	public interface ISystemRemoveMessage : IKeyValueMessage<IEngine, Type, ISystem>
-	{
-
-	}
+	public interface ISystemRemoveMessage : IKeyValueMessage<IEngine, Type, ISystem> { }
 }

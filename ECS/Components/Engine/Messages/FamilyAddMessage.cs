@@ -6,8 +6,6 @@ namespace Atlas.ECS.Components.Messages
 {
 	class FamilyAddMessage : KeyValueMessage<IEngine, Type, IFamily>, IFamilyAddMessage
 	{
-		public FamilyAddMessage(Type key, IFamily value) : base(key, value)
-		{
-		}
+		public FamilyAddMessage(Type key, IFamily value) : base(key, value) { }
 	}
 }

@@ -3,8 +3,5 @@ using Atlas.ECS.Entities;
 
 namespace Atlas.ECS.Components.Messages
 {
-	public interface IEntityAddMessage : IValueMessage<IEngine, IEntity>
-	{
-
-	}
+	public interface IEntityAddMessage : IValueMessage<IEngine, IEntity> { }
 }

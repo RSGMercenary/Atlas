@@ -91,15 +91,9 @@ namespace Atlas.ECS.Components
 
 		#region Managers
 
-		public IEntity Manager
-		{
-			get => !IsShareable && managers.Count > 0 ? managers[0] : null;
-		}
+		public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
-		public IReadOnlyGroup<IEntity> Managers
-		{
-			get => managers;
-		}
+		public IReadOnlyGroup<IEntity> Managers => managers;
 
 		public bool HasManager(IEntity entity) => managers.Contains(entity);
 
@@ -186,15 +180,9 @@ namespace Atlas.ECS.Components
 		protected virtual void AddingManager(IEntity entity, int index) { }
 
 		public IEntity RemoveManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent
-		{
-			return RemoveManager(entity, typeof(TIComponent));
-		}
+			where TIComponent : IComponent => RemoveManager(entity, typeof(TIComponent));
 
-		public IEntity RemoveManager(IEntity entity)
-		{
-			return RemoveManager(entity, entity?.GetComponentType(this));
-		}
+		public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity?.GetComponentType(this));
 
 		public IEntity RemoveManager(IEntity entity, Type type)
 		{
