@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool
 {
@@ -40,10 +41,8 @@ namespace Atlas.Core.Collections.Pool
 
 		public bool Add(T value)
 		{
-			if(value == null)
-				return false;
-			if(typeof(T) != value.GetType())
-				return false;
+			if(value == null || typeof(T) != value.GetType())
+				throw new ArgumentException($"An instance of {value?.GetType()} does not equal {typeof(T)}.");
 			if(maxCount >= 0 && stack.Count >= maxCount)
 				return false;
 			stack.Push(value);
