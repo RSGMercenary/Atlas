@@ -29,7 +29,7 @@ namespace Atlas.Core.Signals
 
 		public int Priority
 		{
-			get { return priority; }
+			get => priority;
 			set
 			{
 				if(priority == value)
@@ -46,14 +46,14 @@ namespace Atlas.Core.Signals
 	{
 		public new TSignal Signal
 		{
-			get { return (TSignal)base.Signal; }
-			set { base.Signal = value; }
+			get => (TSignal)base.Signal;
+			set => base.Signal = value;
 		}
 
 		public new TDelegate Listener
 		{
-			get { return (TDelegate)base.Listener; }
-			set { base.Listener = value; }
+			get => (TDelegate)base.Listener;
+			set => base.Listener = value;
 		}
 	}
 

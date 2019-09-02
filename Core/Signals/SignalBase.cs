@@ -27,15 +27,9 @@ namespace Atlas.Core.Signals
 			RemoveAll();
 		}
 
-		public bool IsDispatching
-		{
-			get { return Dispatching > 0; }
-		}
+		public bool IsDispatching => Dispatching > 0;
 
-		public IReadOnlyList<ISlotBase> Slots
-		{
-			get { return slots; }
-		}
+		public IReadOnlyList<ISlotBase> Slots => slots;
 
 		private void DisposeSlot(SlotBase slot)
 		{
@@ -78,10 +72,7 @@ namespace Atlas.Core.Signals
 			return -1;
 		}
 
-		public ISlotBase Add(Delegate listener)
-		{
-			return Add(listener, 0);
-		}
+		public ISlotBase Add(Delegate listener) => Add(listener, 0);
 
 		public ISlotBase Add(Delegate listener, int priority)
 		{
@@ -91,13 +82,9 @@ namespace Atlas.Core.Signals
 			if(slot == null)
 			{
 				if(slotsPooled.Count > 0)
-				{
 					slot = slotsPooled.Pop();
-				}
 				else
-				{
 					slot = CreateSlot();
-				}
 			}
 
 			slot.Signal = this;
@@ -183,54 +170,22 @@ namespace Atlas.Core.Signals
 		where TISlot : ISlotBase
 		where TDelegate : Delegate
 	{
-		public SignalBase()
-		{
+		public TISlot Add(TDelegate listener) => (TISlot)base.Add(listener, 0);
 
-		}
+		public TISlot Add(TDelegate listener, int priority) => (TISlot)base.Add(listener, priority);
 
-		public TISlot Add(TDelegate listener)
-		{
-			return (TISlot)base.Add(listener, 0);
-		}
+		public TISlot Get(TDelegate listener) => (TISlot)base.Get(listener);
 
-		public TISlot Add(TDelegate listener, int priority)
-		{
-			return (TISlot)base.Add(listener, priority);
-		}
+		public int GetIndex(TDelegate listener) => base.GetIndex(listener);
 
-		public TISlot Get(TDelegate listener)
-		{
-			return (TISlot)base.Get(listener);
-		}
+		public bool Remove(TDelegate listener) => base.Remove(listener);
 
-		public int GetIndex(TDelegate listener)
-		{
-			return base.GetIndex(listener);
-		}
+		public new TISlot Get(int index) => (TISlot)base.Get(index);
 
-		public bool Remove(TDelegate listener)
-		{
-			return base.Remove(listener);
-		}
+		protected override SlotBase CreateSlot() => CreateGenericSlot();
 
-		public new TISlot Get(int index)
-		{
-			return (TISlot)base.Get(index);
-		}
+		protected virtual TSlot CreateGenericSlot() => new TSlot();
 
-		protected override SlotBase CreateSlot()
-		{
-			return CreateGenericSlot();
-		}
-
-		protected virtual TSlot CreateGenericSlot()
-		{
-			return new TSlot();
-		}
-
-		protected bool Dispatch(Action<TSlot> dispatcher)
-		{
-			return Dispatch<TSlot>(dispatcher);
-		}
+		protected bool Dispatch(Action<TSlot> dispatcher) => Dispatch<TSlot>(dispatcher);
 	}
 }

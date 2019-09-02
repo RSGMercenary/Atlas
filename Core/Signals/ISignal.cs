@@ -37,28 +37,13 @@ namespace Atlas.Core.Signals
 		bool Remove(TDelegate listener);
 	}
 
-	public interface ISignal : ISignalBase<ISlot, Action>
-	{
+	public interface ISignal : ISignalBase<ISlot, Action> { }
 
-	}
+	public interface ISignal<T1> : ISignalBase<ISlot<T1>, Action<T1>> { }
 
-	public interface ISignal<T1> : ISignalBase<ISlot<T1>, Action<T1>>
-	{
+	public interface ISignal<T1, T2> : ISignalBase<ISlot<T1, T2>, Action<T1, T2>> { }
 
-	}
+	public interface ISignal<T1, T2, T3> : ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>> { }
 
-	public interface ISignal<T1, T2> : ISignalBase<ISlot<T1, T2>, Action<T1, T2>>
-	{
-
-	}
-
-	public interface ISignal<T1, T2, T3> : ISignalBase<ISlot<T1, T2, T3>, Action<T1, T2, T3>>
-	{
-
-	}
-
-	public interface ISignal<T1, T2, T3, T4> : ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>>
-	{
-
-	}
+	public interface ISignal<T1, T2, T3, T4> : ISignalBase<ISlot<T1, T2, T3, T4>, Action<T1, T2, T3, T4>> { }
 }
