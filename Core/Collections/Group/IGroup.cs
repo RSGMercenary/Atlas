@@ -8,8 +8,5 @@ namespace Atlas.Core.Collections.Group
 		IEnumerable<T> Backward();
 	}
 
-	public interface IGroup<T> : IReadOnlyGroup<T>, IList<T>
-	{
-
-	}
+	public interface IGroup<T> : IReadOnlyGroup<T>, IList<T> { }
 }

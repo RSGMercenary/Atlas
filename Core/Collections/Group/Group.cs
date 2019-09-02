@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Pool;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -19,6 +18,8 @@ namespace Atlas.Core.Collections.Group
 		private readonly Pool<GroupItem> pool = new Pool<GroupItem>();
 		private int iterators = 0;
 
+		#region Pool
+
 		private GroupItem GetItem(T value)
 		{
 			var item = pool.Remove();
@@ -34,15 +35,17 @@ namespace Atlas.Core.Collections.Group
 			pool.Add(element);
 		}
 
-		public void Add(T value)
-		{
-			Insert(items.Count, value);
-		}
+		#endregion
 
-		public void Insert(int index, T value)
-		{
-			items.Insert(index, GetItem(value));
-		}
+		#region Add
+
+		public void Add(T value) => Insert(items.Count, value);
+
+		public void Insert(int index, T value) => items.Insert(index, GetItem(value));
+
+		#endregion
+
+		#region Remove
 
 		public bool Remove(T value)
 		{
@@ -68,14 +71,23 @@ namespace Atlas.Core.Collections.Group
 			}
 		}
 
+		public void Clear()
+		{
+			items.Clear();
+		}
+
+		#endregion
+
+		#region Get / Set
+
 		public T this[int index]
 		{
-			get { return items[index].Value; }
+			get => items[index].Value;
 			set
 			{
 				//TO-DO
-				//I think this should handle sorting algorithms
-				//swapping order during iteration.
+				//I think this should be enough to handle
+				//sorting algorithms swapping order during iteration.
 				if(iterators > 0)
 				{
 					RemoveAt(index);
@@ -88,10 +100,7 @@ namespace Atlas.Core.Collections.Group
 			}
 		}
 
-		public int IndexOf(T value)
-		{
-			return items.FindIndex(item => { return item.Value.Equals(value); });
-		}
+		public int IndexOf(T value) => items.FindIndex(item => item.Value.Equals(value));
 
 		public bool SetIndex(T item, int index)
 		{
@@ -101,82 +110,6 @@ namespace Atlas.Core.Collections.Group
 			RemoveAt(current);
 			Insert(index, item);
 			return true;
-		}
-
-		public void Clear()
-		{
-			items.Clear();
-		}
-
-		public bool Contains(T item)
-		{
-			return items.Find(element => element.Value.Equals(item)) != null;
-		}
-
-		public void CopyTo(T[] array, int arrayIndex)
-		{
-			foreach(var item in items)
-			{
-				array[arrayIndex++] = item.Value;
-			}
-		}
-
-		public int Count
-		{
-			get { return items.Count; }
-		}
-
-		public bool IsReadOnly
-		{
-			get { return false; }
-		}
-
-		public IEnumerator<T> GetEnumerator()
-		{
-			return Forward().GetEnumerator();
-		}
-
-		public IEnumerable<T> Forward()
-		{
-			return Enumerate(1);
-		}
-
-		public IEnumerable<T> Backward()
-		{
-			return Enumerate(-1);
-		}
-
-		private IEnumerable<T> Enumerate(sbyte direction)
-		{
-			if(this.items.Count <= 0)
-				yield break;
-			++iterators;
-			var items = this.items.ToArray();
-			var index = 0;
-			var end = items.Length;
-			if(direction < 0)
-			{
-				index = items.Length - 1;
-				end = -1;
-			}
-			while(index != end)
-			{
-				if(!items[index].IsRemoved)
-					yield return items[index].Value;
-				index += direction;
-			}
-			if(--iterators == 0)
-			{
-				while(removed.Count > 0)
-				{
-					PoolItem(removed.Pop());
-				}
-			}
-		}
-
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
 		}
 
 		public bool Swap(T value1, T value2)
@@ -196,13 +129,65 @@ namespace Atlas.Core.Collections.Group
 			return true;
 		}
 
-		public T Find(Func<T, bool> method)
+		#endregion
+
+		#region Has
+
+		public bool Contains(T item) => items.Find(element => element.Value.Equals(item)) != null;
+
+		#endregion
+
+		#region Enumerable
+
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+		public IEnumerator<T> GetEnumerator() => Forward().GetEnumerator();
+
+		public IEnumerable<T> Forward() => Enumerate(true);
+
+		public IEnumerable<T> Backward() => Enumerate(false);
+
+		private IEnumerable<T> Enumerate(bool forward)
 		{
-			foreach(var item in this)
-				if(method(item))
-					return item;
-			return default;
+			if(this.items.Count <= 0)
+				yield break;
+			++iterators;
+			var items = this.items.ToArray();
+			var index = 0;
+			var end = items.Length;
+			if(!forward)
+			{
+				index = items.Length - 1;
+				end = -1;
+			}
+			while(index != end)
+			{
+				if(!items[index].IsRemoved)
+					yield return items[index].Value;
+				index += forward ? 1 : -1;
+			}
+			if(--iterators == 0)
+			{
+				while(removed.Count > 0)
+				{
+					PoolItem(removed.Pop());
+				}
+			}
 		}
+
+		#endregion
+
+		public void CopyTo(T[] array, int arrayIndex)
+		{
+			foreach(var item in items)
+			{
+				array[arrayIndex++] = item.Value;
+			}
+		}
+
+		public int Count => items.Count;
+
+		public bool IsReadOnly => false;
 
 		public override string ToString()
 		{
