@@ -16,7 +16,7 @@
 		object Remove();
 	}
 
-	public interface IReadOnlyPool<T> : IReadOnlyPool
+	public interface IReadOnlyPool<out T> : IReadOnlyPool
 		where T : class
 	{
 		new T Remove();

@@ -17,14 +17,11 @@ namespace Atlas.Core.Collections.Pool
 
 		#region Size
 
-		public int Count
-		{
-			get { return stack.Count; }
-		}
+		public int Count => stack.Count;
 
 		public int MaxCount
 		{
-			get { return maxCount; }
+			get => maxCount;
 			set
 			{
 				if(maxCount == value)
@@ -53,10 +50,7 @@ namespace Atlas.Core.Collections.Pool
 			return true;
 		}
 
-		public bool Add(object value)
-		{
-			return Add(value as T);
-		}
+		public bool Add(object value) => Add(value as T);
 
 		public bool AddAll()
 		{
@@ -73,15 +67,9 @@ namespace Atlas.Core.Collections.Pool
 
 		#region Remove
 
-		public T Remove()
-		{
-			return stack.Count > 0 ? stack.Pop() : new T();
-		}
+		public T Remove() => stack.Count > 0 ? stack.Pop() : new T();
 
-		object IReadOnlyPool.Remove()
-		{
-			return Remove();
-		}
+		object IReadOnlyPool.Remove() => Remove();
 
 		public bool RemoveAll()
 		{
