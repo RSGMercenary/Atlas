@@ -28,7 +28,7 @@ namespace Atlas.ECS.Components
 
 		public bool AutoRemove
 		{
-			get { return autoRemove; }
+			get => autoRemove;
 			set
 			{
 				if(autoRemove == value)
@@ -39,7 +39,7 @@ namespace Atlas.ECS.Components
 
 		public BuildState BuildState
 		{
-			get { return state; }
+			get => state;
 			private set
 			{
 				if(state == value)
