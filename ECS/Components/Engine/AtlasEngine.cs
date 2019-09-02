@@ -122,7 +122,7 @@ namespace Atlas.ECS.Components
 
 		#region Get
 
-		public IReadOnlyGroup<IEntity> Entities { get { return entities; } }
+		public IReadOnlyGroup<IEntity> Entities => entities;
 
 		public IEntity GetEntity(string globalName)
 		{
@@ -145,7 +145,7 @@ namespace Atlas.ECS.Components
 
 		#endregion
 
-		#region Events
+		#region Messages
 
 		private void EntityChildAdded(IChildAddMessage<IEntity> message)
 		{
@@ -181,20 +181,13 @@ namespace Atlas.ECS.Components
 
 		#region Create
 
-		protected virtual ISystem CreateSystem(Type type)
-		{
-			return (ISystem)Activator.CreateInstance(type);
-		}
+		protected virtual ISystem CreateSystem(Type type) => (ISystem)Activator.CreateInstance(type);
 
 		#endregion
 
 		#region Add/Remove
 
-		public TSystem AddSystem<TSystem>()
-			where TSystem : class, ISystem, new()
-		{
-			return AddSystem(typeof(TSystem)) as TSystem;
-		}
+		public TSystem AddSystem<TSystem>() where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
 
 		public ISystem AddSystem(Type type)
 		{
@@ -215,11 +208,7 @@ namespace Atlas.ECS.Components
 			return systemsType[type];
 		}
 
-		public void RemoveSystem<TSystem>()
-			where TSystem : class, ISystem, new()
-		{
-			RemoveSystem(typeof(TSystem));
-		}
+		public void RemoveSystem<TSystem>() where TSystem : class, ISystem, new() => RemoveSystem(typeof(TSystem));
 
 		public void RemoveSystem(Type type)
 		{
@@ -240,45 +229,27 @@ namespace Atlas.ECS.Components
 
 		#region Get
 
-		public IReadOnlyGroup<ISystem> Systems { get { return systems; } }
+		public IReadOnlyGroup<ISystem> Systems => systems;
 
-		public TISystem GetSystem<TISystem>() where TISystem : ISystem
-		{
-			return (TISystem)GetSystem(typeof(TISystem));
-		}
+		public TISystem GetSystem<TISystem>() where TISystem : ISystem => (TISystem)GetSystem(typeof(TISystem));
 
-		public ISystem GetSystem(Type type)
-		{
-			return systemsType.ContainsKey(type) ? systemsType[type] : null;
-		}
+		public ISystem GetSystem(Type type) => systemsType.ContainsKey(type) ? systemsType[type] : null;
 
-		public ISystem GetSystem(int index)
-		{
-			return systems[index];
-		}
+		public ISystem GetSystem(int index) => systems[index];
 
 		#endregion
 
 		#region Has
 
-		public bool HasSystem(ISystem system)
-		{
-			return systems.Contains(system);
-		}
+		public bool HasSystem(ISystem system) => systems.Contains(system);
 
-		public bool HasSystem<TISystem>() where TISystem : ISystem
-		{
-			return HasSystem(typeof(TISystem));
-		}
+		public bool HasSystem<TISystem>() where TISystem : ISystem => HasSystem(typeof(TISystem));
 
-		public bool HasSystem(Type type)
-		{
-			return systemsType.ContainsKey(type);
-		}
+		public bool HasSystem(Type type) => systemsType.ContainsKey(type);
 
 		#endregion
 
-		#region Events
+		#region Messages
 
 		private void SystemPriorityChanged(IPriorityMessage<ISystem> message)
 		{
@@ -299,10 +270,7 @@ namespace Atlas.ECS.Components
 		#region Create
 
 		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-			where TFamilyMember : class, IFamilyMember, new()
-		{
-			return new AtlasFamily<TFamilyMember>();
-		}
+			where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
 
 		#endregion
 
@@ -350,7 +318,7 @@ namespace Atlas.ECS.Components
 
 		#region Get
 
-		public IReadOnlyGroup<IFamily> Families { get { return families; } }
+		public IReadOnlyGroup<IFamily> Families => families;
 
 		public IFamily<TFamilyMember> GetFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
@@ -358,19 +326,13 @@ namespace Atlas.ECS.Components
 			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
 		}
 
-		public IFamily GetFamily(Type type)
-		{
-			return familiesType.ContainsKey(type) ? familiesType[type] : null;
-		}
+		public IFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
 
 		#endregion
 
 		#region Has
 
-		public bool HasFamily(IFamily family)
-		{
-			return familiesType.ContainsValue(family);
-		}
+		public bool HasFamily(IFamily family) => familiesType.ContainsValue(family);
 
 		public bool HasFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
@@ -378,14 +340,11 @@ namespace Atlas.ECS.Components
 			return HasFamily(typeof(TFamilyMember));
 		}
 
-		public bool HasFamily(Type type)
-		{
-			return familiesType.ContainsKey(type);
-		}
+		public bool HasFamily(Type type) => familiesType.ContainsKey(type);
 
 		#endregion
 
-		#region Events
+		#region Messages
 
 		private void EntityComponentAdded(IComponentAddMessage message)
 		{
@@ -409,7 +368,7 @@ namespace Atlas.ECS.Components
 
 		public double MaxVariableTime
 		{
-			get { return maxVariableTime; }
+			get => maxVariableTime;
 			set
 			{
 				if(maxVariableTime == value)
@@ -420,7 +379,7 @@ namespace Atlas.ECS.Components
 
 		public double DeltaVariableTime
 		{
-			get { return deltaVariableTime; }
+			get => deltaVariableTime;
 			private set
 			{
 				if(deltaVariableTime == value)
@@ -431,7 +390,7 @@ namespace Atlas.ECS.Components
 
 		public double TotalVariableTime
 		{
-			get { return totalVariableTime; }
+			get => totalVariableTime;
 			private set
 			{
 				if(totalVariableTime == value)
@@ -442,7 +401,7 @@ namespace Atlas.ECS.Components
 
 		public double DeltaFixedTime
 		{
-			get { return deltaFixedTime; }
+			get => deltaFixedTime;
 			set
 			{
 				if(deltaFixedTime == value)
@@ -453,7 +412,7 @@ namespace Atlas.ECS.Components
 
 		public double TotalFixedTime
 		{
-			get { return totalFixedTime; }
+			get => totalFixedTime;
 			private set
 			{
 				if(totalFixedTime == value)
@@ -468,7 +427,7 @@ namespace Atlas.ECS.Components
 
 		public TimeStep UpdateState
 		{
-			get { return updateState; }
+			get => updateState;
 			private set
 			{
 				if(updateState == value)
@@ -481,7 +440,7 @@ namespace Atlas.ECS.Components
 
 		public ISystem CurrentSystem
 		{
-			get { return currentSystem; }
+			get => currentSystem;
 			private set
 			{
 				if(currentSystem == value)
