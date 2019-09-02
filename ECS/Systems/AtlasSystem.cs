@@ -1,13 +1,16 @@
 ﻿using Atlas.Core.Messages;
 using Atlas.Core.Objects;
 using Atlas.ECS.Components;
-using Atlas.ECS.Objects;
+using Atlas.ECS.Objects.Messages;
 using Atlas.ECS.Systems.Messages;
 
 namespace Atlas.ECS.Systems
 {
-	public abstract class AtlasSystem : AtlasObject<ISystem>, ISystem
+	public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
+		#region Fields
+
+		private IEngine engine;
 		private int priority = 0;
 		private int sleeping = 0;
 		private float totalIntervalTime = 0;
@@ -16,10 +19,11 @@ namespace Atlas.ECS.Systems
 		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;
 
-		public AtlasSystem()
-		{
+		#endregion
 
-		}
+		#region Construct / Dispose
+
+		public AtlasSystem() { }
 
 		public sealed override void Dispose()
 		{
@@ -40,32 +44,46 @@ namespace Atlas.ECS.Systems
 			base.Disposing();
 		}
 
-		public sealed override IEngine Engine
+		#endregion
+
+		#region Engine
+
+		public IEngine Engine
 		{
-			get { return base.Engine; }
+			get => engine;
 			set
 			{
 				if(value != null && Engine == null && value.HasSystem(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					AddingEngine(value);
+					Message<IEngineMessage<ISystem>>(new EngineMessage<ISystem>(value, previous));
+				}
 				else if(value == null && Engine != null && !Engine.HasSystem(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					RemovingEngine(previous);
+					Message<IEngineMessage<ISystem>>(new EngineMessage<ISystem>(value, previous));
+					Dispose();
+				}
 			}
 		}
 
-		protected override void AddingEngine(IEngine engine)
+		protected virtual void AddingEngine(IEngine engine)
 		{
-			base.AddingEngine(engine);
 			SyncTotalIntervalTime();
 		}
 
-		protected override void RemovingEngine(IEngine engine)
+		protected virtual void RemovingEngine(IEngine engine)
 		{
 			TotalIntervalTime = 0;
-			base.RemovingEngine(engine);
-			Dispose();
 		}
 
-		#region Updating
+		#endregion
+
+		#region Updates
 
 		public void Update(float deltaTime)
 		{
@@ -95,13 +113,39 @@ namespace Atlas.ECS.Systems
 
 		protected virtual void SystemUpdate(float deltaTime) { }
 
+		public TimeStep UpdateState
+		{
+			get => updateState;
+			private set
+			{
+				if(updateState == value)
+					return;
+				var previous = updateState;
+				updateState = value;
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
+			}
+		}
+
+		public TimeStep TimeStep
+		{
+			get => timeStep;
+			protected set
+			{
+				if(timeStep == value)
+					return;
+				var previous = timeStep;
+				timeStep = value;
+				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
+			}
+		}
+
 		#endregion
 
 		#region Sleeping
 
 		public int Sleeping
 		{
-			get { return sleeping; }
+			get => sleeping;
 			private set
 			{
 				if(sleeping == value)
@@ -114,7 +158,7 @@ namespace Atlas.ECS.Systems
 
 		public bool IsSleeping
 		{
-			get { return sleeping > 0; }
+			get => sleeping > 0;
 			set
 			{
 				if(value)
@@ -126,9 +170,11 @@ namespace Atlas.ECS.Systems
 
 		#endregion
 
+		#region Interval Time
+
 		public float DeltaIntervalTime
 		{
-			get { return deltaIntervalTime; }
+			get => deltaIntervalTime;
 			protected set
 			{
 				if(deltaIntervalTime == value)
@@ -143,7 +189,7 @@ namespace Atlas.ECS.Systems
 
 		public float TotalIntervalTime
 		{
-			get { return totalIntervalTime; }
+			get => totalIntervalTime;
 			private set
 			{
 				if(totalIntervalTime == value)
@@ -165,25 +211,16 @@ namespace Atlas.ECS.Systems
 			TotalIntervalTime = totalIntervalTime;
 		}
 
-		public TimeStep TimeStep
-		{
-			get { return timeStep; }
-			protected set
-			{
-				if(timeStep == value)
-					return;
-				var previous = timeStep;
-				timeStep = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
-			}
-		}
+		#endregion
+
+		#region Priority
 
 		/// <summary>
 		/// Priority goes -1 -> 1
 		/// </summary>
 		public int Priority
 		{
-			get { return priority; }
+			get => priority;
 			set
 			{
 				if(priority == value)
@@ -194,17 +231,6 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		public TimeStep UpdateState
-		{
-			get { return updateState; }
-			private set
-			{
-				if(updateState == value)
-					return;
-				var previous = updateState;
-				updateState = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
-			}
-		}
+		#endregion
 	}
 }

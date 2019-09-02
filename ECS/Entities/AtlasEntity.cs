@@ -1,26 +1,24 @@
-﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Collections.Pool;
+﻿using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities.Messages;
-using Atlas.ECS.Objects;
+using Atlas.ECS.Objects.Messages;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Atlas.ECS.Entities
 {
-	public sealed class AtlasEntity : AtlasObject<IEntity>, IEntity
+	public sealed class AtlasEntity : HierarchyMessenger<IEntity>, IEntity
 	{
 		#region Static
 
 		public const string RootName = "Root";
-		public static string UniqueName { get { return $"Entity { Guid.NewGuid().ToString("N")}"; } }
+		public static string UniqueName => $"Entity { Guid.NewGuid().ToString("N")}";
 
 		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>();
 
-		public static IReadOnlyPool<AtlasEntity> Pool() { return pool; }
+		public static IReadOnlyPool<AtlasEntity> Pool() => pool;
 
 		public static IEntity Get(string globalName, string localName)
 		{
@@ -42,12 +40,12 @@ namespace Atlas.ECS.Entities
 
 		#region Fields
 
+		private IEngine engine;
 		private string globalName;
 		private string localName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private bool autoDispose = true;
-		private HierarchyMessenger<IEntity> hierarchy;
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 
 		#endregion
@@ -61,17 +59,16 @@ namespace Atlas.ECS.Entities
 
 		private AtlasEntity(string globalName, string localName, bool root)
 		{
-			hierarchy = new HierarchyMessenger<IEntity>(this, Messaging);
-			hierarchy.IsRoot = root;
+			IsRoot = root;
 			GlobalName = globalName;
 			LocalName = localName;
 		}
 
 		protected override void Disposing()
 		{
-			hierarchy.RemoveChildren();
-			hierarchy.Parent = null;
-			hierarchy.IsRoot = false;
+			RemoveChildren();
+			Parent = null;
+			IsRoot = false;
 			RemoveComponents();
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
@@ -81,12 +78,6 @@ namespace Atlas.ECS.Entities
 
 			pool.Add(this);
 			base.Disposing();
-		}
-
-		private void TryAutoDispose()
-		{
-			if(autoDispose && Parent == null)
-				Dispose();
 		}
 
 		#endregion
@@ -139,15 +130,23 @@ namespace Atlas.ECS.Entities
 
 		#region Engine
 
-		public sealed override IEngine Engine
+		public IEngine Engine
 		{
-			get => base.Engine;
+			get => engine;
 			set
 			{
 				if(value != null && Engine == null && value.HasEntity(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
+				}
 				else if(value == null && Engine != null && !Engine.HasEntity(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
+				}
 			}
 		}
 
@@ -327,39 +326,6 @@ namespace Atlas.ECS.Entities
 
 		#region Hierarchy
 
-		#region Root
-
-		public IEntity Root
-		{
-			get => hierarchy.Root;
-		}
-
-		public bool IsRoot
-		{
-			get => hierarchy.IsRoot;
-			set => hierarchy.IsRoot = value;
-		}
-
-		#endregion
-
-		#region Parent
-
-		public IEntity Parent
-		{
-			get => hierarchy.Parent;
-			set => hierarchy.Parent = value;
-		}
-
-		public IEntity SetParent(IEntity parent = null, int index = int.MaxValue) => hierarchy.SetParent(parent, index);
-
-		public int ParentIndex
-		{
-			get => hierarchy.ParentIndex;
-			set => hierarchy.ParentIndex = value;
-		}
-
-		#endregion
-
 		#region Add
 
 		#region Pool
@@ -374,43 +340,18 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		public IEntity AddChild(IEntity child) => AddChild(child, Children.Count);
-
-		public IEntity AddChild(IEntity child, int index) => hierarchy.AddChild(child, index);
-
 		#endregion
 
 		#region Remove
-
-		public IEntity RemoveChild(IEntity child)
-		{
-			return hierarchy.RemoveChild(child);
-		}
-
-		public IEntity RemoveChild(int index)
-		{
-			return hierarchy.RemoveChild(index);
-		}
 
 		public IEntity RemoveChild(string localName)
 		{
 			return RemoveChild(GetChild(localName));
 		}
 
-		public bool RemoveChildren() => hierarchy.RemoveChildren();
-
 		#endregion
 
 		#region Get
-
-		public IReadOnlyGroup<IEntity> Children
-		{
-			get => hierarchy.Children;
-		}
-
-		public IEnumerator<IEntity> GetEnumerator() => hierarchy.GetEnumerator();
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		public IEntity GetChild(string localName)
 		{
@@ -421,10 +362,6 @@ namespace Atlas.ECS.Entities
 			}
 			return null;
 		}
-
-		public IEntity GetChild(int index) => hierarchy.GetChild(index);
-
-		public int GetChildIndex(IEntity child) => hierarchy.GetChildIndex(child);
 
 		public IEntity GetHierarchy(string hierarchy)
 		{
@@ -450,12 +387,6 @@ namespace Atlas.ECS.Entities
 
 		#region Set
 
-		public bool SetChildIndex(IEntity child, int index) => hierarchy.SetChildIndex(child, index);
-
-		public bool SwapChildren(IEntity child1, IEntity child2) => hierarchy.SwapChildren(child1, child2);
-
-		public bool SwapChildren(int index1, int index2) => hierarchy.SwapChildren(index1, index2);
-
 		public IEntity SetHierarchy(string hierarchy, int index) => SetParent(GetHierarchy(hierarchy), index);
 
 		#endregion
@@ -463,14 +394,6 @@ namespace Atlas.ECS.Entities
 		#region Has
 
 		public bool HasChild(string localName) => GetChild(localName) != null;
-
-		public bool HasChild(IEntity child) => hierarchy.HasChild(child);
-
-		public bool HasDescendant(IEntity descendant) => hierarchy.HasDescendant(descendant);
-
-		public bool HasAncestor(IEntity ancestor) => hierarchy.HasAncestor(ancestor);
-
-		public bool HasSibling(IEntity sibling) => hierarchy.HasSibling(sibling);
 
 		#endregion
 
@@ -558,29 +481,15 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
+		private void TryAutoDispose()
+		{
+			if(autoDispose && Parent == null)
+				Dispose();
+		}
+
 		#endregion
 
 		#region Messages
-
-		protected override IMessenger<IEntity> Messenger => hierarchy;
-
-		public void AddListener<TMessage>(Action<TMessage> listener, MessageFlow messenger)
-			where TMessage : IMessage<IEntity>
-		{
-			hierarchy.AddListener(listener, messenger);
-		}
-
-		public void AddListener<TMessage>(Action<TMessage> listener, int priority, MessageFlow messenger)
-			where TMessage : IMessage<IEntity>
-		{
-			hierarchy.AddListener(listener, priority, messenger);
-		}
-
-		public void Message<TMessage>(TMessage message, MessageFlow flow)
-			where TMessage : IMessage<IEntity>
-		{
-			hierarchy.Message(message, flow);
-		}
 
 		protected override void Messaging(IMessage<IEntity> message)
 		{

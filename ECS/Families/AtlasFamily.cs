@@ -6,7 +6,7 @@ using Atlas.Core.Utilites;
 using Atlas.ECS.Components;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families.Messages;
-using Atlas.ECS.Objects;
+using Atlas.ECS.Objects.Messages;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,10 +14,12 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : AtlasObject<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : Messenger<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
+
+		private IEngine engine;
 
 		//Reflection Fields
 		private readonly FieldInfo entityField;
@@ -62,39 +64,36 @@ namespace Atlas.ECS.Families
 			base.Dispose();
 		}
 
-		protected override void RemovingEngine(IEngine engine)
-		{
-			base.RemovingEngine(engine);
-			Dispose();
-		}
-
 		#endregion
 
 		#region Iteration
 
-		public IEnumerator<TFamilyMember> GetEnumerator()
-		{
-			return members.GetEnumerator();
-		}
+		public IEnumerator<TFamilyMember> GetEnumerator() => members.GetEnumerator();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		#endregion
 
 		#region Engine
 
-		public sealed override IEngine Engine
+		public IEngine Engine
 		{
-			get => base.Engine;
+			get => engine;
 			set
 			{
 				if(value != null && Engine == null && value.HasFamily(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					Message<IEngineMessage<IFamily<TFamilyMember>>>(new EngineMessage<IFamily<TFamilyMember>>(value, previous));
+				}
 				else if(value == null && Engine != null && !Engine.HasFamily(this))
-					base.Engine = value;
+				{
+					var previous = engine;
+					engine = value;
+					Message<IEngineMessage<IFamily<TFamilyMember>>>(new EngineMessage<IFamily<TFamilyMember>>(value, previous));
+					Dispose();
+				}
 			}
 		}
 
