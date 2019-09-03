@@ -21,7 +21,7 @@ namespace Atlas.Core.Objects.Update
 
 		public bool IsRunning
 		{
-			get { return isRunning; }
+			get => isRunning;
 			set
 			{
 				if(isRunning == value)
