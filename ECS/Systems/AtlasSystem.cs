@@ -4,6 +4,7 @@ using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Objects;
+using System;
 
 namespace Atlas.ECS.Systems
 {
@@ -93,7 +94,7 @@ namespace Atlas.ECS.Systems
 			if(Engine?.CurrentSystem != this)
 				return;
 			if(updateLock)
-				return;
+				throw new InvalidOperationException($"{GetType().Name}.{nameof(Update)} cannot be called while already updating.");
 
 			if(deltaIntervalTime > 0)
 			{

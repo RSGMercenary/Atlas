@@ -452,7 +452,8 @@ namespace Atlas.ECS.Components.Engine
 		public void Update(double deltaTime)
 		{
 			if(updateLock)
-				return;
+				throw new InvalidOperationException($"{GetType().Name}.{nameof(Update)} cannot be called while already updating.");
+
 			updateLock = true;
 
 			var deltaVariableTime = deltaTime;
