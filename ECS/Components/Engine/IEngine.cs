@@ -1,11 +1,12 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Objects;
+using Atlas.Core.Objects.Update;
+using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using System;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Engine
 {
 	public interface IEngine : IComponent<IEngine>, IUpdateState
 	{

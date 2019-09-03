@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Engine
 {
 	public class JsonEngine : AtlasEngine
 	{

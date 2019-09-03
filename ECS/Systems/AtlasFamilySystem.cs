@@ -1,6 +1,5 @@
-﻿using Atlas.ECS.Components;
+﻿using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Families;
-using Atlas.ECS.Families.Messages;
 
 namespace Atlas.ECS.Systems
 {

@@ -1,12 +1,13 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.ECS.Components.Messages;
+using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Objects.Messages;
+using Atlas.ECS.Objects;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.SystemManager
 {
 	public class SystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	{

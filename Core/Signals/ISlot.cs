@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Objects;
+﻿using Atlas.Core.Objects.Priority;
 using System;
 
 namespace Atlas.Core.Signals

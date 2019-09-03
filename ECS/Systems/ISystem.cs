@@ -1,4 +1,6 @@
-﻿using Atlas.Core.Objects;
+﻿using Atlas.Core.Objects.Priority;
+using Atlas.Core.Objects.Sleep;
+using Atlas.Core.Objects.Update;
 using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems

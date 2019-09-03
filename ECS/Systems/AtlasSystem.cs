@@ -1,8 +1,9 @@
 ﻿using Atlas.Core.Messages;
-using Atlas.Core.Objects;
-using Atlas.ECS.Components;
-using Atlas.ECS.Objects.Messages;
-using Atlas.ECS.Systems.Messages;
+using Atlas.Core.Objects.Priority;
+using Atlas.Core.Objects.Sleep;
+using Atlas.Core.Objects.Update;
+using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {

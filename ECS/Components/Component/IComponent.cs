@@ -1,12 +1,12 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
-using Atlas.Core.Objects;
+using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
 using System.Text;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Component
 {
 	public interface IComponent : IMessenger, IAutoDispose
 	{

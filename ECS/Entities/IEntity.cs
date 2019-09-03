@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
-using Atlas.Core.Objects;
-using Atlas.ECS.Components;
+using Atlas.Core.Objects.AutoDispose;
+using Atlas.Core.Objects.Sleep;
+using Atlas.ECS.Components.Component;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;

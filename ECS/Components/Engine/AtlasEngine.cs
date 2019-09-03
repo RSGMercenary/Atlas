@@ -1,17 +1,15 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
-using Atlas.Core.Messages;
-using Atlas.Core.Objects;
-using Atlas.Core.Utilites;
-using Atlas.ECS.Components.Messages;
+using Atlas.Core.Objects.Priority;
+using Atlas.Core.Objects.Update;
+using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Entities.Messages;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Engine
 {
 	public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	{

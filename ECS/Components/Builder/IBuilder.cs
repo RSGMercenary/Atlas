@@ -1,4 +1,6 @@
-﻿namespace Atlas.ECS.Components
+﻿using Atlas.ECS.Components.Component;
+
+namespace Atlas.ECS.Components.Builder
 {
 	public interface IBuilder : IComponent<IBuilder>
 	{

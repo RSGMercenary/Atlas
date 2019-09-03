@@ -1,13 +1,13 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.ECS.Components.Messages;
+using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Component
 {
 	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
 		where T : class, IComponent

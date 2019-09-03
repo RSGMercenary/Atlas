@@ -1,12 +1,12 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.Core.Objects;
+using Atlas.Core.Objects.Update;
 using Atlas.Core.Utilites;
-using Atlas.ECS.Components;
+using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Families.Messages;
-using Atlas.ECS.Objects.Messages;
+using Atlas.ECS.Objects;
 using System;
 using System.Collections;
 using System.Collections.Generic;

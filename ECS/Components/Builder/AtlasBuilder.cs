@@ -1,10 +1,10 @@
-﻿using Atlas.ECS.Components.Messages;
+﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Atlas.ECS.Components
+namespace Atlas.ECS.Components.Builder
 {
 	public abstract class AtlasBuilder : AtlasComponent<IBuilder>, IBuilder
 	{

@@ -1,9 +1,11 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
-using Atlas.ECS.Components;
-using Atlas.ECS.Entities.Messages;
-using Atlas.ECS.Objects.Messages;
+using Atlas.Core.Objects.AutoDispose;
+using Atlas.Core.Objects.Sleep;
+using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
 using System.Text;
