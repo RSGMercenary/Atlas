@@ -217,9 +217,6 @@ namespace Atlas.ECS.Systems
 
 		#region Priority
 
-		/// <summary>
-		/// Priority goes -1 -> 1
-		/// </summary>
 		public int Priority
 		{
 			get => priority;
