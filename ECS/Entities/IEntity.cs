@@ -34,7 +34,7 @@ namespace Atlas.ECS.Entities
 
 		IEntity AddChild(string globalName, string localName);
 		IEntity AddChild(string globalName, string localName, int index);
-		IEntity AddChild(string globalName, bool localName = false);
+		IEntity AddChild(string globalName, bool localName);
 		IEntity AddChild(string globalName, bool localName, int index);
 
 		bool HasChild(string localName);
@@ -47,9 +47,9 @@ namespace Atlas.ECS.Entities
 		/// </summary>
 		/// <param name="hierarchy">A hierarchy string in format of "../../name1/name2/name3".</param>
 		/// <returns></returns>
-		IEntity GetHierarchy(string hierarchy);
+		IEntity GetRelative(string hierarchy);
 
-		IEntity SetHierarchy(string hierarchy, int index);
+		IEntity SetRelative(string hierarchy, int index);
 
 		IEntity GetChild(string localName);
 
@@ -86,10 +86,10 @@ namespace Atlas.ECS.Entities
 
 		IReadOnlyDictionary<Type, IComponent> Components { get; }
 
-		TKeyValue GetAncestorComponent<TKeyValue>()
+		TKeyValue GetAncestorComponent<TKeyValue>(int depth, bool self)
 			where TKeyValue : IComponent;
 
-		IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
+		IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth)
 			where TKeyValue : IComponent;
 
 		#endregion
@@ -165,7 +165,7 @@ namespace Atlas.ECS.Entities
 		IComponent AddComponent(IComponent component);
 		IComponent AddComponent(IComponent component, Type type);
 		IComponent AddComponent(IComponent component, int index);
-		IComponent AddComponent(IComponent component, Type type = null, int index = int.MaxValue);
+		IComponent AddComponent(IComponent component, Type type, int index);
 
 		#endregion
 
@@ -205,9 +205,9 @@ namespace Atlas.ECS.Entities
 
 		#region Info Strings
 
-		string AncestorsToString(int depth = -1, bool localNames = true, string indent = "");
+		string AncestorsToString(int depth, bool localNames, string indent);
 
-		string DescendantsToString(int depth = -1, bool localNames = true, string indent = "");
+		string DescendantsToString(int depth, bool localNames, string indent);
 
 		/// <summary>
 		/// Returns a formatted and indented string of the <see cref="IEntity"/> hierarchy.
@@ -218,7 +218,7 @@ namespace Atlas.ECS.Entities
 		/// <param name="addSystems">Adds systems to the output.</param>
 		/// <param name="indent"></param>
 		/// <returns></returns>
-		string ToInfoString(int depth = -1, bool addComponents = true, bool addManagers = false, string indent = "", StringBuilder text = null);
+		string ToInfoString(int depth, bool addComponents, bool addManagers, string indent, StringBuilder text);
 
 		#endregion
 	}
