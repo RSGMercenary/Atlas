@@ -193,16 +193,13 @@ namespace Atlas.ECS.Entities
 			return null;
 		}
 
-		public IReadOnlyDictionary<Type, IComponent> Components
-		{
-			get => components;
-		}
+		public IReadOnlyDictionary<Type, IComponent> Components => components;
 
-		public TKeyValue GetAncestorComponent<TKeyValue>()
+		public TKeyValue GetAncestorComponent<TKeyValue>(int depth = -1, bool self = false)
 			where TKeyValue : IComponent
 		{
-			var ancestor = Parent;
-			while(ancestor != null)
+			var ancestor = self ? this : Parent;
+			while(ancestor != null && depth-- != 0)
 			{
 				var component = ancestor.GetComponent<TKeyValue>();
 				if(component != null)
@@ -212,19 +209,20 @@ namespace Atlas.ECS.Entities
 			return default;
 		}
 
-		public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>()
+		public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth = -1)
 			where TKeyValue : IComponent
 		{
-			var components = new List<TKeyValue>();
 			foreach(var child in Children)
 			{
 				var component = child.GetComponent<TKeyValue>();
 				if(component != null)
-					components.Add(component);
-				else
-					components.AddRange(child.GetDescendantComponents<TKeyValue>());
+					yield return component;
+				else if(depth-- != 0)
+				{
+					foreach(var comp in child.GetDescendantComponents<TKeyValue>(depth))
+						yield return comp;
+				}
 			}
-			return components;
 		}
 
 		#endregion
@@ -267,7 +265,7 @@ namespace Atlas.ECS.Entities
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
 			type = type ?? component?.GetType();
-			if(type == null || !type.IsInstanceOfType(component))
+			if(!(type?.IsInstanceOfType(component) ?? false))
 				return null;
 			//The component isn't shareable and it already has a manager.
 			//Or this Entity alreay manages this Component.
@@ -332,8 +330,6 @@ namespace Atlas.ECS.Entities
 
 		#region Add
 
-		#region Pool
-
 		public IEntity AddChild(string globalName, string localName) => AddChild(Get(globalName, localName), Children.Count);
 
 		public IEntity AddChild(string globalName, string localName, int index) => AddChild(Get(globalName, localName), index);
@@ -344,14 +340,9 @@ namespace Atlas.ECS.Entities
 
 		#endregion
 
-		#endregion
-
 		#region Remove
 
-		public IEntity RemoveChild(string localName)
-		{
-			return RemoveChild(GetChild(localName));
-		}
+		public IEntity RemoveChild(string localName) => RemoveChild(GetChild(localName));
 
 		#endregion
 
@@ -367,7 +358,7 @@ namespace Atlas.ECS.Entities
 			return null;
 		}
 
-		public IEntity GetHierarchy(string hierarchy)
+		public IEntity GetRelative(string hierarchy)
 		{
 			if(string.IsNullOrWhiteSpace(hierarchy))
 				return null;
@@ -391,7 +382,7 @@ namespace Atlas.ECS.Entities
 
 		#region Set
 
-		public IEntity SetHierarchy(string hierarchy, int index) => SetParent(GetHierarchy(hierarchy), index);
+		public IEntity SetRelative(string hierarchy, int index) => SetParent(GetRelative(hierarchy), index);
 
 		#endregion
 
@@ -571,10 +562,9 @@ namespace Atlas.ECS.Entities
 				var parent = Parent;
 				text.Append(parent.AncestorsToString(depth - 1, localNames, indent));
 				var ancestor = parent;
-				while(ancestor != null && depth != 0)
+				while(ancestor != null && depth-- != 0)
 				{
 					text.Append("  ");
-					--depth;
 					ancestor = ancestor.Parent;
 				}
 			}
@@ -588,10 +578,10 @@ namespace Atlas.ECS.Entities
 			var text = new StringBuilder();
 			text.Append(indent);
 			text.AppendLine(localNames ? localName : globalName);
-			if(depth != 0)
+			if(depth-- != 0)
 			{
 				foreach(var child in Children)
-					text.Append(child.DescendantsToString(--depth, localNames, indent + "  "));
+					text.Append(child.DescendantsToString(depth, localNames, indent + "  "));
 			}
 			return text.ToString();
 		}
@@ -622,10 +612,10 @@ namespace Atlas.ECS.Entities
 			}
 
 			text.AppendLine($"{indent}  {nameof(Children)}   ({Children.Count})");
-			if(depth != 0)
+			if(depth-- != 0)
 			{
 				foreach(var child in Children)
-					child.ToInfoString(--depth, addComponents, addEntities, $"{indent}    ", text);
+					child.ToInfoString(depth, addComponents, addEntities, $"{indent}    ", text);
 			}
 			return text.ToString();
 		}
