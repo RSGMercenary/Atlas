@@ -48,11 +48,16 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Compose/Dispose
 
+		public sealed override IEntity AddManager(IEntity entity, Type type, int index)
+		{
+			if(!(entity?.IsRoot ?? false))
+				return null;
+			return base.AddManager(entity, type, index);
+		}
+
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
-			if(!entity.IsRoot)
-				RemoveManager(entity);
 			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, Relation.All);
 			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, Relation.All);
 			entity.AddListener<IGlobalNameMessage>(EntityGlobalNameChanged, int.MinValue, Relation.All);

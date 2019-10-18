@@ -138,7 +138,7 @@ namespace Atlas.ECS.Components.Component
 
 		public IEntity AddManager(IEntity entity, int index) => AddManager(entity, null, index);
 
-		public IEntity AddManager(IEntity entity, Type type, int index)
+		public virtual IEntity AddManager(IEntity entity, Type type, int index)
 		{
 			type = type ?? GetType();
 			if(!type.IsInstanceOfType(this))
@@ -184,7 +184,7 @@ namespace Atlas.ECS.Components.Component
 
 		public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity?.GetComponentType(this));
 
-		public IEntity RemoveManager(IEntity entity, Type type)
+		public virtual IEntity RemoveManager(IEntity entity, Type type)
 		{
 			if(entity == null)
 				return null;
