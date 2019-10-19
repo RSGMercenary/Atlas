@@ -363,7 +363,7 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Updates
 
-		#region Delta/total Times
+		#region Delta/Total Times
 
 		public double MaxVariableTime
 		{
