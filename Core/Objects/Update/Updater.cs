@@ -11,12 +11,12 @@ namespace Atlas.Core.Objects.Update
 	public class Updater
 	{
 		private readonly Stopwatch timer = new Stopwatch();
-		private readonly IUpdate<double> update;
+		private readonly IUpdate<double> instance;
 		private bool isRunning = false;
 
-		public Updater(IUpdate<double> update)
+		public Updater(IUpdate<double> instance)
 		{
-			this.update = update ?? throw new NullReferenceException("No method to call for updates.");
+			this.instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<double>)} instance is null.");
 		}
 
 		public bool IsRunning
@@ -37,7 +37,7 @@ namespace Atlas.Core.Objects.Update
 					while(isRunning)
 					{
 						var currentTime = timer.Elapsed.TotalSeconds;
-						update.Update(currentTime - previousTime);
+						instance.Update(currentTime - previousTime);
 						previousTime = currentTime;
 					}
 					timer.Stop();
