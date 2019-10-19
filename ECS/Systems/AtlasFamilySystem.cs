@@ -9,12 +9,7 @@ namespace Atlas.ECS.Systems
 		public IFamily<TFamilyMember> Family { get; private set; }
 		public bool UpdateSleepingEntities { get; protected set; } = false;
 
-		protected sealed override void SystemUpdate(float deltaTime)
-		{
-			FamilyUpdate(deltaTime);
-		}
-
-		protected virtual void FamilyUpdate(float deltaTime)
+		protected override void SystemUpdate(float deltaTime)
 		{
 			var updateSleepingEntities = UpdateSleepingEntities;
 			foreach(var member in Family)
