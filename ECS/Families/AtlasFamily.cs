@@ -56,7 +56,7 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		public sealed override void Dispose()
+		public override void Dispose()
 		{
 			//Can't dispose Family mid-update.
 			if(Engine != null || removed.Count > 0)
