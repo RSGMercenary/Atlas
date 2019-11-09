@@ -149,21 +149,21 @@ namespace Atlas.Core.Collections.Group
 
 		private IEnumerable<T> Enumerate(bool forward)
 		{
-			if(this.items.Count <= 0)
+			if(items.Count <= 0)
 				yield break;
 			++iterators;
-			var items = this.items.ToArray();
+			var array = items.ToArray();
 			var index = 0;
-			var end = items.Length;
+			var end = array.Length;
 			if(!forward)
 			{
-				index = items.Length - 1;
+				index = array.Length - 1;
 				end = -1;
 			}
 			while(index != end)
 			{
-				if(!items[index].IsRemoved)
-					yield return items[index].Value;
+				if(!array[index].IsRemoved)
+					yield return array[index].Value;
 				index += forward ? 1 : -1;
 			}
 			if(--iterators == 0)
