@@ -121,7 +121,7 @@ namespace Atlas.Core.Collections.Group
 
 		public bool Swap(int index1, int index2)
 		{
-			if(index2 < 0 || index2 < 0)
+			if(index1 < 0 || index2 < 0)
 				return false;
 			var item = items[index1];
 			items[index1] = items[index2];
