@@ -149,10 +149,6 @@ namespace Atlas.ECS.Components.Component
 				{
 					index = Math.Max(0, Math.Min(index, managers.Count));
 					managers.Insert(index, entity);
-					/*
-					entity.AddListener<IEngineMessage<IEntity>>(EntityEngineChanged);
-					Engine = entity.Engine;
-					*/
 					AddingManager(entity, index);
 					Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index, entity));
 					Message<IManagerMessage<T>>(new ManagerMessage<T>());
@@ -200,11 +196,6 @@ namespace Atlas.ECS.Components.Component
 			{
 				int index = managers.IndexOf(entity);
 				managers.RemoveAt(index);
-				/*
-				entity.RemoveListener<IEngineMessage<IEntity>>(EntityEngineChanged);
-				if(managers.Count <= 0)
-					Engine = null;
-				*/
 				RemovingManager(entity, index);
 				Message<IManagerRemoveMessage<T>>(new ManagerRemoveMessage<T>(index, entity));
 				Message<IManagerMessage<T>>(new ManagerMessage<T>());
@@ -244,33 +235,6 @@ namespace Atlas.ECS.Components.Component
 			return true;
 		}
 
-		#endregion
-
-		#region Engine
-		/*
-		private void EntityEngineChanged(IEngineMessage<IEntity> message)
-		{
-			Engine = message.CurrentValue;
-		}
-
-		public sealed override IEngine Engine
-		{
-			get => base.Engine;
-			set
-			{
-				int count = 0;
-				foreach(var manager in managers)
-				{
-					if(manager.Engine == value)
-						++count;
-				}
-				if(count <= 0)
-					base.Engine = null;
-				else if(managers.Count == count)
-					base.Engine = value;
-			}
-		}
-		*/
 		#endregion
 
 		#region Info Strings
