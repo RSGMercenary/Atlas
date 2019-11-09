@@ -7,17 +7,7 @@ namespace Atlas.Core.Messages
 	public abstract class Messenger<T> : IMessenger<T>
 		where T : class, IMessenger
 	{
-		//protected T Target { get; }
-		//private Action<IMessage<T>> Callout { get; }
 		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
-
-		/*
-		public Messenger(T target = null, Action<IMessage<T>> callout = null)
-		{
-			Target = target ?? this as T;
-			Callout = callout;
-		}
-		*/
 
 		public virtual void Dispose()
 		{
@@ -42,10 +32,7 @@ namespace Atlas.Core.Messages
 				(messages[type] as Signal<TMessage>).Dispatch(message);
 		}
 
-		protected virtual void Messaging(IMessage<T> message)
-		{
-			//Callout?.Invoke(message);
-		}
+		protected virtual void Messaging(IMessage<T> message) { }
 
 		public void AddListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<T>
