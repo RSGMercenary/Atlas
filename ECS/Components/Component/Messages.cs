@@ -27,7 +27,6 @@ namespace Atlas.ECS.Components.Component
 
 	class ManagerMessage<T> : Message<T>, IManagerMessage<T> where T : IComponent
 	{
-		public ManagerMessage() { }
 	}
 
 	#endregion
