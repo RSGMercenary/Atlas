@@ -98,7 +98,7 @@ namespace Atlas.ECS.Components.Engine
 
 				return instance;
 			}
-			throw new NullReferenceException($"Couldn't find a System to instantiate for {type.FullName}.");
+			throw new ArgumentNullException($"Couldn't find a System to instantiate for {type.FullName}.");
 		}
 	}
 }
