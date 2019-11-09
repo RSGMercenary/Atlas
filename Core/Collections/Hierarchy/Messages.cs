@@ -32,7 +32,6 @@ namespace Atlas.Core.Collections.Hierarchy
 
 	class ChildrenMessage<T> : Message<T>, IChildrenMessage<T> where T : IMessenger, IHierarchy<T>
 	{
-		public ChildrenMessage() { }
 	}
 
 	class ParentMessage<T> : PropertyMessage<T, T>, IParentMessage<T> where T : IMessenger, IHierarchy<T>
