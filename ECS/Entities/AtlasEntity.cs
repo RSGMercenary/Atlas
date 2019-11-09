@@ -509,12 +509,12 @@ namespace Atlas.ECS.Entities
 				{
 					if(!IsFreeSleeping)
 					{
-						int sleeping = 0;
+						int deltaSleeping = 0;
 						if(parentMessage.PreviousValue?.IsSleeping ?? false)
-							--sleeping;
+							--deltaSleeping;
 						if(parentMessage.CurrentValue?.IsSleeping ?? false)
-							++sleeping;
-						Sleeping += sleeping;
+							++deltaSleeping;
+						Sleeping += deltaSleeping;
 					}
 					TryAutoDispose();
 				}
