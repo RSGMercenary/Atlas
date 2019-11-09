@@ -12,8 +12,6 @@ namespace Atlas.ECS.Components.Builder
 		private BuildState state = BuildState.Unbuilt;
 		private bool autoRemove = true;
 
-		public AtlasBuilder() { }
-
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
