@@ -88,7 +88,7 @@ namespace Atlas.ECS.Components.Component
 		/// that is a subclass or interface of this Component.</param>
 		/// <param name="index">The index of the Entity in this Component.</param>
 		/// <returns></returns>
-		IEntity AddManager(IEntity entity, Type type = null, int index = int.MaxValue);
+		IEntity AddManager(IEntity entity, Type type, int index);
 
 		/// <summary>
 		/// Adds an Entity to this Component with the given TIComponent Type. The Type
