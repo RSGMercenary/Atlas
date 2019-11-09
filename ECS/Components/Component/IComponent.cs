@@ -112,7 +112,7 @@ namespace Atlas.ECS.Components.Component
 		/// <param name="entity">The Entity to add to this Component.</param>
 		/// <param name="index">The index of the Entity in this Component.</param>
 		/// <returns></returns>
-		IEntity AddManager<TIComponent>(IEntity entity, int index = int.MaxValue)
+		IEntity AddManager<TIComponent>(IEntity entity, int index)
 			where TIComponent : IComponent;
 
 		/// <summary>
