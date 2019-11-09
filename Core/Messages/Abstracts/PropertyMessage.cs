@@ -3,7 +3,7 @@
 	public abstract class PropertyMessage<TMessenger, TProperty> : Message<TMessenger>, IPropertyMessage<TMessenger, TProperty>
 		where TMessenger : IMessenger
 	{
-		public PropertyMessage(TProperty current, TProperty previous)
+		protected PropertyMessage(TProperty current, TProperty previous)
 		{
 			CurrentValue = current;
 			PreviousValue = previous;

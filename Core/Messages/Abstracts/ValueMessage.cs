@@ -3,7 +3,7 @@
 	public abstract class ValueMessage<TMessenger, TValue> : Message<TMessenger>, IValueMessage<TMessenger, TValue>
 		where TMessenger : IMessenger
 	{
-		public ValueMessage(TValue value)
+		protected ValueMessage(TValue value)
 		{
 			Value = value;
 		}
