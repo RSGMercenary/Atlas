@@ -251,7 +251,7 @@ namespace Atlas.ECS.Entities
 			where TKeyValue : IComponent => (TKeyValue)AddComponent(component, typeof(TKeyValue), index);
 
 		public TValue AddComponent<TValue>(TValue component, Type type)
-			where TValue : IComponent => AddComponent(component, type, int.MaxValue);
+			where TValue : IComponent => (TValue)AddComponent(component, type, int.MaxValue);
 
 		public TValue AddComponent<TValue>(Type type)
 			where TValue : IComponent, new() => AddComponent(new TValue(), type);
