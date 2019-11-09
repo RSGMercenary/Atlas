@@ -24,9 +24,6 @@ namespace Atlas.ECS.Systems
 		#endregion
 
 		#region Construct / Dispose
-
-		public AtlasSystem() { }
-
 		public sealed override void Dispose()
 		{
 			//Can't dispose System mid-update.
