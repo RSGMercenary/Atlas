@@ -81,7 +81,7 @@ namespace Atlas.ECS.Entities
 			RemoveListeners();
 
 			pool.Add(this);
-			//base.Disposing();
+			//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 		}
 
 		#endregion
@@ -140,18 +140,17 @@ namespace Atlas.ECS.Entities
 			set
 			{
 				if(value != null && Engine == null && value.HasEntity(this))
-				{
-					var previous = engine;
-					engine = value;
-					Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
-				}
+					SetEngine(value);
 				else if(value == null && Engine != null && !Engine.HasEntity(this))
-				{
-					var previous = engine;
-					engine = value;
-					Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
-				}
+					SetEngine(value);
 			}
+		}
+
+		private void SetEngine(IEngine value)
+		{
+			var previous = engine;
+			engine = value;
+			Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
 		}
 
 		#endregion
