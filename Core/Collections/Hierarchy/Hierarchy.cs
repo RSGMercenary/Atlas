@@ -178,7 +178,9 @@ namespace Atlas.Core.Collections.Hierarchy
 			set => parent?.SetChildIndex(this as T, value);
 		}
 
-		public T SetParent(T next, int index = int.MaxValue)
+		public T SetParent(T next) => SetParent(next, int.MaxValue);
+
+		public T SetParent(T next, int index)
 		{
 			//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
 			//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.

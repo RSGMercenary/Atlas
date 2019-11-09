@@ -42,6 +42,7 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		new T Parent { get; set; }
 		new int ParentIndex { get; set; }
+		T SetParent(T parent);
 		T SetParent(T parent, int index);
 
 		T AddChild(T child);
