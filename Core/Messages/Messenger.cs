@@ -50,7 +50,7 @@ namespace Atlas.Core.Messages
 		public void AddListener<TMessage>(Action<TMessage> listener)
 			where TMessage : IMessage<T>
 		{
-			AddListenerSlot(listener);
+			AddListenerSlot(listener, 0);
 		}
 
 		public void AddListener<TMessage>(Action<TMessage> listener, int priority)
@@ -59,7 +59,7 @@ namespace Atlas.Core.Messages
 			AddListenerSlot(listener, priority);
 		}
 
-		protected ISlot<TMessage> AddListenerSlot<TMessage>(Action<TMessage> listener, int priority = 0)
+		protected ISlot<TMessage> AddListenerSlot<TMessage>(Action<TMessage> listener, int priority)
 			where TMessage : IMessage<T>
 		{
 			var type = typeof(TMessage);
