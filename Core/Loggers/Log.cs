@@ -5,7 +5,7 @@ namespace Atlas.Core.Loggers
 {
 	public static class Log
 	{
-		private static List<ILogger> loggers = new List<ILogger>() { new DebugLogger() };
+		private static List<ILogger> loggers = new List<ILogger> { new DebugLogger() };
 
 		public static IEnumerable<ILogger> Loggers
 		{
