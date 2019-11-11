@@ -43,9 +43,9 @@ namespace Atlas.ECS.Components.Component
 
 		#region Construct / Dispose
 
-		public AtlasComponent() : this(false) { }
+		protected AtlasComponent() : this(false) { }
 
-		public AtlasComponent(bool isShareable)
+		protected AtlasComponent(bool isShareable)
 		{
 			IsShareable = isShareable;
 		}
