@@ -9,11 +9,8 @@ using System.Text;
 
 namespace Atlas.ECS.Components.Component
 {
-	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
-		where T : class, IComponent
+	public static class AtlasComponent
 	{
-		#region Static
-
 		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
 		public static IReadOnlyPool<TComponent> Pool<TComponent>()
@@ -31,8 +28,18 @@ namespace Atlas.ECS.Components.Component
 			return Pool<TComponent>().Remove();
 		}
 
-		#endregion
+		public static void Add<TComponent>(TComponent component)
+			where TComponent : class, IComponent, new()
+		{
+			var type = typeof(TComponent);
+			if(pools.ContainsKey(type))
+				pools[type].Add(component);
+		}
+	}
 
+	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
+		where T : class, IComponent
+	{
 		#region Fields
 
 		private readonly Group<IEntity> managers = new Group<IEntity>();
@@ -57,8 +64,8 @@ namespace Atlas.ECS.Components.Component
 
 			//AtlasComponent derived class had Dispose() called
 			//manually. Pool reference for later reuse.
-			if(pools.ContainsKey(GetType()))
-				pools[GetType()].Add(this);
+			if(AtlasComponent.pools.ContainsKey(GetType()))
+				AtlasComponent.pools[GetType()].Add(this);
 
 			base.Disposing();
 		}
