@@ -8,11 +8,6 @@ namespace Atlas.Core.Signals
 		public ISignalBase Signal { get; internal set; }
 		public Delegate Listener { get; internal set; }
 
-		public SlotBase()
-		{
-
-		}
-
 		public void Dispose()
 		{
 			if(Signal != null)
