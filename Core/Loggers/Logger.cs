@@ -15,8 +15,7 @@ namespace Atlas.Core.Loggers
 	{
 		public bool Verbose { get; set; } = true;
 
-		public WriteLogger() { }
-		public WriteLogger(bool verbose) { Verbose = verbose; }
+		protected WriteLogger(bool verbose) { Verbose = verbose; }
 
 		public override void Info(object info, int skipFrames = 0)
 		{

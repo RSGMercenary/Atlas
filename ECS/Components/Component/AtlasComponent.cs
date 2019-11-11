@@ -28,10 +28,9 @@ namespace Atlas.ECS.Components.Component
 			return Pool<TComponent>().Remove();
 		}
 
-		public static void Add<TComponent>(TComponent component)
-			where TComponent : class, IComponent, new()
+		public static void Add(IComponent component)
 		{
-			var type = typeof(TComponent);
+			var type = component.GetType();
 			if(pools.ContainsKey(type))
 				pools[type].Add(component);
 		}
@@ -64,8 +63,7 @@ namespace Atlas.ECS.Components.Component
 
 			//AtlasComponent derived class had Dispose() called
 			//manually. Pool reference for later reuse.
-			if(AtlasComponent.pools.ContainsKey(GetType()))
-				AtlasComponent.pools[GetType()].Add(this);
+			AtlasComponent.Add(this);
 
 			base.Disposing();
 		}
