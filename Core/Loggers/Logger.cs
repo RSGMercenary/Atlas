@@ -17,19 +17,19 @@ namespace Atlas.Core.Loggers
 
 		protected WriteLogger(bool verbose) { Verbose = verbose; }
 
-		public override void Info(object info, int skipFrames = 0)
+		public override void Info(object message, int skipFrames = 0)
 		{
-			Log(info, LogLevel.Info, ++skipFrames);
+			Log(message, LogLevel.Info, ++skipFrames);
 		}
 
-		public override void Warning(object warning, int skipFrames = 0)
+		public override void Warning(object message, int skipFrames = 0)
 		{
-			Log(warning, LogLevel.Warning, ++skipFrames);
+			Log(message, LogLevel.Warning, ++skipFrames);
 		}
 
-		public override void Error(object error, int skipFrames = 0)
+		public override void Error(object message, int skipFrames = 0)
 		{
-			Log(error, LogLevel.Error, ++skipFrames);
+			Log(message, LogLevel.Error, ++skipFrames);
 		}
 
 		public override void Exception(Exception exception, int skipFrames = 0)
