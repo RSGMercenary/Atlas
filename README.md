@@ -1,4 +1,4 @@
-[[https://github.com/RSGMercenary/Atlas/blob/master/Atlas.png|alt=Atlas]]
+[https://github.com/RSGMercenary/Atlas/blob/master/Atlas.png|alt=Atlas]
 
 Hierarchy-Based Entity Component System (ECS) Framework
 
