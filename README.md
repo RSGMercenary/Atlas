@@ -1,4 +1,4 @@
-# Atlas
+[[https://github.com/RSGMercenary/Atlas/blob/master/Atlas.png]]
 Hierarchy-Based Entity Component System (ECS) Framework
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/603d9317ac344b699164ece62b88a13b)](https://www.codacy.com/manual/drew.martin.developer/Atlas?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RSGMercenary/Atlas&amp;utm_campaign=Badge_Grade)
