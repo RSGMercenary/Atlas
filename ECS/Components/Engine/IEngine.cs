@@ -197,6 +197,12 @@ namespace Atlas.ECS.Components.Engine
 		/// </summary>
 		ISystem CurrentSystem { get; }
 
+		int FixedLag { get; }
+
+		int FixedUpdates { get; }
+
+		double VariableInterpolation { get; }
+
 		#endregion
 	}
 }

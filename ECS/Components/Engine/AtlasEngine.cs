@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
+using Atlas.Core.Loggers;
 using Atlas.Core.Objects.Priority;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
@@ -30,19 +31,21 @@ namespace Atlas.ECS.Components.Engine
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
 		//Update State
+		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;
 		private ISystem currentSystem;
-		private TimeStep updateState = TimeStep.None;
 
 		//Variable Time
-		private double maxVariableTime = 0.25f;
 		private double deltaVariableTime = 0;
 		private double totalVariableTime = 0;
+		private double maxVariableTime = 0.25d;
+		private double variableInterpolation = 0;
 
 		//Fixed Time
-		private int lagFixedTime = 0;
 		private double deltaFixedTime = 1d / 60d;
 		private double totalFixedTime = 0;
+		private int fixedUpdates = 0;
+		private int fixedLag = 0;
 
 		#endregion
 
@@ -381,6 +384,8 @@ namespace Atlas.ECS.Components.Engine
 			get => deltaVariableTime;
 			private set
 			{
+				//Cap delta time to avoid the "spiral of death".
+				value = Math.Min(value, maxVariableTime);
 				if(deltaVariableTime == value)
 					return;
 				deltaVariableTime = value;
@@ -424,6 +429,24 @@ namespace Atlas.ECS.Components.Engine
 
 		#region State
 
+		public int FixedLag
+		{
+			get => fixedLag;
+			private set => fixedLag = value;
+		}
+
+		public int FixedUpdates
+		{
+			get => fixedUpdates;
+			private set => fixedUpdates = value;
+		}
+
+		public double VariableInterpolation
+		{
+			get => variableInterpolation;
+			private set => variableInterpolation = value;
+		}
+
 		public TimeStep UpdateState
 		{
 			get => updateState;
@@ -456,45 +479,77 @@ namespace Atlas.ECS.Components.Engine
 
 		public void Update(double deltaTime)
 		{
-			if(updateLock)
-				throw new InvalidOperationException($"{GetType().Name}.{nameof(Update)} cannot be called while already updating.");
+			try
+			{
+				if(!LockUpdate(true))
+					return;
 
-			updateLock = true;
+				//Variable-time cap and set.
+				DeltaVariableTime = deltaTime;
+				//Fixed-time cache to avoid modification during update.
+				var deltaFixedTime = DeltaFixedTime;
 
-			var deltaVariableTime = deltaTime;
+				//Fixed-time updates
+				CalculateFixedUpdates(deltaFixedTime);
+				CalculateFixedLag();
+				while(FixedUpdates > 0)
+				{
+					TotalFixedTime += deltaFixedTime;
+					UpdateSystems(TimeStep.Fixed, deltaFixedTime);
+					FixedUpdates--;
+				}
 
-			//Cap delta time to avoid the "spiral of death".
-			if(deltaVariableTime > maxVariableTime)
-				deltaVariableTime = maxVariableTime;
+				//Variable-time updates
+				TotalVariableTime += deltaVariableTime;
+				CalculateVariableInterpolation(deltaFixedTime);
+				UpdateSystems(TimeStep.Variable, deltaVariableTime);
+			}
+			catch(Exception e)
+			{
+				Log.Exception(e);
+				throw;
+			}
+			finally
+			{
+				LockUpdate(false);
+			}
+		}
 
-			var deltaFixedTime = DeltaFixedTime;
-			var totalFixedTime = TotalFixedTime;
+		private bool LockUpdate(bool value)
+		{
+			if(updateLock == value)
+			{
+				Log.Warning("Cannot call multiple updates simultaneously.");
+				return false;
+			}
+			updateLock = value;
+			return true;
+		}
 
-			//Calculate the number of fixed updates.
+		private void CalculateFixedUpdates(double deltaFixedTime)
+		{
 			var fixedUpdates = 0;
-			while(totalFixedTime + deltaFixedTime <= totalVariableTime)
+			var totalFixedTime = TotalFixedTime;
+			while(totalFixedTime + deltaFixedTime <= totalVariableTime + deltaVariableTime)
 			{
 				totalFixedTime += deltaFixedTime;
 				++fixedUpdates;
 			}
+			FixedUpdates = fixedUpdates;
+		}
 
+		private void CalculateFixedLag()
+		{
 			//Calculate when fixed-time and variable-time updates weren't 1:1.
-			//Let the Systems decide how to use the value.
-			lagFixedTime += Math.Max(0, fixedUpdates - 1);
-			if(fixedUpdates == 1 && lagFixedTime > 0)
-				--lagFixedTime;
+			var fixedLag = FixedLag + Math.Max(0, fixedUpdates - 1);
+			if(fixedUpdates == 1 && fixedLag > 0)
+				--fixedLag;
+			FixedLag = fixedLag;
+		}
 
-			//Update all delta and total times.
-			DeltaVariableTime = deltaVariableTime;
-			TotalVariableTime = totalVariableTime + deltaVariableTime;
-			TotalFixedTime = totalFixedTime;
-
-			//Run fixed-time and variable-time updates.
-			while(fixedUpdates-- > 0)
-				UpdateSystems(TimeStep.Fixed, deltaFixedTime);
-			UpdateSystems(TimeStep.Variable, deltaVariableTime);
-
-			updateLock = false;
+		private void CalculateVariableInterpolation(double deltaFixedTime)
+		{
+			VariableInterpolation = (TotalVariableTime - TotalFixedTime) / deltaFixedTime;
 		}
 
 		private void UpdateSystems(TimeStep timeStep, double deltaTime)
