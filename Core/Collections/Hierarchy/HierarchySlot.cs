@@ -1,5 +1,5 @@
 ﻿using Atlas.Core.Messages;
-using Atlas.Core.Signals;
+using Atlas.Signals;
 
 namespace Atlas.Core.Collections.Hierarchy
 {

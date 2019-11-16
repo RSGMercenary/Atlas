@@ -1,6 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
-using Atlas.Core.Signals;
+using Atlas.Signals;
 using System;
 using System.Collections;
 using System.Collections.Generic;
