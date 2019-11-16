@@ -260,7 +260,16 @@ namespace Atlas.ECS.Components.Engine
 
 		private void SystemPriorityChanged(ISystem system)
 		{
-			Priority.Prioritize(systems, system);
+			systems.Remove(system);
+			for(var index = systems.Count; index > 0; --index)
+			{
+				if(systems[index - 1].Priority <= system.Priority)
+				{
+					systems.Insert(index, system);
+					return;
+				}
+			}
+			systems.Insert(0, system);
 		}
 
 		#endregion
