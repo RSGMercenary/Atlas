@@ -1,10 +1,9 @@
-﻿using Atlas.Core.Messages;
-using Atlas.Core.Objects.Priority;
+﻿using Atlas.Core.Loggers;
+using Atlas.Core.Messages;
 using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Objects;
-using System;
 
 namespace Atlas.ECS.Systems
 {
@@ -90,27 +89,48 @@ namespace Atlas.ECS.Systems
 				return;
 			if(Engine?.CurrentSystem != this)
 				return;
-			if(updateLock)
-				throw new InvalidOperationException($"{GetType().Name}.{nameof(Update)} cannot be called while already updating.");
 
-			if(deltaIntervalTime > 0)
-			{
-				if(Engine.TotalVariableTime - totalIntervalTime < deltaIntervalTime)
-					return;
-				TotalIntervalTime += deltaIntervalTime;
-				deltaTime = deltaIntervalTime;
-			}
+			deltaTime = GetDeltaTime(deltaTime);
+			if(deltaTime <= 0)
+				return;
 
-			updateLock = true;
+			if(!LockUpdate(true))
+				return;
+
 			UpdateState = TimeStep;
 			SystemUpdate(deltaTime);
 			UpdateState = TimeStep.None;
-			updateLock = false;
+
+			LockUpdate(false);
+
 			if(Engine == null)
 				Dispose();
 		}
 
+		private bool LockUpdate(bool value)
+		{
+			if(updateLock == value)
+			{
+				Log.Warning("Cannot call multiple updates simultaneously.");
+				return false;
+			}
+			updateLock = value;
+			return true;
+		}
+
 		protected virtual void SystemUpdate(float deltaTime) { }
+
+		private float GetDeltaTime(float deltaTime)
+		{
+			if(deltaIntervalTime > 0)
+			{
+				if(GetEngineTime() - totalIntervalTime < deltaIntervalTime)
+					return 0;
+				TotalIntervalTime += deltaIntervalTime;
+				return deltaIntervalTime;
+			}
+			return deltaTime;
+		}
 
 		public TimeStep UpdateState
 		{
@@ -135,6 +155,8 @@ namespace Atlas.ECS.Systems
 				var previous = timeStep;
 				timeStep = value;
 				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
+				if(Engine != null)
+					SyncTotalIntervalTime();
 			}
 		}
 
@@ -205,9 +227,14 @@ namespace Atlas.ECS.Systems
 			if(deltaIntervalTime <= 0)
 				return;
 			float totalIntervalTime = 0;
-			while(totalIntervalTime + deltaIntervalTime <= Engine.TotalVariableTime)
+			while(totalIntervalTime + deltaIntervalTime <= GetEngineTime())
 				totalIntervalTime += deltaIntervalTime;
 			TotalIntervalTime = totalIntervalTime;
+		}
+
+		private double GetEngineTime()
+		{
+			return timeStep == TimeStep.Variable ? Engine.TotalVariableTime : Engine.TotalFixedTime;
 		}
 
 		#endregion
@@ -223,7 +250,7 @@ namespace Atlas.ECS.Systems
 					return;
 				int previous = priority;
 				priority = value;
-				Message<IPriorityMessage<ISystem>>(new PriorityMessage<ISystem>(value, previous));
+				Message<IPriorityMessage>(new PriorityMessage(value, previous));
 			}
 		}
 

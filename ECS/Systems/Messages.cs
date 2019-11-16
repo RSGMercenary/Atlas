@@ -6,6 +6,9 @@ namespace Atlas.ECS.Systems
 
 	public interface IIntervalMessage : IPropertyMessage<ISystem, double> { }
 
+	public interface IPriorityMessage : IPropertyMessage<ISystem, int> { }
+
+
 	#endregion
 
 	#region Classes
@@ -13,6 +16,12 @@ namespace Atlas.ECS.Systems
 	class IntervalMessage : PropertyMessage<ISystem, double>, IIntervalMessage
 	{
 		public IntervalMessage(double current, double previous) : base(current, previous) { }
+	}
+
+
+	class PriorityMessage : PropertyMessage<ISystem, int>, IPriorityMessage
+	{
+		public PriorityMessage(int current, int previous) : base(current, previous) { }
 	}
 
 	#endregion

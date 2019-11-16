@@ -1,7 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Loggers;
-using Atlas.Core.Objects.Priority;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
@@ -196,7 +195,7 @@ namespace Atlas.ECS.Components.Engine
 			if(!systemsReference.ContainsKey(type))
 			{
 				var system = CreateSystem(type);
-				system.AddListener<IPriorityMessage<ISystem>>(SystemPriorityChanged);
+				system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 				SystemPriorityChanged(system);
 				systemsType.Add(type, system);
 				systemsReference.Add(type, 1);
@@ -219,7 +218,7 @@ namespace Atlas.ECS.Components.Engine
 			if(--systemsReference[type] > 0)
 				return;
 			var system = systemsType[type];
-			system.RemoveListener<IPriorityMessage<ISystem>>(SystemPriorityChanged);
+			system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 			systems.Remove(system);
 			systemsType.Remove(type);
 			systemsReference.Remove(type);
@@ -253,7 +252,7 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Messages
 
-		private void SystemPriorityChanged(IPriorityMessage<ISystem> message)
+		private void SystemPriorityChanged(IPriorityMessage message)
 		{
 			SystemPriorityChanged(message.Messenger);
 		}

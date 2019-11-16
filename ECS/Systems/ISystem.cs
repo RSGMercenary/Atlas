@@ -1,16 +1,17 @@
-﻿using Atlas.Core.Objects.Priority;
-using Atlas.Core.Objects.Sleep;
+﻿using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Objects;
 
 namespace Atlas.ECS.Systems
 {
-	public interface ISystem : IObject<ISystem>, IUpdate<float>, ISleep, IUpdateState, IPriority
+	public interface ISystem : IObject<ISystem>, IUpdate<float>, ISleep, IUpdateState
 	{
 		/// <summary>
 		/// Automatically called on Systems removed from the Engine.
 		/// </summary>
 		new void Dispose();
+
+		int Priority { get; set; }
 
 		/// <summary>
 		/// The delay between updates. This is useful for Systems that don't have to
