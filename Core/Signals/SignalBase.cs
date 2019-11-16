@@ -1,22 +1,17 @@
-﻿using Atlas.Core.Collections.Group;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Signals
 {
 	public abstract class SignalBase : ISignalBase, IDisposable
 	{
-		private readonly Group<SlotBase> slots = new Group<SlotBase>();
+		private readonly List<SlotBase> slots = new List<SlotBase>();
 		private readonly Stack<SlotBase> slotsPooled = new Stack<SlotBase>();
 		private readonly Stack<SlotBase> slotsRemoved = new Stack<SlotBase>();
 
 		public int Dispatching { get; private set; } = 0;
 		public bool IsDisposed { get; private set; } = false;
 
-		/// <summary>
-		/// Cleans up the Signal by removing and disposing all listeners,
-		/// and unpooling allocated Slots.
-		/// </summary>
 		public void Dispose()
 		{
 			if(IsDisposed)
@@ -89,6 +84,7 @@ namespace Atlas.Core.Signals
 			slot.Signal = this;
 			slot.Listener = listener;
 			slot.Priority = priority;
+			slot.IsRemoved = false;
 
 			Prioritize(slot);
 
@@ -135,6 +131,7 @@ namespace Atlas.Core.Signals
 			if(index >= slots.Count)
 				return false;
 			var slot = slots[index];
+			slot.IsRemoved = true;
 			slots.RemoveAt(index);
 			if(Dispatching > 0)
 			{
@@ -157,13 +154,17 @@ namespace Atlas.Core.Signals
 		}
 
 		protected bool Dispatch<TSlot>(Action<TSlot> dispatcher)
-			where TSlot : ISlotBase
+			where TSlot : SlotBase
 		{
 			if(slots.Count <= 0)
 				return false;
 			++Dispatching;
 			foreach(TSlot slot in Slots)
+			{
+				if(slot.IsRemoved)
+					continue;
 				dispatcher.Invoke(slot);
+			}
 			if(--Dispatching == 0)
 			{
 				while(slotsRemoved.Count > 0)
@@ -190,9 +191,7 @@ namespace Atlas.Core.Signals
 
 		public new TISlot Get(int index) => (TISlot)base.Get(index);
 
-		protected override SlotBase CreateSlot() => CreateGenericSlot();
-
-		protected virtual TSlot CreateGenericSlot() => new TSlot();
+		protected override SlotBase CreateSlot() => new TSlot();
 
 		protected bool Dispatch(Action<TSlot> dispatcher) => Dispatch<TSlot>(dispatcher);
 	}

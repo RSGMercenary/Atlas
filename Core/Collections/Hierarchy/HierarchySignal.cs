@@ -7,7 +7,7 @@ namespace Atlas.Core.Collections.Hierarchy
 		where TMessage : IMessage<T>
 		where T : class, IHierarchy<T>
 	{
-		protected override Slot<TMessage> CreateGenericSlot()
+		protected override SlotBase CreateSlot()
 		{
 			return new HierarchySlot<TMessage, T>();
 		}
