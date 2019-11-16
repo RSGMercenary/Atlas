@@ -1,8 +1,7 @@
-
-
 # Visual Studio files
 *.config*
 .vs/
 obj/
 bin/
 Properties/
+packages/
