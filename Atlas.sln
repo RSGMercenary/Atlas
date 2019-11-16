@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29503.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Atlas", "Atlas.csproj", "{38F83180-79E7-4699-B13C-F2E60CF462D2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2} = {042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AtlasTesting", "..\AtlasTesting\AtlasTesting.csproj", "{1D495DFE-DBCA-4355-9237-8EA7001ECE98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Signals", "..\Atlas.Signals\Atlas.Signals.csproj", "{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{38F83180-79E7-4699-B13C-F2E60CF462D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38F83180-79E7-4699-B13C-F2E60CF462D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38F83180-79E7-4699-B13C-F2E60CF462D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38F83180-79E7-4699-B13C-F2E60CF462D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D495DFE-DBCA-4355-9237-8EA7001ECE98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D495DFE-DBCA-4355-9237-8EA7001ECE98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D495DFE-DBCA-4355-9237-8EA7001ECE98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D495DFE-DBCA-4355-9237-8EA7001ECE98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{042C7F27-A0F9-4F2F-A990-1B80CCF2A1D2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9008F18B-21D1-4CEB-9B90-B66A707D9278}
+	EndGlobalSection
+EndGlobal
