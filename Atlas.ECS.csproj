@@ -1,11 +1,33 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+	<TargetFramework>netstandard2.0</TargetFramework>
+	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Authors>RSG Mercenary</Authors>
+	<Company>RSG Mercenary</Company>
+	<Product>Atlas ECS</Product>
+	<Title>Atlas ECS</Title>
+	<Description>Hierarchy-Based Entity Component System (ECS) Framework</Description>
+	<PackageProjectUrl>https://github.com/RSGMercenary/Atlas.ECS</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
+	<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
+	<ApplicationIcon>Icon.ico</ApplicationIcon>
+	<Win32Resource />
+	<Copyright>Copyright 2019 RSG Mercenary</Copyright>
+	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<PackageIconUrl>Icon.ico</PackageIconUrl>
+	<AssemblyName>Atlas.ECS</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
+	<ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<None Include="LICENSE">
+	  <Pack>True</Pack>
+	  <PackagePath></PackagePath>
+	</None>
   </ItemGroup>
 
 </Project>
