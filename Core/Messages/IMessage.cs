@@ -2,9 +2,9 @@
 {
 	public interface IMessage
 	{
-		IMessenger Messenger { set; }
+		IMessenger Messenger { get; set; }
 
-		IMessenger CurrentMessenger { set; }
+		IMessenger CurrentMessenger { get; set; }
 	}
 
 	public interface IMessage<out TMessenger> : IMessage
