@@ -1,5 +1,5 @@
 [![Atlas](https://raw.githubusercontent.com/rsgmercenary/Atlas/master/Atlas.png)]
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/603d9317ac344b699164ece62b88a13b)(https://www.codacy.com/manual/drew.martin.developer/Atlas?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RSGMercenary/Atlas&amp;utm_campaign=Badge_Grade)]
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/603d9317ac344b699164ece62b88a13b)]
 [![NuGet Version](https://img.shields.io/nuget/v/Atlas.ECS)]
 [![NuGet Downloads](https://img.shields.io/nuget/dt/Atlas.ECS)]
 
