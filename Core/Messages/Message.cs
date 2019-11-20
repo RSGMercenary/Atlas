@@ -16,11 +16,13 @@
 		#region IMessage
 		IMessenger IMessage.Messenger
 		{
+			get => Messenger;
 			set => Messenger = (TMessenger)value;
 		}
 
 		IMessenger IMessage.CurrentMessenger
 		{
+			get => CurrentMessenger;
 			set => CurrentMessenger = (TMessenger)value;
 		}
 		#endregion
