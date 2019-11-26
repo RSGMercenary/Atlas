@@ -9,8 +9,9 @@ using System.Text;
 
 namespace Atlas.ECS.Components.Component
 {
-	public static class AtlasComponent
+	public abstract class AtlasComponent : AtlasComponent<IComponent>
 	{
+		#region Static
 		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
 		public static IReadOnlyPool<TComponent> Pool<TComponent>()
@@ -34,6 +35,7 @@ namespace Atlas.ECS.Components.Component
 			if(pools.ContainsKey(type))
 				pools[type].Add(component);
 		}
+		#endregion
 	}
 
 	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
