@@ -9,15 +9,15 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.SystemManager
 {
-	public class SystemManager : AtlasComponent<ISystemManager>, ISystemManager
+	public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	{
 		private readonly Group<Type> types = new Group<Type>();
 
-		public SystemManager() { }
+		public AtlasSystemManager() { }
 
-		public SystemManager(params Type[] types) : this(types as IEnumerable<Type>) { }
+		public AtlasSystemManager(params Type[] types) : this(types as IEnumerable<Type>) { }
 
-		public SystemManager(IEnumerable<Type> types)
+		public AtlasSystemManager(IEnumerable<Type> types)
 		{
 			foreach(var type in types)
 				AddSystem(type);
