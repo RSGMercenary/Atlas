@@ -16,29 +16,35 @@ namespace Atlas.ECS.Entities
 	{
 		#region Static
 
-		public static readonly string RootName = "Root";
+		public const string RootName = "Root";
 		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
-		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>();
+		#region Pool
+		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity());
 
-		public static IReadOnlyPool<AtlasEntity> Pool() => pool;
+		public static IReadOnlyPool<AtlasEntity> GetPool() => pool;
 
-		public static IEntity Get(string globalName, string localName)
+		public static AtlasEntity Get() => pool.Get();
+
+		public static AtlasEntity Get(string globalName) => Get(globalName, globalName);
+
+		public static AtlasEntity Get(string globalName, string localName)
 		{
-			var entity = Get(globalName, false);
+			var entity = Get();
+			entity.GlobalName = globalName;
 			entity.LocalName = localName;
 			return entity;
 		}
 
-		public static IEntity Get(string globalName, bool localName)
+		public static AtlasEntity GetRoot()
 		{
-			var entity = pool.Remove();
-			entity.GlobalName = globalName;
-			if(localName)
-				entity.LocalName = globalName;
+			var entity = Get();
+			entity.IsRoot = true;
 			return entity;
 		}
 
+		private static void Release(AtlasEntity entity) => pool.Release(entity);
+		#endregion
 		#endregion
 
 		#region Fields
@@ -55,17 +61,7 @@ namespace Atlas.ECS.Entities
 
 		#region Construct / Dispose
 
-		public AtlasEntity() : this("", "", false) { }
-		public AtlasEntity(string name) : this(name, name) { }
-		public AtlasEntity(bool root) : this("", "", root) { }
-		public AtlasEntity(string globalName, string localName) : this(globalName, localName, false) { }
-
-		private AtlasEntity(string globalName, string localName, bool root)
-		{
-			IsRoot = root;
-			GlobalName = globalName;
-			LocalName = localName;
-		}
+		private AtlasEntity() { }
 
 		protected override void Disposing()
 		{
@@ -80,7 +76,7 @@ namespace Atlas.ECS.Entities
 			FreeSleeping = 0;
 			RemoveListeners();
 
-			pool.Add(this);
+			AtlasEntity.Release(this);
 			//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 		}
 
@@ -333,9 +329,9 @@ namespace Atlas.ECS.Entities
 
 		public IEntity AddChild(string globalName, string localName, int index) => AddChild(Get(globalName, localName), index);
 
-		public IEntity AddChild(string globalName, bool localName) => AddChild(Get(globalName, localName), Children.Count);
+		public IEntity AddChild(string globalName) => AddChild(Get(globalName), Children.Count);
 
-		public IEntity AddChild(string globalName, bool localName, int index) => AddChild(Get(globalName, localName), index);
+		public IEntity AddChild(string globalName, int index) => AddChild(Get(globalName), index);
 
 		#endregion
 

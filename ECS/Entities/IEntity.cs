@@ -34,8 +34,8 @@ namespace Atlas.ECS.Entities
 
 		IEntity AddChild(string globalName, string localName);
 		IEntity AddChild(string globalName, string localName, int index);
-		IEntity AddChild(string globalName, bool localName);
-		IEntity AddChild(string globalName, bool localName, int index);
+		IEntity AddChild(string globalName);
+		IEntity AddChild(string globalName, int index);
 
 		bool HasChild(string localName);
 

@@ -15,14 +15,14 @@ namespace Atlas.Core.Collections.Group
 
 		private readonly List<GroupItem> items = new List<GroupItem>();
 		private readonly Stack<GroupItem> removed = new Stack<GroupItem>();
-		private readonly Pool<GroupItem> pool = new Pool<GroupItem>();
+		private readonly Pool<GroupItem> pool = new InstancePool<GroupItem>();
 		private int iterators = 0;
 
 		#region Pool
 
 		private GroupItem GetItem(T value)
 		{
-			var item = pool.Remove();
+			var item = pool.Get();
 			item.Value = value;
 			item.IsRemoved = false;
 			return item;
@@ -32,7 +32,7 @@ namespace Atlas.Core.Collections.Group
 		{
 			element.Value = default;
 			//Leave IsRemoved = true for now. Seems cleaner.
-			pool.Add(element);
+			pool.Release(element);
 		}
 
 		#endregion

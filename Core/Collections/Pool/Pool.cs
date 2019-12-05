@@ -3,17 +3,22 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool
 {
-	public class Pool<T> : IPool<T>
+	public class InstancePool<T> : Pool<T>
 		where T : class, new()
+	{
+		public InstancePool() : base(() => new T()) { }
+	}
+
+	public class Pool<T> : IPool<T>
+		where T : class
 	{
 		private readonly Stack<T> stack = new Stack<T>();
 		private int maxCount = -1;
+		private readonly Func<T> creator;
 
-		public Pool() { }
-
-		public Pool(int maxCount)
+		public Pool(Func<T> creator)
 		{
-			MaxCount = maxCount;
+			this.creator = creator;
 		}
 
 		#region Size
@@ -39,9 +44,9 @@ namespace Atlas.Core.Collections.Pool
 
 		#region Add
 
-		public bool Add(T value)
+		public bool Release(T value)
 		{
-			if(value == null || typeof(T) != value.GetType())
+			if(value?.GetType() != typeof(T))
 				throw new ArgumentException($"An instance of {value?.GetType()} does not equal {typeof(T)}.");
 			if(maxCount >= 0 && stack.Count >= maxCount)
 				return false;
@@ -49,16 +54,16 @@ namespace Atlas.Core.Collections.Pool
 			return true;
 		}
 
-		public bool Add(object value) => Add(value as T);
+		public bool Release(object value) => Release(value as T);
 
-		public bool AddAll()
+		public bool Fill()
 		{
 			if(maxCount <= 0)
 				return false;
 			if(stack.Count >= maxCount)
 				return false;
 			while(stack.Count < maxCount)
-				Add(new T());
+				Release(creator());
 			return true;
 		}
 
@@ -66,11 +71,11 @@ namespace Atlas.Core.Collections.Pool
 
 		#region Remove
 
-		public T Remove() => stack.Count > 0 ? stack.Pop() : new T();
+		public T Get() => stack.Count > 0 ? stack.Pop() : creator();
 
-		object IReadOnlyPool.Remove() => Remove();
+		object IReadOnlyPool.Get() => Get();
 
-		public bool RemoveAll()
+		public bool Empty()
 		{
 			if(stack.Count <= 0)
 				return false;

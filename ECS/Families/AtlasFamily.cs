@@ -31,7 +31,7 @@ namespace Atlas.ECS.Families
 
 		//Pooling
 		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
-		private readonly Pool<TFamilyMember> pool = new Pool<TFamilyMember>();
+		private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
 
 		#endregion
 
@@ -132,7 +132,7 @@ namespace Atlas.ECS.Families
 				if(!entity.HasComponent(type))
 					return;
 			}
-			var member = SetMemberValues(pool.Remove(), entity, true);
+			var member = SetMemberValues(pool.Get(), entity, true);
 			members.Add(member);
 			entities.Add(entity, member);
 			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
@@ -190,7 +190,7 @@ namespace Atlas.ECS.Families
 
 		private void DisposeMember(TFamilyMember member)
 		{
-			pool.Add(SetMemberValues(member, null, false));
+			pool.Release(SetMemberValues(member, null, false));
 		}
 
 		#endregion

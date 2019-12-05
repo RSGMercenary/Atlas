@@ -12,29 +12,43 @@ namespace Atlas.ECS.Components.Component
 	public abstract class AtlasComponent : AtlasComponent<IComponent>
 	{
 		#region Static
+		#region Pools
 		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
 
-		public static IReadOnlyPool<TComponent> Pool<TComponent>()
-			where TComponent : class, IComponent, new()
+		public static IReadOnlyPool<TComponent> AddPool<TComponent>()
+			where TComponent : class, IComponent, new() => AddPool(() => new TComponent());
+
+		public static IReadOnlyPool<TComponent> AddPool<TComponent>(Func<TComponent> creator)
+			where TComponent : class, IComponent
 		{
 			var type = typeof(TComponent);
 			if(!pools.ContainsKey(type))
-				pools.Add(type, new Pool<TComponent>());
+				pools.Add(type, new Pool<TComponent>(creator));
 			return pools[type] as IReadOnlyPool<TComponent>;
 		}
 
-		public static TComponent Get<TComponent>()
-			where TComponent : class, IComponent, new()
-		{
-			return Pool<TComponent>().Remove();
-		}
+		public static bool RemovePool<TComponent>()
+			where TComponent : class, IComponent => pools.Remove(typeof(TComponent));
 
-		public static void Add(IComponent component)
+		public static IReadOnlyPool<TComponent> GetPool<TComponent>()
+			where TComponent : class, IComponent
+		{
+			var type = typeof(TComponent);
+			return pools.ContainsKey(type) ? pools[type] as IReadOnlyPool<TComponent> : null;
+		}
+		#endregion
+
+		#region Get/Release
+		public static TComponent Get<TComponent>()
+			where TComponent : class, IComponent, new() => GetPool<TComponent>()?.Get() ?? new TComponent();
+
+		internal static void Release(IComponent component)
 		{
 			var type = component.GetType();
 			if(pools.ContainsKey(type))
-				pools[type].Add(component);
+				pools[type].Release(component);
 		}
+		#endregion
 		#endregion
 	}
 
@@ -63,11 +77,9 @@ namespace Atlas.ECS.Components.Component
 			RemoveManagers();
 			AutoDispose = true;
 
-			//AtlasComponent derived class had Dispose() called
-			//manually. Pool reference for later reuse.
-			AtlasComponent.Add(this);
-
 			base.Disposing();
+
+			AtlasComponent.Release(this);
 		}
 
 		#endregion
