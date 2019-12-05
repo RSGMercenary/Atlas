@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families
 {
-	public interface IFamily : IObject, IEnumerable
+	public interface IReadOnlyFamily : IObject, IEnumerable
 	{
 		/// <summary>
 		/// Automatically called on Families removed from the Engine.
@@ -18,7 +18,10 @@ namespace Atlas.ECS.Families
 		IReadOnlyGroup<IFamilyMember> Members { get; }
 
 		IFamilyMember GetMember(IEntity entity);
+	}
 
+	public interface IFamily : IReadOnlyFamily
+	{
 		void AddEntity(IEntity entity);
 		void RemoveEntity(IEntity entity);
 
@@ -26,7 +29,7 @@ namespace Atlas.ECS.Families
 		void RemoveEntity(IEntity entity, Type type);
 	}
 
-	public interface IFamily<TFamilyMember> : IFamily, IObject<IFamily<TFamilyMember>>, IEnumerable<TFamilyMember>
+	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily, IObject<IReadOnlyFamily<TFamilyMember>>, IEnumerable<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }
@@ -34,5 +37,10 @@ namespace Atlas.ECS.Families
 		new TFamilyMember GetMember(IEntity entity);
 
 		void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare);
+	}
+
+	public interface IFamily<TFamilyMember> : IReadOnlyFamily<TFamilyMember>, IFamily
+		where TFamilyMember : class, IFamilyMember, new()
+	{
 	}
 }

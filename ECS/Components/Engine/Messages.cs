@@ -12,9 +12,9 @@ namespace Atlas.ECS.Components.Engine
 
 	public interface IEntityRemoveMessage : IValueMessage<IEngine, IEntity> { }
 
-	public interface IFamilyAddMessage : IKeyValueMessage<IEngine, Type, IFamily> { }
+	public interface IFamilyAddMessage : IKeyValueMessage<IEngine, Type, IReadOnlyFamily> { }
 
-	public interface IFamilyRemoveMessage : IKeyValueMessage<IEngine, Type, IFamily> { }
+	public interface IFamilyRemoveMessage : IKeyValueMessage<IEngine, Type, IReadOnlyFamily> { }
 
 	public interface ISystemAddMessage : IKeyValueMessage<IEngine, Type, ISystem> { }
 
@@ -34,14 +34,14 @@ namespace Atlas.ECS.Components.Engine
 		public EntityRemoveMessage(IEntity value) : base(value) { }
 	}
 
-	class FamilyAddMessage : KeyValueMessage<IEngine, Type, IFamily>, IFamilyAddMessage
+	class FamilyAddMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyAddMessage
 	{
-		public FamilyAddMessage(Type key, IFamily value) : base(key, value) { }
+		public FamilyAddMessage(Type key, IReadOnlyFamily value) : base(key, value) { }
 	}
 
-	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IFamily>, IFamilyRemoveMessage
+	class FamilyRemoveMessage : KeyValueMessage<IEngine, Type, IReadOnlyFamily>, IFamilyRemoveMessage
 	{
-		public FamilyRemoveMessage(Type key, IFamily value) : base(key, value) { }
+		public FamilyRemoveMessage(Type key, IReadOnlyFamily value) : base(key, value) { }
 	}
 
 	class SystemAddMessage : KeyValueMessage<IEngine, Type, ISystem>, ISystemAddMessage

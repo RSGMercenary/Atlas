@@ -118,14 +118,14 @@ namespace Atlas.ECS.Components.Engine
 		/// <para>Families of Entities are added to and removed from the Engine by
 		/// being managed by a System intent on updating that Family.</para>
 		/// </summary>
-		IReadOnlyGroup<IFamily> Families { get; }
+		IReadOnlyGroup<IReadOnlyFamily> Families { get; }
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given instance.
 		/// </summary>
 		/// <param name="family"></param>
 		/// <returns></returns>
-		bool HasFamily(IFamily family);
+		bool HasFamily(IReadOnlyFamily family);
 
 		/// <summary>
 		/// Returns if the Engine is managing a Family with the given Type.
@@ -147,7 +147,7 @@ namespace Atlas.ECS.Components.Engine
 		/// </summary>
 		/// <typeparam name="TFamilyMember"></typeparam>
 		/// <returns></returns>
-		IFamily<TFamilyMember> GetFamily<TFamilyMember>()
+		IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new();
 
 		/// <summary>
@@ -155,9 +155,9 @@ namespace Atlas.ECS.Components.Engine
 		/// </summary>
 		/// <param name="type"></param>
 		/// <returns></returns>
-		IFamily GetFamily(Type type);
+		IReadOnlyFamily GetFamily(Type type);
 
-		IFamily<TFamilyMember> AddFamily<TFamilyMember>()
+		IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new();
 
 		void RemoveFamily<TFamilyMember>()

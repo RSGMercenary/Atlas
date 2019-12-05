@@ -4,11 +4,11 @@ namespace Atlas.ECS.Families
 {
 	#region Interfaces
 
-	public interface IFamilyMemberAddMessage<TFamilyMember> : IValueMessage<IFamily<TFamilyMember>, TFamilyMember>
+	public interface IFamilyMemberAddMessage<TFamilyMember> : IValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{ }
 
-	public interface IFamilyMemberRemoveMessage<TFamilyMember> : IValueMessage<IFamily<TFamilyMember>, TFamilyMember>
+	public interface IFamilyMemberRemoveMessage<TFamilyMember> : IValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{ }
 
@@ -16,13 +16,13 @@ namespace Atlas.ECS.Families
 
 	#region Classes
 
-	class FamilyMemberAddMessage<TFamilyMember> : ValueMessage<IFamily<TFamilyMember>, TFamilyMember>, IFamilyMemberAddMessage<TFamilyMember>
+	class FamilyMemberAddMessage<TFamilyMember> : ValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>, IFamilyMemberAddMessage<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		public FamilyMemberAddMessage(TFamilyMember value) : base(value) { }
 	}
 
-	class FamilyMemberRemoveMessage<TFamilyMember> : ValueMessage<IFamily<TFamilyMember>, TFamilyMember>, IFamilyMemberRemoveMessage<TFamilyMember>
+	class FamilyMemberRemoveMessage<TFamilyMember> : ValueMessage<IReadOnlyFamily<TFamilyMember>, TFamilyMember>, IFamilyMemberRemoveMessage<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		public FamilyMemberRemoveMessage(TFamilyMember value) : base(value) { }

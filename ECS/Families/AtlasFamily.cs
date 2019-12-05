@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : Messenger<IFamily<TFamilyMember>>, IFamily<TFamilyMember>
+	sealed class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
@@ -56,7 +56,7 @@ namespace Atlas.ECS.Families
 			}
 		}
 
-		public override void Dispose()
+		public sealed override void Dispose()
 		{
 			//Can't dispose Family mid-update.
 			if(Engine != null || removed.Count > 0)
@@ -85,13 +85,13 @@ namespace Atlas.ECS.Families
 				{
 					var previous = engine;
 					engine = value;
-					Message<IEngineMessage<IFamily<TFamilyMember>>>(new EngineMessage<IFamily<TFamilyMember>>(value, previous));
+					Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
 				}
 				else if(value == null && Engine != null && !Engine.HasFamily(this))
 				{
 					var previous = engine;
 					engine = value;
-					Message<IEngineMessage<IFamily<TFamilyMember>>>(new EngineMessage<IFamily<TFamilyMember>>(value, previous));
+					Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
 					Dispose();
 				}
 			}
@@ -101,11 +101,11 @@ namespace Atlas.ECS.Families
 
 		#region Get
 
-		IReadOnlyGroup<IFamilyMember> IFamily.Members => Members;
+		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members => Members;
 
 		public IReadOnlyGroup<TFamilyMember> Members => members;
 
-		IFamilyMember IFamily.GetMember(IEntity entity) => GetMember(entity);
+		IFamilyMember IReadOnlyFamily.GetMember(IEntity entity) => GetMember(entity);
 
 		public TFamilyMember GetMember(IEntity entity) => entities.ContainsKey(entity) ? entities[entity] : null;
 
@@ -123,8 +123,6 @@ namespace Atlas.ECS.Families
 
 		private void Add(IEntity entity)
 		{
-			if(entity.Engine != Engine)
-				return;
 			if(entities.ContainsKey(entity))
 				return;
 			foreach(var type in components.Keys)
@@ -152,8 +150,6 @@ namespace Atlas.ECS.Families
 
 		private void Remove(IEntity entity)
 		{
-			if(entity.Engine != Engine)
-				return;
 			if(!entities.ContainsKey(entity))
 				return;
 			var member = entities[entity];

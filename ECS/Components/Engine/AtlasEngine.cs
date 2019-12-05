@@ -188,7 +188,8 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Add/Remove
 
-		public TSystem AddSystem<TSystem>() where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
+		public TSystem AddSystem<TSystem>()
+			where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
 
 		public ISystem AddSystem(Type type)
 		{
@@ -286,7 +287,7 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Add/Remove
 
-		public IFamily<TFamilyMember> AddFamily<TFamilyMember>()
+		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
 			var type = typeof(TFamilyMember);
@@ -305,7 +306,7 @@ namespace Atlas.ECS.Components.Engine
 			{
 				++familiesReference[type];
 			}
-			return (IFamily<TFamilyMember>)familiesType[type];
+			return (IReadOnlyFamily<TFamilyMember>)familiesType[type];
 		}
 
 		public void RemoveFamily<TFamilyMember>()
@@ -328,21 +329,21 @@ namespace Atlas.ECS.Components.Engine
 
 		#region Get
 
-		public IReadOnlyGroup<IFamily> Families => families;
+		public IReadOnlyGroup<IReadOnlyFamily> Families => families;
 
-		public IFamily<TFamilyMember> GetFamily<TFamilyMember>()
+		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
-			return GetFamily(typeof(TFamilyMember)) as IFamily<TFamilyMember>;
+			return GetFamily(typeof(TFamilyMember)) as IReadOnlyFamily<TFamilyMember>;
 		}
 
-		public IFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
+		public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
 
 		#endregion
 
 		#region Has
 
-		public bool HasFamily(IFamily family) => familiesType.ContainsValue(family);
+		public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue(family as IFamily);
 
 		public bool HasFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
