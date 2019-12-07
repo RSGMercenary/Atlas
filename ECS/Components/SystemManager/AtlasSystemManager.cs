@@ -88,7 +88,7 @@ namespace Atlas.ECS.Components.SystemManager
 		{
 			if(type == null)
 				return false;
-			if(!typeof(ISystem).IsAssignableFrom(type)) //Type must be a subclass of ISystem.
+			if(!typeof(ISystem).IsAssignableFrom(type))
 				return false;
 			if(types.Contains(type))
 				return false;
