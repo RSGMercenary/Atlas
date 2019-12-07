@@ -30,6 +30,7 @@ namespace Atlas.ECS.Families
 		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
 
 		//Pooling
+		private readonly Stack<TFamilyMember> added = new Stack<TFamilyMember>();
 		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
 		private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
 
@@ -131,10 +132,24 @@ namespace Atlas.ECS.Families
 				if(!entity.HasComponent(type))
 					return;
 			}
+
 			var member = SetMemberValues(pool.Get(), entity, true);
-			members.Add(member);
 			entities.Add(entity, member);
+
+			if(!IsUpdating)
+				AddMember(member);
+			else
+			{
+				added.Push(member);
+				Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
+			}
+
 			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
+		}
+
+		private void AddMember(TFamilyMember member)
+		{
+			members.Add(member);
 		}
 
 		#endregion
@@ -158,34 +173,16 @@ namespace Atlas.ECS.Families
 			members.Remove(member);
 			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(member));
 
-			if((Engine?.UpdateState ?? TimeStep.None) == TimeStep.None)
-			{
-				DisposeMember(member);
-			}
+			if(!IsUpdating)
+				RemoveMember(member);
 			else
 			{
 				removed.Push(member);
-				Engine.AddListener<IUpdateStateMessage<IEngine>>(PoolMembers);
+				Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
 			}
 		}
 
-		#endregion
-
-		#region Pooling
-
-		private void PoolMembers(IUpdateStateMessage<IEngine> message)
-		{
-			//Clean up update listener.
-			if(message.CurrentValue != TimeStep.None)
-				return;
-			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(PoolMembers);
-			while(removed.Count > 0)
-				DisposeMember(removed.Pop());
-			if(Engine == null)
-				Dispose();
-		}
-
-		private void DisposeMember(TFamilyMember member)
+		private void RemoveMember(TFamilyMember member)
 		{
 			pool.Release(SetMemberValues(member, null, false));
 		}
@@ -193,6 +190,21 @@ namespace Atlas.ECS.Families
 		#endregion
 
 		#region Helpers
+
+		private void UpdateMembers(IUpdateStateMessage<IEngine> message)
+		{
+			if(message.CurrentValue != TimeStep.None)
+				return;
+			message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
+			while(removed.Count > 0)
+				RemoveMember(removed.Pop());
+			while(added.Count > 0)
+				AddMember(added.Pop());
+			if(Engine == null)
+				Dispose();
+		}
+
+		private bool IsUpdating => (Engine?.UpdateState ?? TimeStep.None) != TimeStep.None;
 
 		private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
 		{

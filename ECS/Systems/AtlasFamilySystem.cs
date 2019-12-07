@@ -27,7 +27,6 @@ namespace Atlas.ECS.Systems
 
 		protected override void AddingEngine(IEngine engine)
 		{
-			base.AddingEngine(engine);
 			Family = engine.AddFamily<TFamilyMember>();
 			Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
 			Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
@@ -43,7 +42,6 @@ namespace Atlas.ECS.Systems
 				MemberRemoved(Family, member);
 			engine.RemoveFamily<TFamilyMember>();
 			Family = null;
-			base.RemovingEngine(engine);
 		}
 
 		private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message)
