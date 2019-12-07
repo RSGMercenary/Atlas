@@ -14,7 +14,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	sealed class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
+	public sealed class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
@@ -82,19 +82,20 @@ namespace Atlas.ECS.Families
 			set
 			{
 				if(value != null && Engine == null && value.HasFamily(this))
-				{
-					var previous = engine;
-					engine = value;
-					Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
-				}
+					SetEngine(value);
 				else if(value == null && Engine != null && !Engine.HasFamily(this))
 				{
-					var previous = engine;
-					engine = value;
-					Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
+					SetEngine(value);
 					Dispose();
 				}
 			}
+		}
+
+		private void SetEngine(IEngine value)
+		{
+			var previous = engine;
+			engine = value;
+			Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
 		}
 
 		#endregion
