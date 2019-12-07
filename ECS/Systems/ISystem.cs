@@ -24,6 +24,6 @@ namespace Atlas.ECS.Systems
 		/// <summary>
 		/// Determines whether the System is fixed-time, variable-time, or event-based.
 		/// </summary>
-		TimeStep TimeStep { get; }
+		TimeStep UpdateStep { get; }
 	}
 }

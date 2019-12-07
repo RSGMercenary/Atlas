@@ -37,7 +37,7 @@ namespace Atlas.ECS.Systems
 			Sleeping = 0;
 			DeltaIntervalTime = 0;
 			TotalIntervalTime = 0;
-			TimeStep = TimeStep.Variable;
+			UpdateStep = TimeStep.Variable;
 			UpdateState = TimeStep.None;
 			base.Disposing();
 		}
@@ -96,7 +96,7 @@ namespace Atlas.ECS.Systems
 			if(!LockUpdate(true))
 				return;
 
-			UpdateState = TimeStep;
+			UpdateState = UpdateStep;
 			SystemUpdate(deltaTime);
 			UpdateState = TimeStep.None;
 
@@ -144,7 +144,7 @@ namespace Atlas.ECS.Systems
 			}
 		}
 
-		public TimeStep TimeStep
+		public TimeStep UpdateStep
 		{
 			get => timeStep;
 			protected set
@@ -153,7 +153,7 @@ namespace Atlas.ECS.Systems
 					return;
 				var previous = timeStep;
 				timeStep = value;
-				Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
+				Message<IUpdateStepMessage>(new UpdateStepMessage(value, previous));
 				if(Engine != null)
 					SyncTotalIntervalTime();
 			}

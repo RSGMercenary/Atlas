@@ -566,7 +566,7 @@ namespace Atlas.ECS.Components.Engine
 			UpdateState = timeStep;
 			foreach(var system in systems)
 			{
-				if(system.TimeStep != timeStep)
+				if(system.UpdateStep != timeStep)
 					continue;
 				CurrentSystem = system;
 				system.Update((float)deltaTime);
