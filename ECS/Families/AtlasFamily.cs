@@ -30,8 +30,8 @@ namespace Atlas.ECS.Families
 		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
 
 		//Pooling
-		private readonly Stack<TFamilyMember> added = new Stack<TFamilyMember>();
-		private readonly Stack<TFamilyMember> removed = new Stack<TFamilyMember>();
+		private readonly List<TFamilyMember> added = new List<TFamilyMember>();
+		private readonly List<TFamilyMember> removed = new List<TFamilyMember>();
 		private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
 
 		#endregion
@@ -140,7 +140,7 @@ namespace Atlas.ECS.Families
 				AddMember(member);
 			else
 			{
-				added.Push(member);
+				added.Add(member);
 				Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
 			}
 
@@ -171,13 +171,14 @@ namespace Atlas.ECS.Families
 			var member = entities[entity];
 			entities.Remove(entity);
 			members.Remove(member);
+			added.Remove(member);
 			Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(member));
 
 			if(!IsUpdating)
 				RemoveMember(member);
 			else
 			{
-				removed.Push(member);
+				removed.Add(member);
 				Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
 			}
 		}
