@@ -8,7 +8,6 @@ using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Atlas.ECS.Entities
 {
@@ -124,6 +123,11 @@ namespace Atlas.ECS.Entities
 					return false;
 			}
 			return true;
+		}
+
+		public override string ToString()
+		{
+			return GlobalName;
 		}
 
 		#endregion
@@ -548,76 +552,6 @@ namespace Atlas.ECS.Entities
 				}
 			}
 			base.Messaging(message);
-		}
-
-		#endregion
-
-		#region Info Strings
-
-		public string AncestorsToString(int depth = -1, bool localNames = true, string indent = "")
-		{
-			var text = new StringBuilder();
-			if(Parent != null && depth != 0)
-			{
-				var parent = Parent;
-				text.Append(parent.AncestorsToString(depth - 1, localNames, indent));
-				var ancestor = parent;
-				while(ancestor != null && depth-- != 0)
-				{
-					text.Append("  ");
-					ancestor = ancestor.Parent;
-				}
-			}
-			text.Append(indent);
-			text.AppendLine(localNames ? localName : globalName);
-			return text.ToString();
-		}
-
-		public string DescendantsToString(int depth = -1, bool localNames = true, string indent = "")
-		{
-			var text = new StringBuilder();
-			text.Append(indent);
-			text.AppendLine(localNames ? localName : globalName);
-			if(depth-- != 0)
-			{
-				foreach(var child in Children)
-					text.Append(child.DescendantsToString(depth, localNames, indent + "  "));
-			}
-			return text.ToString();
-		}
-
-		public override string ToString()
-		{
-			return GlobalName;
-		}
-
-		public string ToInfoString(int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "", StringBuilder text = null)
-		{
-			text = text ?? new StringBuilder();
-
-			var name = (IsRoot) ? GlobalName : $"Child {ParentIndex + 1}";
-			text.AppendLine($"{indent}{name}");
-			text.AppendLine($"{indent}  {nameof(GlobalName)}   = {GlobalName}");
-			text.AppendLine($"{indent}  {nameof(LocalName)}    = {LocalName}");
-			text.AppendLine($"{indent}  {nameof(AutoDispose)}  = {AutoDispose}");
-			text.AppendLine($"{indent}  {nameof(Sleeping)}     = {Sleeping}");
-			text.AppendLine($"{indent}  {nameof(FreeSleeping)} = {FreeSleeping}");
-
-			text.AppendLine($"{indent}  {nameof(Components)} ({components.Count})");
-			if(addComponents)
-			{
-				int index = 0;
-				foreach(var type in components.Keys)
-					components[type].ToInfoString(addEntities, ++index, $"{indent}    ", text);
-			}
-
-			text.AppendLine($"{indent}  {nameof(Children)}   ({Children.Count})");
-			if(depth-- != 0)
-			{
-				foreach(var child in Children)
-					child.ToInfoString(depth, addComponents, addEntities, $"{indent}    ", text);
-			}
-			return text.ToString();
 		}
 
 		#endregion

@@ -5,7 +5,6 @@ using Atlas.ECS.Components.Component;
 using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Atlas.ECS.Entities
 {
@@ -200,25 +199,6 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
-
-		#endregion
-
-		#region Info Strings
-
-		string AncestorsToString(int depth, bool localNames, string indent);
-
-		string DescendantsToString(int depth, bool localNames, string indent);
-
-		/// <summary>
-		/// Returns a formatted and indented string of the <see cref="IEntity"/> hierarchy.
-		/// </summary>
-		/// <param name="depth">Adds children recursively to the output until the given depth. -1 is the entire hierarchy.</param>
-		/// <param name="addComponents">Adds components to the output.</param>
-		/// <param name="addManagers">Adds component entities to the output.</param>
-		/// <param name="addSystems">Adds systems to the output.</param>
-		/// <param name="indent"></param>
-		/// <returns></returns>
-		string ToInfoString(int depth, bool addComponents, bool addManagers, string indent, StringBuilder text);
 
 		#endregion
 	}

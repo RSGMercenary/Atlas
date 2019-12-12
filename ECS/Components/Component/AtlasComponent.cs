@@ -5,7 +5,6 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Atlas.ECS.Components.Component
 {
@@ -252,39 +251,6 @@ namespace Atlas.ECS.Components.Component
 			while(managers.Count > 0)
 				RemoveManager(managers[managers.Count - 1]);
 			return true;
-		}
-
-		#endregion
-
-		#region Info Strings
-
-		public string ToInfoString(bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
-		{
-			text = text ?? new StringBuilder();
-			text.Append($"{indent}Component");
-			if(index > 0)
-				text.Append($" {index}");
-			text.AppendLine();
-			text.AppendLine($"{indent}  Instance    = {GetType().FullName}");
-			if(Manager != null)
-				text.AppendLine($"{indent}  Interface   = {Manager.GetComponentType(this).FullName}");
-			text.AppendLine($"{indent}  {nameof(AutoDispose)} = {AutoDispose}");
-			text.AppendLine($"{indent}  {nameof(IsShareable)} = {IsShareable}");
-			if(IsShareable)
-			{
-				text.AppendLine($"{indent}  Entities ({managers.Count})");
-				if(addEntities)
-				{
-					index = 0;
-					foreach(var entity in managers)
-					{
-						text.AppendLine($"{indent}    Entity {++index}");
-						text.AppendLine($"{indent}      Interface  = {entity.GetComponentType(this).FullName}");
-						text.AppendLine($"{indent}      {nameof(entity.GlobalName)} = {entity.GlobalName}");
-					}
-				}
-			}
-			return text.ToString();
 		}
 
 		#endregion

@@ -4,7 +4,6 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Objects;
 using System;
-using System.Text;
 
 namespace Atlas.ECS.Components.Component
 {
@@ -175,16 +174,6 @@ namespace Atlas.ECS.Components.Component
 		/// information that is shared between similar Entities.
 		/// </summary>
 		bool IsShareable { get; }
-
-		/// <summary>
-		/// A custom ToString() implementation used in conjunction with an Entity's custom ToString()
-		/// implementation to print out detailed statistics during runtime.
-		/// </summary>
-		/// <param name="addManagers">Adds details about the Entities managing this Component.</param>
-		/// <param name="index">The index of this Component when being printed with an Entity's ToString().</param>
-		/// <param name="indent">Indentation used for formatting the ToString() correctly.</param>
-		/// <returns></returns>
-		string ToInfoString(bool addManagers = true, int index = 0, string indent = "", StringBuilder text = null);
 	}
 
 	public interface IComponent<T> : IMessenger<T>, IComponent where T : IComponent { }
