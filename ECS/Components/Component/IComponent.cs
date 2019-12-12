@@ -95,25 +95,25 @@ namespace Atlas.ECS.Components.Component
 		/// is used for Component lookup in the Entity and must be a subclass
 		/// or interface if this Component.
 		/// </summary>
-		/// <typeparam name="TIComponent">A Type used for Component lookup in the Entity 
+		/// <typeparam name="TKey">A Type used for Component lookup in the Entity 
 		/// that is a subclass or interface of this Component.</typeparam>
 		/// <param name="entity">The Entity to add to this Component.</param>
 		/// <returns></returns>
-		IEntity AddManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent;
+		IEntity AddManager<TKey>(IEntity entity)
+			where TKey : IComponent;
 
 		/// <summary>
 		/// Adds an Entity to this Component with the given Type and index. The Type
 		/// is used for Component lookup in the Entity and must be a subclass
 		/// or interface if this Component.
 		/// </summary>
-		/// <typeparam name="TIComponent">A Type used for Component lookup in the Entity 
+		/// <typeparam name="TKey">A Type used for Component lookup in the Entity 
 		/// that is a subclass or interface of this Component.</typeparam>
 		/// <param name="entity">The Entity to add to this Component.</param>
 		/// <param name="index">The index of the Entity in this Component.</param>
 		/// <returns></returns>
-		IEntity AddManager<TIComponent>(IEntity entity, int index)
-			where TIComponent : IComponent;
+		IEntity AddManager<TKey>(IEntity entity, int index)
+			where TKey : IComponent;
 
 		/// <summary>
 		/// Removes an Entity from this Component.
@@ -143,11 +143,11 @@ namespace Atlas.ECS.Components.Component
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <typeparam name="TIComponent"></typeparam>
+		/// <typeparam name="TKey"></typeparam>
 		/// <param name="entity">The Entity to remove from this Component.</param>
 		/// <returns></returns>
-		IEntity RemoveManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent;
+		IEntity RemoveManager<TKey>(IEntity entity)
+			where TKey : IComponent;
 
 		/// <summary>
 		/// Removes all Entities managing this Component. Returns true if successful.

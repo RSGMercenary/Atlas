@@ -145,15 +145,15 @@ namespace Atlas.ECS.Components.Component
 			return true;
 		}
 
-		public IEntity AddManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent => AddManager(entity, typeof(TIComponent), int.MaxValue);
+		public IEntity AddManager<TKey>(IEntity entity)
+			where TKey : IComponent => AddManager(entity, typeof(TKey));
 
-		public IEntity AddManager<TIComponent>(IEntity entity, int index)
-			where TIComponent : IComponent => AddManager(entity, typeof(TIComponent), index);
+		public IEntity AddManager<TKey>(IEntity entity, int index)
+			where TKey : IComponent => AddManager(entity, typeof(TKey), index);
 
 		public IEntity AddManager(IEntity entity) => AddManager(entity, null);
 
-		public IEntity AddManager(IEntity entity, Type type) => AddManager(entity, type, int.MaxValue);
+		public IEntity AddManager(IEntity entity, Type type) => AddManager(entity, type, managers.Count);
 
 		public IEntity AddManager(IEntity entity, int index) => AddManager(entity, null, index);
 
@@ -194,8 +194,8 @@ namespace Atlas.ECS.Components.Component
 		/// <param name="index">The current index of the Entity being added.</param>
 		protected virtual void AddingManager(IEntity entity, int index) { }
 
-		public IEntity RemoveManager<TIComponent>(IEntity entity)
-			where TIComponent : IComponent => RemoveManager(entity, typeof(TIComponent));
+		public IEntity RemoveManager<TKey>(IEntity entity)
+			where TKey : IComponent => RemoveManager(entity, typeof(TKey));
 
 		public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity?.GetComponentType(this));
 

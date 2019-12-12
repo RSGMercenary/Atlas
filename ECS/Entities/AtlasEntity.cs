@@ -166,13 +166,13 @@ namespace Atlas.ECS.Entities
 
 		public TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey => (TValue)GetComponent(typeof(TKey));
+			where TValue : class, TKey => (TValue)GetComponent(typeof(TKey));
 
 		public TKeyValue GetComponent<TKeyValue>()
-			where TKeyValue : IComponent => (TKeyValue)GetComponent(typeof(TKeyValue));
+			where TKeyValue : class, IComponent => (TKeyValue)GetComponent(typeof(TKeyValue));
 
 		public TValue GetComponent<TValue>(Type type)
-			where TValue : IComponent => (TValue)GetComponent(type);
+			where TValue : class, IComponent => (TValue)GetComponent(type);
 
 		public IComponent GetComponent(Type type) => components.ContainsKey(type) ? components[type] : null;
 
@@ -191,7 +191,7 @@ namespace Atlas.ECS.Entities
 		public IReadOnlyDictionary<Type, IComponent> Components => components;
 
 		public TKeyValue GetAncestorComponent<TKeyValue>(int depth = -1, bool self = false)
-			where TKeyValue : IComponent
+			where TKeyValue : class, IComponent
 		{
 			var ancestor = self ? this : Parent;
 			while(ancestor != null && depth-- != 0)
@@ -205,7 +205,7 @@ namespace Atlas.ECS.Entities
 		}
 
 		public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth = -1)
-			where TKeyValue : IComponent
+			where TKeyValue : class, IComponent
 		{
 			foreach(var child in Children)
 			{
@@ -224,53 +224,58 @@ namespace Atlas.ECS.Entities
 
 		#region Add
 
+		#region KeyValue
+		public TKeyValue AddComponent<TKeyValue>()
+			where TKeyValue : class, IComponent, new() => AddComponent<TKeyValue, TKeyValue>();
+
+		public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
+			where TKeyValue : class, IComponent => AddComponent<TKeyValue, TKeyValue>(component);
+
+		public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
+			where TKeyValue : class, IComponent => AddComponent<TKeyValue, TKeyValue>(component, index);
+		#endregion
+
+		#region Key, Value
 		public TValue AddComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey, new() => (TValue)AddComponent(new TValue(), typeof(TKey), 0);
+			where TValue : class, TKey, new() => AddComponent<TValue>(typeof(TKey));
 
 		public TValue AddComponent<TKey, TValue>(TValue component)
 			where TKey : IComponent
-			where TValue : TKey => (TValue)AddComponent(component, typeof(TKey), int.MaxValue);
+			where TValue : class, TKey => AddComponent(component, typeof(TKey));
 
 		public TValue AddComponent<TKey, TValue>(TValue component, int index)
 			where TKey : IComponent
-			where TValue : TKey => (TValue)AddComponent(component, typeof(TKey), index);
+			where TValue : class, TKey => AddComponent(component, typeof(TKey), index);
+		#endregion
 
-		public TKeyValue AddComponent<TKeyValue>()
-			where TKeyValue : IComponent, new() => (TKeyValue)AddComponent(new TKeyValue(), null, 0);
-
-		public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-			where TKeyValue : IComponent => (TKeyValue)AddComponent(component, typeof(TKeyValue), int.MaxValue);
-
-		public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-			where TKeyValue : IComponent => (TKeyValue)AddComponent(component, typeof(TKeyValue), index);
+		#region Type, Value
+		public TValue AddComponent<TValue>(Type type)
+			where TValue : class, IComponent, new() => AddComponent(AtlasComponent.Get<TValue>(), type);
 
 		public TValue AddComponent<TValue>(TValue component, Type type)
-			where TValue : IComponent => (TValue)AddComponent(component, type, int.MaxValue);
+			where TValue : class, IComponent => AddComponent(component, type, component.Managers.Count);
 
-		public TValue AddComponent<TValue>(Type type)
-			where TValue : IComponent, new() => AddComponent(new TValue(), type);
+		public TValue AddComponent<TValue>(TValue component, Type type, int index)
+			where TValue : class, IComponent => (TValue)AddComponent((IComponent)component, type, index);
+		#endregion
 
-		public IComponent AddComponent(IComponent component) => AddComponent(component, null, int.MaxValue);
+		#region Type, IComponent
+		public IComponent AddComponent(IComponent component) => AddComponent(component, component.Managers.Count);
 
-		public IComponent AddComponent(IComponent component, Type type) => AddComponent(component, type, int.MaxValue);
+		public IComponent AddComponent(IComponent component, Type type) => AddComponent(component, type, component.Managers.Count);
 
 		public IComponent AddComponent(IComponent component, int index) => AddComponent(component, null, index);
 
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
-			type = type ?? component?.GetType();
-			if(!(type?.IsInstanceOfType(component) ?? false))
+			type = type ?? component.GetType();
+			if(!type.IsInstanceOfType(component))
 				return null;
-			//The component isn't shareable and it already has a manager.
-			//Or this Entity alreay manages this Component.
-			//TO-DO Fix this so it handles all managers.
-			if(component.Manager != null)
-			{
-				if(component.Manager == this)
-					return component;
+			if(component.HasManager(this))
+				return component;
+			else if(component.Manager != null)
 				return null;
-			}
 			if(components.ContainsKey(type))
 			{
 				if(components[type] == component)
@@ -282,17 +287,17 @@ namespace Atlas.ECS.Entities
 			Message<IComponentAddMessage>(new ComponentAddMessage(type, component));
 			return component;
 		}
-
+		#endregion
 		#endregion
 
 		#region Remove
 
 		public TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
-			where TValue : TKey => (TValue)RemoveComponent(typeof(TKey));
+			where TValue : class, TKey => (TValue)RemoveComponent(typeof(TKey));
 
 		public TKeyValue RemoveComponent<TKeyValue>()
-			where TKeyValue : IComponent => (TKeyValue)RemoveComponent(typeof(TKeyValue));
+			where TKeyValue : class, IComponent => (TKeyValue)RemoveComponent(typeof(TKeyValue));
 
 		public IComponent RemoveComponent(Type type)
 		{
