@@ -86,7 +86,7 @@ namespace Atlas.ECS.Entities
 			get => globalName;
 			set
 			{
-				if(!IsValidName(globalName, ref value, s => Engine?.HasEntity(s) ?? false))
+				if(!IsValidName(globalName, ref value, n => Engine?.HasEntity(n) ?? false))
 					return;
 				string previous = globalName;
 				globalName = value;
@@ -99,7 +99,7 @@ namespace Atlas.ECS.Entities
 			get => localName;
 			set
 			{
-				if(!IsValidName(localName, ref value, s => Parent?.HasChild(s) ?? false))
+				if(!IsValidName(localName, ref value, n => Parent?.HasChild(n) ?? false))
 					return;
 				string previous = localName;
 				localName = value;
