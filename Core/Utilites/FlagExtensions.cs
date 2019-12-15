@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Utilites
 {
-	public static class Flag
+	public static class FlagExtensions
 	{
 		public static IEnumerable<T> GetFlags<T>(this T item, bool zero = false)
 			where T : Enum

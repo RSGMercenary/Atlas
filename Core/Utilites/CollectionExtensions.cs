@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Utilites
 {
-	public static class Collection
+	public static class CollectionExtensions
 	{
 		#region Enumerables
 		public static IEnumerable<T> ForEach<T>(this IEnumerable<T> items, Action<T> action)

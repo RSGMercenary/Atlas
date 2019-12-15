@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Atlas.Core.Utilites
 {
-	public static class Reflect
+	public static class ReflectionExtensions
 	{
 		public static IEnumerable<FieldInfo> FindFields(this Type type, BindingFlags flags)
 		{
