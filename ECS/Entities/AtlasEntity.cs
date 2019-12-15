@@ -49,8 +49,8 @@ namespace Atlas.ECS.Entities
 		#region Fields
 
 		private IEngine engine;
-		private string globalName;
-		private string localName;
+		private string globalName = UniqueName;
+		private string localName = UniqueName;
 		private int sleeping = 0;
 		private int freeSleeping = 0;
 		private bool autoDispose = true;

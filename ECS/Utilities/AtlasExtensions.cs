@@ -4,9 +4,14 @@ using System.Text;
 
 namespace Atlas.ECS.Utilities
 {
-	public static class AtlasECS
+	public static class AtlasExtensions
 	{
 		#region Entities
+		public static IEntityBuilder AsBuilder(this IEntity entity)
+		{
+			return new AtlasEntityBuilder(entity);
+		}
+
 		public static string AncestorsToString(this IEntity entity, int depth = -1, bool localNames = true, string indent = "")
 		{
 			var text = new StringBuilder();
