@@ -7,6 +7,8 @@ namespace Atlas.ECS.Entities
 	public interface IEntityBuilder : IBuilder<IEntityBuilder, IEntity>
 	{
 		#region Names
+		IEntityBuilder SetNames(string name);
+
 		IEntityBuilder SetGlobalName(string globalName);
 
 		IEntityBuilder SetLocalName(string localName);
@@ -58,6 +60,21 @@ namespace Atlas.ECS.Entities
 
 		IEntityBuilder AddComponent(IComponent component, Type type, int index);
 		#endregion
+
+		#region Remove
+		IEntityBuilder RemoveComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey;
+
+		IEntityBuilder RemoveComponent<TKeyValue>()
+			where TKeyValue : class, IComponent;
+
+		IEntityBuilder RemoveComponent(Type type);
+
+		IEntityBuilder RemoveComponent(IComponent component);
+
+		IEntityBuilder RemoveComponents();
+		#endregion
 		#endregion
 
 		#region Hierarchy
@@ -66,6 +83,10 @@ namespace Atlas.ECS.Entities
 		IEntityBuilder AddChild(IEntity child);
 
 		IEntityBuilder AddChild(IEntity child, int index);
+
+		IEntityBuilder RemoveChild(IEntity child);
+
+		IEntityBuilder RemoveChild(int index);
 
 		IEntityBuilder SetParent(IEntity parent);
 

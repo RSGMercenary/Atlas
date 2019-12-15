@@ -11,8 +11,14 @@ namespace Atlas.ECS.Entities
 
 		protected override IEntity NewInstance() => AtlasEntity.Get();
 
-
 		#region Names
+		public IEntityBuilder SetNames(string name)
+		{
+			Instance.GlobalName = name;
+			Instance.LocalName = name;
+			return this;
+		}
+
 		public IEntityBuilder SetGlobalName(string globalName)
 		{
 			Instance.GlobalName = globalName;
@@ -27,6 +33,7 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Components
+		#region Add
 		#region KeyValue
 		public IEntityBuilder AddComponent<TKeyValue>()
 			where TKeyValue : class, IComponent, new()
@@ -126,13 +133,52 @@ namespace Atlas.ECS.Entities
 		#endregion
 		#endregion
 
+		#region Remove
+		public IEntityBuilder RemoveComponent<TKey, TValue>()
+			where TKey : IComponent
+			where TValue : class, TKey
+		{
+			Instance.RemoveComponent<TKey, TValue>();
+			return this;
+		}
+
+		public IEntityBuilder RemoveComponent<TKeyValue>()
+			where TKeyValue : class, IComponent
+		{
+			Instance.RemoveComponent<TKeyValue>();
+			return this;
+		}
+
+		public IEntityBuilder RemoveComponent(Type type)
+		{
+			Instance.RemoveComponent(type);
+			return this;
+		}
+
+		public IEntityBuilder RemoveComponent(IComponent component)
+		{
+			Instance.RemoveComponent(component);
+			return this;
+		}
+
+		public IEntityBuilder RemoveComponents()
+		{
+			Instance.RemoveComponents();
+			return this;
+		}
+		#endregion
+		#endregion
+
 		#region Hierarchy
+		#region Root
 		public IEntityBuilder SetRoot(bool root)
 		{
 			Instance.IsRoot = root;
 			return this;
 		}
+		#endregion
 
+		#region Add
 		public IEntityBuilder AddChild(IEntity child)
 		{
 			Instance.AddChild(child);
@@ -144,7 +190,23 @@ namespace Atlas.ECS.Entities
 			Instance.AddChild(child, index);
 			return this;
 		}
+		#endregion
 
+		#region Remove
+		public IEntityBuilder RemoveChild(IEntity child)
+		{
+			Instance.RemoveChild(child);
+			return this;
+		}
+
+		public IEntityBuilder RemoveChild(int index)
+		{
+			Instance.RemoveChild(index);
+			return this;
+		}
+		#endregion
+
+		#region Parent
 		public IEntityBuilder SetParent(IEntity parent)
 		{
 			Instance.SetParent(parent);
@@ -156,6 +218,7 @@ namespace Atlas.ECS.Entities
 			Instance.SetParent(parent, index);
 			return this;
 		}
+		#endregion
 		#endregion
 
 		#region Sleeping
