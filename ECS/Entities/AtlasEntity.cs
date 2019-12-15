@@ -59,7 +59,6 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Construct / Dispose
-
 		private AtlasEntity() { }
 
 		protected override void Disposing()
@@ -78,7 +77,6 @@ namespace Atlas.ECS.Entities
 			AtlasEntity.Release(this);
 			//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 		}
-
 		#endregion
 
 		#region Names
@@ -273,7 +271,7 @@ namespace Atlas.ECS.Entities
 
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
-			type = type ?? component.GetType();
+			type ??= component.GetType();
 			if(!type.IsInstanceOfType(component))
 				return null;
 			if(component.HasManager(this))

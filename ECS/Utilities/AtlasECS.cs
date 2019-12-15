@@ -50,7 +50,7 @@ namespace Atlas.ECS.Utilities
 		/// <returns></returns>
 		public static string ToInfoString(this IEntity entity, int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "", StringBuilder text = null)
 		{
-			text = text ?? new StringBuilder();
+			text ??= new StringBuilder();
 
 			var name = (entity.IsRoot) ? entity.GlobalName : $"Child {entity.ParentIndex + 1}";
 			text.AppendLine($"{indent}{name}");
@@ -81,7 +81,7 @@ namespace Atlas.ECS.Utilities
 		#region Components
 		public static string ToInfoString(this IComponent component, bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
 		{
-			text = text ?? new StringBuilder();
+			text ??= new StringBuilder();
 			text.Append($"{indent}Component");
 			if(index > 0)
 				text.Append($" {index}");
