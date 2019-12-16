@@ -1,10 +1,10 @@
-﻿using Atlas.Core.Collections.Builder;
+﻿using Atlas.Core.Objects.Builder;
 using Atlas.ECS.Components.Component;
 using System;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntityBuilder : IBuilder<IEntityBuilder, IEntity>
+	public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>
 	{
 		#region Names
 		IEntityBuilder SetNames(string name);
@@ -75,22 +75,6 @@ namespace Atlas.ECS.Entities
 
 		IEntityBuilder RemoveComponents();
 		#endregion
-		#endregion
-
-		#region Hierarchy
-		IEntityBuilder SetRoot(bool root);
-
-		IEntityBuilder AddChild(IEntity child);
-
-		IEntityBuilder AddChild(IEntity child, int index);
-
-		IEntityBuilder RemoveChild(IEntity child);
-
-		IEntityBuilder RemoveChild(int index);
-
-		IEntityBuilder SetParent(IEntity parent);
-
-		IEntityBuilder SetParent(IEntity parent, int index);
 		#endregion
 
 		#region Sleeping
