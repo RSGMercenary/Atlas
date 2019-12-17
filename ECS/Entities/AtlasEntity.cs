@@ -5,7 +5,6 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
-using Atlas.ECS.Objects;
 using System;
 using System.Collections.Generic;
 

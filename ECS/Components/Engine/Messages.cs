@@ -7,6 +7,8 @@ using System;
 namespace Atlas.ECS.Components.Engine
 {
 	#region Interfaces
+	public interface IEngineMessage<out T> : IPropertyMessage<T, IEngine> where T : IEngineObject { }
+
 
 	public interface IEntityAddMessage : IValueMessage<IEngine, IEntity> { }
 
@@ -23,6 +25,10 @@ namespace Atlas.ECS.Components.Engine
 	#endregion
 
 	#region Classes
+	class EngineMessage<T> : PropertyMessage<T, IEngine>, IEngineMessage<T> where T : IEngineObject
+	{
+		public EngineMessage(IEngine current, IEngine previous) : base(current, previous) { }
+	}
 
 	class EntityAddMessage : ValueMessage<IEngine, IEntity>, IEntityAddMessage
 	{

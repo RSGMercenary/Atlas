@@ -1,14 +1,14 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Utilites;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Objects;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IObject, IEnumerable
+	public interface IReadOnlyFamily : IEngineObject, IEnumerable
 	{
 		/// <summary>
 		/// Automatically called on Families removed from the Engine.
@@ -29,7 +29,7 @@ namespace Atlas.ECS.Families
 		void RemoveEntity(IEntity entity, Type type);
 	}
 
-	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily, IObject<IReadOnlyFamily<TFamilyMember>>, IEnumerable<TFamilyMember>
+	public interface IReadOnlyFamily<TFamilyMember> : IReadOnlyFamily, IEngineObject<IReadOnlyFamily<TFamilyMember>>, IEnumerable<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		new IReadOnlyGroup<TFamilyMember> Members { get; }

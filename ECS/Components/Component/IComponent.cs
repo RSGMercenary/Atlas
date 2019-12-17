@@ -2,7 +2,6 @@
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Objects;
 using System;
 
 namespace Atlas.ECS.Components.Component
@@ -10,7 +9,7 @@ namespace Atlas.ECS.Components.Component
 	public interface IComponent : IMessenger, IAutoDispose
 	{
 		/// <summary>
-		/// Determines whether <see cref="IObject.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
+		/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
 		/// </summary>
 		new bool AutoDispose { get; set; }
 

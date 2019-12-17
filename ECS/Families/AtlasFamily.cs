@@ -6,7 +6,6 @@ using Atlas.Core.Utilites;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Objects;
 using System;
 using System.Collections;
 using System.Collections.Generic;

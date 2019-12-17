@@ -2,18 +2,18 @@
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
-using Atlas.ECS.Objects;
+using Atlas.ECS.Components.Engine;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IObject<IEntity>, IHierarchy<IEntity>, IAutoDispose, ISleep
+	public interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, IAutoDispose, ISleep
 	{
 		#region Entities
 
 		/// <summary>
-		/// Determines whether <see cref="IObject.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
+		/// Determines whether <see cref="IDisposable.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
 		/// </summary>
 		new bool AutoDispose { get; set; }
 
