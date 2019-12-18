@@ -14,7 +14,7 @@ namespace Atlas.ECS.Entities
 	{
 		#region Static
 
-		public const string RootName = "Root";
+		public static readonly string RootName = "Root";
 		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
 		#region Pool

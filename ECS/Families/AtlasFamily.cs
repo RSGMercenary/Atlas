@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families
 {
-	public sealed class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
+	public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
