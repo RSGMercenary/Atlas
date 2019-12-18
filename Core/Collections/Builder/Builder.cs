@@ -6,8 +6,8 @@
 	{
 		protected T Instance { get; private set; }
 
-		public Builder() { Start(); }
-		public Builder(T instance) { Instance = instance; }
+		protected Builder() { Start(); }
+		protected Builder(T instance) { Instance = instance; }
 
 		public TBuilder Start()
 		{
