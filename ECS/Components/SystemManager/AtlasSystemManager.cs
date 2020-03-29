@@ -29,7 +29,6 @@ namespace Atlas.ECS.Components.SystemManager
 		}
 
 		#region Engine/Systems
-
 		protected override void AddingManager(IEntity entity, int index)
 		{
 			base.AddingManager(entity, index);
@@ -62,25 +61,19 @@ namespace Atlas.ECS.Components.SystemManager
 					engine.RemoveSystem(type);
 			}
 		}
-
 		#endregion
 
 		#region Get
-
 		public IReadOnlyGroup<Type> Systems => types;
-
 		#endregion
 
 		#region Has
-
 		public bool HasSystem<TKey>() where TKey : class, ISystem, new() => HasSystem(typeof(TKey));
 
 		public bool HasSystem(Type type) => types.Contains(type);
-
 		#endregion
 
 		#region Add
-
 		public bool AddSystem<TKey>() where TKey : class, ISystem, new() => AddSystem(typeof(TKey));
 
 		public bool AddSystem(Type type)
@@ -96,11 +89,9 @@ namespace Atlas.ECS.Components.SystemManager
 			Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(type));
 			return true;
 		}
-
 		#endregion
 
 		#region Remove
-
 		public bool RemoveSystem<TKey>() where TKey : class, ISystem, new() => RemoveSystem(typeof(TKey));
 
 		public bool RemoveSystem(Type type)
@@ -123,7 +114,6 @@ namespace Atlas.ECS.Components.SystemManager
 				RemoveSystem(type);
 			return true;
 		}
-
 		#endregion
 	}
 }

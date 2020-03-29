@@ -14,7 +14,6 @@ namespace Atlas.ECS.Components.Engine
 	public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	{
 		#region Fields
-
 		//ECS Groups
 		private readonly Group<IEntity> entities = new Group<IEntity>();
 		private readonly Group<IFamily> families = new Group<IFamily>();
@@ -45,11 +44,9 @@ namespace Atlas.ECS.Components.Engine
 		private double totalFixedTime = 0;
 		private int fixedUpdates = 0;
 		private int fixedLag = 0;
-
 		#endregion
 
 		#region Compose/Dispose
-
 		public sealed override IEntity AddManager(IEntity entity, Type type, int index)
 		{
 			if(!(entity?.IsRoot ?? false))
@@ -78,13 +75,10 @@ namespace Atlas.ECS.Components.Engine
 			entity.RemoveListener<IComponentRemoveMessage>(EntityComponentRemoved);
 			base.RemovingManager(entity, index);
 		}
-
 		#endregion
 
 		#region Entities
-
 		#region Add/Remove
-
 		private void AddEntity(IEntity entity)
 		{
 			//Change the Entity's global name if it already exists.
@@ -123,22 +117,18 @@ namespace Atlas.ECS.Components.Engine
 			entities.Remove(entity);
 			entity.Engine = null;
 		}
-
 		#endregion
 
 		#region Get
-
 		public IReadOnlyGroup<IEntity> Entities => entities;
 
 		public IEntity GetEntity(string globalName)
 		{
 			return entitiesGlobalName.ContainsKey(globalName) ? entitiesGlobalName[globalName] : null;
 		}
-
 		#endregion
 
 		#region Has
-
 		public bool HasEntity(string globalName)
 		{
 			return !string.IsNullOrWhiteSpace(globalName) && entitiesGlobalName.ContainsKey(globalName);
@@ -148,11 +138,9 @@ namespace Atlas.ECS.Components.Engine
 		{
 			return entity != null && entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
 		}
-
 		#endregion
 
 		#region Messages
-
 		private void EntityChildAdded(IChildAddMessage<IEntity> message)
 		{
 			if(!entitiesGlobalName.ContainsKey(message.Value.GlobalName) ||
@@ -173,21 +161,15 @@ namespace Atlas.ECS.Components.Engine
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
 		}
-
 		#endregion
-
 		#endregion
 
 		#region Systems
-
 		#region Create
-
 		protected virtual ISystem CreateSystem(Type type) => (ISystem)Activator.CreateInstance(type);
-
 		#endregion
 
 		#region Add/Remove
-
 		public TSystem AddSystem<TSystem>()
 			where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
 
@@ -226,11 +208,9 @@ namespace Atlas.ECS.Components.Engine
 			system.Engine = null;
 			Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
 		}
-
 		#endregion
 
 		#region Get
-
 		public IReadOnlyGroup<ISystem> Systems => systems;
 
 		public TISystem GetSystem<TISystem>() where TISystem : ISystem => (TISystem)GetSystem(typeof(TISystem));
@@ -238,21 +218,17 @@ namespace Atlas.ECS.Components.Engine
 		public ISystem GetSystem(Type type) => systemsType.ContainsKey(type) ? systemsType[type] : null;
 
 		public ISystem GetSystem(int index) => systems[index];
-
 		#endregion
 
 		#region Has
-
 		public bool HasSystem(ISystem system) => systems.Contains(system);
 
 		public bool HasSystem<TISystem>() where TISystem : ISystem => HasSystem(typeof(TISystem));
 
 		public bool HasSystem(Type type) => systemsType.ContainsKey(type);
-
 		#endregion
 
 		#region Messages
-
 		private void SystemPriorityChanged(IPriorityMessage message)
 		{
 			SystemPriorityChanged(message.Messenger);
@@ -271,22 +247,16 @@ namespace Atlas.ECS.Components.Engine
 			}
 			systems.Insert(0, system);
 		}
-
 		#endregion
-
 		#endregion
 
 		#region Families
-
 		#region Create
-
 		protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
-
 		#endregion
 
 		#region Add/Remove
-
 		public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new()
 		{
@@ -324,11 +294,9 @@ namespace Atlas.ECS.Components.Engine
 			family.Engine = null;
 			Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
 		}
-
 		#endregion
 
 		#region Get
-
 		public IReadOnlyGroup<IReadOnlyFamily> Families => families;
 
 		public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
@@ -338,11 +306,9 @@ namespace Atlas.ECS.Components.Engine
 		}
 
 		public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
-
 		#endregion
 
 		#region Has
-
 		public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue(family as IFamily);
 
 		public bool HasFamily<TFamilyMember>()
@@ -352,11 +318,9 @@ namespace Atlas.ECS.Components.Engine
 		}
 
 		public bool HasFamily(Type type) => familiesType.ContainsKey(type);
-
 		#endregion
 
 		#region Messages
-
 		private void EntityComponentAdded(IComponentAddMessage message)
 		{
 			foreach(var family in families)
@@ -368,15 +332,11 @@ namespace Atlas.ECS.Components.Engine
 			foreach(var family in families)
 				family.RemoveEntity(message.Messenger, message.Key);
 		}
-
 		#endregion
-
 		#endregion
 
 		#region Updates
-
 		#region Delta/Total Times
-
 		public double MaxVariableTime
 		{
 			get => maxVariableTime;
@@ -433,11 +393,9 @@ namespace Atlas.ECS.Components.Engine
 				totalFixedTime = value;
 			}
 		}
-
 		#endregion
 
 		#region State
-
 		public int FixedLag
 		{
 			get => fixedLag;
@@ -481,11 +439,9 @@ namespace Atlas.ECS.Components.Engine
 				currentSystem = value;
 			}
 		}
-
 		#endregion
 
 		#region Fixed/Variable Update Loop
-
 		public void Update(double deltaTime)
 		{
 			try
@@ -574,9 +530,7 @@ namespace Atlas.ECS.Components.Engine
 			}
 			UpdateState = TimeStep.None;
 		}
-
 		#endregion
-
 		#endregion
 	}
 }

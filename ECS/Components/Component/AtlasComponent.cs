@@ -55,11 +55,9 @@ namespace Atlas.ECS.Components.Component
 		where T : class, IComponent
 	{
 		#region Fields
-
 		private readonly Group<IEntity> managers = new Group<IEntity>();
 		private bool autoDispose = true;
 		public bool IsShareable { get; } = false;
-
 		#endregion
 
 		#region Construct / Dispose
@@ -84,7 +82,6 @@ namespace Atlas.ECS.Components.Component
 		#endregion
 
 		#region AutoDispose
-
 		public bool AutoDispose
 		{
 			get => autoDispose;
@@ -104,19 +101,22 @@ namespace Atlas.ECS.Components.Component
 			if(autoDispose && managers.Count <= 0)
 				Dispose();
 		}
-
 		#endregion
 
 		#region Managers
+		#region Has
+		public bool HasManager(IEntity entity) => managers.Contains(entity);
+		#endregion
 
+		#region Get
 		public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
 		public IReadOnlyGroup<IEntity> Managers => managers;
 
-		public bool HasManager(IEntity entity) => managers.Contains(entity);
-
 		public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
+		#endregion
 
+		#region Set
 		public bool SetManagerIndex(IEntity entity, int index)
 		{
 			if(!managers.SetIndex(entity, index))
@@ -143,7 +143,9 @@ namespace Atlas.ECS.Components.Component
 			Message<IManagerMessage<T>>(new ManagerMessage<T>());
 			return true;
 		}
+		#endregion
 
+		#region Add
 		public IEntity AddManager<TKey>(IEntity entity)
 			where TKey : IComponent => AddManager(entity, typeof(TKey));
 
@@ -192,7 +194,9 @@ namespace Atlas.ECS.Components.Component
 		/// <param name="entity">The Entity that has been added.</param>
 		/// <param name="index">The current index of the Entity being added.</param>
 		protected virtual void AddingManager(IEntity entity, int index) { }
+		#endregion
 
+		#region Remove
 		public IEntity RemoveManager<TKey>(IEntity entity)
 			where TKey : IComponent => RemoveManager(entity, typeof(TKey));
 
@@ -252,7 +256,7 @@ namespace Atlas.ECS.Components.Component
 				RemoveManager(managers[managers.Count - 1]);
 			return true;
 		}
-
+		#endregion
 		#endregion
 	}
 }

@@ -13,8 +13,7 @@ namespace Atlas.ECS.Entities
 	public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	{
 		#region Static
-
-		public static readonly string RootName = "Root";
+		public const string RootName = "Root";
 		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
 		#region Pool
@@ -46,7 +45,6 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Fields
-
 		private IEngine engine;
 		private string globalName = UniqueName;
 		private string localName = UniqueName;
@@ -74,12 +72,12 @@ namespace Atlas.ECS.Entities
 			RemoveListeners();
 
 			AtlasEntity.Release(this);
+			//base.Disposing();
 			//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 		}
 		#endregion
 
 		#region Names
-
 		public string GlobalName
 		{
 			get => globalName;
@@ -122,15 +120,10 @@ namespace Atlas.ECS.Entities
 			return true;
 		}
 
-		public override string ToString()
-		{
-			return GlobalName;
-		}
-
+		public override string ToString() => GlobalName;
 		#endregion
 
 		#region Engine
-
 		public IEngine Engine
 		{
 			get => engine;
@@ -149,22 +142,17 @@ namespace Atlas.ECS.Entities
 			engine = value;
 			Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
 		}
-
 		#endregion
 
 		#region Components
-
 		#region Has
-
 		public bool HasComponent<TKey>()
 			where TKey : IComponent => HasComponent(typeof(TKey));
 
 		public bool HasComponent(Type type) => components.ContainsKey(type);
-
 		#endregion
 
 		#region Get
-
 		public TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
 			where TValue : class, TKey => (TValue)GetComponent(typeof(TKey));
@@ -220,11 +208,9 @@ namespace Atlas.ECS.Entities
 				}
 			}
 		}
-
 		#endregion
 
 		#region Add
-
 		#region KeyValue
 		public TKeyValue AddComponent<TKeyValue>()
 			where TKeyValue : class, IComponent, new() => AddComponent<TKeyValue, TKeyValue>();
@@ -292,7 +278,6 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Remove
-
 		public TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
 			where TValue : class, TKey => (TValue)RemoveComponent(typeof(TKey));
@@ -322,15 +307,11 @@ namespace Atlas.ECS.Entities
 				RemoveComponent(type);
 			return true;
 		}
-
 		#endregion
-
 		#endregion
 
 		#region Hierarchy
-
 		#region Add
-
 		public IEntity AddChild(string globalName, string localName) => AddChild(Get(globalName, localName), Children.Count);
 
 		public IEntity AddChild(string globalName, string localName, int index) => AddChild(Get(globalName, localName), index);
@@ -338,17 +319,13 @@ namespace Atlas.ECS.Entities
 		public IEntity AddChild(string globalName) => AddChild(Get(globalName), Children.Count);
 
 		public IEntity AddChild(string globalName, int index) => AddChild(Get(globalName), index);
-
 		#endregion
 
 		#region Remove
-
 		public IEntity RemoveChild(string localName) => RemoveChild(GetChild(localName));
-
 		#endregion
 
 		#region Get
-
 		public IEntity GetChild(string localName)
 		{
 			foreach(var child in Children)
@@ -378,25 +355,18 @@ namespace Atlas.ECS.Entities
 			}
 			return entity;
 		}
-
 		#endregion
 
 		#region Set
-
 		public IEntity SetRelative(string hierarchy, int index) => SetParent(GetRelative(hierarchy), index);
-
 		#endregion
 
 		#region Has
-
 		public bool HasChild(string localName) => GetChild(localName) != null;
-
 		#endregion
-
 		#endregion
 
 		#region Sleep
-
 		public int Sleeping
 		{
 			get => sleeping;
@@ -458,11 +428,9 @@ namespace Atlas.ECS.Entities
 					--FreeSleeping;
 			}
 		}
-
 		#endregion
 
 		#region AutoDispose
-
 		public bool AutoDispose
 		{
 			get => autoDispose;
@@ -482,11 +450,9 @@ namespace Atlas.ECS.Entities
 			if(autoDispose && Parent == null)
 				Dispose();
 		}
-
 		#endregion
 
 		#region Messages
-
 		protected override void Messaging(IMessage<IEntity> message)
 		{
 			if(message.Messenger == message.CurrentMessenger)
@@ -550,7 +516,6 @@ namespace Atlas.ECS.Entities
 			}
 			base.Messaging(message);
 		}
-
 		#endregion
 	}
 }
