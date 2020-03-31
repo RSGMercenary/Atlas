@@ -13,7 +13,7 @@ namespace Atlas.ECS.Entities
 	public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	{
 		#region Static
-		public const string RootName = "Root";
+		public static readonly string RootName = "Root";
 		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
 		#region Pool
