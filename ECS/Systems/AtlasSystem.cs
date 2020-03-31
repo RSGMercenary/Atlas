@@ -1,5 +1,4 @@
-﻿using Atlas.Core.Loggers;
-using Atlas.Core.Messages;
+﻿using Atlas.Core.Messages;
 using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
@@ -17,7 +16,7 @@ namespace Atlas.ECS.Systems
 		private float deltaIntervalTime = 0;
 		private TimeStep timeStep = TimeStep.Variable;
 		private TimeStep updateState = TimeStep.None;
-		private bool updateLock = false;
+		private UpdateLock UpdateLock { get; } = new UpdateLock();
 
 		#endregion
 
@@ -92,28 +91,16 @@ namespace Atlas.ECS.Systems
 			if(deltaTime <= 0)
 				return;
 
-			if(!LockUpdate(true))
-				return;
+			UpdateLock.Lock();
 
 			UpdateState = UpdateStep;
 			SystemUpdate(deltaTime);
 			UpdateState = TimeStep.None;
 
-			LockUpdate(false);
+			UpdateLock.Unlock();
 
 			if(Engine == null)
 				Dispose();
-		}
-
-		private bool LockUpdate(bool value)
-		{
-			if(updateLock == value)
-			{
-				Log.Warning("Cannot call multiple updates simultaneously.");
-				return false;
-			}
-			updateLock = value;
-			return true;
 		}
 
 		protected virtual void SystemUpdate(float deltaTime) { }

@@ -29,8 +29,8 @@ namespace Atlas.ECS.Components.Engine
 		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
 
 		//Update State
+		private UpdateLock UpdateLock { get; } = new UpdateLock();
 		private TimeStep updateState = TimeStep.None;
-		private bool updateLock = false;
 		private ISystem updateSystem;
 
 		//Variable Time
@@ -442,8 +442,7 @@ namespace Atlas.ECS.Components.Engine
 		{
 			try
 			{
-				if(!LockUpdate(true))
-					return;
+				UpdateLock.Lock();
 
 				//Variable-time cap and set.
 				DeltaVariableTime = deltaTime;
@@ -464,27 +463,14 @@ namespace Atlas.ECS.Components.Engine
 				TotalVariableTime += deltaVariableTime;
 				CalculateVariableInterpolation(deltaFixedTime);
 				UpdateSystems(TimeStep.Variable, deltaVariableTime);
+
+				UpdateLock.Unlock();
 			}
 			catch(Exception e)
 			{
 				Log.Exception(e);
 				throw;
 			}
-			finally
-			{
-				LockUpdate(false);
-			}
-		}
-
-		private bool LockUpdate(bool value)
-		{
-			if(updateLock == value)
-			{
-				Log.Warning("Cannot call multiple updates simultaneously.");
-				return false;
-			}
-			updateLock = value;
-			return true;
 		}
 
 		private void CalculateFixedUpdates(double deltaFixedTime)
