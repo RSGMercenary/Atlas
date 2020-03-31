@@ -8,7 +8,6 @@ namespace Atlas.ECS.Systems
 	public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
 		#region Fields
-
 		private IEngine engine;
 		private int priority = 0;
 		private int sleeping = 0;
@@ -17,7 +16,6 @@ namespace Atlas.ECS.Systems
 		private TimeStep timeStep = TimeStep.Variable;
 		private TimeStep updateState = TimeStep.None;
 		private UpdateLock UpdateLock { get; } = new UpdateLock();
-
 		#endregion
 
 		#region Construct / Dispose
@@ -39,11 +37,9 @@ namespace Atlas.ECS.Systems
 			UpdateState = TimeStep.None;
 			base.Disposing();
 		}
-
 		#endregion
 
 		#region Engine
-
 		public IEngine Engine
 		{
 			get => engine;
@@ -75,11 +71,9 @@ namespace Atlas.ECS.Systems
 		protected abstract void AddingEngine(IEngine engine);
 
 		protected abstract void RemovingEngine(IEngine engine);
-
 		#endregion
 
 		#region Updates
-
 		public void Update(float deltaTime)
 		{
 			if(IsSleeping)
@@ -144,11 +138,9 @@ namespace Atlas.ECS.Systems
 					SyncTotalIntervalTime();
 			}
 		}
-
 		#endregion
 
 		#region Sleeping
-
 		public int Sleeping
 		{
 			get => sleeping;
@@ -173,11 +165,9 @@ namespace Atlas.ECS.Systems
 					--Sleeping;
 			}
 		}
-
 		#endregion
 
 		#region Interval Time
-
 		public float DeltaIntervalTime
 		{
 			get => deltaIntervalTime;
@@ -221,11 +211,9 @@ namespace Atlas.ECS.Systems
 		{
 			return timeStep == TimeStep.Variable ? Engine.TotalVariableTime : Engine.TotalFixedTime;
 		}
-
 		#endregion
 
 		#region Priority
-
 		public int Priority
 		{
 			get => priority;
@@ -238,7 +226,6 @@ namespace Atlas.ECS.Systems
 				Message<IPriorityMessage>(new PriorityMessage(value, previous));
 			}
 		}
-
 		#endregion
 	}
 }

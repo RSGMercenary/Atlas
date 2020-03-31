@@ -44,14 +44,8 @@ namespace Atlas.ECS.Systems
 			Family = null;
 		}
 
-		private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message)
-		{
-			MemberAdded(message.Messenger, message.Value);
-		}
+		private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message) => MemberAdded(message.Messenger, message.Value);
 
-		private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message)
-		{
-			MemberRemoved(message.Messenger, message.Value);
-		}
+		private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message) => MemberRemoved(message.Messenger, message.Value);
 	}
 }

@@ -17,7 +17,6 @@ namespace Atlas.ECS.Families
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
-
 		private IEngine engine;
 
 		//Reflection Fields
@@ -32,11 +31,9 @@ namespace Atlas.ECS.Families
 		private readonly List<TFamilyMember> added = new List<TFamilyMember>();
 		private readonly List<TFamilyMember> removed = new List<TFamilyMember>();
 		private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
-
 		#endregion
 
 		#region Compose / Dispose
-
 		public AtlasFamily()
 		{
 			//Gets the private backing fields of the Entity and Component properties.
@@ -63,19 +60,9 @@ namespace Atlas.ECS.Families
 				return;
 			base.Dispose();
 		}
-
-		#endregion
-
-		#region Iteration
-
-		public IEnumerator<TFamilyMember> GetEnumerator() => members.GetEnumerator();
-
-		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
 		#endregion
 
 		#region Engine
-
 		public IEngine Engine
 		{
 			get => engine;
@@ -97,10 +84,12 @@ namespace Atlas.ECS.Families
 			engine = value;
 			Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
 		}
-
 		#endregion
 
 		#region Get
+		public IEnumerator<TFamilyMember> GetEnumerator() => members.GetEnumerator();
+
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
 		IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members => Members;
 
@@ -109,11 +98,9 @@ namespace Atlas.ECS.Families
 		IFamilyMember IReadOnlyFamily.GetMember(IEntity entity) => GetMember(entity);
 
 		public TFamilyMember GetMember(IEntity entity) => entities.ContainsKey(entity) ? entities[entity] : null;
-
 		#endregion
 
 		#region Add
-
 		public void AddEntity(IEntity entity) => Add(entity);
 
 		public void AddEntity(IEntity entity, Type componentType)
@@ -146,15 +133,10 @@ namespace Atlas.ECS.Families
 			Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
 		}
 
-		private void AddMember(TFamilyMember member)
-		{
-			members.Add(member);
-		}
-
+		private void AddMember(TFamilyMember member) => members.Add(member);
 		#endregion
 
 		#region Remove
-
 		public void RemoveEntity(IEntity entity) => Remove(entity);
 
 		public void RemoveEntity(IEntity entity, Type componentType)
@@ -186,11 +168,9 @@ namespace Atlas.ECS.Families
 		{
 			pool.Release(SetMemberValues(member, null, false));
 		}
-
 		#endregion
 
 		#region Helpers
-
 		private void UpdateMembers(IUpdateStateMessage<IEngine> message)
 		{
 			if(message.CurrentValue != TimeStep.None)
@@ -218,7 +198,6 @@ namespace Atlas.ECS.Families
 		{
 			Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
 		}
-
 		#endregion
 	}
 }

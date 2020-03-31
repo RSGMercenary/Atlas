@@ -9,7 +9,6 @@ namespace Atlas.ECS.Components.Engine
 	#region Interfaces
 	public interface IEngineMessage<out T> : IPropertyMessage<T, IEngine> where T : IEngineObject { }
 
-
 	public interface IEntityAddMessage : IValueMessage<IEngine, IEntity> { }
 
 	public interface IEntityRemoveMessage : IValueMessage<IEngine, IEntity> { }
@@ -21,7 +20,6 @@ namespace Atlas.ECS.Components.Engine
 	public interface ISystemAddMessage : IKeyValueMessage<IEngine, Type, ISystem> { }
 
 	public interface ISystemRemoveMessage : IKeyValueMessage<IEngine, Type, ISystem> { }
-
 	#endregion
 
 	#region Classes
@@ -59,6 +57,5 @@ namespace Atlas.ECS.Components.Engine
 	{
 		public SystemRemoveMessage(Type key, ISystem value) : base(key, value) { }
 	}
-
 	#endregion
 }

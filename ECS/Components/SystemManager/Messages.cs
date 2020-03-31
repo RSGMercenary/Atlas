@@ -4,15 +4,12 @@ using System;
 namespace Atlas.ECS.Components.SystemManager
 {
 	#region Interfaces
-
 	public interface ISystemTypeAddMessage : IValueMessage<ISystemManager, Type> { }
 
 	public interface ISystemTypeRemoveMessage : IValueMessage<ISystemManager, Type> { }
-
 	#endregion
 
 	#region Classes
-
 	class SystemTypeAddMessage : ValueMessage<ISystemManager, Type>, ISystemTypeAddMessage
 	{
 		public SystemTypeAddMessage(Type value) : base(value) { }
@@ -22,6 +19,5 @@ namespace Atlas.ECS.Components.SystemManager
 	{
 		public SystemTypeRemoveMessage(Type value) : base(value) { }
 	}
-
 	#endregion
 }

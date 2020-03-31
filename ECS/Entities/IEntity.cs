@@ -11,7 +11,6 @@ namespace Atlas.ECS.Entities
 	public interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, IAutoDispose, ISleep
 	{
 		#region Entities
-
 		/// <summary>
 		/// Determines whether <see cref="IDisposable.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
 		/// </summary>
@@ -53,22 +52,17 @@ namespace Atlas.ECS.Entities
 		IEntity GetChild(string localName);
 
 		IEntity RemoveChild(string localName);
-
 		#endregion
 
 		#region Components
-
 		#region Has
-
 		bool HasComponent<TKey>()
 			where TKey : IComponent;
 
 		bool HasComponent(Type type);
-
 		#endregion
 
 		#region Get
-
 		TValue GetComponent<TKey, TValue>()
 			where TKey : IComponent
 			where TValue : class, TKey;
@@ -90,11 +84,9 @@ namespace Atlas.ECS.Entities
 
 		IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth)
 			where TKeyValue : class, IComponent;
-
 		#endregion
 
 		#region Add
-
 		/// <summary>
 		/// Adds a Component to the Entity with a new instance.
 		/// </summary>
@@ -165,11 +157,9 @@ namespace Atlas.ECS.Entities
 		IComponent AddComponent(IComponent component, Type type);
 		IComponent AddComponent(IComponent component, int index);
 		IComponent AddComponent(IComponent component, Type type, int index);
-
 		#endregion
 
 		#region Remove
-
 		TValue RemoveComponent<TKey, TValue>()
 			where TKey : IComponent
 			where TValue : class, TKey;
@@ -182,13 +172,10 @@ namespace Atlas.ECS.Entities
 		IComponent RemoveComponent(IComponent component);
 
 		bool RemoveComponents();
-
 		#endregion
-
 		#endregion
 
 		#region Sleeping
-
 		/// <summary>
 		/// Return whether this Entity.FreeSleeping > 0;
 		/// </summary>
@@ -199,7 +186,6 @@ namespace Atlas.ECS.Entities
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
 		int FreeSleeping { get; }
-
 		#endregion
 	}
 }

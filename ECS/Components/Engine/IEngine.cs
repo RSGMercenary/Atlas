@@ -11,7 +11,6 @@ namespace Atlas.ECS.Components.Engine
 	public interface IEngine : IComponent<IEngine>, IUpdateState
 	{
 		#region Entities
-
 		/// <summary>
 		/// A collection of all Entities managed by this Engine.
 		/// <para>Entities are added to and removed from the Engine by being
@@ -43,11 +42,9 @@ namespace Atlas.ECS.Components.Engine
 		/// <param name="globalName"></param>
 		/// <returns></returns>
 		IEntity GetEntity(string globalName);
-
 		#endregion
 
 		#region Systems
-
 		TSystem AddSystem<TSystem>()
 			where TSystem : class, ISystem, new();
 
@@ -107,11 +104,9 @@ namespace Atlas.ECS.Components.Engine
 		/// <param name="index"></param>
 		/// <returns></returns>
 		ISystem GetSystem(int index);
-
 		#endregion
 
 		#region Families
-
 		/// <summary>
 		/// A collection of all Families managed by this Engine.
 		/// 
@@ -162,11 +157,9 @@ namespace Atlas.ECS.Components.Engine
 
 		void RemoveFamily<TFamilyMember>()
 			where TFamilyMember : class, IFamilyMember, new();
-
 		#endregion
 
 		#region Updates
-
 		/// <summary>
 		/// The max delta time between updates. Prevents the update loop "spiral of death".
 		/// </summary>
@@ -202,7 +195,6 @@ namespace Atlas.ECS.Components.Engine
 		int FixedUpdates { get; }
 
 		double VariableInterpolation { get; }
-
 		#endregion
 	}
 }
