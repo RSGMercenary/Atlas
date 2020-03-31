@@ -48,6 +48,15 @@ namespace Atlas.ECS.Components.Component
 				pools[type].Release(component);
 		}
 		#endregion
+
+		public static Type GetComponentType(IComponent component, Type type)
+		{
+			if(type == null)
+				type = component.GetType();
+			else if(!type.IsInstanceOfType(component))
+				throw new ArgumentException($"The component '{component.GetType().Name}' is not an instance of type '{type.Name}'.");
+			return type;
+		}
 		#endregion
 	}
 
@@ -160,10 +169,8 @@ namespace Atlas.ECS.Components.Component
 
 		public IEntity AddManager(IEntity entity, Type type, int index)
 		{
-			type ??= GetType();
-			if(!type.IsInstanceOfType(this))
-				return null;
-			if(entity?.GetComponent(type) == this)
+			type = AtlasComponent.GetComponentType(this, type);
+			if(entity.GetComponent(type) == this)
 			{
 				if(!HasManager(entity))
 				{
@@ -180,8 +187,7 @@ namespace Atlas.ECS.Components.Component
 			}
 			else
 			{
-				if(entity?.AddComponent(this, type, index) == null)
-					return null;
+				entity.AddComponent(this, type, index);
 			}
 			return entity;
 		}
@@ -200,20 +206,13 @@ namespace Atlas.ECS.Components.Component
 		public IEntity RemoveManager<TKey>(IEntity entity)
 			where TKey : IComponent => RemoveManager(entity, typeof(TKey));
 
-		public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity?.GetComponentType(this));
+		public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity.GetComponentType(this));
 
-		public virtual IEntity RemoveManager(IEntity entity, Type type)
+		public IEntity RemoveManager(IEntity entity, Type type)
 		{
-			if(entity == null)
-				return null;
 			if(!managers.Contains(entity))
 				return null;
-			if(type == null)
-				type = GetType();
-			else if(type == typeof(IComponent))
-				return null;
-			else if(!type.IsInstanceOfType(this))
-				return null;
+			type = AtlasComponent.GetComponentType(this, type);
 			if(entity.GetComponent(type) != this)
 			{
 				int index = managers.IndexOf(entity);
@@ -230,14 +229,7 @@ namespace Atlas.ECS.Components.Component
 			return entity;
 		}
 
-		public IEntity RemoveManager(int index)
-		{
-			if(index < 0)
-				return null;
-			if(index > managers.Count - 1)
-				return null;
-			return RemoveManager(managers[index]);
-		}
+		public IEntity RemoveManager(int index) => RemoveManager(managers[index]);
 
 		/// <summary>
 		/// Called when an Entity has been removed from this Component.

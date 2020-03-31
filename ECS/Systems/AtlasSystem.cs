@@ -85,7 +85,7 @@ namespace Atlas.ECS.Systems
 		{
 			if(IsSleeping)
 				return;
-			if(Engine?.CurrentSystem != this)
+			if(Engine?.UpdateSystem != this)
 				return;
 
 			deltaTime = GetDeltaTime(deltaTime);

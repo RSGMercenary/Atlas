@@ -167,8 +167,6 @@ namespace Atlas.ECS.Entities
 
 		public Type GetComponentType(IComponent component)
 		{
-			if(component == null)
-				return null;
 			foreach(var type in components.Keys)
 			{
 				if(components[type] == component)
@@ -256,13 +254,12 @@ namespace Atlas.ECS.Entities
 
 		public IComponent AddComponent(IComponent component, Type type, int index)
 		{
-			type ??= component.GetType();
-			if(!type.IsInstanceOfType(component))
-				return null;
 			if(component.HasManager(this))
 				return component;
 			else if(component.Manager != null)
-				return null;
+				throw new InvalidOperationException($"The component '{component.GetType().Name}' is non-shareable and can't be added to another {nameof(IEntity)}.");
+
+			type = AtlasComponent.GetComponentType(component, type);
 			if(components.ContainsKey(type))
 			{
 				if(components[type] == component)
@@ -287,7 +284,7 @@ namespace Atlas.ECS.Entities
 
 		public IComponent RemoveComponent(Type type)
 		{
-			if(type == null || !components.ContainsKey(type))
+			if(!components.ContainsKey(type))
 				return null;
 			var component = components[type];
 			components.Remove(type);
@@ -338,8 +335,6 @@ namespace Atlas.ECS.Entities
 
 		public IEntity GetRelative(string hierarchy)
 		{
-			if(string.IsNullOrWhiteSpace(hierarchy))
-				return null;
 			string[] localNames = hierarchy.Split('/');
 			IEntity entity = this;
 			foreach(var localName in localNames)
