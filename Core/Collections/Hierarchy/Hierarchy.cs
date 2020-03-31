@@ -184,8 +184,8 @@ namespace Atlas.Core.Collections.Hierarchy
 		{
 			//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
 			//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
-			if(this == root || this == next || HasDescendant(next))
-				return null;
+			if(IsRoot || this == next || HasDescendant(next))
+				throw new InvalidOperationException("Can't change parent to self, descendant, or root.");
 			Root = next?.Root;
 			var previous = parent;
 			//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
@@ -223,7 +223,7 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		public T AddChild(T child, int index)
 		{
-			if(child?.Parent == this)
+			if(child.Parent == this)
 			{
 				if(!HasChild(child))
 				{
@@ -238,8 +238,7 @@ namespace Atlas.Core.Collections.Hierarchy
 			}
 			else
 			{
-				if(child?.SetParent(this as T, index) == null)
-					return null;
+				child.SetParent(this as T, index);
 			}
 			return child;
 		}
@@ -248,8 +247,6 @@ namespace Atlas.Core.Collections.Hierarchy
 		#region Remove
 		public T RemoveChild(T child)
 		{
-			if(child == null)
-				return null;
 			if(child.Parent != this)
 			{
 				if(!HasChild(child))
@@ -336,7 +333,7 @@ namespace Atlas.Core.Collections.Hierarchy
 			return descendant == this;
 		}
 
-		public bool HasAncestor(T ancestor) => ancestor?.HasDescendant(this as T) ?? false;
+		public bool HasAncestor(T ancestor) => ancestor.HasDescendant(this as T);
 
 		public bool HasChild(T child) => children.Contains(child);
 
