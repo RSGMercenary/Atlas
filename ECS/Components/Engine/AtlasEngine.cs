@@ -31,7 +31,7 @@ namespace Atlas.ECS.Components.Engine
 		//Update State
 		private TimeStep updateState = TimeStep.None;
 		private bool updateLock = false;
-		private ISystem currentSystem;
+		private ISystem updateSystem;
 
 		//Variable Time
 		private double deltaVariableTime = 0;
@@ -47,15 +47,11 @@ namespace Atlas.ECS.Components.Engine
 		#endregion
 
 		#region Compose/Dispose
-		public sealed override IEntity AddManager(IEntity entity, Type type, int index)
-		{
-			if(!(entity?.IsRoot ?? false))
-				return null;
-			return base.AddManager(entity, type, index);
-		}
-
 		protected override void AddingManager(IEntity entity, int index)
 		{
+			if(!entity.IsRoot)
+				throw new InvalidOperationException($"An {nameof(IEngine)} can't be added to a non-root {nameof(IEntity)}.");
+
 			base.AddingManager(entity, index);
 			entity.AddListener<IChildAddMessage<IEntity>>(EntityChildAdded, int.MinValue, Relation.All);
 			entity.AddListener<IRootMessage<IEntity>>(EntityRootChanged, int.MinValue, Relation.All);
@@ -427,16 +423,16 @@ namespace Atlas.ECS.Components.Engine
 			}
 		}
 
-		public ISystem CurrentSystem
+		public ISystem UpdateSystem
 		{
-			get => currentSystem;
+			get => updateSystem;
 			private set
 			{
-				if(currentSystem == value)
+				if(updateSystem == value)
 					return;
 				//If a Signal/Message were to ever be put here, do it before the set.
 				//Prevents System.Update() from being mis-called.
-				currentSystem = value;
+				updateSystem = value;
 			}
 		}
 		#endregion
@@ -524,9 +520,9 @@ namespace Atlas.ECS.Components.Engine
 			{
 				if(system.UpdateStep != timeStep)
 					continue;
-				CurrentSystem = system;
+				UpdateSystem = system;
 				system.Update((float)deltaTime);
-				CurrentSystem = null;
+				UpdateSystem = null;
 			}
 			UpdateState = TimeStep.None;
 		}

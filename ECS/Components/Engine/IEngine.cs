@@ -195,7 +195,7 @@ namespace Atlas.ECS.Components.Engine
 		/// <summary>
 		/// The current System that's undergoing an Update().
 		/// </summary>
-		ISystem CurrentSystem { get; }
+		ISystem UpdateSystem { get; }
 
 		int FixedLag { get; }
 
