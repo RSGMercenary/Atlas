@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Atlas.Core.Utilites
+namespace Atlas.Core.Extensions
 {
 	public static class ReflectionExtensions
 	{

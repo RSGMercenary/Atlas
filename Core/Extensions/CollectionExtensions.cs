@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Utilites
+namespace Atlas.Core.Extensions
 {
 	public static class CollectionExtensions
 	{
