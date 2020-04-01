@@ -107,7 +107,7 @@ namespace Atlas.ECS.Entities
 		private bool IsValidName(string current, ref string next, Func<string, bool> check)
 		{
 			if((next == RootName && !IsRoot) || (next != RootName && IsRoot))
-				return false;
+				throw new ArgumentException($"Can't set the name of an {nameof(IEntity)} to '{RootName}'.");
 			if(string.IsNullOrWhiteSpace(next))
 				next = UniqueName;
 			else

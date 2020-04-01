@@ -49,7 +49,7 @@ namespace Atlas.ECS.Components.Component
 		}
 		#endregion
 
-		public static Type GetComponentType(IComponent component, Type type)
+		internal static Type GetComponentType(IComponent component, Type type)
 		{
 			if(type == null)
 				type = component.GetType();
