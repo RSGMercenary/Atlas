@@ -185,7 +185,7 @@ namespace Atlas.Core.Collections.Hierarchy
 			//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
 			//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
 			if(IsRoot || this == next || HasDescendant(next))
-				throw new InvalidOperationException("Can't change parent to self, descendant, or root.");
+				throw new InvalidOperationException("Can't set the root's parent, or the parent to itself or a descendant.");
 			Root = next?.Root;
 			var previous = parent;
 			//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
