@@ -49,7 +49,7 @@ namespace Atlas.ECS.Components.Component
 		}
 		#endregion
 
-		internal static Type GetComponentType(IComponent component, Type type)
+		internal static Type GetType(IComponent component, Type type)
 		{
 			if(type == null)
 				type = component.GetType();
@@ -169,7 +169,7 @@ namespace Atlas.ECS.Components.Component
 
 		public IEntity AddManager(IEntity entity, Type type, int index)
 		{
-			type = AtlasComponent.GetComponentType(this, type);
+			type = AtlasComponent.GetType(this, type);
 			if(entity.GetComponent(type) == this)
 			{
 				if(!HasManager(entity))
@@ -212,7 +212,7 @@ namespace Atlas.ECS.Components.Component
 		{
 			if(!managers.Contains(entity))
 				return null;
-			type = AtlasComponent.GetComponentType(this, type);
+			type = AtlasComponent.GetType(this, type);
 			if(entity.GetComponent(type) != this)
 			{
 				int index = managers.IndexOf(entity);

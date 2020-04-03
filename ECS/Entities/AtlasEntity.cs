@@ -259,7 +259,7 @@ namespace Atlas.ECS.Entities
 			else if(component.Manager != null)
 				throw new InvalidOperationException($"The component '{component.GetType().Name}' is non-shareable and can't be added to another {nameof(IEntity)}.");
 
-			type = AtlasComponent.GetComponentType(component, type);
+			type = AtlasComponent.GetType(component, type);
 			if(components.ContainsKey(type))
 			{
 				if(components[type] == component)
