@@ -5,7 +5,7 @@ namespace Atlas.Core.Collections.Hierarchy
 {
 	public class HierarchySlot<TMessage, T> : Slot<TMessage>
 		where TMessage : IMessage<T>
-		where T : class, IHierarchy<T>
+		where T : class, IHierarchyMessenger<T>
 	{
 		public Relation Messenger { get; set; } = Relation.Self;
 

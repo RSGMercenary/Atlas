@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>
+	public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IMessengerBuilder<IEntityBuilder, IEntity>
 	{
 		#region Names
 		IEntityBuilder SetNames(string name);

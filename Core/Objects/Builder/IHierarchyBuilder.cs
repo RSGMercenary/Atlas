@@ -1,8 +1,9 @@
-﻿using Atlas.Core.Collections.Hierarchy;
+﻿using Atlas.Core.Collections.Builder;
+using Atlas.Core.Collections.Hierarchy;
 
 namespace Atlas.Core.Objects.Builder
 {
-	public interface IHierarchyBuilder<TBuilder, T> : IMessengerBuilder<TBuilder, T>
+	public interface IHierarchyBuilder<TBuilder, T> : IBuilder<TBuilder, T>
 		where TBuilder : IHierarchyBuilder<TBuilder, T>
 		where T : class, IHierarchy<T>
 	{

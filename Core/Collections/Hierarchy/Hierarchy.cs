@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Atlas.Core.Collections.Hierarchy
 {
 	public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
-		where T : class, IHierarchy<T>
+		where T : class, IHierarchyMessenger<T>
 	{
 		private T root;
 		private T parent;
