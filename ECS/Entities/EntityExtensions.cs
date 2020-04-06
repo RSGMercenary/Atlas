@@ -57,11 +57,11 @@ namespace Atlas.ECS.Entities
 
 			var name = (entity.IsRoot) ? entity.GlobalName : $"Child {entity.ParentIndex + 1}";
 			text.AppendLine($"{indent}{name}");
-			text.AppendLine($"{indent}  {nameof(entity.GlobalName)}   = {entity.GlobalName}");
-			text.AppendLine($"{indent}  {nameof(entity.LocalName)}    = {entity.LocalName}");
-			text.AppendLine($"{indent}  {nameof(entity.AutoDispose)}  = {entity.AutoDispose}");
-			text.AppendLine($"{indent}  {nameof(entity.Sleeping)}     = {entity.Sleeping}");
-			text.AppendLine($"{indent}  {nameof(entity.FreeSleeping)} = {entity.FreeSleeping}");
+			text.AppendLine($"{indent}  {nameof(entity.GlobalName)}       = {entity.GlobalName}");
+			text.AppendLine($"{indent}  {nameof(entity.LocalName)}        = {entity.LocalName}");
+			text.AppendLine($"{indent}  {nameof(entity.IsAutoDisposable)} = {entity.IsAutoDisposable}");
+			text.AppendLine($"{indent}  {nameof(entity.Sleeping)}         = {entity.Sleeping}");
+			text.AppendLine($"{indent}  {nameof(entity.FreeSleeping)}     = {entity.FreeSleeping}");
 
 			text.AppendLine($"{indent}  {nameof(Components)} ({entity.Components.Count})");
 			if(addComponents)

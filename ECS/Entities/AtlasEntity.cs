@@ -48,15 +48,19 @@ namespace Atlas.ECS.Entities
 		private IEngine engine;
 		private string globalName = UniqueName;
 		private string localName = UniqueName;
-		private int sleeping = 0;
 		private int freeSleeping = 0;
-		private bool autoDispose = true;
+		private readonly Sleep<IEntity> Sleep;
+		private readonly AutoDispose<IEntity> AutoDispose;
 		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
 
 		#endregion
 
 		#region Construct / Dispose
-		private AtlasEntity() { }
+		private AtlasEntity()
+		{
+			Sleep = new Sleep<IEntity>(this);
+			AutoDispose = new AutoDispose<IEntity>(this, () => Parent == null);
+		}
 
 		protected override void Disposing()
 		{
@@ -66,7 +70,7 @@ namespace Atlas.ECS.Entities
 			RemoveComponents();
 			GlobalName = UniqueName;
 			LocalName = UniqueName;
-			AutoDispose = true;
+			IsAutoDisposable = true;
 			Sleeping = 0;
 			FreeSleeping = 0;
 			RemoveListeners();
@@ -357,27 +361,14 @@ namespace Atlas.ECS.Entities
 		#region Sleep
 		public int Sleeping
 		{
-			get => sleeping;
-			private set
-			{
-				if(sleeping == value)
-					return;
-				int previous = sleeping;
-				sleeping = value;
-				Message<ISleepMessage<IEntity>>(new SleepMessage<IEntity>(value, previous));
-			}
+			get => Sleep.Sleeping;
+			private set => Sleep.Sleeping = value;
 		}
 
 		public bool IsSleeping
 		{
-			get => sleeping > 0;
-			set
-			{
-				if(value)
-					++Sleeping;
-				else
-					--Sleeping;
-			}
+			get => Sleep.IsSleeping;
+			set => Sleep.IsSleeping = value;
 		}
 
 		public int FreeSleeping
@@ -419,24 +410,10 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region AutoDispose
-		public bool AutoDispose
+		public bool IsAutoDisposable
 		{
-			get => autoDispose;
-			set
-			{
-				if(autoDispose == value)
-					return;
-				var previous = autoDispose;
-				autoDispose = value;
-				Message<IAutoDisposeMessage<IEntity>>(new AutoDisposeMessage<IEntity>(value, previous));
-				TryAutoDispose();
-			}
-		}
-
-		private void TryAutoDispose()
-		{
-			if(autoDispose && Parent == null)
-				Dispose();
+			get => AutoDispose.IsAutoDisposable;
+			set => AutoDispose.IsAutoDisposable = value;
 		}
 		#endregion
 
@@ -472,7 +449,7 @@ namespace Atlas.ECS.Entities
 							++deltaSleeping;
 						Sleeping += deltaSleeping;
 					}
-					TryAutoDispose();
+					AutoDispose.TryAutoDispose();
 				}
 				else if(message is IRootMessage<IEntity> rootMessage)
 				{
@@ -502,6 +479,7 @@ namespace Atlas.ECS.Entities
 					}
 				}
 			}
+
 			base.Messaging(message);
 		}
 		#endregion

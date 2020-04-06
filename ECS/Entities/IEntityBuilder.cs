@@ -84,7 +84,7 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region AutoDispose
-		IEntityBuilder SetAutoDispose(bool autoDispose);
+		IEntityBuilder SetIsAutoDisposable(bool isAutoDisposable);
 		#endregion
 	}
 }

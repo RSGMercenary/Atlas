@@ -1,9 +1,7 @@
-﻿using System;
-
-namespace Atlas.Core.Objects.AutoDispose
+﻿namespace Atlas.Core.Objects.AutoDispose
 {
-	public interface IAutoDispose : IDisposable
+	public interface IAutoDispose
 	{
-		bool AutoDispose { get; set; }
+		bool IsAutoDisposable { get; set; }
 	}
 }

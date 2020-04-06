@@ -11,7 +11,7 @@ namespace Atlas.ECS.Components.Component
 		/// <summary>
 		/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
 		/// </summary>
-		new bool AutoDispose { get; set; }
+		new bool IsAutoDisposable { get; set; }
 
 		bool HasManager(IEntity entity);
 

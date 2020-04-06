@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Component
 {
-	public abstract class AtlasComponent : AtlasComponent<IComponent>
+	public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 	{
 		#region Static
 		#region Pools
@@ -61,11 +61,11 @@ namespace Atlas.ECS.Components.Component
 	}
 
 	public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
-		where T : class, IComponent
+		where T : class, IComponent<T>
 	{
 		#region Fields
 		private readonly Group<IEntity> managers = new Group<IEntity>();
-		private bool autoDispose = true;
+		private readonly AutoDispose<T> AutoDispose;
 		public bool IsShareable { get; } = false;
 		#endregion
 
@@ -76,12 +76,13 @@ namespace Atlas.ECS.Components.Component
 		protected AtlasComponent(bool isShareable)
 		{
 			IsShareable = isShareable;
+			AutoDispose = new AutoDispose<T>(this as T, () => managers.Count <= 0);
 		}
 
 		protected override void Disposing()
 		{
 			RemoveManagers();
-			AutoDispose = true;
+			IsAutoDisposable = true;
 
 			base.Disposing();
 
@@ -91,24 +92,10 @@ namespace Atlas.ECS.Components.Component
 		#endregion
 
 		#region AutoDispose
-		public bool AutoDispose
+		public bool IsAutoDisposable
 		{
-			get => autoDispose;
-			set
-			{
-				if(autoDispose == value)
-					return;
-				var previous = autoDispose;
-				autoDispose = value;
-				Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
-				TryAutoDispose();
-			}
-		}
-
-		private void TryAutoDispose()
-		{
-			if(autoDispose && managers.Count <= 0)
-				Dispose();
+			get => AutoDispose.IsAutoDisposable;
+			set => AutoDispose.IsAutoDisposable = value;
 		}
 		#endregion
 
@@ -220,7 +207,7 @@ namespace Atlas.ECS.Components.Component
 				RemovingManager(entity, index);
 				Message<IManagerRemoveMessage<T>>(new ManagerRemoveMessage<T>(index, entity));
 				Message<IManagerMessage<T>>(new ManagerMessage<T>());
-				TryAutoDispose();
+				AutoDispose.TryAutoDispose();
 			}
 			else
 			{

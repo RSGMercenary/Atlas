@@ -14,8 +14,8 @@ namespace Atlas.ECS.Components.Component
 			text.AppendLine($"{indent}  Instance    = {component.GetType().FullName}");
 			if(component.Manager != null)
 				text.AppendLine($"{indent}  Interface   = {component.Manager.GetComponentType(component).FullName}");
-			text.AppendLine($"{indent}  {nameof(component.AutoDispose)} = {component.AutoDispose}");
-			text.AppendLine($"{indent}  {nameof(component.IsShareable)} = {component.IsShareable}");
+			text.AppendLine($"{indent}  {nameof(component.IsAutoDisposable)} = {component.IsAutoDisposable}");
+			text.AppendLine($"{indent}  {nameof(component.IsShareable)}      = {component.IsShareable}");
 			if(component.IsShareable)
 			{
 				text.AppendLine($"{indent}  Entities ({component.Managers.Count})");

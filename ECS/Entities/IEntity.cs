@@ -14,7 +14,7 @@ namespace Atlas.ECS.Entities
 		/// <summary>
 		/// Determines whether <see cref="IDisposable.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
 		/// </summary>
-		new bool AutoDispose { get; set; }
+		new bool IsAutoDisposable { get; set; }
 
 		/// <summary>
 		/// This <see cref="IEntity"/>'s global name. This name is unique to its Engine.

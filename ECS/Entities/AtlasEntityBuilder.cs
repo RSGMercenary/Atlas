@@ -237,9 +237,9 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region AutoDispose
-		public IEntityBuilder SetAutoDispose(bool autoDispose)
+		public IEntityBuilder SetIsAutoDisposable(bool isAutoDisposable)
 		{
-			Instance.AutoDispose = autoDispose;
+			Instance.IsAutoDisposable = isAutoDisposable;
 			return this;
 		}
 		#endregion

@@ -9,8 +9,8 @@ namespace Atlas.ECS.Systems
 	{
 		#region Fields
 		private IEngine engine;
+		private readonly Sleep<ISystem> Sleep;
 		private int priority = 0;
-		private int sleeping = 0;
 		private float totalIntervalTime = 0;
 		private float deltaIntervalTime = 0;
 		private TimeStep timeStep = TimeStep.Variable;
@@ -19,6 +19,11 @@ namespace Atlas.ECS.Systems
 		#endregion
 
 		#region Construct / Dispose
+		public AtlasSystem()
+		{
+			Sleep = new Sleep<ISystem>(this);
+		}
+
 		public sealed override void Dispose()
 		{
 			//Can't dispose System mid-update.
@@ -136,27 +141,14 @@ namespace Atlas.ECS.Systems
 		#region Sleeping
 		public int Sleeping
 		{
-			get => sleeping;
-			private set
-			{
-				if(sleeping == value)
-					return;
-				int previous = sleeping;
-				sleeping = value;
-				Message<ISleepMessage<ISystem>>(new SleepMessage<ISystem>(value, previous));
-			}
+			get => Sleep.Sleeping;
+			private set => Sleep.Sleeping = value;
 		}
 
 		public bool IsSleeping
 		{
-			get => sleeping > 0;
-			set
-			{
-				if(value)
-					++Sleeping;
-				else
-					--Sleeping;
-			}
+			get => Sleep.IsSleeping;
+			set => Sleep.IsSleeping = value;
 		}
 		#endregion
 
