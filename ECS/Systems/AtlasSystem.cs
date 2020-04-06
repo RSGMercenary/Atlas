@@ -48,24 +48,17 @@ namespace Atlas.ECS.Systems
 				if(value != null && Engine == null && value.HasSystem(this))
 				{
 					AddingEngine(value);
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 					SyncTotalIntervalTime();
 				}
 				else if(value == null && Engine != null && !Engine.HasSystem(this))
 				{
 					RemovingEngine(engine);
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 					TotalIntervalTime = 0;
 					Dispose();
 				}
 			}
-		}
-
-		private void SetEngine(IEngine value)
-		{
-			var previous = engine;
-			engine = value;
-			Message<IEngineMessage<ISystem>>(new EngineMessage<ISystem>(value, previous));
 		}
 
 		protected abstract void AddingEngine(IEngine engine);

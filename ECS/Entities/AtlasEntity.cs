@@ -130,17 +130,10 @@ namespace Atlas.ECS.Entities
 			set
 			{
 				if(value != null && Engine == null && value.HasEntity(this))
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 				else if(value == null && Engine != null && !Engine.HasEntity(this))
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 			}
-		}
-
-		private void SetEngine(IEngine value)
-		{
-			var previous = engine;
-			engine = value;
-			Message<IEngineMessage<IEntity>>(new EngineMessage<IEntity>(value, previous));
 		}
 		#endregion
 

@@ -70,20 +70,13 @@ namespace Atlas.ECS.Families
 			set
 			{
 				if(value != null && Engine == null && value.HasFamily(this))
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 				else if(value == null && Engine != null && !Engine.HasFamily(this))
 				{
-					SetEngine(value);
+					EngineObject.SetEngine(this, ref engine, value);
 					Dispose();
 				}
 			}
-		}
-
-		private void SetEngine(IEngine value)
-		{
-			var previous = engine;
-			engine = value;
-			Message<IEngineMessage<IReadOnlyFamily<TFamilyMember>>>(new EngineMessage<IReadOnlyFamily<TFamilyMember>>(value, previous));
 		}
 		#endregion
 
