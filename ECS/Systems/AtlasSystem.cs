@@ -19,7 +19,7 @@ namespace Atlas.ECS.Systems
 		#endregion
 
 		#region Construct / Dispose
-		public AtlasSystem()
+		protected AtlasSystem()
 		{
 			Sleep = new Sleep<ISystem>(this);
 		}
