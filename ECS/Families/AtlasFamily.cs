@@ -18,7 +18,7 @@ namespace Atlas.ECS.Families
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
-		private IEngine engine;
+		private readonly EngineObject<IReadOnlyFamily<TFamilyMember>> EngineObject;
 
 		//Reflection Fields
 		private readonly FieldInfo entityField;
@@ -37,6 +37,8 @@ namespace Atlas.ECS.Families
 		#region Compose / Dispose
 		public AtlasFamily()
 		{
+			EngineObject = new EngineObject<IReadOnlyFamily<TFamilyMember>>(this);
+
 			//Gets the private backing fields of the Entity and Component properties.
 			foreach(var field in typeof(TFamilyMember).FindFields(BindingFlags.NonPublic | BindingFlags.Instance))
 			{
@@ -66,17 +68,8 @@ namespace Atlas.ECS.Families
 		#region Engine
 		public IEngine Engine
 		{
-			get => engine;
-			set
-			{
-				if(value != null && Engine == null && value.HasFamily(this))
-					EngineObject.SetEngine(this, ref engine, value);
-				else if(value == null && Engine != null && !Engine.HasFamily(this))
-				{
-					EngineObject.SetEngine(this, ref engine, value);
-					Dispose();
-				}
-			}
+			get => EngineObject.Engine;
+			set => EngineObject.Engine = value;
 		}
 		#endregion
 
@@ -191,6 +184,18 @@ namespace Atlas.ECS.Families
 		public void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare)
 		{
 			Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
+		}
+		#endregion
+
+		#region Messages
+		protected override void Messaging(IMessage<IReadOnlyFamily<TFamilyMember>> message)
+		{
+			if(message is IEngineMessage<IReadOnlyFamily<TFamilyMember>> engineMessage)
+			{
+				if(engineMessage.CurrentValue == null)
+					Dispose();
+			}
+			base.Messaging(message);
 		}
 		#endregion
 	}

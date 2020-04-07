@@ -45,7 +45,7 @@ namespace Atlas.ECS.Entities
 		#endregion
 
 		#region Fields
-		private IEngine engine;
+		private readonly EngineObject<IEntity> EngineObject;
 		private string globalName = UniqueName;
 		private string localName = UniqueName;
 		private int freeSleeping = 0;
@@ -58,6 +58,7 @@ namespace Atlas.ECS.Entities
 		#region Construct / Dispose
 		private AtlasEntity()
 		{
+			EngineObject = new EngineObject<IEntity>(this);
 			Sleep = new Sleep<IEntity>(this);
 			AutoDispose = new AutoDispose<IEntity>(this, () => Parent == null);
 		}
@@ -130,14 +131,8 @@ namespace Atlas.ECS.Entities
 		#region Engine
 		public IEngine Engine
 		{
-			get => engine;
-			set
-			{
-				if(value != null && Engine == null && value.HasEntity(this))
-					EngineObject.SetEngine(this, ref engine, value);
-				else if(value == null && Engine != null && !Engine.HasEntity(this))
-					EngineObject.SetEngine(this, ref engine, value);
-			}
+			get => EngineObject.Engine;
+			set => EngineObject.Engine = value;
 		}
 		#endregion
 

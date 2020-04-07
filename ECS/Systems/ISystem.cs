@@ -1,10 +1,11 @@
-﻿using Atlas.Core.Objects.Sleep;
+﻿using Atlas.Core.Messages;
+using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 
 namespace Atlas.ECS.Systems
 {
-	public interface ISystem : IEngineObject<ISystem>, IUpdate<float>, ISleep, IUpdateState
+	public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineObject, ISleep, IUpdateState
 	{
 		/// <summary>
 		/// Automatically called on Systems removed from the Engine.

@@ -8,7 +8,7 @@ namespace Atlas.ECS.Systems
 	public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
 		#region Fields
-		private IEngine engine;
+		private readonly EngineObject<ISystem> EngineObject;
 		private readonly Sleep<ISystem> Sleep;
 		private int priority = 0;
 		private float totalIntervalTime = 0;
@@ -21,6 +21,7 @@ namespace Atlas.ECS.Systems
 		#region Construct / Dispose
 		protected AtlasSystem()
 		{
+			EngineObject = new EngineObject<ISystem>(this);
 			Sleep = new Sleep<ISystem>(this);
 		}
 
@@ -47,23 +48,8 @@ namespace Atlas.ECS.Systems
 		#region Engine
 		public IEngine Engine
 		{
-			get => engine;
-			set
-			{
-				if(value != null && Engine == null && value.HasSystem(this))
-				{
-					AddingEngine(value);
-					EngineObject.SetEngine(this, ref engine, value);
-					SyncTotalIntervalTime();
-				}
-				else if(value == null && Engine != null && !Engine.HasSystem(this))
-				{
-					RemovingEngine(engine);
-					EngineObject.SetEngine(this, ref engine, value);
-					TotalIntervalTime = 0;
-					Dispose();
-				}
-			}
+			get => EngineObject.Engine;
+			set => EngineObject.Engine = value;
 		}
 
 		protected abstract void AddingEngine(IEngine engine);
@@ -210,6 +196,27 @@ namespace Atlas.ECS.Systems
 				priority = value;
 				Message<IPriorityMessage>(new PriorityMessage(value, previous));
 			}
+		}
+		#endregion
+
+		#region Messages
+		protected override void Messaging(IMessage<ISystem> message)
+		{
+			if(message is IEngineMessage<ISystem> engineMessage)
+			{
+				if(engineMessage.CurrentValue != null)
+				{
+					AddingEngine(engineMessage.CurrentValue);
+					SyncTotalIntervalTime();
+				}
+				else
+				{
+					RemovingEngine(engineMessage.PreviousValue);
+					TotalIntervalTime = 0;
+					Dispose();
+				}
+			}
+			base.Messaging(message);
 		}
 		#endregion
 	}

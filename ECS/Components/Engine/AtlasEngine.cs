@@ -73,6 +73,17 @@ namespace Atlas.ECS.Components.Engine
 		}
 		#endregion
 
+		public bool HasObject(IEngineObject instance)
+		{
+			if(instance is IEntity entity)
+				return HasEntity(entity);
+			if(instance is ISystem system)
+				return HasSystem(system);
+			if(instance is IFamily family)
+				return HasFamily(family);
+			return false;
+		}
+
 		#region Entities
 		#region Add/Remove
 		private void AddEntity(IEntity entity)

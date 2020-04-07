@@ -10,6 +10,8 @@ namespace Atlas.ECS.Components.Engine
 {
 	public interface IEngine : IComponent<IEngine>, IUpdateState
 	{
+		bool HasObject(IEngineObject instance);
+
 		#region Entities
 		/// <summary>
 		/// A collection of all Entities managed by this Engine.

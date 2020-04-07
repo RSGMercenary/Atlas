@@ -1,12 +1,31 @@
-﻿namespace Atlas.ECS.Components.Engine
+﻿using Atlas.Core.Messages;
+
+namespace Atlas.ECS.Components.Engine
 {
-	public static class EngineObject
+	internal class EngineObject<T> : IEngineObject
+		where T : IEngineObject, IMessenger<T>
 	{
-		public static void SetEngine<T>(IEngineObject<T> obj, ref IEngine current, IEngine next) where T : IEngineObject<T>
+		private readonly T Instance;
+		private IEngine engine;
+
+		public EngineObject(T instance)
 		{
-			var previous = current;
-			current = next;
-			obj.Message<IEngineMessage<T>>(new EngineMessage<T>(current, previous));
+			Instance = instance;
+		}
+
+		public IEngine Engine
+		{
+			get => engine;
+			set
+			{
+				if((value != null && Engine == null && value.HasObject(Instance)) ||
+					(value == null && Engine != null && !Engine.HasObject(Instance)))
+				{
+					var previous = engine;
+					engine = value;
+					Instance.Message<IEngineMessage<T>>(new EngineMessage<T>(value, previous));
+				}
+			}
 		}
 	}
 }
