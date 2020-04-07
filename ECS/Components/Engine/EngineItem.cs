@@ -21,13 +21,12 @@ namespace Atlas.ECS.Components.Engine
 			get => engine;
 			set
 			{
-				if((value != null && Engine == null && Condition(value, Instance)) ||
-					(value == null && Engine != null && !Condition(Engine, Instance)))
-				{
-					var previous = engine;
-					engine = value;
-					Instance.Message<IEngineMessage<T>>(new EngineMessage<T>(value, previous));
-				}
+				if(!(value != null && engine == null && Condition(value, Instance)) &&
+					!(value == null && engine != null && !Condition(engine, Instance)))
+					return;
+				var previous = engine;
+				engine = value;
+				Instance.Message<IEngineMessage<T>>(new EngineMessage<T>(value, previous));
 			}
 		}
 	}
