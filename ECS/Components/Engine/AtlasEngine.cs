@@ -136,15 +136,9 @@ namespace Atlas.ECS.Components.Engine
 		#endregion
 
 		#region Has
-		public bool HasEntity(string globalName)
-		{
-			return !string.IsNullOrWhiteSpace(globalName) && entitiesGlobalName.ContainsKey(globalName);
-		}
+		public bool HasEntity(string globalName) => entitiesGlobalName.ContainsKey(globalName);
 
-		public bool HasEntity(IEntity entity)
-		{
-			return entity != null && entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
-		}
+		public bool HasEntity(IEntity entity) => entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
 		#endregion
 
 		#region Messages
