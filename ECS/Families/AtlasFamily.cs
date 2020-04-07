@@ -18,7 +18,7 @@ namespace Atlas.ECS.Families
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		#region Fields
-		private readonly EngineObject<IReadOnlyFamily<TFamilyMember>> EngineObject;
+		private readonly EngineItem<IReadOnlyFamily<TFamilyMember>> EngineItem;
 
 		//Reflection Fields
 		private readonly FieldInfo entityField;
@@ -37,7 +37,7 @@ namespace Atlas.ECS.Families
 		#region Compose / Dispose
 		public AtlasFamily()
 		{
-			EngineObject = new EngineObject<IReadOnlyFamily<TFamilyMember>>(this);
+			EngineItem = new EngineItem<IReadOnlyFamily<TFamilyMember>>(this, (engine, family) => engine.HasFamily(family));
 
 			//Gets the private backing fields of the Entity and Component properties.
 			foreach(var field in typeof(TFamilyMember).FindFields(BindingFlags.NonPublic | BindingFlags.Instance))
@@ -68,8 +68,8 @@ namespace Atlas.ECS.Families
 		#region Engine
 		public IEngine Engine
 		{
-			get => EngineObject.Engine;
-			set => EngineObject.Engine = value;
+			get => EngineItem.Engine;
+			set => EngineItem.Engine = value;
 		}
 		#endregion
 

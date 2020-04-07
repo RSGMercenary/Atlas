@@ -1,6 +1,6 @@
 ﻿namespace Atlas.ECS.Components.Engine
 {
-	public interface IEngineObject
+	public interface IEngineItem
 	{
 		IEngine Engine { get; set; }
 	}

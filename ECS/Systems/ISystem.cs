@@ -5,7 +5,7 @@ using Atlas.ECS.Components.Engine;
 
 namespace Atlas.ECS.Systems
 {
-	public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineObject, ISleep, IUpdateState
+	public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineItem, ISleep, IUpdateState
 	{
 		/// <summary>
 		/// Automatically called on Systems removed from the Engine.

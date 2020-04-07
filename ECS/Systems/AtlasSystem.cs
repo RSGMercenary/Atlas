@@ -8,7 +8,7 @@ namespace Atlas.ECS.Systems
 	public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
 		#region Fields
-		private readonly EngineObject<ISystem> EngineObject;
+		private readonly EngineItem<ISystem> EngineItem;
 		private readonly Sleep<ISystem> Sleep;
 		private int priority = 0;
 		private float totalIntervalTime = 0;
@@ -21,7 +21,7 @@ namespace Atlas.ECS.Systems
 		#region Construct / Dispose
 		protected AtlasSystem()
 		{
-			EngineObject = new EngineObject<ISystem>(this);
+			EngineItem = new EngineItem<ISystem>(this, (engine, system) => engine.HasSystem(system));
 			Sleep = new Sleep<ISystem>(this);
 		}
 
@@ -48,8 +48,8 @@ namespace Atlas.ECS.Systems
 		#region Engine
 		public IEngine Engine
 		{
-			get => EngineObject.Engine;
-			set => EngineObject.Engine = value;
+			get => EngineItem.Engine;
+			set => EngineItem.Engine = value;
 		}
 
 		protected abstract void AddingEngine(IEngine engine);

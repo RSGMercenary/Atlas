@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities
 {
-	public interface IEntity : IHierarchyMessenger<IEntity>, IEngineObject, IAutoDispose, ISleep
+	public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispose, ISleep
 	{
 		#region Entities
 		/// <summary>

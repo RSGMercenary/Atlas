@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families
 {
-	public interface IReadOnlyFamily : IMessenger, IEngineObject, IEnumerable
+	public interface IReadOnlyFamily : IMessenger, IEngineItem, IEnumerable
 	{
 		/// <summary>
 		/// Automatically called on Families removed from the Engine.
