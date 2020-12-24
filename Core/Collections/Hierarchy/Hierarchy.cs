@@ -313,6 +313,16 @@ namespace Atlas.Core.Collections.Hierarchy
 
 		public IReadOnlyGroup<T> Children => children;
 
+		public T this[int index]
+		{
+			get => children[index];
+			set
+			{
+				children.RemoveAt(index);
+				children.Insert(index, value);
+			}
+		}
+
 		public T GetChild(int index) => children[index];
 
 		public int GetChildIndex(T child) => children.IndexOf(child);

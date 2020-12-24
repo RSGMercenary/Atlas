@@ -15,6 +15,7 @@ namespace Atlas.Core.Collections.Hierarchy
 		int ParentIndex { get; }
 
 		IReadOnlyGroup<T> Children { get; }
+		T this[int index] { get; }
 		T GetChild(int index);
 		int GetChildIndex(T child);
 
@@ -33,6 +34,8 @@ namespace Atlas.Core.Collections.Hierarchy
 		new int ParentIndex { get; set; }
 		T SetParent(T parent);
 		T SetParent(T parent, int index);
+
+		new T this[int index] { get; set; }
 
 		T AddChild(T child);
 		T AddChild(T child, int index);
