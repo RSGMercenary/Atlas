@@ -7,7 +7,7 @@ namespace Atlas.Core.Messages
 	public abstract class Messenger<T> : IMessenger<T>
 		where T : class, IMessenger
 	{
-		private readonly Dictionary<Type, SignalBase> messages = new Dictionary<Type, SignalBase>();
+		private readonly Dictionary<Type, SignalBase> messages = new();
 
 		public virtual void Dispose()
 		{

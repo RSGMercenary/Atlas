@@ -22,22 +22,22 @@ namespace Atlas.ECS.Families
 
 		//Reflection Fields
 		private readonly FieldInfo entityField;
-		private readonly Dictionary<Type, FieldInfo> components = new Dictionary<Type, FieldInfo>();
+		private readonly Dictionary<Type, FieldInfo> components = new();
 
 		//Family Members
-		private readonly Group<TFamilyMember> members = new Group<TFamilyMember>();
-		private readonly Dictionary<IEntity, TFamilyMember> entities = new Dictionary<IEntity, TFamilyMember>();
+		private readonly Group<TFamilyMember> members = new();
+		private readonly Dictionary<IEntity, TFamilyMember> entities = new();
 
 		//Pooling
-		private readonly List<TFamilyMember> added = new List<TFamilyMember>();
-		private readonly List<TFamilyMember> removed = new List<TFamilyMember>();
+		private readonly List<TFamilyMember> added = new();
+		private readonly List<TFamilyMember> removed = new();
 		private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
 		#endregion
 
 		#region Compose / Dispose
 		public AtlasFamily()
 		{
-			EngineItem = new EngineItem<IReadOnlyFamily<TFamilyMember>>(this, (engine, family) => engine.HasFamily(family));
+			EngineItem = new(this, (engine, family) => engine.HasFamily(family));
 
 			//Gets the private backing fields of the Entity and Component properties.
 			foreach(var field in typeof(TFamilyMember).FindFields(BindingFlags.NonPublic | BindingFlags.Instance))

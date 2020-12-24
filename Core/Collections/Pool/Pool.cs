@@ -12,7 +12,7 @@ namespace Atlas.Core.Collections.Pool
 	public class Pool<T> : IPool<T>
 		where T : class
 	{
-		private readonly Stack<T> stack = new Stack<T>();
+		private readonly Stack<T> stack = new();
 		private int maxCount = -1;
 		private readonly Func<T> creator;
 

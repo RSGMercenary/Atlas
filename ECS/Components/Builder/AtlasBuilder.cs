@@ -8,7 +8,7 @@ namespace Atlas.ECS.Components.Builder
 {
 	public abstract class AtlasBuilder : AtlasComponent<IBuilder>, IBuilder
 	{
-		private readonly Stack<Action> builders = new Stack<Action>();
+		private readonly Stack<Action> builders = new();
 		private BuildState state = BuildState.Unbuilt;
 		private bool autoRemove = true;
 

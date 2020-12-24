@@ -15,14 +15,14 @@ namespace Atlas.ECS.Systems
 		private float deltaIntervalTime = 0;
 		private TimeStep timeStep = TimeStep.Variable;
 		private TimeStep updateState = TimeStep.None;
-		private UpdateLock UpdateLock { get; } = new UpdateLock();
+		private readonly UpdateLock UpdateLock = new();
 		#endregion
 
 		#region Construct / Dispose
 		protected AtlasSystem()
 		{
-			EngineItem = new EngineItem<ISystem>(this, (engine, system) => engine.HasSystem(system));
-			Sleep = new Sleep<ISystem>(this);
+			EngineItem = new(this, (engine, system) => engine.HasSystem(system));
+			Sleep = new(this);
 		}
 
 		public sealed override void Dispose()

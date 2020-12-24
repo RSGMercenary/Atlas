@@ -15,21 +15,21 @@ namespace Atlas.ECS.Components.Engine
 	{
 		#region Fields
 		//ECS Groups
-		private readonly Group<IEntity> entities = new Group<IEntity>();
-		private readonly Group<IFamily> families = new Group<IFamily>();
-		private readonly Group<ISystem> systems = new Group<ISystem>();
+		private readonly Group<IEntity> entities = new();
+		private readonly Group<IFamily> families = new();
+		private readonly Group<ISystem> systems = new();
 
 		//ECS Dictionaries
-		private readonly Dictionary<string, IEntity> entitiesGlobalName = new Dictionary<string, IEntity>();
-		private readonly Dictionary<Type, IFamily> familiesType = new Dictionary<Type, IFamily>();
-		private readonly Dictionary<Type, ISystem> systemsType = new Dictionary<Type, ISystem>();
+		private readonly Dictionary<string, IEntity> entitiesGlobalName = new();
+		private readonly Dictionary<Type, IFamily> familiesType = new();
+		private readonly Dictionary<Type, ISystem> systemsType = new();
 
 		//Reference Counting
-		private readonly Dictionary<Type, int> familiesReference = new Dictionary<Type, int>();
-		private readonly Dictionary<Type, int> systemsReference = new Dictionary<Type, int>();
+		private readonly Dictionary<Type, int> familiesReference = new();
+		private readonly Dictionary<Type, int> systemsReference = new();
 
 		//Update State
-		private UpdateLock UpdateLock { get; } = new UpdateLock();
+		private readonly UpdateLock UpdateLock = new();
 		private TimeStep updateState = TimeStep.None;
 		private ISystem updateSystem;
 

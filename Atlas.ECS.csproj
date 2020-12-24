@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<TargetFramework>netstandard2.1</TargetFramework>
+	<TargetFramework>netcoreapp3.1</TargetFramework>
+	<LangVersion>latest</LangVersion>
 	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<Authors>RSG Mercenary</Authors>
 	<Company>RSG Mercenary</Company>
@@ -12,7 +13,6 @@
 	<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
 	<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
 	<ApplicationIcon>Icon.ico</ApplicationIcon>
-	<Win32Resource />
 	<Copyright>Copyright 2019 RSG Mercenary</Copyright>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
 	<PackageIcon>Icon.png</PackageIcon>
@@ -30,6 +30,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
+	<ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
   </ItemGroup>
 </Project>

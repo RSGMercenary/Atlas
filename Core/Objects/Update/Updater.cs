@@ -10,7 +10,7 @@ namespace Atlas.Core.Objects.Update
 	/// </summary>
 	public class Updater
 	{
-		private readonly Stopwatch timer = new Stopwatch();
+		private readonly Stopwatch timer = new();
 		private readonly IUpdate<double> instance;
 		private bool isRunning = false;
 

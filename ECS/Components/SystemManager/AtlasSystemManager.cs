@@ -10,7 +10,7 @@ namespace Atlas.ECS.Components.SystemManager
 {
 	public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	{
-		private readonly Group<Type> types = new Group<Type>();
+		private readonly Group<Type> types = new();
 
 		public AtlasSystemManager() { }
 

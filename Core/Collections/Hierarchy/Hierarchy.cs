@@ -13,7 +13,7 @@ namespace Atlas.Core.Collections.Hierarchy
 		private T root;
 		private T parent;
 		private int parentIndex = -1;
-		private readonly Group<T> children = new Group<T>();
+		private readonly Group<T> children = new();
 
 		protected override void Disposing()
 		{

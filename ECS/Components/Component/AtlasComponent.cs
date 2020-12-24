@@ -12,7 +12,7 @@ namespace Atlas.ECS.Components.Component
 	{
 		#region Static
 		#region Pools
-		private static readonly Dictionary<Type, IPool> pools = new Dictionary<Type, IPool>();
+		private static readonly Dictionary<Type, IPool> pools = new();
 
 		public static IReadOnlyPool<TComponent> AddPool<TComponent>()
 			where TComponent : class, IComponent, new() => AddPool(() => new TComponent());
@@ -64,7 +64,7 @@ namespace Atlas.ECS.Components.Component
 		where T : class, IComponent<T>
 	{
 		#region Fields
-		private readonly Group<IEntity> managers = new Group<IEntity>();
+		private readonly Group<IEntity> managers = new();
 		private readonly AutoDispose<T> AutoDispose;
 		public bool IsShareable { get; } = false;
 		#endregion
@@ -76,7 +76,7 @@ namespace Atlas.ECS.Components.Component
 		protected AtlasComponent(bool isShareable)
 		{
 			IsShareable = isShareable;
-			AutoDispose = new AutoDispose<T>(this as T, () => managers.Count <= 0);
+			AutoDispose = new(this as T, () => managers.Count <= 0);
 		}
 
 		protected override void Disposing()

@@ -17,7 +17,7 @@ namespace Atlas.ECS.Entities
 		public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
 
 		#region Pool
-		private static readonly Pool<AtlasEntity> pool = new Pool<AtlasEntity>(() => new AtlasEntity());
+		private static readonly Pool<AtlasEntity> pool = new(() => new());
 
 		public static IReadOnlyPool<AtlasEntity> GetPool() => pool;
 
@@ -51,16 +51,16 @@ namespace Atlas.ECS.Entities
 		private int freeSleeping = 0;
 		private readonly Sleep<IEntity> Sleep;
 		private readonly AutoDispose<IEntity> AutoDispose;
-		private readonly Dictionary<Type, IComponent> components = new Dictionary<Type, IComponent>();
+		private readonly Dictionary<Type, IComponent> components = new();
 
 		#endregion
 
 		#region Construct / Dispose
 		private AtlasEntity()
 		{
-			EngineItem = new EngineItem<IEntity>(this, (engine, entity) => engine.HasEntity(entity));
-			Sleep = new Sleep<IEntity>(this);
-			AutoDispose = new AutoDispose<IEntity>(this, () => Parent == null);
+			EngineItem = new(this, (engine, entity) => engine.HasEntity(entity));
+			Sleep = new(this);
+			AutoDispose = new(this, () => Parent == null);
 		}
 
 		protected override void Disposing()
