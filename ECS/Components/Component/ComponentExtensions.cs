@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
+using System.Text;
 
 namespace Atlas.ECS.Components.Component
 {
@@ -31,6 +33,24 @@ namespace Atlas.ECS.Components.Component
 				}
 			}
 			return text.ToString();
+		}
+
+		public static Type GetInterfaceType(this IComponent component) => GetInterfaceType(component.GetType());
+
+		private static Type GetInterfaceType(Type type)
+		{
+			var comp = typeof(IComponent);
+			var interfaces = type.GetInterfaces()
+				.Except(type.BaseType?.GetInterfaces() ?? Enumerable.Empty<Type>())
+				.Where(t => t != comp && t.IsAssignableFrom(comp));
+
+			if(interfaces.Skip(1).Any())
+				throw new Exception();
+			if(interfaces.Any())
+				return interfaces.First();
+			if(type.BaseType != null)
+				return GetInterfaceType(type.BaseType);
+			return null;
 		}
 	}
 }
