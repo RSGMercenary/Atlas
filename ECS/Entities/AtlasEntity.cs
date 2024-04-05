@@ -48,7 +48,7 @@ namespace Atlas.ECS.Entities
 		private readonly EngineItem<IEntity> EngineItem;
 		private string globalName = UniqueName;
 		private string localName = UniqueName;
-		private int freeSleeping = 0;
+		private int selfSleeping = 0;
 		private readonly Sleep<IEntity> Sleep;
 		private readonly AutoDispose<IEntity> AutoDispose;
 		private readonly Dictionary<Type, IComponent> components = new();
@@ -73,7 +73,7 @@ namespace Atlas.ECS.Entities
 			LocalName = UniqueName;
 			IsAutoDisposable = true;
 			Sleeping = 0;
-			FreeSleeping = 0;
+			SelfSleeping = 0;
 			RemoveListeners();
 
 			AtlasEntity.Release(this);
@@ -366,15 +366,15 @@ namespace Atlas.ECS.Entities
 			set => Sleep.IsSleeping = value;
 		}
 
-		public int FreeSleeping
+		public int SelfSleeping
 		{
-			get => freeSleeping;
+			get => selfSleeping;
 			private set
 			{
-				if(freeSleeping == value)
+				if(selfSleeping == value)
 					return;
-				int previous = freeSleeping;
-				freeSleeping = value;
+				int previous = selfSleeping;
+				selfSleeping = value;
 				Message<IFreeSleepMessage>(new FreeSleepMessage(value, previous));
 				if(Parent == null)
 					return;
@@ -391,15 +391,15 @@ namespace Atlas.ECS.Entities
 			}
 		}
 
-		public bool IsFreeSleeping
+		public bool IsSelfSleeping
 		{
-			get => freeSleeping > 0;
+			get => selfSleeping > 0;
 			set
 			{
 				if(value)
-					++FreeSleeping;
+					++SelfSleeping;
 				else
-					--FreeSleeping;
+					--SelfSleeping;
 			}
 		}
 		#endregion
@@ -435,7 +435,7 @@ namespace Atlas.ECS.Entities
 				}
 				else if(message is IParentMessage<IEntity> parentMessage)
 				{
-					if(!IsFreeSleeping)
+					if(!IsSelfSleeping)
 					{
 						int deltaSleeping = 0;
 						if(parentMessage.PreviousValue?.IsSleeping ?? false)
@@ -465,7 +465,7 @@ namespace Atlas.ECS.Entities
 			{
 				if(message is ISleepMessage<IEntity> sleepMessage)
 				{
-					if(!IsFreeSleeping)
+					if(!IsSelfSleeping)
 					{
 						if(sleepMessage.CurrentValue > 0 && sleepMessage.PreviousValue <= 0)
 							++Sleeping;

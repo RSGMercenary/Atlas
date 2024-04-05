@@ -61,7 +61,7 @@ namespace Atlas.ECS.Entities
 			text.AppendLine($"{indent}  {nameof(entity.LocalName)}        = {entity.LocalName}");
 			text.AppendLine($"{indent}  {nameof(entity.IsAutoDisposable)} = {entity.IsAutoDisposable}");
 			text.AppendLine($"{indent}  {nameof(entity.Sleeping)}         = {entity.Sleeping}");
-			text.AppendLine($"{indent}  {nameof(entity.FreeSleeping)}     = {entity.FreeSleeping}");
+			text.AppendLine($"{indent}  {nameof(entity.SelfSleeping)}     = {entity.SelfSleeping}");
 
 			text.AppendLine($"{indent}  {nameof(Components)} ({entity.Components.Count})");
 			if(addComponents)

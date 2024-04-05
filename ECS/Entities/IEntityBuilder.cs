@@ -80,7 +80,7 @@ namespace Atlas.ECS.Entities
 		#region Sleeping
 		IEntityBuilder SetSleeping(bool sleeping);
 
-		IEntityBuilder SetFreeSleeping(bool freeSleeping);
+		IEntityBuilder SetSelfSleeping(bool selfSleeping);
 		#endregion
 
 		#region AutoDispose

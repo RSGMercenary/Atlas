@@ -229,9 +229,9 @@ namespace Atlas.ECS.Entities
 			return this;
 		}
 
-		public IEntityBuilder SetFreeSleeping(bool freeSleeping)
+		public IEntityBuilder SetSelfSleeping(bool selfSleeping)
 		{
-			Instance.IsFreeSleeping = freeSleeping;
+			Instance.IsSelfSleeping = selfSleeping;
 			return this;
 		}
 		#endregion

@@ -177,15 +177,15 @@ namespace Atlas.ECS.Entities
 
 		#region Sleeping
 		/// <summary>
-		/// Return whether this Entity.FreeSleeping > 0;
+		/// Return whether this Entity.SelfSleeping > 0;
 		/// </summary>
-		bool IsFreeSleeping { get; set; }
+		bool IsSelfSleeping { get; set; }
 
 		/// <summary>
-		/// This Entity's free-sleeping count. If this Entity is free-sleeping,
+		/// This Entity's self-sleeping count. If this Entity is self-sleeping,
 		/// its sleeping is not changed by its parent sleeping.
 		/// </summary>
-		int FreeSleeping { get; }
+		int SelfSleeping { get; }
 		#endregion
 	}
 }
