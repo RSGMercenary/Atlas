@@ -263,6 +263,10 @@ namespace Atlas.ECS.Entities
 			Message<IComponentAddMessage>(new ComponentAddMessage(type, component));
 			return component;
 		}
+
+		public IComponent AddComponentWithAutoType(IComponent component) => AddComponentWithAutoType(component, component.Managers.Count);
+
+		public IComponent AddComponentWithAutoType(IComponent component, int index) => AddComponent(component, component.GetInterfaceType(), index);
 		#endregion
 		#endregion
 
