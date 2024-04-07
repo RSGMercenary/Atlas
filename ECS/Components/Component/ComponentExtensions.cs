@@ -39,10 +39,10 @@ namespace Atlas.ECS.Components.Component
 
 		private static Type GetInterfaceType(Type type)
 		{
-			var comp = typeof(IComponent);
+			var component = typeof(IComponent);
 			var interfaces = type.GetInterfaces()
 				.Except(type.BaseType?.GetInterfaces() ?? Enumerable.Empty<Type>())
-				.Where(t => t != comp && t.IsAssignableFrom(comp));
+				.Where(t => t != component && t.IsAssignableTo(component));
 
 			if(interfaces.Skip(1).Any())
 				throw new Exception();
@@ -50,6 +50,7 @@ namespace Atlas.ECS.Components.Component
 				return interfaces.First();
 			if(type.BaseType != null)
 				return GetInterfaceType(type.BaseType);
+
 			return null;
 		}
 	}
