@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace Atlas.Core.Objects.Update;
 
@@ -8,15 +9,15 @@ namespace Atlas.Core.Objects.Update;
 /// a framework or other engine to provide an update loop for you. For example, in MonoGame the best practice
 /// is to put your AtlasEngine.Update() call directly into Game.Update() so MonoGame can provide the time.
 /// </summary>
-public class Updater
+public class Updater<T> where T : INumber<T>
 {
 	private readonly Stopwatch timer = new();
-	private readonly IUpdate<double> instance;
+	private readonly IUpdate<T> instance;
 	private bool isRunning = false;
 
-	public Updater(IUpdate<double> instance)
+	public Updater(IUpdate<T> instance)
 	{
-		this.instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<double>)} instance is null.");
+		this.instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<T>)} instance is null.");
 	}
 
 	public bool IsRunning
@@ -33,10 +34,10 @@ public class Updater
 			if(value && !timer.IsRunning)
 			{
 				timer.Restart();
-				var previousTime = 0d;
+				var previousTime = T.Zero;
 				while(isRunning)
 				{
-					var currentTime = timer.Elapsed.TotalSeconds;
+					var currentTime = T.CreateChecked(timer.Elapsed.TotalSeconds);
 					instance.Update(currentTime - previousTime);
 					previousTime = currentTime;
 				}
