@@ -1,17 +1,16 @@
-﻿namespace Atlas.Core.Messages
+﻿namespace Atlas.Core.Messages;
+
+public interface IMessage
 {
-	public interface IMessage
-	{
-		IMessenger Messenger { get; set; }
+	IMessenger Messenger { get; set; }
 
-		IMessenger CurrentMessenger { get; set; }
-	}
+	IMessenger CurrentMessenger { get; set; }
+}
 
-	public interface IMessage<out TMessenger> : IMessage
-		where TMessenger : IMessenger
-	{
-		new TMessenger Messenger { get; }
+public interface IMessage<out TMessenger> : IMessage
+	where TMessenger : IMessenger
+{
+	new TMessenger Messenger { get; }
 
-		new TMessenger CurrentMessenger { get; }
-	}
+	new TMessenger CurrentMessenger { get; }
 }

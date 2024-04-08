@@ -1,41 +1,40 @@
 ﻿using Atlas.Core.Messages;
 
-namespace Atlas.Core.Objects.Sleep
+namespace Atlas.Core.Objects.Sleep;
+
+internal class Sleep<T> : ISleep
+	where T : ISleep, IMessenger<T>
 {
-	internal class Sleep<T> : ISleep
-		where T : ISleep, IMessenger<T>
+	private readonly T Instance;
+	private int sleeping = 0;
+
+	public Sleep(T instance)
 	{
-		private readonly T Instance;
-		private int sleeping = 0;
+		Instance = instance;
+	}
 
-		public Sleep(T instance)
+	public int Sleeping
+	{
+		get => sleeping;
+		set
 		{
-			Instance = instance;
+			if(sleeping == value)
+				return;
+			int previous = sleeping;
+			sleeping = value;
+			Instance.Message<ISleepMessage<T>>(new SleepMessage<T>(value, previous));
 		}
+	}
 
-		public int Sleeping
+	public bool IsSleeping
+	{
+		get => sleeping > 0;
+		set
 		{
-			get => sleeping;
-			set
-			{
-				if(sleeping == value)
-					return;
-				int previous = sleeping;
-				sleeping = value;
-				Instance.Message<ISleepMessage<T>>(new SleepMessage<T>(value, previous));
-			}
-		}
-
-		public bool IsSleeping
-		{
-			get => sleeping > 0;
-			set
-			{
-				if(value)
-					++Sleeping;
-				else
-					--Sleeping;
-			}
+			if(value)
+				++Sleeping;
+			else
+				--Sleeping;
 		}
 	}
 }

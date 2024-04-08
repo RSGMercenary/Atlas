@@ -1,7 +1,6 @@
-﻿namespace Atlas.Core.Objects.Update
+﻿namespace Atlas.Core.Objects.Update;
+
+public interface IUpdateState
 {
-	public interface IUpdateState
-	{
-		TimeStep UpdateState { get; }
-	}
+	TimeStep UpdateState { get; }
 }

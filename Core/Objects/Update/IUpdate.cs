@@ -1,10 +1,9 @@
-﻿using System;
+﻿using System.Numerics;
 
-namespace Atlas.Core.Objects.Update
+namespace Atlas.Core.Objects.Update;
+
+public interface IUpdate<T>
+	where T : INumber<T>
 {
-	public interface IUpdate<T>
-		where T : struct, IComparable, IComparable<T>, IConvertible, IEquatable<T>, IFormattable
-	{
-		void Update(T time);
-	}
+	void Update(T time);
 }

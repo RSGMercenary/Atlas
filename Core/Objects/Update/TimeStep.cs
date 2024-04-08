@@ -1,9 +1,8 @@
-﻿namespace Atlas.Core.Objects.Update
+﻿namespace Atlas.Core.Objects.Update;
+
+public enum TimeStep
 {
-	public enum TimeStep
-	{
-		None,
-		Fixed,
-		Variable
-	}
+	None,
+	Fixed,
+	Variable
 }

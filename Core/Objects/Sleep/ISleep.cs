@@ -1,8 +1,7 @@
-﻿namespace Atlas.Core.Objects.Sleep
+﻿namespace Atlas.Core.Objects.Sleep;
+
+public interface ISleep
 {
-	public interface ISleep
-	{
-		bool IsSleeping { get; set; }
-		int Sleeping { get; }
-	}
+	bool IsSleeping { get; set; }
+	int Sleeping { get; }
 }

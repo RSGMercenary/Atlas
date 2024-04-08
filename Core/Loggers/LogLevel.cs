@@ -1,10 +1,9 @@
-﻿namespace Atlas.Core.Loggers
+﻿namespace Atlas.Core.Loggers;
+
+public enum LogLevel
 {
-	public enum LogLevel
-	{
-		Info,
-		Warning,
-		Error,
-		Exception
-	}
+	Info,
+	Warning,
+	Error,
+	Exception
 }

@@ -1,39 +1,38 @@
 ﻿using Atlas.Core.Messages;
 using System;
 
-namespace Atlas.Core.Objects.AutoDispose
+namespace Atlas.Core.Objects.AutoDispose;
+
+internal class AutoDispose<T> : IAutoDispose
+	where T : IAutoDispose, IMessenger<T>
 {
-	internal class AutoDispose<T> : IAutoDispose
-		where T : IAutoDispose, IMessenger<T>
+	private readonly T Instance;
+	private readonly Func<bool> Condition;
+	private bool isAutoDisposable = true;
+
+	public AutoDispose(T instance, Func<bool> condition)
 	{
-		private readonly T Instance;
-		private readonly Func<bool> Condition;
-		private bool isAutoDisposable = true;
+		Instance = instance;
+		Condition = condition;
+	}
 
-		public AutoDispose(T instance, Func<bool> condition)
+	public bool IsAutoDisposable
+	{
+		get => isAutoDisposable;
+		set
 		{
-			Instance = instance;
-			Condition = condition;
+			if(isAutoDisposable == value)
+				return;
+			var previous = isAutoDisposable;
+			isAutoDisposable = value;
+			Instance.Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
+			TryAutoDispose();
 		}
+	}
 
-		public bool IsAutoDisposable
-		{
-			get => isAutoDisposable;
-			set
-			{
-				if(isAutoDisposable == value)
-					return;
-				var previous = isAutoDisposable;
-				isAutoDisposable = value;
-				Instance.Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
-				TryAutoDispose();
-			}
-		}
-
-		public void TryAutoDispose()
-		{
-			if(isAutoDisposable && Condition())
-				Instance.Dispose();
-		}
+	public void TryAutoDispose()
+	{
+		if(isAutoDisposable && Condition())
+			Instance.Dispose();
 	}
 }
