@@ -2,56 +2,55 @@
 using System.Linq;
 using System.Text;
 
-namespace Atlas.ECS.Components.Component
+namespace Atlas.ECS.Components.Component;
+
+public static class ComponentExtensions
 {
-	public static class ComponentExtensions
+	public static string ToInfoString(this IComponent component, bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
 	{
-		public static string ToInfoString(this IComponent component, bool addEntities, int index = 0, string indent = "", StringBuilder text = null)
+		text ??= new StringBuilder();
+		text.Append($"{indent}Component");
+		if(index > 0)
+			text.Append($" {index}");
+		text.AppendLine();
+		text.AppendLine($"{indent}  Instance    = {component.GetType().FullName}");
+		if(component.Manager != null)
+			text.AppendLine($"{indent}  Interface   = {component.Manager.GetComponentType(component).FullName}");
+		text.AppendLine($"{indent}  {nameof(component.IsAutoDisposable)} = {component.IsAutoDisposable}");
+		text.AppendLine($"{indent}  {nameof(component.IsShareable)}      = {component.IsShareable}");
+		if(component.IsShareable)
 		{
-			text ??= new StringBuilder();
-			text.Append($"{indent}Component");
-			if(index > 0)
-				text.Append($" {index}");
-			text.AppendLine();
-			text.AppendLine($"{indent}  Instance    = {component.GetType().FullName}");
-			if(component.Manager != null)
-				text.AppendLine($"{indent}  Interface   = {component.Manager.GetComponentType(component).FullName}");
-			text.AppendLine($"{indent}  {nameof(component.IsAutoDisposable)} = {component.IsAutoDisposable}");
-			text.AppendLine($"{indent}  {nameof(component.IsShareable)}      = {component.IsShareable}");
-			if(component.IsShareable)
+			text.AppendLine($"{indent}  Entities ({component.Managers.Count})");
+			if(addEntities)
 			{
-				text.AppendLine($"{indent}  Entities ({component.Managers.Count})");
-				if(addEntities)
+				index = 0;
+				foreach(var entity in component.Managers)
 				{
-					index = 0;
-					foreach(var entity in component.Managers)
-					{
-						text.AppendLine($"{indent}    Entity {++index}");
-						text.AppendLine($"{indent}      Interface  = {entity.GetComponentType(component).FullName}");
-						text.AppendLine($"{indent}      {nameof(entity.GlobalName)} = {entity.GlobalName}");
-					}
+					text.AppendLine($"{indent}    Entity {++index}");
+					text.AppendLine($"{indent}      Interface  = {entity.GetComponentType(component).FullName}");
+					text.AppendLine($"{indent}      {nameof(entity.GlobalName)} = {entity.GlobalName}");
 				}
 			}
-			return text.ToString();
 		}
+		return text.ToString();
+	}
 
-		public static Type GetInterfaceType(this IComponent component) => GetInterfaceType(component.GetType());
+	public static Type GetInterfaceType(this IComponent component) => GetInterfaceType(component.GetType());
 
-		private static Type GetInterfaceType(Type type)
-		{
-			var component = typeof(IComponent);
-			var interfaces = type.GetInterfaces()
-				.Except(type.BaseType?.GetInterfaces() ?? Enumerable.Empty<Type>())
-				.Where(t => t != component && t.IsAssignableTo(component));
+	private static Type GetInterfaceType(Type type)
+	{
+		var component = typeof(IComponent);
+		var interfaces = type.GetInterfaces()
+			.Except(type.BaseType?.GetInterfaces() ?? Enumerable.Empty<Type>())
+			.Where(t => t != component && t.IsAssignableTo(component));
 
-			if(interfaces.Skip(1).Any())
-				throw new Exception();
-			if(interfaces.Any())
-				return interfaces.First();
-			if(type.BaseType != null)
-				return GetInterfaceType(type.BaseType);
+		if(interfaces.Skip(1).Any())
+			throw new Exception();
+		if(interfaces.Any())
+			return interfaces.First();
+		if(type.BaseType != null)
+			return GetInterfaceType(type.BaseType);
 
-			return null;
-		}
+		return null;
 	}
 }

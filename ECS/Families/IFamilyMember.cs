@@ -1,9 +1,8 @@
 ﻿using Atlas.ECS.Entities;
 
-namespace Atlas.ECS.Families
+namespace Atlas.ECS.Families;
+
+public interface IFamilyMember
 {
-	public interface IFamilyMember
-	{
-		IEntity Entity { get; }
-	}
+	IEntity Entity { get; }
 }

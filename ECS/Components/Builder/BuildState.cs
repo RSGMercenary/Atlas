@@ -1,9 +1,8 @@
-﻿namespace Atlas.ECS.Components.Builder
+﻿namespace Atlas.ECS.Components.Builder;
+
+public enum BuildState
 {
-	public enum BuildState
-	{
-		Built,
-		Building,
-		Unbuilt
-	}
+	Built,
+	Building,
+	Unbuilt
 }
