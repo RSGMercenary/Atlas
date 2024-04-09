@@ -154,6 +154,91 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 	#endregion
 
+	#region Families
+	#region Create
+	protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
+	#endregion
+
+	#region Add/Remove
+	public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new()
+	{
+		var type = typeof(TFamilyMember);
+		if(!familiesType.ContainsKey(type))
+		{
+			var family = CreateFamily<TFamilyMember>();
+			families.Add(family);
+			familiesType.Add(type, family);
+			familiesReference.Add(type, 1);
+			family.Engine = this;
+			foreach(var entity in entities)
+				family.AddEntity(entity);
+			Message<IFamilyAddMessage>(new FamilyAddMessage(type, family));
+		}
+		else
+		{
+			++familiesReference[type];
+		}
+		return (IReadOnlyFamily<TFamilyMember>)familiesType[type];
+	}
+
+	public void RemoveFamily<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new()
+	{
+		var type = typeof(TFamilyMember);
+		if(!familiesReference.ContainsKey(type))
+			return;
+		if(--familiesReference[type] > 0)
+			return;
+		var family = familiesType[type];
+		families.Remove(family);
+		familiesType.Remove(type);
+		familiesReference.Remove(type);
+		family.Engine = null;
+		Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
+	}
+	#endregion
+
+	#region Get
+	public IReadOnlyGroup<IReadOnlyFamily> Families => families;
+
+	public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new()
+	{
+		return GetFamily(typeof(TFamilyMember)) as IReadOnlyFamily<TFamilyMember>;
+	}
+
+	public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
+	#endregion
+
+	#region Has
+	public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue(family as IFamily);
+
+	public bool HasFamily<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new()
+	{
+		return HasFamily(typeof(TFamilyMember));
+	}
+
+	public bool HasFamily(Type type) => familiesType.ContainsKey(type);
+	#endregion
+
+	#region Messages
+	private void EntityComponentAdded(IComponentAddMessage message)
+	{
+		foreach(var family in families)
+			family.AddEntity(message.Messenger, message.Key);
+	}
+
+	private void EntityComponentRemoved(IComponentRemoveMessage message)
+	{
+		foreach(var family in families)
+			family.RemoveEntity(message.Messenger, message.Key);
+	}
+	#endregion
+	#endregion
+
 	#region Systems
 	#region Create
 	protected virtual ISystem CreateSystem(Type type) => (ISystem)Activator.CreateInstance(type);
@@ -236,91 +321,6 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 			}
 		}
 		systems.Insert(0, system);
-	}
-	#endregion
-	#endregion
-
-	#region Families
-	#region Create
-	protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
-	#endregion
-
-	#region Add/Remove
-	public IReadOnlyFamily<TFamilyMember> AddFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new()
-	{
-		var type = typeof(TFamilyMember);
-		if(!familiesType.ContainsKey(type))
-		{
-			var family = CreateFamily<TFamilyMember>();
-			families.Add(family);
-			familiesType.Add(type, family);
-			familiesReference.Add(type, 1);
-			family.Engine = this;
-			foreach(var entity in entities)
-				family.AddEntity(entity);
-			Message<IFamilyAddMessage>(new FamilyAddMessage(type, family));
-		}
-		else
-		{
-			++familiesReference[type];
-		}
-		return (IReadOnlyFamily<TFamilyMember>)familiesType[type];
-	}
-
-	public void RemoveFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new()
-	{
-		var type = typeof(TFamilyMember);
-		if(!familiesReference.ContainsKey(type))
-			return;
-		if(--familiesReference[type] > 0)
-			return;
-		var family = familiesType[type];
-		families.Remove(family);
-		familiesType.Remove(type);
-		familiesReference.Remove(type);
-		family.Engine = null;
-		Message<IFamilyRemoveMessage>(new FamilyRemoveMessage(type, family));
-	}
-	#endregion
-
-	#region Get
-	public IReadOnlyGroup<IReadOnlyFamily> Families => families;
-
-	public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new()
-	{
-		return GetFamily(typeof(TFamilyMember)) as IReadOnlyFamily<TFamilyMember>;
-	}
-
-	public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
-	#endregion
-
-	#region Has
-	public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue(family as IFamily);
-
-	public bool HasFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new()
-	{
-		return HasFamily(typeof(TFamilyMember));
-	}
-
-	public bool HasFamily(Type type) => familiesType.ContainsKey(type);
-	#endregion
-
-	#region Messages
-	private void EntityComponentAdded(IComponentAddMessage message)
-	{
-		foreach(var family in families)
-			family.AddEntity(message.Messenger, message.Key);
-	}
-
-	private void EntityComponentRemoved(IComponentRemoveMessage message)
-	{
-		foreach(var family in families)
-			family.RemoveEntity(message.Messenger, message.Key);
 	}
 	#endregion
 	#endregion
@@ -448,9 +448,9 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 			CalculateFixedLag();
 			while(FixedUpdates > 0)
 			{
+				FixedUpdates--;
 				TotalFixedTime += deltaFixedTime;
 				UpdateSystems(TimeStep.Fixed, deltaFixedTime);
-				FixedUpdates--;
 			}
 
 			//Variable-time updates
