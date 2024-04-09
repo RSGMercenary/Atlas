@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace Atlas.ECS.Components.Component;
 
@@ -33,24 +31,5 @@ public static class ComponentExtensions
 			}
 		}
 		return text.ToString();
-	}
-
-	public static Type GetInterfaceType(this IComponent component) => GetInterfaceType(component.GetType());
-
-	private static Type GetInterfaceType(Type type)
-	{
-		var component = typeof(IComponent);
-		var interfaces = type.GetInterfaces()
-			.Except(type.BaseType?.GetInterfaces() ?? Enumerable.Empty<Type>())
-			.Where(t => t != component && t.IsAssignableTo(component));
-
-		if(interfaces.Skip(1).Any())
-			throw new Exception();
-		if(interfaces.Any())
-			return interfaces.First();
-		if(type.BaseType != null)
-			return GetInterfaceType(type.BaseType);
-
-		return null;
 	}
 }

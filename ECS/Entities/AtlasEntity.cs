@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
 using Atlas.Core.Collections.Pool;
+using Atlas.Core.Extensions;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
