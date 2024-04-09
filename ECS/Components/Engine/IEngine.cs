@@ -163,27 +163,27 @@ public interface IEngine : IComponent<IEngine>, IUpdateState
 	/// <summary>
 	/// The max delta time between updates. Prevents the update loop "spiral of death".
 	/// </summary>
-	double MaxVariableTime { get; set; }
+	float MaxVariableTime { get; set; }
 
 	/// <summary>
 	/// The delta time between variable-time updates. This is set every loop.
 	/// </summary>
-	double DeltaVariableTime { get; }
+	float DeltaVariableTime { get; }
 
 	/// <summary>
 	/// The total time running variable-time updates. This is set every loop.
 	/// </summary>
-	double TotalVariableTime { get; }
+	float TotalVariableTime { get; }
 
 	/// <summary>
 	/// The delta time between fixed-time updates. This is set manually.
 	/// </summary>
-	double DeltaFixedTime { get; set; }
+	float DeltaFixedTime { get; set; }
 
 	/// <summary>
 	/// The total time running fixed-time updates. This is set every loop.
 	/// </summary>
-	double TotalFixedTime { get; }
+	float TotalFixedTime { get; }
 
 	/// <summary>
 	/// The current System that's undergoing an Update().
@@ -194,6 +194,6 @@ public interface IEngine : IComponent<IEngine>, IUpdateState
 
 	int FixedUpdates { get; }
 
-	double VariableInterpolation { get; }
+	float VariableInterpolation { get; }
 	#endregion
 }

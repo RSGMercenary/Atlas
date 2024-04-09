@@ -11,7 +11,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine;
 
-public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
+public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 {
 	#region Fields
 	//ECS Groups
@@ -34,14 +34,14 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	private ISystem updateSystem;
 
 	//Variable Time
-	private double deltaVariableTime = 0;
-	private double totalVariableTime = 0;
-	private double maxVariableTime = 0.25d;
-	private double variableInterpolation = 0;
+	private float deltaVariableTime = 0;
+	private float totalVariableTime = 0;
+	private float maxVariableTime = 0.25f;
+	private float variableInterpolation = 0;
 
 	//Fixed Time
-	private double deltaFixedTime = 1d / 60d;
-	private double totalFixedTime = 0;
+	private float deltaFixedTime = 1f / 60f;
+	private float totalFixedTime = 0;
 	private int fixedUpdates = 0;
 	private int fixedLag = 0;
 	#endregion
@@ -327,7 +327,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 
 	#region Updates
 	#region Delta/Total Times
-	public double MaxVariableTime
+	public float MaxVariableTime
 	{
 		get => maxVariableTime;
 		set
@@ -338,20 +338,20 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 		}
 	}
 
-	public double DeltaVariableTime
+	public float DeltaVariableTime
 	{
 		get => deltaVariableTime;
 		private set
 		{
 			//Cap delta time to avoid the "spiral of death".
-			value = Math.Min(value, maxVariableTime);
+			value = float.Min(value, maxVariableTime);
 			if(deltaVariableTime == value)
 				return;
 			deltaVariableTime = value;
 		}
 	}
 
-	public double TotalVariableTime
+	public float TotalVariableTime
 	{
 		get => totalVariableTime;
 		private set
@@ -362,7 +362,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 		}
 	}
 
-	public double DeltaFixedTime
+	public float DeltaFixedTime
 	{
 		get => deltaFixedTime;
 		set
@@ -373,7 +373,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 		}
 	}
 
-	public double TotalFixedTime
+	public float TotalFixedTime
 	{
 		get => totalFixedTime;
 		private set
@@ -398,7 +398,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 		private set => fixedUpdates = value;
 	}
 
-	public double VariableInterpolation
+	public float VariableInterpolation
 	{
 		get => variableInterpolation;
 		private set => variableInterpolation = value;
@@ -432,7 +432,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	#endregion
 
 	#region Fixed/Variable Update Loop
-	public void Update(double deltaTime)
+	public void Update(float deltaTime)
 	{
 		try
 		{
@@ -467,7 +467,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 		}
 	}
 
-	private void CalculateFixedUpdates(double deltaFixedTime)
+	private void CalculateFixedUpdates(float deltaFixedTime)
 	{
 		var fixedUpdates = 0;
 		var totalFixedTime = TotalFixedTime;
@@ -482,18 +482,18 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 	private void CalculateFixedLag()
 	{
 		//Calculate when fixed-time and variable-time updates weren't 1:1.
-		var fixedLag = FixedLag + Math.Max(0, fixedUpdates - 1);
+		var fixedLag = FixedLag + int.Max(0, fixedUpdates - 1);
 		if(fixedUpdates == 1 && fixedLag > 0)
 			--fixedLag;
 		FixedLag = fixedLag;
 	}
 
-	private void CalculateVariableInterpolation(double deltaFixedTime)
+	private void CalculateVariableInterpolation(float deltaFixedTime)
 	{
 		VariableInterpolation = (TotalVariableTime - TotalFixedTime) / deltaFixedTime;
 	}
 
-	private void UpdateSystems(TimeStep timeStep, double deltaTime)
+	private void UpdateSystems(TimeStep timeStep, float deltaTime)
 	{
 		UpdateState = timeStep;
 		foreach(var system in systems)
@@ -501,7 +501,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<double>
 			if(system.UpdateStep != timeStep)
 				continue;
 			UpdateSystem = system;
-			system.Update((float)deltaTime);
+			system.Update(deltaTime);
 			UpdateSystem = null;
 		}
 		UpdateState = TimeStep.None;
