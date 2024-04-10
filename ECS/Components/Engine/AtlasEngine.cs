@@ -245,8 +245,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Add/Remove
-	public TSystem AddSystem<TSystem>()
-		where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
+	public TSystem AddSystem<TSystem>() where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
 
 	public ISystem AddSystem(Type type)
 	{
