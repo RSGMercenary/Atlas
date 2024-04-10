@@ -241,7 +241,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	#region Systems
 	#region Create
-	protected virtual ISystem CreateSystem(Type type) => (ISystem)Activator.CreateInstance(type);
+	protected virtual ISystem CreateSystem(Type type) => SystemGetter.GetSystem(type);
 	#endregion
 
 	#region Add/Remove
