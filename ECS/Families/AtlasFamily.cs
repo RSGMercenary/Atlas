@@ -49,7 +49,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 				else
 					throw new InvalidOperationException($"{typeof(TFamilyMember).Name} can't have multiple {nameof(IEntity)} properties.");
 			}
-			else if(typeof(IComponent).IsAssignableFrom(field.FieldType))
+			else if(field.FieldType.IsAssignableTo(typeof(IComponent)))
 				components.Add(field.FieldType, field);
 			else
 				throw new InvalidOperationException($"{typeof(TFamilyMember).Name}'s {field.FieldType.Name} is not an {nameof(IComponent)}.");

@@ -80,7 +80,7 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	{
 		if(type == null)
 			return false;
-		if(!typeof(ISystem).IsAssignableFrom(type))
+		if(!type.IsAssignableTo(typeof(ISystem)))
 			return false;
 		if(types.Contains(type))
 			return false;
