@@ -14,6 +14,11 @@ public static class CollectionExtensions
 			yield return item;
 		}
 	}
+
+	public static IEnumerable<T> ToEnumerable<T>(this T item)
+	{
+		yield return item;
+	}
 	#endregion
 
 	#region Lists
