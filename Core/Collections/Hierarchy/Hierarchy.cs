@@ -1,12 +1,14 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
 using Atlas.Signals;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Hierarchy;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		where T : class, IHierarchyMessenger<T>
 {
@@ -145,6 +147,7 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		}
 	}
 
+	[JsonProperty(Order = int.MinValue)]
 	public bool IsRoot
 	{
 		get => this == root;
@@ -279,15 +282,10 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	public bool SetChildIndex(T child, int index)
 	{
 		int previous = children.IndexOf(child);
-
-		if(previous == index || previous < 0)
+		if(!children.SetIndex(child, index))
 			return false;
-
-		index = Math.Max(0, Math.Min(index, children.Count - 1));
-
-		children.RemoveAt(previous);
-		children.Insert(index, child);
-		Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+		if(previous != index)
+			Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
 		return true;
 	}
 
@@ -304,22 +302,33 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	{
 		if(!children.Swap(index1, index2))
 			return false;
-		Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+		if(index1 != index2)
+			Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
 		return true;
 	}
 	#endregion
 
 	#region Get
-
 	public IReadOnlyGroup<T> Children => children;
+
+	[JsonProperty(PropertyName = nameof(Children), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue)]
+	private IEnumerable<T> JsonPropertyChildren
+	{
+		get => children;
+		set
+		{
+			foreach(var child in value)
+				AddChild(child);
+		}
+	}
 
 	public T this[int index]
 	{
 		get => children[index];
 		set
 		{
-			children.RemoveAt(index);
-			children.Insert(index, value);
+			RemoveChild(index);
+			AddChild(value, index);
 		}
 	}
 
@@ -330,7 +339,6 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	public IEnumerator<T> GetEnumerator() => children.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-
 	#endregion
 
 	#region Has
@@ -343,22 +351,10 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		return descendant == this;
 	}
 
-	public bool HasAncestor(T ancestor) => ancestor.HasDescendant(this as T);
+	public bool HasAncestor(T ancestor) => ancestor?.HasDescendant(this as T) ?? false;
 
 	public bool HasChild(T child) => children.Contains(child);
 
-	public bool HasSibling(T sibling)
-	{
-		if(parent == null)
-			return false;
-		foreach(var child in parent)
-		{
-			if(child == this)
-				continue;
-			if(child == sibling)
-				return true;
-		}
-		return false;
-	}
+	public bool HasSibling(T sibling) => (parent == null || sibling == null) ? false : parent == sibling.Parent;
 	#endregion
 }

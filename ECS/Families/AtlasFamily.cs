@@ -17,12 +17,14 @@ namespace Atlas.ECS.Families;
 public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
+	private static bool HasFamily(IEngine engine, IReadOnlyFamily<TFamilyMember> family) => engine.HasFamily(family);
+
 	#region Fields
 	private readonly EngineItem<IReadOnlyFamily<TFamilyMember>> EngineItem;
 
 	//Reflection Fields
 	private readonly FieldInfo entityField;
-	private readonly Dictionary<Type, FieldInfo> components = new();
+	private readonly Dictionary<Type, FieldInfo> componentFields = new();
 
 	//Family Members
 	private readonly Group<TFamilyMember> members = new();
@@ -37,23 +39,15 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	#region Compose / Dispose
 	public AtlasFamily()
 	{
-		EngineItem = new(this, (engine, family) => engine.HasFamily(family));
+		EngineItem = new(this, HasFamily, EngineChanged);
 
-		//Gets the private backing fields of the Entity and Component properties.
-		foreach(var field in typeof(TFamilyMember).FindFields(BindingFlags.NonPublic | BindingFlags.Instance))
-		{
-			if(field.FieldType == typeof(IEntity))
-			{
-				if(entityField == null)
-					entityField = field;
-				else
-					throw new InvalidOperationException($"{typeof(TFamilyMember).Name} can't have multiple {nameof(IEntity)} properties.");
-			}
-			else if(field.FieldType.IsAssignableTo(typeof(IComponent)))
-				components.Add(field.FieldType, field);
-			else
-				throw new InvalidOperationException($"{typeof(TFamilyMember).Name}'s {field.FieldType.Name} is not an {nameof(IComponent)}.");
-		}
+		var type = typeof(TFamilyMember);
+		var flags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+		entityField = type.FindField<IEntity>(flags);
+
+		foreach(var field in type.FindFields<IComponent>(flags))
+			componentFields.Add(field.FieldType, field);
 	}
 
 	public sealed override void Dispose()
@@ -71,6 +65,12 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		get => EngineItem.Engine;
 		set => EngineItem.Engine = value;
 	}
+
+	private void EngineChanged(IEngine current, IEngine previous)
+	{
+		if(current == null)
+			Dispose();
+	}
 	#endregion
 
 	#region Get
@@ -87,12 +87,16 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	public TFamilyMember GetMember(IEntity entity) => entities.ContainsKey(entity) ? entities[entity] : null;
 	#endregion
 
+	#region Has
+	public bool HasMember(IEntity entity) => entities.ContainsKey(@entity);
+	#endregion
+
 	#region Add
 	public void AddEntity(IEntity entity) => Add(entity);
 
 	public void AddEntity(IEntity entity, Type componentType)
 	{
-		if(components.ContainsKey(componentType))
+		if(componentFields.ContainsKey(componentType))
 			Add(entity);
 	}
 
@@ -100,7 +104,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	{
 		if(entities.ContainsKey(entity))
 			return;
-		foreach(var type in components.Keys)
+		foreach(var type in componentFields.Keys)
 		{
 			if(!entity.HasComponent(type))
 				return;
@@ -128,7 +132,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	public void RemoveEntity(IEntity entity, Type componentType)
 	{
-		if(components.ContainsKey(componentType))
+		if(componentFields.ContainsKey(componentType))
 			Remove(entity);
 	}
 
@@ -176,26 +180,14 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
 	{
 		entityField.SetValue(member, entity);
-		foreach(var type in components.Keys)
-			components[type].SetValue(member, add ? entity.GetComponent(type) : null);
+		foreach(var type in componentFields.Keys)
+			componentFields[type].SetValue(member, add ? entity.GetComponent(type) : null);
 		return member;
 	}
 
 	public void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare)
 	{
 		Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
-	}
-	#endregion
-
-	#region Messages
-	protected override void Messaging(IMessage<IReadOnlyFamily<TFamilyMember>> message)
-	{
-		if(message is IEngineMessage<IReadOnlyFamily<TFamilyMember>> engineMessage)
-		{
-			if(engineMessage.CurrentValue == null)
-				Dispose();
-		}
-		base.Messaging(message);
 	}
 	#endregion
 }

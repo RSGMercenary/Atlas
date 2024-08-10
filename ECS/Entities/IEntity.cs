@@ -57,14 +57,14 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 	#region Components
 	#region Has
 	bool HasComponent<TKey>()
-		where TKey : IComponent;
+		where TKey : class, IComponent;
 
 	bool HasComponent(Type type);
 	#endregion
 
 	#region Get
 	TValue GetComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	TKeyValue GetComponent<TKeyValue>()
@@ -94,7 +94,7 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 	/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
 	/// <returns></returns>
 	TValue AddComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey, new();
 
 	/// <summary>
@@ -105,7 +105,7 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 	/// <param name="Component">The instance of the Component.</param>
 	/// <returns></returns>
 	TValue AddComponent<TKey, TValue>(TValue component)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	/// <summary>
@@ -117,7 +117,7 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 	/// <param name="index">The index of the Entity within the Component.</param>
 	/// <returns></returns>
 	TValue AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	/// <summary>
@@ -161,7 +161,7 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 
 	#region Remove
 	TValue RemoveComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	TKeyValue RemoveComponent<TKeyValue>()

@@ -105,8 +105,10 @@ public class Group<T> : IGroup<T>
 	public bool SetIndex(T item, int index)
 	{
 		var current = IndexOf(item);
-		if(current == -1 || current == index)
+		if(current < 0 || index < 0 || index >= items.Count)
 			return false;
+		if(current == index)
+			return true;
 		RemoveAt(current);
 		Insert(index, item);
 		return true;
@@ -121,8 +123,11 @@ public class Group<T> : IGroup<T>
 
 	public bool Swap(int index1, int index2)
 	{
-		if(index1 < 0 || index2 < 0)
+		if(index1 < 0 || index1 >= items.Count ||
+			index2 < 0 || index2 >= items.Count)
 			return false;
+		if(index1 == index2)
+			return true;
 		var item = items[index1];
 		items[index1] = items[index2];
 		items[index2] = item;

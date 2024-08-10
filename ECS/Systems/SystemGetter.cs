@@ -24,29 +24,18 @@ public static class SystemGetter
 	#endregion
 
 	#region Systems
-	public static IEnumerable<T> GetSystems<T>() where T : ISystem
-	{
-		return GetSystemTypes(typeof(T)).Cast<T>();
-	}
+	public static IEnumerable<T> GetSystems<T>() where T : ISystem => GetSystemTypes<T>().Select(CreateSystem<T>);
 
-	public static IEnumerable<ISystem> GetSystems(Type type)
-	{
-		return GetSystemTypes(type).Select(t => (ISystem)Activator.CreateInstance(t));
-	}
+	public static IEnumerable<ISystem> GetSystems(Type type) => GetSystemTypes(type).Select(CreateSystem<ISystem>);
 	#endregion
 
 	#region System
-	public static T GetSystem<T>() where T : ISystem
-	{
-		return (T)GetSystem(typeof(T));
-	}
+	public static T GetSystem<T>() where T : ISystem => (T)GetSystem(typeof(T));
 
-	public static ISystem GetSystem(Type type)
-	{
-		var types = GetSystemTypes(type);
-		if(types.Skip(1).Any())
-			throw new InvalidOperationException($"Multiple systems found of type '{type}'.");
-		return (ISystem)Activator.CreateInstance(types.First());
-	}
+	public static ISystem GetSystem(Type type) => CreateSystem<ISystem>(GetSystemTypes(type).Single());
+	#endregion
+
+	#region Create
+	private static T CreateSystem<T>(Type type) where T : ISystem => (T)Activator.CreateInstance(type);
 	#endregion
 }

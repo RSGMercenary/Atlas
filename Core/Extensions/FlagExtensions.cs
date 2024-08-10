@@ -1,43 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.Core.Extensions;
 
 public static class FlagExtensions
 {
-	public static IEnumerable<T> GetFlags<T>(this T item, bool zero = false)
-		where T : Enum
+	#region Static
+	public static IEnumerable<T> GetFlags<T>(bool includeZero = false) where T : struct, Enum
 	{
-		foreach(T value in Enum.GetValues(typeof(T)))
-		{
-			if(value.OneFlag(zero) && item.HasFlag(value))
-				yield return value;
-		}
+		return Enum.GetValues<T>().Where(v => v.OneFlag(includeZero));
 	}
 
-	public static T SetFlags<T>(this IEnumerable<T> items)
-		where T : Enum
+	public static bool OneFlag(int value, bool includeZero = false) => (value != 0 || includeZero) && ((value & (value - 1)) == 0);
+	#endregion
+
+	#region Extensions
+	public static IEnumerable<T> GetFlags<T>(this T flags, bool includeZero = false)
+		where T : struct, Enum
 	{
-		int flags = 0;
-		foreach(var item in items)
-			flags |= Convert.ToInt32(item);
-		return (T)Enum.Parse(typeof(T), flags.ToString());
+		return GetFlags<T>(includeZero).Where(v => flags.HasFlag(v));
 	}
 
-	public static bool AnyFlags<T>(this T flag1, T flag2)
-		where T : Enum
+	public static T SetFlags<T>(this IEnumerable<T> flags)
+		where T : struct, Enum
 	{
-		foreach(T value in Enum.GetValues(typeof(T)))
-		{
-			if(flag1.HasFlag(value) && flag2.HasFlag(value))
-				return true;
-		}
-		return false;
+		return (T)(object)flags.Select(ToInt).Aggregate((flag1, flag2) => flag1 | flag2);
 	}
 
-	public static bool OneFlag(this Enum item, bool zero = false)
+	public static bool AnyFlags<T>(this T flags1, T flags2, bool includeZero = false)
+		where T : struct, Enum
 	{
-		int value = Convert.ToInt32(item);
-		return (value != 0 || zero) && ((value & (value - 1)) == 0);
+		return GetFlags<T>(includeZero).Any(f => flags1.HasFlag(f) && flags2.HasFlag(f));
 	}
+
+	public static bool OneFlag<T>(this T flags, bool includeZero = false)
+		where T : struct, Enum
+	{
+		return OneFlag(flags.ToInt(), includeZero);
+	}
+
+	public static int ToInt<T>(this T flags) where T : struct, Enum => Convert.ToInt32(flags);
+	#endregion
 }

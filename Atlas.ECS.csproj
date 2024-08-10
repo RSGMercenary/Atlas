@@ -19,6 +19,7 @@
 	<AssemblyName>Atlas.ECS</AssemblyName>
 	<Version>1.0.1</Version>
 	<RootNamespace>Atlas</RootNamespace>
+	<OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,10 @@
 	  <PackagePath></PackagePath>
 	</None>
 	<None Include="Icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>

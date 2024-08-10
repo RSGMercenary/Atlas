@@ -46,14 +46,14 @@ public interface IEngine : IComponent<IEngine>, IUpdateState
 
 	#region Systems
 	TSystem AddSystem<TSystem>()
-		where TSystem : class, ISystem, new();
+		where TSystem : class, ISystem;
 
 	ISystem AddSystem(Type type);
 
-	void RemoveSystem<TSystem>()
-		where TSystem : class, ISystem, new();
+	bool RemoveSystem<TSystem>()
+		where TSystem : class, ISystem;
 
-	void RemoveSystem(Type type);
+	bool RemoveSystem(Type type);
 
 	/// <summary>
 	/// A collection of all Systems managed by this Engine.

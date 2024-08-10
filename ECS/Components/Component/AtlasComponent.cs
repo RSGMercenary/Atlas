@@ -3,11 +3,15 @@ using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Component;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 {
 	#region Static
@@ -60,13 +64,15 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 	#endregion
 }
 
-public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerable<IEntity>
 	where T : class, IComponent<T>
 {
 	#region Fields
 	private readonly Group<IEntity> managers = new();
 	private readonly AutoDispose<T> AutoDispose;
-	public bool IsShareable { get; } = false;
+	[JsonProperty(Order = int.MinValue)]
+	public bool IsShareable { get; init; } = false;
 	#endregion
 
 	#region Construct / Dispose
@@ -91,6 +97,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
 
 	#endregion
 
+	[JsonProperty(Order = int.MinValue + 1)]
 	#region AutoDispose
 	public bool IsAutoDisposable
 	{
@@ -105,19 +112,27 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
 	#endregion
 
 	#region Get
+	[JsonIgnore]
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
+	[JsonIgnore]
 	public IReadOnlyGroup<IEntity> Managers => managers;
 
 	public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
+
+	public IEnumerator<IEntity> GetEnumerator() => managers.GetEnumerator();
+
+	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	#endregion
 
 	#region Set
 	public bool SetManagerIndex(IEntity entity, int index)
 	{
+		int previous = managers.IndexOf(entity);
 		if(!managers.SetIndex(entity, index))
 			return false;
-		Message<IManagerMessage<T>>(new ManagerMessage<T>());
+		if(previous != index)
+			Message<IManagerMessage<T>>(new ManagerMessage<T>());
 		return true;
 	}
 
@@ -161,7 +176,6 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>
 		{
 			if(!HasManager(entity))
 			{
-				index = Math.Max(0, Math.Min(index, managers.Count));
 				managers.Insert(index, entity);
 				AddingManager(entity, index);
 				Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index, entity));

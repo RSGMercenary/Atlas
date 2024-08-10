@@ -60,7 +60,7 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 
 	#region Key, Value
 	public IEntityBuilder AddComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey, new()
 	{
 		Instance.AddComponent<TKey, TValue>();
@@ -68,7 +68,7 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	}
 
 	public IEntityBuilder AddComponent<TKey, TValue>(TValue component)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey
 	{
 		Instance.AddComponent<TKey, TValue>(component);
@@ -76,7 +76,7 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	}
 
 	public IEntityBuilder AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey
 	{
 		Instance.AddComponent<TKey, TValue>(component, index);
@@ -136,7 +136,7 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 
 	#region Remove
 	public IEntityBuilder RemoveComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey
 	{
 		Instance.RemoveComponent<TKey, TValue>();

@@ -1,5 +1,7 @@
-﻿using Atlas.ECS.Components.Component;
-using System.Text;
+﻿using Atlas.ECS.Serialize;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace Atlas.ECS.Entities;
 
@@ -10,73 +12,88 @@ public static class EntityExtensions
 		return new AtlasEntityBuilder(entity);
 	}
 
-	public static string AncestorsToString(this IEntity entity, int depth = -1, bool localNames = true, string indent = "")
+	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.Indented, int maxDepth = -1)
 	{
-		var text = new StringBuilder();
-		if(entity.Parent != null && depth != 0)
-		{
-			var parent = entity.Parent;
-			text.Append(parent.AncestorsToString(depth - 1, localNames, indent));
-			var ancestor = parent;
-			while(ancestor != null && depth-- != 0)
-			{
-				text.Append("  ");
-				ancestor = ancestor.Parent;
-			}
-		}
-		text.Append(indent);
-		text.AppendLine(localNames ? entity.LocalName : entity.GlobalName);
-		return text.ToString();
+		return AtlasSerializer.Serialize(entity, formatting, maxDepth);
 	}
 
-	public static string DescendantsToString(this IEntity entity, int depth = -1, bool localNames = true, string indent = "")
+	public static bool EntityEquals(this IEntity entity, IEntity other)
 	{
-		var text = new StringBuilder();
-		text.Append(indent);
-		text.AppendLine(localNames ? entity.LocalName : entity.GlobalName);
-		if(depth-- != 0)
-		{
-			foreach(var child in entity.Children)
-				text.Append(child.DescendantsToString(depth, localNames, indent + "  "));
-		}
-		return text.ToString();
+		return false;
+		return entity.Serialize() == other.Serialize();
 	}
 
 	/// <summary>
-	/// Returns a formatted and indented string of the <see cref="IEntity"/> hierarchy.
+	/// For visualization ONLY. This is not for (de)serializing! Use Serialize() instead.
 	/// </summary>
-	/// <param name="depth">Adds children recursively to the output until the given depth. -1 is the entire hierarchy.</param>
-	/// <param name="addComponents">Adds components to the output.</param>
-	/// <param name="addManagers">Adds component entities to the output.</param>
-	/// <param name="addSystems">Adds systems to the output.</param>
-	/// <param name="indent"></param>
+	/// <param name="entity"></param>
+	/// <param name="hierarchy"></param>
+	/// <param name="properties"></param>
 	/// <returns></returns>
-	public static string ToInfoString(this IEntity entity, int depth = -1, bool addComponents = true, bool addEntities = false, string indent = "", StringBuilder text = null)
+	public static JToken ToJsonString(this IEntity entity, bool hierarchy, params string[] properties)
 	{
-		text ??= new StringBuilder();
+		var token = JObject.Parse(entity.Serialize());
+		token
+			.DescendantsAndSelf()
+			.OfType<JObject>()
+			.Where(o => o.Value<string>("$type")?.Contains("Entity") ?? false)
+			.ToList()
+			.ForEach(e => SetProperties(e, hierarchy, entity.GlobalName, properties));
+		return token;
+	}
 
-		var name = (entity.IsRoot) ? entity.GlobalName : $"Child {entity.ParentIndex + 1}";
-		text.AppendLine($"{indent}{name}");
-		text.AppendLine($"{indent}  {nameof(entity.GlobalName)}       = {entity.GlobalName}");
-		text.AppendLine($"{indent}  {nameof(entity.LocalName)}        = {entity.LocalName}");
-		text.AppendLine($"{indent}  {nameof(entity.IsAutoDisposable)} = {entity.IsAutoDisposable}");
-		text.AppendLine($"{indent}  {nameof(entity.Sleeping)}         = {entity.Sleeping}");
-		text.AppendLine($"{indent}  {nameof(entity.SelfSleeping)}     = {entity.SelfSleeping}");
+	private static void SetProperties(JObject entity, bool hierarchy, string globalName, params string[] properties)
+	{
+		SetTypeProperty(entity);
+		SetChildrenProperty(entity, hierarchy, globalName);
+		SetComponentProperties(entity);
+		SetEntityProperties(entity, properties);
+	}
 
-		text.AppendLine($"{indent}  {nameof(Components)} ({entity.Components.Count})");
-		if(addComponents)
+	private static void SetChildrenProperty(JObject entity, bool hierarchy, string globalName)
+	{
+		if(!hierarchy && entity.Value<string>("GlobalName") != globalName)
+			entity.Remove("Children");
+	}
+
+	private static void SetComponentProperties(JObject entity)
+	{
+		var components = entity.Value<JObject>("Components");
+		components.Remove("$type");
+		components.Remove("$id");
+
+		foreach(var component in components.Properties().ToList())
 		{
-			int index = 0;
-			foreach(var component in entity.Components.Values)
-				component.ToInfoString(addEntities, ++index, $"{indent}    ", text);
+			if(component.Name.Contains("Component"))
+			{
+				SetTypeProperty(components[component.Name].Value<JObject>());
+				component.Replace(new JProperty(SetTypeProperty(component.Name), component.Value));
+			}
 		}
+	}
 
-		text.AppendLine($"{indent}  {nameof(entity.Children)}   ({entity.Children.Count})");
-		if(depth-- != 0)
-		{
-			foreach(var child in entity.Children)
-				child.ToInfoString(depth, addComponents, addEntities, $"{indent}    ", text);
-		}
-		return text.ToString();
+	private static void SetTypeProperty(JObject token)
+	{
+		var key = "$type";
+		if(token.ContainsKey(key))
+			token[key] = SetTypeProperty(token.Value<string>(key));
+	}
+
+	private static string SetTypeProperty(string type)
+	{
+		type = type.Substring(0, type.IndexOf(','));
+		return type.Substring(type.LastIndexOf('.') + 1);
+	}
+
+	private static void SetEntityProperties(JObject entity, params string[] properties)
+	{
+		entity.Remove("$id");
+
+		entity
+			.Properties()
+			.Where(p => p.Name != "Children")
+			.Where(p => properties.Any() && !properties.Any(p.Name.Contains))
+			.ToList()
+			.ForEach(p => p.Remove());
 	}
 }

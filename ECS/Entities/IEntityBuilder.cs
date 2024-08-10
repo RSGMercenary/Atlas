@@ -28,15 +28,15 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IM
 
 	#region Key, Value
 	IEntityBuilder AddComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey, new();
 
 	IEntityBuilder AddComponent<TKey, TValue>(TValue component)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	IEntityBuilder AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 	#endregion
 
@@ -63,7 +63,7 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IM
 
 	#region Remove
 	IEntityBuilder RemoveComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey;
 
 	IEntityBuilder RemoveComponent<TKeyValue>()

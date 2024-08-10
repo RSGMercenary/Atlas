@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Atlas.Core.Extensions;
@@ -15,6 +16,18 @@ public static class ReflectionExtensions
 		foreach(var field in FindFields(type.BaseType, flags))
 			yield return field;
 	}
+
+	public static IEnumerable<FieldInfo> FindFields<T>(this Type type, BindingFlags flags)
+	{
+		return FindFields(type, typeof(T), flags);
+	}
+
+	public static IEnumerable<FieldInfo> FindFields(this Type type, Type targetType, BindingFlags flags)
+	{
+		return FindFields(type, flags).Where(f => f.FieldType.IsAssignableTo(targetType));
+	}
+
+	public static FieldInfo FindField<T>(this Type type, BindingFlags flags) => FindFields<T>(type, flags).SingleOrDefault();
 
 	public static FieldInfo FindField(this Type type, string name, BindingFlags flags)
 	{

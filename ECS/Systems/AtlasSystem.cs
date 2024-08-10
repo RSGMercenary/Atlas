@@ -7,6 +7,8 @@ namespace Atlas.ECS.Systems;
 
 public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 {
+	private static bool HasSystem(IEngine engine, ISystem system) => engine.HasSystem(system);
+
 	#region Fields
 	private readonly EngineItem<ISystem> EngineItem;
 	private readonly Sleep<ISystem> Sleep;
@@ -21,11 +23,11 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	#region Construct / Dispose
 	protected AtlasSystem()
 	{
-		EngineItem = new(this, (engine, system) => engine.HasSystem(system));
+		EngineItem = new(this, HasSystem, EngineChanged);
 		Sleep = new(this);
 	}
 
-	public sealed override void Dispose()
+	public override void Dispose()
 	{
 		//Can't dispose System mid-update.
 		if(Engine != null || updateState != TimeStep.None)
@@ -52,6 +54,21 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 		set => EngineItem.Engine = value;
 	}
 
+	private void EngineChanged(IEngine current, IEngine previous)
+	{
+		if(current != null)
+		{
+			AddingEngine(current);
+			SyncTotalIntervalTime();
+		}
+		else if(previous != null)
+		{
+			RemovingEngine(previous);
+			TotalIntervalTime = 0;
+			Dispose();
+		}
+	}
+
 	protected abstract void AddingEngine(IEngine engine);
 
 	protected abstract void RemovingEngine(IEngine engine);
@@ -62,7 +79,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
 		if(IsSleeping)
 			return;
-		if(Engine?.UpdateSystem != this)
+		if(Engine != null && Engine.UpdateSystem != this)
 			return;
 
 		deltaTime = GetDeltaTime(deltaTime);
@@ -98,7 +115,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	public TimeStep UpdateState
 	{
 		get => updateState;
-		private set
+		protected set
 		{
 			if(updateState == value)
 				return;
@@ -178,9 +195,9 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 		TotalIntervalTime = totalIntervalTime;
 	}
 
-	private double GetEngineTime()
+	private double? GetEngineTime()
 	{
-		return timeStep == TimeStep.Variable ? Engine.TotalVariableTime : Engine.TotalFixedTime;
+		return timeStep == TimeStep.Variable ? Engine?.TotalVariableTime : Engine?.TotalFixedTime;
 	}
 	#endregion
 
@@ -196,27 +213,6 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 			priority = value;
 			Message<IPriorityMessage>(new PriorityMessage(value, previous));
 		}
-	}
-	#endregion
-
-	#region Messages
-	protected override void Messaging(IMessage<ISystem> message)
-	{
-		if(message is IEngineMessage<ISystem> engineMessage)
-		{
-			if(engineMessage.CurrentValue != null)
-			{
-				AddingEngine(engineMessage.CurrentValue);
-				SyncTotalIntervalTime();
-			}
-			else
-			{
-				RemovingEngine(engineMessage.PreviousValue);
-				TotalIntervalTime = 0;
-				Dispose();
-			}
-		}
-		base.Messaging(message);
 	}
 	#endregion
 }

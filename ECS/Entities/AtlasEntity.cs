@@ -1,32 +1,34 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
-using Atlas.Core.Collections.Pool;
 using Atlas.Core.Extensions;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.ECS.Entities;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 {
-	#region Static
+	#region Names
 	public static readonly string RootName = "Root";
-	public static string UniqueName => $"Entity {Guid.NewGuid().ToString("N")}";
+	public static string UniqueName => Guid.NewGuid().ToString("N");
+	#endregion
+
+	public static Func<AtlasEntity> Construct { get; set; }
+	public static Action<AtlasEntity> Disposed { get; set; }
 
 	#region Pool
-	private static readonly Pool<AtlasEntity> pool = new(() => new());
+	public static AtlasEntity Get() => Construct?.Invoke() ?? new AtlasEntity();
 
-	public static IReadOnlyPool<AtlasEntity> GetPool() => pool;
+	public static AtlasEntity Get(string localName) => Get(null, localName);
 
-	public static AtlasEntity Get() => pool.Get();
-
-	public static AtlasEntity Get(string globalName) => Get(globalName, globalName);
-
-	public static AtlasEntity Get(string globalName, string localName)
+	public static AtlasEntity Get(string globalName = null, string localName = null)
 	{
 		var entity = Get();
 		entity.GlobalName = globalName;
@@ -34,15 +36,12 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		return entity;
 	}
 
-	public static AtlasEntity GetRoot()
+	public static AtlasEntity Get(bool isRoot)
 	{
 		var entity = Get();
-		entity.IsRoot = true;
+		entity.IsRoot = isRoot;
 		return entity;
 	}
-
-	private static void Release(AtlasEntity entity) => pool.Release(entity);
-	#endregion
 	#endregion
 
 	#region Fields
@@ -53,16 +52,25 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	private readonly Sleep<IEntity> Sleep;
 	private readonly AutoDispose<IEntity> AutoDispose;
 	private readonly Dictionary<Type, IComponent> components = new();
-
 	#endregion
 
 	#region Construct / Dispose
-	private AtlasEntity()
+	public AtlasEntity()
 	{
 		EngineItem = new(this, (engine, entity) => engine.HasEntity(entity));
 		Sleep = new(this);
 		AutoDispose = new(this, () => Parent == null);
 	}
+
+	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
+
+	public AtlasEntity(string globalName = null, string localName = null) : this()
+	{
+		GlobalName = globalName;
+		LocalName = localName;
+	}
+
+	public AtlasEntity(string localName) : this(null, localName) { }
 
 	protected override void Disposing()
 	{
@@ -77,13 +85,14 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		SelfSleeping = 0;
 		RemoveListeners();
 
-		AtlasEntity.Release(this);
+		Disposed?.Invoke(this);
 		//base.Disposing();
 		//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 	}
 	#endregion
 
 	#region Names
+	[JsonProperty(Order = int.MinValue + 2)]
 	public string GlobalName
 	{
 		get => globalName;
@@ -97,6 +106,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		}
 	}
 
+	[JsonProperty(Order = int.MinValue + 3)]
 	public string LocalName
 	{
 		get => localName;
@@ -112,8 +122,11 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	private bool IsValidName(string current, ref string next, Func<string, bool> check)
 	{
-		if((next == RootName && !IsRoot) || (next != RootName && IsRoot))
-			throw new ArgumentException($"Can't set the name of an {nameof(IEntity)} to '{RootName}'.");
+		if(next == RootName && !IsRoot)
+			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{current}' to '{RootName}'.");
+		if(next != RootName && IsRoot)
+			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{RootName}' to '{next}'.");
+
 		if(string.IsNullOrWhiteSpace(next))
 			next = UniqueName;
 		else
@@ -140,14 +153,14 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#region Components
 	#region Has
 	public bool HasComponent<TKey>()
-		where TKey : IComponent => HasComponent(typeof(TKey));
+		where TKey : class, IComponent => HasComponent(typeof(TKey));
 
 	public bool HasComponent(Type type) => components.ContainsKey(type);
 	#endregion
 
 	#region Get
 	public TValue GetComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey => (TValue)GetComponent(typeof(TKey));
 
 	public TKeyValue GetComponent<TKeyValue>()
@@ -158,17 +171,20 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	public IComponent GetComponent(Type type) => components.ContainsKey(type) ? components[type] : null;
 
-	public Type GetComponentType(IComponent component)
-	{
-		foreach(var type in components.Keys)
-		{
-			if(components[type] == component)
-				return type;
-		}
-		return null;
-	}
+	public Type GetComponentType(IComponent component) => components.Keys.FirstOrDefault(type => components[type] == component);
 
 	public IReadOnlyDictionary<Type, IComponent> Components => components;
+
+	[JsonProperty(PropertyName = nameof(Components), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue - 1)]
+	private IDictionary<Type, IComponent> JsonPropertyComponents
+	{
+		get => components;
+		set
+		{
+			foreach(var pair in value)
+				AddComponent(pair.Value, pair.Key);
+		}
+	}
 
 	public TKeyValue GetAncestorComponent<TKeyValue>(int depth = -1, bool self = false)
 		where TKeyValue : class, IComponent
@@ -215,15 +231,15 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	#region Key, Value
 	public TValue AddComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey, new() => AddComponent<TValue>(typeof(TKey));
 
 	public TValue AddComponent<TKey, TValue>(TValue component)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey => AddComponent(component, typeof(TKey));
 
 	public TValue AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey => AddComponent(component, typeof(TKey), index);
 	#endregion
 
@@ -273,7 +289,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	#region Remove
 	public TValue RemoveComponent<TKey, TValue>()
-		where TKey : IComponent
+		where TKey : class, IComponent
 		where TValue : class, TKey => (TValue)RemoveComponent(typeof(TKey));
 
 	public TKeyValue RemoveComponent<TKeyValue>()
@@ -296,9 +312,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	{
 		if(components.Count <= 0)
 			return false;
-		//Can't Remove() from a Dictionary while iterating its Keys.
-		foreach(var type in new List<Type>(components.Keys))
-			RemoveComponent(type);
+		components.Keys.ToList().ForEach(type => RemoveComponent(type));
 		return true;
 	}
 	#endregion
@@ -306,13 +320,13 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	#region Hierarchy
 	#region Add
-	public IEntity AddChild(string globalName, string localName) => AddChild(Get(globalName, localName), Children.Count);
+	public IEntity AddChild(string globalName, string localName) => AddChild(Get(globalName, localName));
 
 	public IEntity AddChild(string globalName, string localName, int index) => AddChild(Get(globalName, localName), index);
 
-	public IEntity AddChild(string globalName) => AddChild(Get(globalName), Children.Count);
+	public IEntity AddChild(string localName) => AddChild(Get(localName));
 
-	public IEntity AddChild(string globalName, int index) => AddChild(Get(globalName), index);
+	public IEntity AddChild(string localName, int index) => AddChild(Get(localName), index);
 	#endregion
 
 	#region Remove
@@ -320,21 +334,12 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#endregion
 
 	#region Get
-	public IEntity GetChild(string localName)
-	{
-		foreach(var child in Children)
-		{
-			if(child.LocalName == localName)
-				return child;
-		}
-		return null;
-	}
+	public IEntity GetChild(string localName) => Children.FirstOrDefault(child => child.LocalName == localName);
 
 	public IEntity GetRelative(string hierarchy)
 	{
-		string[] localNames = hierarchy.Split('/');
 		IEntity entity = this;
-		foreach(var localName in localNames)
+		foreach(var localName in hierarchy.Split('/'))
 		{
 			if(string.IsNullOrWhiteSpace(localName))
 				continue;
@@ -409,6 +414,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	}
 	#endregion
 
+	[JsonProperty(Order = int.MinValue + 1)]
 	#region AutoDispose
 	public bool IsAutoDisposable
 	{

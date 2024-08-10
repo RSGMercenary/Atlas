@@ -1,16 +1,17 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Hierarchy;
-using Atlas.Core.Loggers;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine;
 
+[JsonObject]
 public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 {
 	#region Fields
@@ -81,7 +82,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		if(entitiesGlobalName.ContainsKey(entity.GlobalName))
 			entity.GlobalName = AtlasEntity.UniqueName;
 
-		entitiesGlobalName.Add(entity.GlobalName, entity);
+		entitiesGlobalName[entity.GlobalName] = entity;
 		entities.Add(entity);
 		entity.Engine = this;
 
@@ -116,6 +117,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Get
+	[JsonIgnore]
 	public IReadOnlyGroup<IEntity> Entities => entities;
 
 	public IEntity GetEntity(string globalName)
@@ -148,8 +150,13 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	private void EntityGlobalNameChanged(IGlobalNameMessage message)
 	{
-		entitiesGlobalName.Remove(message.PreviousValue);
-		entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
+		if(entitiesGlobalName.ContainsKey(message.PreviousValue) &&
+			entitiesGlobalName[message.PreviousValue] == message.Messenger)
+		{
+			entitiesGlobalName.Remove(message.PreviousValue);
+			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
+		}
+
 	}
 	#endregion
 	#endregion
@@ -201,6 +208,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Get
+	[JsonIgnore]
 	public IReadOnlyGroup<IReadOnlyFamily> Families => families;
 
 	public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
@@ -245,7 +253,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Add/Remove
-	public TSystem AddSystem<TSystem>() where TSystem : class, ISystem, new() => AddSystem(typeof(TSystem)) as TSystem;
+	public TSystem AddSystem<TSystem>() where TSystem : class, ISystem => AddSystem(typeof(TSystem)) as TSystem;
 
 	public ISystem AddSystem(Type type)
 	{
@@ -266,14 +274,14 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		return systemsType[type];
 	}
 
-	public void RemoveSystem<TSystem>() where TSystem : class, ISystem, new() => RemoveSystem(typeof(TSystem));
+	public bool RemoveSystem<TSystem>() where TSystem : class, ISystem => RemoveSystem(typeof(TSystem));
 
-	public void RemoveSystem(Type type)
+	public bool RemoveSystem(Type type)
 	{
 		if(!systemsReference.ContainsKey(type))
-			return;
+			return false;
 		if(--systemsReference[type] > 0)
-			return;
+			return false;
 		var system = systemsType[type];
 		system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 		systems.Remove(system);
@@ -281,10 +289,12 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		systemsReference.Remove(type);
 		system.Engine = null;
 		Message<ISystemRemoveMessage>(new SystemRemoveMessage(type, system));
+		return true;
 	}
 	#endregion
 
 	#region Get
+	[JsonIgnore]
 	public IReadOnlyGroup<ISystem> Systems => systems;
 
 	public TISystem GetSystem<TISystem>() where TISystem : ISystem => (TISystem)GetSystem(typeof(TISystem));
@@ -337,6 +347,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		}
 	}
 
+	[JsonIgnore]
 	public float DeltaVariableTime
 	{
 		get => deltaVariableTime;
@@ -350,6 +361,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		}
 	}
 
+	[JsonIgnore]
 	public float TotalVariableTime
 	{
 		get => totalVariableTime;
@@ -372,6 +384,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		}
 	}
 
+	[JsonIgnore]
 	public float TotalFixedTime
 	{
 		get => totalFixedTime;
@@ -385,24 +398,28 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region State
+	[JsonIgnore]
 	public int FixedLag
 	{
 		get => fixedLag;
 		private set => fixedLag = value;
 	}
 
+	[JsonIgnore]
 	public int FixedUpdates
 	{
 		get => fixedUpdates;
 		private set => fixedUpdates = value;
 	}
 
+	[JsonIgnore]
 	public float VariableInterpolation
 	{
 		get => variableInterpolation;
 		private set => variableInterpolation = value;
 	}
 
+	[JsonIgnore]
 	public TimeStep UpdateState
 	{
 		get => updateState;
@@ -416,6 +433,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		}
 	}
 
+	[JsonIgnore]
 	public ISystem UpdateSystem
 	{
 		get => updateSystem;
@@ -433,41 +451,35 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#region Fixed/Variable Update Loop
 	public void Update(float deltaTime)
 	{
-		try
+		UpdateLock.Lock();
+
+		//Variable-time cap and set.
+		DeltaVariableTime = deltaTime;
+		//Fixed-time cache to avoid modification during update.
+		var deltaFixedTime = DeltaFixedTime;
+
+		//Fixed-time updates
+		CalculateFixedUpdates(deltaFixedTime);
+		CalculateFixedLag();
+		while(FixedUpdates > 0)
 		{
-			UpdateLock.Lock();
-
-			//Variable-time cap and set.
-			DeltaVariableTime = deltaTime;
-			//Fixed-time cache to avoid modification during update.
-			var deltaFixedTime = DeltaFixedTime;
-
-			//Fixed-time updates
-			CalculateFixedUpdates(deltaFixedTime);
-			CalculateFixedLag();
-			while(FixedUpdates > 0)
-			{
-				FixedUpdates--;
-				TotalFixedTime += deltaFixedTime;
-				UpdateSystems(TimeStep.Fixed, deltaFixedTime);
-			}
-
-			//Variable-time updates
-			TotalVariableTime += deltaVariableTime;
-			CalculateVariableInterpolation(deltaFixedTime);
-			UpdateSystems(TimeStep.Variable, deltaVariableTime);
-
-			UpdateLock.Unlock();
+			FixedUpdates--;
+			TotalFixedTime += deltaFixedTime;
+			UpdateSystems(TimeStep.Fixed, deltaFixedTime);
 		}
-		catch(Exception e)
-		{
-			Log.Exception(e);
-			throw;
-		}
+
+		//Variable-time updates
+		TotalVariableTime += deltaVariableTime;
+		CalculateVariableInterpolation(deltaFixedTime);
+		UpdateSystems(TimeStep.Variable, deltaVariableTime);
+
+		UpdateLock.Unlock();
 	}
 
 	private void CalculateFixedUpdates(float deltaFixedTime)
 	{
+		if(deltaVariableTime <= 0)
+			return;
 		var fixedUpdates = 0;
 		var totalFixedTime = TotalFixedTime;
 		while(totalFixedTime + deltaFixedTime <= totalVariableTime + deltaVariableTime)
@@ -489,7 +501,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	private void CalculateVariableInterpolation(float deltaFixedTime)
 	{
-		VariableInterpolation = (TotalVariableTime - TotalFixedTime) / deltaFixedTime;
+		VariableInterpolation = deltaFixedTime > 0 ? (TotalVariableTime - TotalFixedTime) / deltaFixedTime : 0;
 	}
 
 	private void UpdateSystems(TimeStep timeStep, float deltaTime)
