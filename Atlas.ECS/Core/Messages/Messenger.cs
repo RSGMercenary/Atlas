@@ -1,4 +1,5 @@
-﻿using Atlas.Signals;
+﻿using Atlas.Signals.Signals;
+using Atlas.Signals.Slots;
 using System;
 using System.Collections.Generic;
 

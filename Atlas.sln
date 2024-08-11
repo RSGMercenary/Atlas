@@ -5,9 +5,9 @@ VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Atlas.ECS", "Atlas.ECS.csproj", "{5B14375C-C285-4AE3-871C-1BE7D1F63EFE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Atlas.Signals", "..\Atlas.Signals\Atlas.Signals.csproj", "{89072CC7-5504-4EA5-BEE4-0A04B4B0AA31}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Atlas.Signals", "Atlas.Signals.csproj", "{89072CC7-5504-4EA5-BEE4-0A04B4B0AA31}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Tests", "..\Atlas.Tests\Atlas.Tests.csproj", "{78F284D5-5C6B-44F6-AD0A-7AD27A58217A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Tests", "Atlas.Tests.csproj", "{78F284D5-5C6B-44F6-AD0A-7AD27A58217A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5B14375C-C285-4AE3-871C-1BE7D1F63EFE} = {5B14375C-C285-4AE3-871C-1BE7D1F63EFE}
 	EndProjectSection

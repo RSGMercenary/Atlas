@@ -1,6 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
-using Atlas.Signals;
+using Atlas.Signals.Signals;
 using Newtonsoft.Json;
 using System;
 using System.Collections;

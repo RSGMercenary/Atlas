@@ -74,20 +74,16 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	protected override void Disposing()
 	{
-		RemoveChildren();
-		Parent = null;
-		IsRoot = false;
 		RemoveComponents();
 		GlobalName = UniqueName;
 		LocalName = UniqueName;
 		IsAutoDisposable = true;
 		Sleeping = 0;
 		SelfSleeping = 0;
-		RemoveListeners();
+
+		base.Disposing();
 
 		Disposed?.Invoke(this);
-		//base.Disposing();
-		//Since we're cleaning up our base Hierarchy here, I don't think we need to call disposing?
 	}
 	#endregion
 
