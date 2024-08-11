@@ -12,9 +12,9 @@
 	<PackageProjectUrl>https://github.com/RSGMercenary/Atlas.ECS</PackageProjectUrl>
 	<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
 	<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
-	<ApplicationIcon>Icon.ico</ApplicationIcon>
 	<Copyright>Copyright 2019 RSG Mercenary</Copyright>
 	<PackageLicenseFile>LICENSE</PackageLicenseFile>
+	<ApplicationIcon>Icon.ico</ApplicationIcon>
 	<PackageIcon>Icon.png</PackageIcon>
 	<AssemblyName>Atlas.ECS</AssemblyName>
 	<Version>1.0.1</Version>
@@ -26,13 +26,13 @@
 	<Content Include="Icon.ico" />
   </ItemGroup>
 
-  <ItemGroup>
-	<None Include="..\LICENSE">
-	  <Pack>True</Pack>
-	  <PackagePath></PackagePath>
-	</None>
-	  <None Include="Icon.png" Pack="true" PackagePath="\" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+		<None Include="..\Icon.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
 
   <ItemGroup>
 	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
