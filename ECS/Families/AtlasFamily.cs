@@ -20,8 +20,6 @@ namespace Atlas.ECS.Families;
 public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>, ISerialize
 		where TFamilyMember : class, IFamilyMember, new()
 {
-	private static bool HasFamily(IEngine engine, IReadOnlyFamily<TFamilyMember> family) => engine.HasFamily(family);
-
 	#region Fields
 	private readonly EngineItem<IReadOnlyFamily<TFamilyMember>> EngineItem;
 
@@ -42,7 +40,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	#region Compose / Dispose
 	public AtlasFamily()
 	{
-		EngineItem = new(this, HasFamily, EngineChanged);
+		EngineItem = new(this, EngineChanged);
 
 		var type = typeof(TFamilyMember);
 		var flags = BindingFlags.NonPublic | BindingFlags.Instance;

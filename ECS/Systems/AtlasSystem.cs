@@ -10,8 +10,6 @@ namespace Atlas.ECS.Systems;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 {
-	private static bool HasSystem(IEngine engine, ISystem system) => engine.HasSystem(system);
-
 	#region Fields
 	private readonly EngineItem<ISystem> EngineItem;
 	private readonly Sleep<ISystem> Sleep;
@@ -26,7 +24,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	#region Construct / Dispose
 	protected AtlasSystem()
 	{
-		EngineItem = new(this, HasSystem, EngineChanged);
+		EngineItem = new(this, EngineChanged);
 		Sleep = new(this);
 	}
 

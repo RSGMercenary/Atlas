@@ -58,7 +58,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#region Construct / Dispose
 	public AtlasEntity()
 	{
-		EngineItem = new(this, (engine, entity) => engine.HasEntity(entity));
+		EngineItem = new(this);
 		Sleep = new(this);
 		AutoDispose = new(this, () => Parent == null);
 	}
