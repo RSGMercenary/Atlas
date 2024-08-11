@@ -5,7 +5,7 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
-using Atlas.ECS.Serialize;
+using Atlas.ECS.Serialization;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

@@ -2,7 +2,7 @@
 using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
-using Atlas.ECS.Serialize;
+using Atlas.ECS.Serialization;
 using Newtonsoft.Json;
 
 namespace Atlas.ECS.Systems;
