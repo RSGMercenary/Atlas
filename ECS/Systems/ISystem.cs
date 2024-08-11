@@ -2,10 +2,11 @@
 using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Serialization;
 
 namespace Atlas.ECS.Systems;
 
-public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineItem, ISleep, IUpdateState
+public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineItem, ISleep, IUpdateState, ISerialize
 {
 	/// <summary>
 	/// Automatically called on Systems removed from the Engine.

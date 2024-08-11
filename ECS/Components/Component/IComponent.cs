@@ -2,11 +2,12 @@
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Serialization;
 using System;
 
 namespace Atlas.ECS.Components.Component;
 
-public interface IComponent : IMessenger, IAutoDispose
+public interface IComponent : IMessenger, IAutoDispose, ISerialize
 {
 	/// <summary>
 	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.

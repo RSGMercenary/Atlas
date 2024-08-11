@@ -1,12 +1,18 @@
 ﻿using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Families;
+using Newtonsoft.Json;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Systems;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
+	[JsonProperty(Order = int.MaxValue)]
 	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
+	[JsonProperty]
 	public bool UpdateSleepingEntities { get; protected set; } = false;
 
 	protected override void SystemUpdate(float deltaTime)
@@ -47,4 +53,8 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message) => MemberAdded(message.Messenger, message.Value);
 
 	private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message) => MemberRemoved(message.Messenger, message.Value);
+
+	public IEnumerator<TFamilyMember> GetEnumerator() => Family.GetEnumerator();
+
+	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

@@ -3,12 +3,13 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Serialization;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispose, ISleep
+public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispose, ISleep, ISerialize
 {
 	#region Entities
 	/// <summary>

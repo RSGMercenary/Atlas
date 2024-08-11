@@ -3,6 +3,8 @@ using Atlas.Core.Collections.Pool;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Serialization;
+using Atlas.ECS.Serialize;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -65,7 +67,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 }
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerable<IEntity>
+public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerable<IEntity>, ISerialize
 	where T : class, IComponent<T>
 {
 	#region Fields
@@ -115,7 +117,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	[JsonIgnore]
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
-	[JsonIgnore]
+	[JsonProperty]
 	public IReadOnlyGroup<IEntity> Managers => managers;
 
 	public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
@@ -251,4 +253,6 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	}
 	#endregion
 	#endregion
+
+	public string Serialize(Formatting formatting = Formatting.None) => AtlasSerializer.Serialize(this, formatting);
 }

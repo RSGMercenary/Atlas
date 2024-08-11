@@ -2,9 +2,12 @@
 using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Serialize;
+using Newtonsoft.Json;
 
 namespace Atlas.ECS.Systems;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 {
 	private static bool HasSystem(IEngine engine, ISystem system) => engine.HasSystem(system);
@@ -215,4 +218,6 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 		}
 	}
 	#endregion
+
+	public string Serialize(Formatting formatting) => AtlasSerializer.Serialize(this, formatting);
 }

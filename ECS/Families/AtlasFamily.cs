@@ -7,6 +7,8 @@ using Atlas.Core.Utilites;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Serialization;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -14,7 +16,8 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families;
 
-public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
+[JsonArray]
+public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>, ISerialize
 		where TFamilyMember : class, IFamilyMember, new()
 {
 	private static bool HasFamily(IEngine engine, IReadOnlyFamily<TFamilyMember> family) => engine.HasFamily(family);
@@ -80,6 +83,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members => Members;
 
+	[JsonProperty]
 	public IReadOnlyGroup<TFamilyMember> Members => members;
 
 	IFamilyMember IReadOnlyFamily.GetMember(IEntity entity) => GetMember(entity);
@@ -190,4 +194,6 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
 	}
 	#endregion
+
+	public string Serialize(Formatting formatting = Formatting.None) => AtlasSerializer.Serialize(this, formatting);
 }

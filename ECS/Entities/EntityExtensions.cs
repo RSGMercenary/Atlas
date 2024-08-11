@@ -1,6 +1,4 @@
-﻿using Atlas.ECS.Serialize;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.Linq;
 
 namespace Atlas.ECS.Entities;
@@ -12,16 +10,7 @@ public static class EntityExtensions
 		return new AtlasEntityBuilder(entity);
 	}
 
-	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.Indented, int maxDepth = -1)
-	{
-		return AtlasSerializer.Serialize(entity, formatting, maxDepth);
-	}
-
-	public static bool EntityEquals(this IEntity entity, IEntity other)
-	{
-		return false;
-		return entity.Serialize() == other.Serialize();
-	}
+	public static bool IsEqual(this IEntity entity, IEntity other) => entity.Serialize() == other.Serialize();
 
 	/// <summary>
 	/// For visualization ONLY. This is not for (de)serializing! Use Serialize() instead.
