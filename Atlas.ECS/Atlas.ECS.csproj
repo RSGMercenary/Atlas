@@ -1,32 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFramework>net7.0</TargetFramework>
-	<LangVersion>latest</LangVersion>
-	<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	<Authors>RSG Mercenary</Authors>
-	<Company>RSG Mercenary</Company>
-	<Product>Atlas ECS</Product>
-	<Title>Atlas ECS</Title>
-	<Description>Hierarchy-Based Entity Component System (ECS) Framework</Description>
-	<PackageProjectUrl>https://github.com/RSGMercenary/Atlas.ECS</PackageProjectUrl>
-	<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
-	<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
-	<Copyright>Copyright 2019 RSG Mercenary</Copyright>
-	<PackageLicenseFile>LICENSE</PackageLicenseFile>
-	<ApplicationIcon>Icon.ico</ApplicationIcon>
-	<PackageIcon>Icon.png</PackageIcon>
-	<AssemblyName>Atlas.ECS</AssemblyName>
-	<Version>1.0.1</Version>
-	<RootNamespace>Atlas</RootNamespace>
-	<OutputType>Library</OutputType>
-  </PropertyGroup>
-
-  <ItemGroup>
-	<Content Include="..\Icon.ico" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Authors>RSG Mercenary</Authors>
+		<Company>RSG Mercenary</Company>
+		<Product>Atlas ECS</Product>
+		<Title>Atlas ECS</Title>
+		<Description>Hierarchy-Based Entity Component System (ECS) Framework</Description>
+		<PackageProjectUrl>https://github.com/RSGMercenary/Atlas.ECS</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
+		<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
+		<Copyright>Copyright 2019 RSG Mercenary</Copyright>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageIcon>Icon.png</PackageIcon>
+		<AssemblyName>Atlas.ECS</AssemblyName>
+		<Version>1.0.1</Version>
+		<RootNamespace>Atlas</RootNamespace>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Include="Icon.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md" />
 		<None Include="..\LICENSE">
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
@@ -34,11 +33,11 @@
 		<None Include="..\Icon.png" Pack="true" PackagePath="\" />
 	</ItemGroup>
 
-  <ItemGroup>
-	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
 
-  <ItemGroup>
-	<ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Atlas.Signals\Atlas.Signals.csproj" />
+	</ItemGroup>
 </Project>

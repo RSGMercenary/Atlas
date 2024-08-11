@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	<TargetFramework>net7.0</TargetFramework>
-	<ImplicitUsings>enable</ImplicitUsings>
-	<Nullable>disable</Nullable>
-	<OutputType>Exe</OutputType>
-	<GenerateProgramFile>false</GenerateProgramFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>disable</Nullable>
+		<OutputType>Exe</OutputType>
+		<GenerateProgramFile>false</GenerateProgramFile>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="LineCounter.cs" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="LineCounter.cs" />
+	</ItemGroup>
 
-  <ItemGroup>
-	<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-	<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-	<PackageReference Include="NUnit" Version="4.1.0" />
-	<PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="NUnit" Version="4.1.0" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Atlas.ECS\Atlas.ECS.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Atlas.ECS\Atlas.ECS.csproj" />
+	</ItemGroup>
 
 </Project>

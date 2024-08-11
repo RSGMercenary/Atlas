@@ -6,7 +6,7 @@
 [*] 
 indent_style = tab 
 # Code files 
-[*.{cs,csx,vb,vbx}] 
+[*.{cs,csx,vb,vbx,csproj}] 
 indent_size = 4 
 insert_final_newline = false 
 charset = utf-8-bom 
