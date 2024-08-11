@@ -1,30 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Utilites;
-
-public enum Sort
-{
-	Bubble,
-	Heap,
-	Insertion,
-	Merge,
-	Quick,
-	Selection
-}
+namespace Atlas.ECS.Families;
 
 /// <summary>
 /// Sorting algorithms found at http://www.codecodex.com/wiki.
 /// </summary>
-public static class Sorter
+public static class AtlasFamilySorter
 {
 	#region Bubble
 
 	public static void Bubble<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		for(int i = list.Count - 1; i > 0; i--)
+		for(var i = list.Count - 1; i > 0; i--)
 		{
-			for(int j = 0; j < i; j++)
+			for(var j = 0; j < i; j++)
 			{
 				if(compare(list[j], list[j + 1]) > 0)
 					Swap(list, j, j + 1);
@@ -38,14 +28,14 @@ public static class Sorter
 
 	public static void Insertion<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		int count = list.Count;
-		for(int i = 1; i < count; ++i)
+		var count = list.Count;
+		for(var i = 1; i < count; ++i)
 		{
-			int j = i - 1;
+			var j = i - 1;
 
 			var value = list[i];
 
-			while((j >= 0) && compare(list[j], value) > 0)
+			while(j >= 0 && compare(list[j], value) > 0)
 			{
 				list[j + 1] = list[j];
 				--j;
@@ -65,9 +55,9 @@ public static class Sorter
 
 	private static void Quick<T>(IList<T> list, int left, int right, Func<T, T, int> compare)
 	{
-		int leftHold = left;
-		int rightHold = right;
-		int pivot = new Random().Next(left, right);
+		var leftHold = left;
+		var rightHold = right;
+		var pivot = new Random().Next(left, right);
 		Swap(list, pivot, left);
 		pivot = left;
 		left++;
@@ -101,10 +91,10 @@ public static class Sorter
 
 	public static void Selection<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		for(int i = 0; i < list.Count - 1; i++)
+		for(var i = 0; i < list.Count - 1; i++)
 		{
-			int min = i;
-			for(int j = i + 1; j < list.Count; j++)
+			var min = i;
+			for(var j = i + 1; j < list.Count; j++)
 			{
 				if(compare(list[j], list[min]) < 0)
 					min = j;
@@ -119,12 +109,12 @@ public static class Sorter
 
 	public static void Heap<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		int count = list.Count;
+		var count = list.Count;
 
-		for(int index = count / 2 - 1; index >= 0; --index)
+		for(var index = count / 2 - 1; index >= 0; --index)
 			Heap(list, count, index, compare);
 
-		for(int index = count - 1; index >= 0; --index)
+		for(var index = count - 1; index >= 0; --index)
 		{
 			Swap(list, 0, index);
 			Heap(list, index, 0, compare);
@@ -133,9 +123,9 @@ public static class Sorter
 
 	private static void Heap<T>(IList<T> list, int count, int index, Func<T, T, int> compare)
 	{
-		int largest = index;
-		int left = 2 * index + 1;
-		int right = 2 * index + 2;
+		var largest = index;
+		var left = 2 * index + 1;
+		var right = 2 * index + 2;
 
 		if(left < count && compare(list[left], list[largest]) > 0)
 			largest = left;
@@ -157,7 +147,7 @@ public static class Sorter
 	public static void Merge<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		var copy = MergeCopy(list, compare);
-		for(int i = 0; i < list.Count; ++i)
+		for(var i = 0; i < list.Count; ++i)
 			list[i] = copy[i];
 	}
 
@@ -166,15 +156,15 @@ public static class Sorter
 		if(list.Count <= 1)
 			return list;
 
-		int mid = list.Count / 2;
+		var mid = list.Count / 2;
 
 		var left = new List<T>();
 		var right = new List<T>();
 
-		for(int i = 0; i < mid; i++)
+		for(var i = 0; i < mid; i++)
 			left.Add(list[i]);
 
-		for(int i = mid; i < list.Count; i++)
+		for(var i = mid; i < list.Count; i++)
 			right.Add(list[i]);
 
 		return Merge(MergeCopy(left, compare), MergeCopy(right, compare), compare);
@@ -196,10 +186,10 @@ public static class Sorter
 				left.RemoveAt(0);
 			}
 
-		for(int i = 0; i < left.Count; i++)
+		for(var i = 0; i < left.Count; i++)
 			list.Add(left[i]);
 
-		for(int i = 0; i < right.Count; i++)
+		for(var i = 0; i < right.Count; i++)
 			list.Add(right[i]);
 
 		return list;
@@ -213,19 +203,5 @@ public static class Sorter
 		var temp = list[index2];
 		list[index2] = list[index1];
 		list[index1] = temp;
-	}
-
-	public static Action<IList<T>, Func<T, T, int>> Get<T>(Sort type)
-	{
-		switch(type)
-		{
-			case Sort.Bubble: return Bubble;
-			case Sort.Heap: return Heap;
-			case Sort.Insertion: return Insertion;
-			case Sort.Merge: return Merge;
-			case Sort.Quick: return Quick;
-			case Sort.Selection: return Selection;
-			default: throw new NotImplementedException($"No sort implementation for {type.ToString()}.");
-		}
 	}
 }

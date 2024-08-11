@@ -3,7 +3,6 @@ using Atlas.Core.Collections.Pool;
 using Atlas.Core.Extensions;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.Update;
-using Atlas.Core.Utilites;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
@@ -187,9 +186,9 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		return member;
 	}
 
-	public void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare)
+	public void SortMembers(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare)
 	{
-		Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
+		sorter.Invoke(members, compare);
 	}
 	#endregion
 }

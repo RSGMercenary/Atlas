@@ -1,6 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Messages;
-using Atlas.Core.Utilites;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using System;
@@ -37,7 +36,7 @@ public interface IReadOnlyFamily<TFamilyMember> : IMessenger<IReadOnlyFamily<TFa
 
 	new TFamilyMember GetMember(IEntity entity);
 
-	void SortMembers(Sort sort, Func<TFamilyMember, TFamilyMember, int> compare);
+	void SortMembers(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare);
 }
 
 public interface IFamily<TFamilyMember> : IReadOnlyFamily<TFamilyMember>, IFamily
