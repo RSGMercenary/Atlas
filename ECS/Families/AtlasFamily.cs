@@ -192,6 +192,4 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		Sorter.Get<TFamilyMember>(sort).Invoke(members, compare);
 	}
 	#endregion
-
-	public string Serialize(Formatting formatting = Formatting.None) => AtlasSerializer.Serialize(this, formatting);
 }

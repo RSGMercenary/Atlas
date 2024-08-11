@@ -18,21 +18,19 @@ public static class AtlasSerializer
 		TypeNameHandling = TypeNameHandling.Objects,
 	};
 
-	public static string Serialize(IEntity value, Formatting formatting, int maxDepth)
+	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.None, int maxDepth = -1)
 	{
 		(Settings.ContractResolver as AtlasContractResolver).MaxDepth = maxDepth;
-		return Serialize(value, formatting);
+		return Serialize(entity, formatting);
 	}
 
-	public static string Serialize<T>(T value, Formatting formatting)
-		where T : ISerialize
+	public static string Serialize(this ISerialize value, Formatting formatting = Formatting.None)
 	{
 		(Settings.ContractResolver as AtlasContractResolver).Instance = value;
 		return JsonConvert.SerializeObject(value, formatting, Settings);
 	}
 
-	public static T Deserialize<T>(string json)
-		where T : ISerialize
+	public static T Deserialize<T>(string json) where T : ISerialize
 	{
 		return JsonConvert.DeserializeObject<T>(json, Settings);
 	}

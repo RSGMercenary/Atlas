@@ -5,7 +5,6 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
-using Atlas.ECS.Serialization;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -423,8 +422,6 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		set => AutoDispose.IsAutoDisposable = value;
 	}
 	#endregion
-
-	public string Serialize(Formatting formatting = Formatting.None) => AtlasSerializer.Serialize(this, formatting);
 
 	#region Messages
 	protected override void Messaging(IMessage<IEntity> message)

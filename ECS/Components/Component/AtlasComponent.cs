@@ -252,6 +252,4 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	}
 	#endregion
 	#endregion
-
-	public string Serialize(Formatting formatting = Formatting.None) => AtlasSerializer.Serialize(this, formatting);
 }

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Atlas.ECS.Serialization;
+using Newtonsoft.Json.Linq;
 using System.Linq;
 
 namespace Atlas.ECS.Entities;
