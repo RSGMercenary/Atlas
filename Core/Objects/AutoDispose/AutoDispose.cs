@@ -30,9 +30,13 @@ internal class AutoDispose<T> : IAutoDispose
 		}
 	}
 
-	public void TryAutoDispose()
+	public bool TryAutoDispose()
 	{
 		if(isAutoDisposable && Condition())
+		{
 			Instance.Dispose();
+			return true;
+		}
+		return false;
 	}
 }
