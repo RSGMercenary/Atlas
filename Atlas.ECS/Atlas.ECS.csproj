@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Content Include="Icon.ico" />
+	<Content Include="..\Icon.ico" />
   </ItemGroup>
 
 	<ItemGroup>
