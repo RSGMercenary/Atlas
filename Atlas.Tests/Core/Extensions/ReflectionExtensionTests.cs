@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Extensions;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
+using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;

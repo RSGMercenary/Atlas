@@ -1,5 +1,6 @@
 ﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
+using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Components.Components;
 using NUnit.Framework;
 

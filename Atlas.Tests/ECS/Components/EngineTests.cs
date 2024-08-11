@@ -3,6 +3,7 @@ using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
+using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
