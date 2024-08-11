@@ -21,7 +21,7 @@ public static class AtlasSerializer
 	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.None, int maxDepth = -1)
 	{
 		(Settings.ContractResolver as AtlasContractResolver).MaxDepth = maxDepth;
-		return Serialize(entity, formatting);
+		return Serialize(entity as ISerialize, formatting);
 	}
 
 	public static string Serialize(this ISerialize value, Formatting formatting = Formatting.None)
