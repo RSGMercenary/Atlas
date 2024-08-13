@@ -98,8 +98,8 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 
 	#endregion
 
-	[JsonProperty(Order = int.MinValue + 1)]
 	#region AutoDispose
+	[JsonProperty(Order = int.MinValue + 1)]
 	public bool IsAutoDisposable
 	{
 		get => AutoDispose.IsAutoDisposable;
