@@ -8,6 +8,7 @@ using Atlas.ECS.Components.Engine;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Atlas.ECS.Entities;
@@ -172,6 +173,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	public IReadOnlyDictionary<Type, IComponent> Components => components;
 
 	[JsonProperty(PropertyName = nameof(Components), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue - 1)]
+	[ExcludeFromCodeCoverage]
 	private IDictionary<Type, IComponent> JsonPropertyComponents
 	{
 		get => components;

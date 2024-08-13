@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Atlas.Core.Collections.Hierarchy;
 
@@ -312,6 +313,7 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	public IReadOnlyGroup<T> Children => children;
 
 	[JsonProperty(PropertyName = nameof(Children), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue)]
+	[ExcludeFromCodeCoverage]
 	private IEnumerable<T> JsonPropertyChildren
 	{
 		get => children;
