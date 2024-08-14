@@ -21,6 +21,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="Atlas.Tests" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Content Include="Icon.ico" />
 	</ItemGroup>
 
