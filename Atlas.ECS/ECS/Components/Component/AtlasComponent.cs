@@ -73,7 +73,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	private readonly Group<IEntity> managers = new();
 	private readonly AutoDispose<T> AutoDispose;
 	[JsonProperty(Order = int.MinValue)]
-	public bool IsShareable { get; init; } = false;
+	public bool IsShareable { get; internal set; } = false;
 	#endregion
 
 	#region Construct / Dispose
@@ -116,8 +116,19 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	[JsonIgnore]
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
-	[JsonProperty]
+	[JsonIgnore]
 	public IReadOnlyGroup<IEntity> Managers => managers;
+
+	[JsonProperty(PropertyName = nameof(Managers))]
+	private IEnumerable<IEntity> JsonPropertyManagers
+	{
+		get => Managers;
+		set
+		{
+			foreach(var manager in value)
+				AddManager(manager);
+		}
+	}
 
 	public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
 
