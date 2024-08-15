@@ -56,16 +56,16 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 
 	private void EngineChanged(IEngine current, IEngine previous)
 	{
-		if(current != null)
-		{
-			AddingEngine(current);
-			SyncTotalIntervalTime();
-		}
-		else if(previous != null)
+		if(previous != null)
 		{
 			RemovingEngine(previous);
 			TotalIntervalTime = 0;
 			Dispose();
+		}
+		if(current != null)
+		{
+			AddingEngine(current);
+			SyncTotalIntervalTime();
 		}
 	}
 
