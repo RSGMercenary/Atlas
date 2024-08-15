@@ -17,9 +17,20 @@ public class AtlasContractResolver : DefaultContractResolver
 	protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
 	{
 		var property = base.CreateProperty(member, memberSerialization);
+
+		if(property.DeclaringType.IsAssignableTo(typeof(IFamilyMember)))
+			property.PropertyName = GetFamilyMemberPropertyName(property.PropertyName);
+
 		var shouldSerialize = property.ShouldSerialize;
 		property.ShouldSerialize = value => ShouldSerialize(property, value, shouldSerialize);
 		return property;
+	}
+
+	private string GetFamilyMemberPropertyName(string name)
+	{
+		var index1 = name.IndexOf('<') + 1;
+		var index2 = name.IndexOf('>');
+		return name.Substring(index1, index2 - index1);
 	}
 
 	private bool ShouldSerialize(JsonProperty property, object value, Predicate<object> shouldSerialize)

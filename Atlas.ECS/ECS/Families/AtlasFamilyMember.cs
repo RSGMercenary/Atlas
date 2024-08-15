@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Atlas.ECS.Families;
 
-[JsonObject]
+[JsonObject(MemberSerialization = MemberSerialization.Fields)]
 public class AtlasFamilyMember : IFamilyMember
 {
 	public IEntity Entity { get; }
