@@ -36,7 +36,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
 	#endregion
 
-	#region Compose / Dispose
+	#region Construct / Dispose
 	public AtlasFamily()
 	{
 		EngineItem = new(this, EngineChanged);
