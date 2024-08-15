@@ -1,6 +1,6 @@
 ﻿using Atlas.Core.Messages;
-using Atlas.Signals;
 using Atlas.Signals.Signals;
+using Atlas.Signals.Slots;
 
 namespace Atlas.Core.Collections.Hierarchy;
 
