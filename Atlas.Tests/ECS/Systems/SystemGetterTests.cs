@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Systems;
 
 [TestFixture]
-public class SystemGetterTests
+class SystemGetterTests
 {
 	[TestCase<ISystem>(false)]
 	[TestCase<ITestSystem>(true)]

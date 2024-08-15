@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Components;
 
 [TestFixture]
-public class ComponentTests
+class ComponentTests
 {
 	#region Add
 	[Test]

@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Components;
 
 [TestFixture]
-public class EngineTests
+class EngineTests
 {
 	public AtlasEngine Engine;
 

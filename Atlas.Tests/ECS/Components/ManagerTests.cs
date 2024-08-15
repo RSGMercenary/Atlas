@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Components;
 
 [TestFixture]
-public class ManagerTests
+class ManagerTests
 {
 	#region Add
 	[TestCase(0)]

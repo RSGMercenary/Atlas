@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Entities;
 
 [TestFixture]
-public class EntityTests
+class EntityTests
 {
     #region Names
     [TestCase(true)]

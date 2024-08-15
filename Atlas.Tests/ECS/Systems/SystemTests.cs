@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Systems;
 
 [TestFixture]
-public class SystemTests
+class SystemTests
 {
 	public TestSystem System;
 

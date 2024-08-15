@@ -7,7 +7,7 @@ using NUnit.Framework.Constraints;
 namespace Atlas.Tests.ECS.Systems;
 
 [TestFixture]
-public class UpdaterTests
+class UpdaterTests
 {
 	[TestCase(true)]
 	[TestCase(false)]

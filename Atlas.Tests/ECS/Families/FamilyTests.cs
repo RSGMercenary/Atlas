@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.ECS.Families;
 
 [TestFixture]
-public class FamilyTests
+class FamilyTests
 {
 	public AtlasFamily<TestFamilyMember> Family;
 
