@@ -11,7 +11,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 		where TFamilyMember : class, IFamilyMember, new()
 {
 	[JsonProperty(Order = int.MaxValue)]
-	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
+	public IReadOnlyFamily<TFamilyMember> Family { get; internal set; }
 	[JsonProperty]
 	public bool UpdateSleepingEntities { get; protected set; } = false;
 
@@ -36,7 +36,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 		Family = engine.AddFamily<TFamilyMember>();
 		Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
 		Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
-		foreach(var member in Family.Members)
+		foreach(var member in Family)
 			MemberAdded(Family, member);
 	}
 
@@ -44,7 +44,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	{
 		Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
 		Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
-		foreach(var member in Family.Members)
+		foreach(var member in Family)
 			MemberRemoved(Family, member);
 		engine.RemoveFamily<TFamilyMember>();
 		Family = null;

@@ -69,9 +69,9 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 		}
 	}
 
-	protected abstract void AddingEngine(IEngine engine);
+	protected virtual void AddingEngine(IEngine engine) { }
 
-	protected abstract void RemovingEngine(IEngine engine);
+	protected virtual void RemovingEngine(IEngine engine) { }
 	#endregion
 
 	#region Updates
@@ -115,7 +115,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	public TimeStep UpdateState
 	{
 		get => updateState;
-		protected set
+		internal set
 		{
 			if(updateState == value)
 				return;
