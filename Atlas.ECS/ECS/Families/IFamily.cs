@@ -2,13 +2,14 @@
 using Atlas.Core.Messages;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
+using Atlas.ECS.Serialization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Families;
 
-public interface IReadOnlyFamily : IMessenger, IEngineItem, IEnumerable
+public interface IReadOnlyFamily : IMessenger, IEngineItem, IEnumerable, ISerialize
 {
 	/// <summary>
 	/// Automatically called on Families removed from the Engine.

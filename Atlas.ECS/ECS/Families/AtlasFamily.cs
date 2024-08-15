@@ -6,17 +6,17 @@ using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Serialization;
 using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace Atlas.ECS.Families;
 
-[JsonArray]
-public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>, ISerialize
+[JsonObject]
+public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
 	#region Fields
@@ -80,8 +80,20 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members => Members;
 
-	[JsonProperty]
+	[JsonIgnore]
 	public IReadOnlyGroup<TFamilyMember> Members => members;
+
+	[JsonProperty(PropertyName = nameof(Members))]
+	[ExcludeFromCodeCoverage]
+	private IEnumerable<TFamilyMember> JsonPropertyMembers
+	{
+		get => Members;
+		set
+		{
+			foreach(var member in value)
+				AddMember(member);
+		}
+	}
 
 	IFamilyMember IReadOnlyFamily.GetMember(IEntity entity) => GetMember(entity);
 
