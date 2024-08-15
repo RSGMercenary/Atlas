@@ -1,7 +1,7 @@
-﻿namespace Atlas.Tests.Core.Extensions;
+﻿namespace Atlas.Tests.Classes;
 
 [Flags]
-internal enum TestFlags
+enum TestFlags
 {
 	None = 0,
 	A = 1,

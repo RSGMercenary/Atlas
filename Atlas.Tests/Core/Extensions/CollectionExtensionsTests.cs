@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Atlas.Tests.Core.Extensions;
 
 [TestFixture]
-internal class CollectionExtensionTests
+class CollectionExtensionsTests
 {
 	[TestCase(100)]
 	[TestCase(123.456f)]

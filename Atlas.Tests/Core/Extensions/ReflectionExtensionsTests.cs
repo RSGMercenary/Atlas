@@ -11,7 +11,7 @@ using System.Reflection;
 namespace Atlas.Tests.Core.Extensions;
 
 [TestFixture]
-public class ReflectionExtensionTests
+class ReflectionExtensionsTests
 {
 	private const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Instance;
 

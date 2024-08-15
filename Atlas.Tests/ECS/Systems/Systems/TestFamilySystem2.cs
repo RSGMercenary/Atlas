@@ -3,6 +3,6 @@ using Atlas.Tests.ECS.Families.Families;
 
 namespace Atlas.Tests.ECS.Systems.Systems;
 
-interface ITestFamilySystem : IFamilySystem<TestFamilyMember>
+class TestFamilySystem2 : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 {
 }

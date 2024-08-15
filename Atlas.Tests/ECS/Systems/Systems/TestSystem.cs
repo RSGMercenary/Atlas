@@ -1,21 +1,14 @@
 ﻿using Atlas.Core.Objects.Update;
-using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Systems;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Atlas.Tests.ECS.Systems.Systems;
 
-[ExcludeFromCodeCoverage]
-public class TestSystem : AtlasSystem, ITestSystem
+class TestSystem : AtlasSystem, ITestSystem
 {
+	public bool TestUpdate = false;
 	public bool TestDispose = false;
-
 	public bool BlockDispose = true;
-
-	public TestSystem()
-	{
-
-	}
+	public Action TestAction;
 
 	public override void Dispose()
 	{
@@ -23,6 +16,13 @@ public class TestSystem : AtlasSystem, ITestSystem
 			return;
 		base.Dispose();
 		TestDispose = true;
+	}
+
+
+	protected override void SystemUpdate(float deltaTime)
+	{
+		TestUpdate = true;
+		TestAction?.Invoke();
 	}
 
 	public new float DeltaIntervalTime
@@ -41,15 +41,5 @@ public class TestSystem : AtlasSystem, ITestSystem
 	{
 		get => base.UpdateState;
 		set => base.UpdateState = value;
-	}
-
-	protected override void AddingEngine(IEngine engine)
-	{
-
-	}
-
-	protected override void RemovingEngine(IEngine engine)
-	{
-
 	}
 }

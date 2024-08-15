@@ -35,9 +35,7 @@ class SystemGetterTests
 	public void When_GetSystem_AsGeneric_Then_HasSystem<T>(bool expected)
 		where T : class, ISystem
 	{
-		var system = SystemGetter.GetSystem<T>();
-
-		Assert.That(system != null == expected);
+		Assert.That(() => SystemGetter.GetSystem<T>(), expected ? Throws.Nothing : Throws.Exception);
 	}
 
 	[TestCase(typeof(ISystem), false)]
@@ -45,9 +43,8 @@ class SystemGetterTests
 	[TestCase(typeof(TestSystem), true)]
 	public void When_GetSystem_AsType_Then_HasSystem(Type type, bool expected)
 	{
-		var system = SystemGetter.GetSystem(type);
+		Assert.That(() => SystemGetter.GetSystem(type), expected ? Throws.Nothing : Throws.Exception);
 
-		Assert.That(system != null == expected);
 	}
 
 	[TestCase<ITestMultipleSystem>]

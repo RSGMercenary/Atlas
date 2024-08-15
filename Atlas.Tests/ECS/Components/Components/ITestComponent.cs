@@ -2,6 +2,6 @@
 
 namespace Atlas.Tests.ECS.Components.Components;
 
-public interface ITestComponent : IComponent<ITestComponent>
+interface ITestComponent : IComponent<ITestComponent>
 {
 }

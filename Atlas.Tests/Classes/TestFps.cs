@@ -1,5 +1,5 @@
-﻿namespace Atlas.Tests;
-public static class TestFps
+﻿namespace Atlas.Tests.Classes;
+static class TestFps
 {
 	public const float _0 = 0f;
 	public const float _1 = 1f;

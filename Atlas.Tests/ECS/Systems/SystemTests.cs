@@ -1,7 +1,9 @@
 ﻿using Atlas.Core.Objects.Update;
-using Atlas.ECS.Systems;
+using Atlas.ECS.Components.Engine;
+using Atlas.Tests.Classes;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
+using System.Collections;
 
 namespace Atlas.Tests.ECS.Systems;
 
@@ -16,6 +18,27 @@ class SystemTests
 		System = new TestSystem();
 	}
 
+	#region Dispose
+	[Test]
+	public void When_Dispose_And_HasEngine_Then_NotDisposed()
+	{
+		var engine = new AtlasEngine();
+		var system = engine.AddSystem<TestSystem>();
+		system.BlockDispose = false;
+		system.Dispose();
+
+		Assert.That(system.Engine == engine);
+	}
+
+	[Test]
+	public void When_Dispose_Then_Disposed()
+	{
+		System.BlockDispose = false;
+		System.Dispose();
+		Assert.That(System.TestDispose);
+	}
+	#endregion
+
 	[TestCase(TestFps._0, false)]
 	[TestCase(TestFps._30, true)]
 	[TestCase(TestFps._60, true)]
@@ -23,12 +46,9 @@ class SystemTests
 	[TestCase(TestFps._1, true)]
 	public void When_Update_Then_UpdateExpected(float deltaTime, bool expected)
 	{
-		var updated = false;
-
-		System.AddListener<IUpdateStateMessage<ISystem>>(_ => updated = true);
 		System.Update(deltaTime);
 
-		Assert.That(updated == expected);
+		Assert.That(System.TestUpdate == expected);
 	}
 
 	[TestCase(true)]
@@ -38,7 +58,7 @@ class SystemTests
 		var method = () => System.Update(TestFps._60);
 
 		if(updateLock)
-			System.AddListener<IUpdateStateMessage<ISystem>>(_ => method.Invoke());
+			System.TestAction = method;
 
 		Assert.That(method, updateLock ? Throws.Exception : Throws.Nothing);
 	}
@@ -47,13 +67,10 @@ class SystemTests
 	[TestCase(false)]
 	public void When_IsSleeping_Then_IsSleepingExpected(bool isSleeping)
 	{
-		var updated = false;
-
 		System.IsSleeping = isSleeping;
-		System.AddListener<IUpdateStateMessage<ISystem>>(_ => updated = true);
 		System.Update(1);
 
-		Assert.That(updated == !isSleeping);
+		Assert.That(System.TestUpdate == !isSleeping);
 		Assert.That(System.IsSleeping == isSleeping);
 		Assert.That(System.Sleeping == (isSleeping ? 1 : -1));
 	}
@@ -116,10 +133,12 @@ class SystemTests
 	}
 
 	[Test]
-	public void When_Dispose_Then_Disposed()
+	public void When_()
 	{
-		System.BlockDispose = false;
-		System.Dispose();
-		Assert.That(System.TestDispose);
+		var system = new TestFamilySystem();
+		foreach(var member in (IEnumerable)system)
+		{
+
+		}
 	}
 }

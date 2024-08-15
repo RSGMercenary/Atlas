@@ -1,10 +1,11 @@
 ﻿using Atlas.Core.Extensions;
+using Atlas.Tests.Classes;
 using NUnit.Framework;
 
 namespace Atlas.Tests.Core.Extensions;
 
 [TestFixture]
-internal class FlagExtensionTests
+class FlagExtensionsTests
 {
 	[TestCase(true)]
 	[TestCase(false)]
