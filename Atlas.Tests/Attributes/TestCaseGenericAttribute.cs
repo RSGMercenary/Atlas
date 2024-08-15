@@ -6,12 +6,11 @@ using NUnit.Framework.Internal.Builders;
 namespace Atlas.Tests.Attributes;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
-public abstract class TestCaseGenericAttribute : TestCaseAttribute, ITestBuilder
+abstract class TestCaseGenericAttribute : TestCaseAttribute, ITestBuilder
 {
 	private Type[] GenericTypeArgs { get; init; }
 
 	protected TestCaseGenericAttribute(Type[] genericTypeArgs, params object[] arguments) : base(arguments) => GenericTypeArgs = genericTypeArgs;
-
 
 	IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
 	{
