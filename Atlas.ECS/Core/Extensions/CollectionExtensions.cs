@@ -30,4 +30,18 @@ public static class CollectionExtensions
 		return value;
 	}
 	#endregion
+
+	#region Dictionaries
+	public static bool TryGetValue<TKey, TValue, T>(this IDictionary<TKey, TValue> dictionary, TKey key, out T cast)
+		where T : TValue
+	{
+		if(dictionary.TryGetValue(key, out var value))
+		{
+			cast = (T)value;
+			return true;
+		}
+		cast = default;
+		return false;
+	}
+	#endregion
 }
