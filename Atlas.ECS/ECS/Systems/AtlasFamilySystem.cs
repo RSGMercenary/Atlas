@@ -3,6 +3,7 @@ using Atlas.ECS.Families;
 using Newtonsoft.Json;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.ECS.Systems;
 
@@ -54,7 +55,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 
 	private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message) => MemberRemoved(message.Messenger, message.Value);
 
-	public IEnumerator<TFamilyMember> GetEnumerator() => Family.GetEnumerator();
+	public IEnumerator<TFamilyMember> GetEnumerator() => Family?.GetEnumerator() ?? Enumerable.Empty<TFamilyMember>().GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
