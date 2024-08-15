@@ -11,8 +11,6 @@ public static class EntityExtensions
 		return new AtlasEntityBuilder(entity);
 	}
 
-	public static bool IsEqual(this IEntity entity, IEntity other) => entity.Serialize() == other.Serialize();
-
 	/// <summary>
 	/// For visualization ONLY. This is not for (de)serializing! Use Serialize() instead.
 	/// </summary>
