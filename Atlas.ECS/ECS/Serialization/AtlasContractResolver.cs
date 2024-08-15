@@ -35,8 +35,6 @@ public class AtlasContractResolver : DefaultContractResolver
 
 	private bool ShouldSerialize(JsonProperty property, object value, Predicate<object> shouldSerialize)
 	{
-		if(!(shouldSerialize?.Invoke(value) ?? true))
-			return false;
 		if(Instance is IEntity)
 		{
 			if(RemoveChildren(property, value) && IsOverMaxDepth(value as IEntity))
@@ -69,7 +67,7 @@ public class AtlasContractResolver : DefaultContractResolver
 			if(RemoveManagers(property, value))
 				return false;
 		}
-		return true;
+		return shouldSerialize?.Invoke(value) ?? true;
 	}
 
 	public bool RemoveComponents(JsonProperty property, object value) => value is IEntity entity && property.PropertyName == nameof(entity.Components);
