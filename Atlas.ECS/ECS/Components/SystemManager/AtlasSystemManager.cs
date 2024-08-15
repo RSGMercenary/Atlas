@@ -68,13 +68,13 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	#endregion
 
 	#region Has
-	public bool HasSystem<TKey>() where TKey : class, ISystem, new() => HasSystem(typeof(TKey));
+	public bool HasSystem<TKey>() where TKey : class, ISystem => HasSystem(typeof(TKey));
 
 	public bool HasSystem(Type type) => types.Contains(type);
 	#endregion
 
 	#region Add
-	public bool AddSystem<TKey>() where TKey : class, ISystem, new() => AddSystem(typeof(TKey));
+	public bool AddSystem<TKey>() where TKey : class, ISystem => AddSystem(typeof(TKey));
 
 	public bool AddSystem(Type type)
 	{
@@ -92,7 +92,7 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	#endregion
 
 	#region Remove
-	public bool RemoveSystem<TKey>() where TKey : class, ISystem, new() => RemoveSystem(typeof(TKey));
+	public bool RemoveSystem<TKey>() where TKey : class, ISystem => RemoveSystem(typeof(TKey));
 
 	public bool RemoveSystem(Type type)
 	{
