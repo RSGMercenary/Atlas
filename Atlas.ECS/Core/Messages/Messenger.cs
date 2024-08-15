@@ -1,7 +1,9 @@
-﻿using Atlas.Signals.Signals;
+﻿using Atlas.Core.Extensions;
+using Atlas.Signals.Signals;
 using Atlas.Signals.Slots;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.Core.Messages;
 
@@ -23,64 +25,92 @@ public abstract class Messenger<T> : IMessenger<T>
 	public virtual void Message<TMessage>(TMessage message)
 		where TMessage : IMessage<T>
 	{
-		(message as IMessage).Messenger = this;
-		(message as IMessage).CurrentMessenger = this;
+		if(message is IMessage cast)
+		{
+			cast.Messenger = this;
+			cast.CurrentMessenger = this;
+		}
+
 		//Pass around message internally...
 		Messaging(message);
 		//...before dispatching externally.
-		var type = typeof(TMessage);
-		if(messages.ContainsKey(type))
-			(messages[type] as Signal<TMessage>).Dispatch(message);
+
+		if(messages.TryGetValue(typeof(TMessage), out Signal<TMessage> signal))
+			signal.Dispatch(message);
 	}
 
 	protected virtual void Messaging(IMessage<T> message) { }
 
-	public void AddListener<TMessage>(Action<TMessage> listener)
+	#region Add
+	public ISlot<TMessage> AddListener<TMessage>(Action<TMessage> listener)
 		where TMessage : IMessage<T>
 	{
-		AddListenerSlot(listener, 0);
+		return AddListenerSlot(listener, 0);
 	}
 
-	public void AddListener<TMessage>(Action<TMessage> listener, int priority)
+	public ISlot<TMessage> AddListener<TMessage>(Action<TMessage> listener, int priority)
 		where TMessage : IMessage<T>
 	{
-		AddListenerSlot(listener, priority);
+		return AddListenerSlot(listener, priority);
 	}
 
 	protected ISlot<TMessage> AddListenerSlot<TMessage>(Action<TMessage> listener, int priority)
 		where TMessage : IMessage<T>
 	{
 		var type = typeof(TMessage);
-		if(!messages.ContainsKey(type))
-			messages.Add(type, CreateSignal<TMessage>());
-		return (messages[type] as Signal<TMessage>).Add(listener, priority);
+		if(!messages.TryGetValue(type, out Signal<TMessage> signal))
+		{
+			signal = CreateSignal<TMessage>();
+			messages.Add(type, signal);
+		}
+		return signal.Add(listener, priority);
 	}
+	#endregion
 
-	public void RemoveListener<TMessage>(Action<TMessage> listener)
+	#region Remove
+	public bool RemoveListener<TMessage>(Action<TMessage> listener)
 		where TMessage : IMessage<T>
 	{
 		var type = typeof(TMessage);
-		if(!messages.ContainsKey(type))
-			return;
-		var signal = messages[type];
-		signal.Remove(listener);
-		if(signal.Slots.Count > 0)
-			return;
-		messages.Remove(type);
-		signal.Dispose();
+		if(messages.TryGetValue(type, out Signal<TMessage> signal))
+		{
+			signal.Remove(listener);
+			if(signal.Slots.Count <= 0)
+			{
+				messages.Remove(type);
+				signal.Dispose();
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public bool RemoveListeners()
 	{
 		if(messages.Count <= 0)
 			return false;
-		foreach(var message in new List<Type>(messages.Keys))
+		foreach(var type in messages.Keys.ToList())
 		{
-			var signal = messages[message];
-			messages.Remove(message);
+			var signal = messages[type];
+			messages.Remove(type);
 			signal.Dispose();
 		}
 		return true;
+	}
+	#endregion
+
+	public ISlot<TMessage> GetListener<TMessage>(Action<TMessage> listener)
+		where TMessage : IMessage<T>
+	{
+		if(messages.TryGetValue(typeof(TMessage), out Signal<TMessage> signal))
+			return signal.Get(listener);
+		return null;
+	}
+
+	public bool HasListener<TMessage>(Action<TMessage> listener)
+		where TMessage : IMessage<T>
+	{
+		return GetListener(listener) != null;
 	}
 
 	protected virtual Signal<TMessage> CreateSignal<TMessage>()

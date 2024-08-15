@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
+using Atlas.Signals.Slots;
 using System;
 
 namespace Atlas.Core.Messages;
@@ -8,16 +9,22 @@ public interface IMessenger : IDisposable { }
 public interface IMessenger<TMessenger> : IMessenger
 	where TMessenger : IMessenger
 {
-	void AddListener<TMessage>(Action<TMessage> listener)
+	ISlot<TMessage> AddListener<TMessage>(Action<TMessage> listener)
 		where TMessage : IMessage<TMessenger>;
 
-	void AddListener<TMessage>(Action<TMessage> listener, int priority)
+	ISlot<TMessage> AddListener<TMessage>(Action<TMessage> listener, int priority)
 		where TMessage : IMessage<TMessenger>;
 
-	void RemoveListener<TMessage>(Action<TMessage> listener)
+	bool RemoveListener<TMessage>(Action<TMessage> listener)
 		where TMessage : IMessage<TMessenger>;
 
 	bool RemoveListeners();
+
+	ISlot<TMessage> GetListener<TMessage>(Action<TMessage> listener)
+		where TMessage : IMessage<TMessenger>;
+
+	bool HasListener<TMessage>(Action<TMessage> listener)
+		where TMessage : IMessage<TMessenger>;
 
 	void Message<TMessage>(TMessage message)
 		where TMessage : IMessage<TMessenger>;

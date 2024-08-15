@@ -8,7 +8,7 @@ public class Message<TMessenger> : IMessage<TMessenger>
 	public TMessenger Messenger
 	{
 		get => messenger;
-		private set => messenger = messenger != null ? messenger : value;
+		private set => messenger ??= value;
 	}
 
 	public TMessenger CurrentMessenger { get; private set; }
