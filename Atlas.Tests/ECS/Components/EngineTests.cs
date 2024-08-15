@@ -1,9 +1,10 @@
-﻿using Atlas.Core.Objects.Update;
-using Atlas.ECS.Components.Engine;
+﻿using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
+using Atlas.Tests.Classes;
+using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
@@ -219,6 +220,70 @@ class EngineTests
 		Assert.That(Engine.GetFamily<T>() == family);
 		Assert.That(Engine.Families.Count == 1);
 	}
+
+	[Test]
+	public void When_AddEntity_Then_EntityAdded()
+	{
+		var root = new AtlasEntity(true);
+		var entity = new AtlasEntity();
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+		root.AddChild(entity);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		entity.AddComponent<TestComponent>();
+
+		Assert.That(engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) != null);
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 1);
+	}
+
+	[Test]
+	public void When_AddEntity_Then_FamilyHasEntity()
+	{
+		var root = new AtlasEntity(true);
+		var entity = new AtlasEntity();
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		entity.AddComponent<TestComponent>();
+
+		root.AddChild(entity);
+
+		Assert.That(engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) != null);
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 1);
+	}
+
+	[Test]
+	public void When_AddSystems_Then_FamiliesAdded()
+	{
+		var root = new AtlasEntity(true);
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		for(var i = 0; i < 10; ++i)
+		{
+			var entity = root.AddChild(new AtlasEntity());
+			entity.AddComponent<TestComponent>();
+		}
+
+		Assert.That(engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 10);
+		Assert.That(engine.HasSystem<TestFamilySystem1>());
+		Assert.That(engine.HasSystem<TestFamilySystem2>());
+	}
 	#endregion
 
 	#region Remove
@@ -232,6 +297,85 @@ class EngineTests
 		Assert.That(!Engine.HasFamily<T>());
 		Assert.That(Engine.GetFamily<T>() == null);
 		Assert.That(Engine.Families.Count == 0);
+	}
+
+	[Test]
+	public void When_RemoveEntity_Then_EntityRemoved()
+	{
+		var root = new AtlasEntity(true);
+		var entity = new AtlasEntity();
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+		root.AddChild(entity);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		entity.AddComponent<TestComponent>();
+		entity.RemoveComponent<TestComponent>();
+
+		Assert.That(engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) == null);
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+	}
+
+	[Test]
+	public void When_RemoveEntity_Then_NoFamilyHasEntity()
+	{
+		var root = new AtlasEntity(true);
+		var entity = new AtlasEntity();
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		entity.AddComponent<TestComponent>();
+
+		root.AddChild(entity);
+		root.RemoveChild(entity);
+
+		Assert.That(engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) == null);
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+	}
+
+	[TestCase<TestFamilyMember>]
+	public void When_RemoveFamily_Then_NoFamilyRemoved<T>()
+		where T : class, IFamilyMember, new()
+	{
+		Engine.RemoveFamily<T>();
+
+		Assert.That(!Engine.HasFamily<T>());
+		Assert.That(Engine.GetFamily<T>() == null);
+		Assert.That(Engine.Families.Count == 0);
+	}
+
+	[Test]
+	public void When_RemoveSystems_Then_FamiliesRemoved()
+	{
+		var root = new AtlasEntity(true);
+		var engine = new AtlasEngine();
+
+		root.AddComponent<IEngine>(engine);
+
+		engine.AddSystem<TestFamilySystem1>();
+		engine.AddSystem<TestFamilySystem2>();
+
+		for(var i = 0; i < 10; ++i)
+		{
+			var entity = root.AddChild(new AtlasEntity());
+			entity.AddComponent<TestComponent>();
+		}
+
+		engine.RemoveSystem<TestFamilySystem1>();
+		engine.RemoveSystem<TestFamilySystem2>();
+
+		Assert.That(!engine.HasFamily<TestFamilyMember>());
+		Assert.That(!engine.HasSystem<TestFamilySystem1>());
+		Assert.That(!engine.HasSystem<TestFamilySystem2>());
 	}
 	#endregion
 	#endregion
@@ -372,14 +516,11 @@ class EngineTests
 	[TestCase(TestFps._1, true)]
 	public void When_Update_Then_SystemUpdated(float deltaTime, bool expected)
 	{
-		var updated = false;
-
 		var system = Engine.AddSystem<TestSystem>();
-		system.AddListener<IUpdateStateMessage<ISystem>>(_ => updated = system.Engine != null);
 
 		Engine.Update(deltaTime);
 
-		Assert.That(updated == expected);
+		Assert.That(system.TestUpdate == expected);
 	}
 
 	[TestCase(30, 0)]
@@ -451,6 +592,109 @@ class EngineTests
 
 		Assert.That(Engine.DeltaFixedTime == deltaFixedTime);
 	}
+
+	[Test]
+	public void When_SystemUpdate_And_NotUpdateSystem_Then_SystemNoUpdated()
+	{
+		var system = Engine.AddSystem<TestSystem>();
+
+		system.Update(0);
+
+		Assert.That(!system.TestUpdate);
+	}
+
+	[TestCase(true, true, true)]
+	[TestCase(true, false, true)]
+	[TestCase(false, true, false)]
+	[TestCase(false, false, true)]
+	public void When_Update_And_UpdateSleepingEntities_Then_Updated(bool systemSleeping, bool entitySleeping, bool expected)
+	{
+		var root = new AtlasEntity(true);
+		var engine = new AtlasEngine();
+		var component = new TestComponent();
+
+		root.AddComponent(engine);
+		root.AddComponent(component);
+		root.IsSleeping = entitySleeping;
+
+		var system = engine.AddSystem<TestFamilySystem>();
+		system.UpdateSleepingEntities = systemSleeping;
+
+		engine.Update(0.125f);
+
+		Assert.That(component.TestUpdate == expected);
+	}
 	#endregion
 	#endregion
+
+	#region EngineItems
+	[Test]
+	public void When_Engine_And_HasNoEngineItem_Then_NoEngine()
+	{
+		var item = new EngineItem<IEntity>(null);
+		item.Engine = new AtlasEngine();
+
+		Assert.That(item.Engine == null);
+	}
+	#endregion
+
+	[Test]
+	public void When_AddEntity_DuringUpdate_Then_EntityAdded()
+	{
+		var root = GetRoot();
+		var engine = root.GetComponent<AtlasEngine>();
+		var system = engine.GetSystem<TestFamilySystem>();
+
+		system.TestAddEntity = true;
+		engine.Update(0.125f);
+
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 2);
+	}
+
+	[Test]
+	public void When_RemoveEntity_DuringUpdate_Then_EntityRemoved()
+	{
+		var root = GetRoot();
+		var engine = root.GetComponent<AtlasEngine>();
+		var system = engine.GetSystem<TestFamilySystem>();
+
+		system.TestRemoveEntity = true;
+		engine.Update(0.125f);
+
+		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+	}
+
+	[Test]
+	public void When_RemoveSystem_DuringUpdate_Then_SystemRemoved()
+	{
+		var root = GetRoot();
+		var engine = root.GetComponent<AtlasEngine>();
+		var system = engine.GetSystem<TestFamilySystem>();
+
+		system.TestRemoveEntity = true;
+		system.TestRemoveSystem = true;
+		engine.Update(0.125f);
+
+		Assert.That(engine.GetFamily<TestFamilyMember>() == null);
+		Assert.That(!engine.HasFamily<TestFamilyMember>());
+		Assert.That(engine.GetSystem<TestFamilySystem>() == null);
+		Assert.That(!engine.HasSystem<TestFamilySystem>());
+	}
+
+	private IEntity GetRoot()
+	{
+		var root = new AtlasEntity(true);
+		var entity = new AtlasEntity();
+
+		var engine = new AtlasEngine();
+		var component = new TestComponent();
+
+		root.AddChild(entity);
+		root.AddComponent(engine);
+		entity.AddComponent(component);
+
+		engine.AddSystem<TestFamilySystem>();
+
+		return root;
+	}
 }
