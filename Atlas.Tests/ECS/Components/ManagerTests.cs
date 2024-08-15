@@ -3,6 +3,7 @@ using Atlas.ECS.Entities;
 using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Components.Components;
 using NUnit.Framework;
+using System.Collections;
 
 namespace Atlas.Tests.ECS.Components;
 
@@ -22,7 +23,7 @@ class ManagerTests
 		for(var i = 0; i < count; ++i)
 			component.AddManager(new AtlasEntity());
 
-		foreach(var entity in component.Managers)
+		foreach(var entity in component)
 			Assert.That(entity.Components.Count == 1);
 
 		Assert.That(component.Managers.Count == count);
@@ -340,4 +341,17 @@ class ManagerTests
 		Assert.That(component.Manager == (isShareable ? null : entity));
 	}
 	#endregion
+
+	[Test]
+	public void When_IterateManagers_Then_ContainsManagers()
+	{
+		var component = new TestComponent(true);
+		var managers = Enumerable.Range(0, 10).Select(i => new AtlasEntity()).ToList();
+
+		foreach(var manager in managers)
+			component.AddManager(manager);
+
+		foreach(var manager in (IEnumerable)component)
+			Assert.That(managers.Contains(manager));
+	}
 }
