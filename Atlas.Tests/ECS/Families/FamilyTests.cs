@@ -116,4 +116,41 @@ class FamilyTests
 			Assert.That(entities.Contains(member.Entity));
 	}
 	#endregion
+
+	[Test]
+	public void When_SortMembers_Then_MembersSorted([Values(0, 1, 2, 3, 4, 5)] int index)
+	{
+		var sorters = new List<Action<IList<TestFamilyMember>, Func<TestFamilyMember, TestFamilyMember, int>>>
+		{
+			AtlasFamilySorter.Bubble, AtlasFamilySorter.Heap, AtlasFamilySorter.Insertion,
+			AtlasFamilySorter.Merge, AtlasFamilySorter.Selection, AtlasFamilySorter.Quick,
+		};
+
+		for(int i = 0; i < 200; i++)
+		{
+			var entity = new AtlasEntity();
+			var component = new TestComponent();
+
+			entity.AddComponent(component);
+
+			Family.AddEntity(entity);
+		}
+
+		Family.SortMembers(sorters[index], (m1, m2) => string.Compare(m1.Entity.GlobalName, m2.Entity.GlobalName));
+
+		Assert.That(IsAlphabetical(Family.Members));
+	}
+
+	private static bool IsAlphabetical(IReadOnlyList<TestFamilyMember> members)
+	{
+		for(int i = 0; i < members.Count - 1; i++)
+		{
+			var name1 = members[i].Entity.GlobalName;
+			var name2 = members[i + 1].Entity.GlobalName;
+
+			if(name1.CompareTo(name2) > 0)
+				return false;
+		}
+		return true;
+	}
 }
