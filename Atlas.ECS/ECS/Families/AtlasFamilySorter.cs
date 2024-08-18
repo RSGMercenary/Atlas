@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Atlas.Core.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Families;
@@ -9,7 +10,6 @@ namespace Atlas.ECS.Families;
 public static class AtlasFamilySorter
 {
 	#region Bubble
-
 	public static void Bubble<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		for(var i = list.Count - 1; i > 0; i--)
@@ -17,7 +17,7 @@ public static class AtlasFamilySorter
 			for(var j = 0; j < i; j++)
 			{
 				if(compare(list[j], list[j + 1]) > 0)
-					Swap(list, j, j + 1);
+					list.Swap(j, j + 1);
 			}
 		}
 	}
@@ -25,7 +25,6 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Insertion
-
 	public static void Insertion<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		var count = list.Count;
@@ -47,7 +46,6 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Quick
-
 	public static void Quick<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		Quick(list, 0, list.Count - 1, compare);
@@ -58,7 +56,7 @@ public static class AtlasFamilySorter
 		var leftHold = left;
 		var rightHold = right;
 		var pivot = new Random().Next(left, right);
-		Swap(list, pivot, left);
+		list.Swap(pivot, left);
 		pivot = left;
 		left++;
 
@@ -66,7 +64,7 @@ public static class AtlasFamilySorter
 		{
 			if(compare(list[left], list[pivot]) >= 0
 				&& compare(list[right], list[pivot]) < 0)
-				Swap(list, left, right);
+				list.Swap(left, right);
 			else if(compare(list[left], list[pivot]) >= 0)
 				right--;
 			else if(compare(list[right], list[pivot]) < 0)
@@ -77,18 +75,16 @@ public static class AtlasFamilySorter
 				left++;
 			}
 		}
-		Swap(list, pivot, right);
+		list.Swap(pivot, right);
 		pivot = right;
 		if(pivot > leftHold)
 			Quick(list, leftHold, pivot, compare);
 		if(rightHold > pivot + 1)
 			Quick(list, pivot + 1, rightHold, compare);
 	}
-
 	#endregion
 
 	#region Selection
-
 	public static void Selection<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		for(var i = 0; i < list.Count - 1; i++)
@@ -99,29 +95,28 @@ public static class AtlasFamilySorter
 				if(compare(list[j], list[min]) < 0)
 					min = j;
 			}
-			Swap(list, i, min);
+			list.Swap(i, min);
 		}
 	}
 
 	#endregion
 
 	#region Heap
-
 	public static void Heap<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		var count = list.Count;
 
 		for(var index = count / 2 - 1; index >= 0; --index)
-			Heap(list, count, index, compare);
+			list.Heap(count, index, compare);
 
 		for(var index = count - 1; index >= 0; --index)
 		{
-			Swap(list, 0, index);
-			Heap(list, index, 0, compare);
+			list.Swap(0, index);
+			list.Heap(index, 0, compare);
 		}
 	}
 
-	private static void Heap<T>(IList<T> list, int count, int index, Func<T, T, int> compare)
+	private static void Heap<T>(this IList<T> list, int count, int index, Func<T, T, int> compare)
 	{
 		var largest = index;
 		var left = 2 * index + 1;
@@ -135,15 +130,13 @@ public static class AtlasFamilySorter
 
 		if(largest != index)
 		{
-			Swap(list, index, largest);
-			Heap(list, count, largest, compare);
+			list.Swap(index, largest);
+			list.Heap(count, largest, compare);
 		}
 	}
-
 	#endregion
 
 	#region Merge
-
 	public static void Merge<T>(IList<T> list, Func<T, T, int> compare)
 	{
 		var copy = MergeCopy(list, compare);
@@ -175,6 +168,7 @@ public static class AtlasFamilySorter
 		var list = new List<T>();
 
 		while(left.Count > 0 && right.Count > 0)
+		{
 			if(compare(left[0], right[0]) > 0)
 			{
 				list.Add(right[0]);
@@ -185,6 +179,7 @@ public static class AtlasFamilySorter
 				list.Add(left[0]);
 				left.RemoveAt(0);
 			}
+		}
 
 		for(var i = 0; i < left.Count; i++)
 			list.Add(left[i]);
@@ -194,14 +189,5 @@ public static class AtlasFamilySorter
 
 		return list;
 	}
-
 	#endregion
-
-	//Used by all sorting algorithms that swap by index.
-	private static void Swap<T>(IList<T> list, int index1, int index2)
-	{
-		var temp = list[index2];
-		list[index2] = list[index1];
-		list[index1] = temp;
-	}
 }

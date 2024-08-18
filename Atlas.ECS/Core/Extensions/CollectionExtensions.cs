@@ -29,6 +29,13 @@ public static class CollectionExtensions
 		list.RemoveAt(index);
 		return value;
 	}
+
+	public static void Swap<T>(this IList<T> list, int index1, int index2)
+	{
+		var value = list[index2];
+		list[index2] = list[index1];
+		list[index1] = value;
+	}
 	#endregion
 
 	#region Dictionaries
