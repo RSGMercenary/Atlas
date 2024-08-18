@@ -71,8 +71,6 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		LocalName = localName;
 	}
 
-	public AtlasEntity(string localName) : this(null, localName) { }
-
 	protected override void Disposing()
 	{
 		RemoveComponents();
@@ -117,7 +115,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		}
 	}
 
-	private bool IsValidName(string current, ref string next, Func<string, bool> check)
+	private bool IsValidName(string current, ref string next, Func<string, bool> check = null)
 	{
 		if(next == RootName && !IsRoot)
 			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{current}' to '{RootName}'.");
@@ -125,7 +123,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{RootName}' to '{next}'.");
 
 		if(string.IsNullOrWhiteSpace(next))
-			next = UniqueName;
+			return false;
 		else
 		{
 			if(current == next)
@@ -156,23 +154,23 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#endregion
 
 	#region Get
-	public TValue GetComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey => (TValue)GetComponent(typeof(TKey));
+	public TComponent GetComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType => (TComponent)GetComponent(typeof(TType));
 
-	public TKeyValue GetComponent<TKeyValue>()
-		where TKeyValue : class, IComponent => (TKeyValue)GetComponent(typeof(TKeyValue));
+	public TType GetComponent<TType>()
+		where TType : class, IComponent => (TType)GetComponent(typeof(TType));
 
-	public TValue GetComponent<TValue>(Type type)
-		where TValue : class, IComponent => (TValue)GetComponent(type);
+	public TComponent GetComponent<TComponent>(Type type)
+		where TComponent : class, IComponent => (TComponent)GetComponent(type);
 
-	public IComponent GetComponent(Type type) => components.ContainsKey(type) ? components[type] : null;
+	public IComponent GetComponent(Type type) => components.TryGetValue(type, out var component) ? component : null;
 
 	public Type GetComponentType(IComponent component) => components.Keys.FirstOrDefault(type => components[type] == component);
 
 	public IReadOnlyDictionary<Type, IComponent> Components => components;
 
-	[JsonProperty(PropertyName = nameof(Components), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue - 1)]
+	[JsonProperty(PropertyName = nameof(Components), Order = int.MaxValue - 1)]
 	[ExcludeFromCodeCoverage]
 	private IDictionary<Type, IComponent> JsonPropertyComponents
 	{
@@ -216,101 +214,92 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#endregion
 
 	#region Add
-	#region KeyValue
-	public TKeyValue AddComponent<TKeyValue>()
-		where TKeyValue : class, IComponent, new() => AddComponent<TKeyValue, TKeyValue>();
+	#region Component & Type
+	public TComponent AddComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType, new() => AddComponent<TComponent>(typeof(TType));
 
-	public TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-		where TKeyValue : class, IComponent => AddComponent<TKeyValue, TKeyValue>(component);
+	public TComponent AddComponent<TComponent, TType>(TComponent component, int index)
+		where TType : class, IComponent
+		where TComponent : class, TType => (TComponent)AddComponent<TType>(component, index);
 
-	public TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-		where TKeyValue : class, IComponent => AddComponent<TKeyValue, TKeyValue>(component, index);
+	public TComponent AddComponent<TComponent, TType>(TComponent component)
+		where TType : class, IComponent
+		where TComponent : class, TType => (TComponent)AddComponent<TType>(component);
 	#endregion
 
-	#region Key, Value
-	public TValue AddComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey, new() => AddComponent<TValue>(typeof(TKey));
+	#region Component
+	public TComponent AddComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent, new() => AddComponent(AtlasComponent.Get<TComponent>(), type);
 
-	public TValue AddComponent<TKey, TValue>(TValue component)
-		where TKey : class, IComponent
-		where TValue : class, TKey => AddComponent(component, typeof(TKey));
+	public TComponent AddComponent<TComponent>(TComponent component, int index)
+		where TComponent : class, IComponent => AddComponent(component, null, index);
 
-	public TValue AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : class, IComponent
-		where TValue : class, TKey => AddComponent(component, typeof(TKey), index);
-	#endregion
-
-	#region Type, Value
-	public TValue AddComponent<TValue>(Type type)
-		where TValue : class, IComponent, new() => AddComponent(AtlasComponent.Get<TValue>(), type);
-
-	public TValue AddComponent<TValue>(TValue component, Type type)
-		where TValue : class, IComponent => AddComponent(component, type, component.Managers.Count);
-
-	public TValue AddComponent<TValue>(TValue component, Type type, int index)
-		where TValue : class, IComponent => (TValue)AddComponent((IComponent)component, type, index);
-	#endregion
-
-	#region Type, IComponent
-	public IComponent AddComponent(IComponent component) => AddComponent(component, component.Managers.Count);
-
-	public IComponent AddComponent(IComponent component, Type type) => AddComponent(component, type, component.Managers.Count);
-
-	public IComponent AddComponent(IComponent component, int index) => AddComponent(component, null, index);
-
-	public IComponent AddComponent(IComponent component, Type type, int index)
+	public TComponent AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
+		where TComponent : class, IComponent
 	{
+		bool isAutoDisposable = false;
+
 		if(component.HasManager(this))
 			return component;
 		else if(component.Manager != null)
-			throw new InvalidOperationException($"The component '{component.GetType().Name}' is non-shareable and can't be added to another {nameof(IEntity)}.");
-
-		type = AtlasComponent.GetType(component, type);
-		if(components.ContainsKey(type))
 		{
-			if(components[type] == component)
+			if(component.IsAutoDisposable)
+			{
+				isAutoDisposable = true;
+				component.IsAutoDisposable = false;
+			}
+			component.RemoveManagers();
+		}
+
+		type = AtlasComponent.GetType(component, type ?? typeof(TComponent));
+		if(components.TryGetValue(type, out var current))
+		{
+			if(component == current)
 				return component;
-			RemoveComponent(type);
+			RemoveComponent<IComponent>(type);
 		}
 		components.Add(type, component);
 		component.AddManager(this, type, index);
+		if(isAutoDisposable)
+			component.IsAutoDisposable = true;
 		Message<IComponentAddMessage>(new ComponentAddMessage(type, component));
 		return component;
 	}
 
-	public IComponent AddComponentAsInterface(IComponent component) => AddComponentAsInterface(component, component.Managers.Count);
-
-	public IComponent AddComponentAsInterface(IComponent component, int index) => AddComponent(component, component.GetInterfaceType(), index);
+	public IComponent AddComponentType(IComponent component, int? index = null) => AddComponent(component, component.GetInterfaceType(), index);
 	#endregion
 	#endregion
 
 	#region Remove
-	public TValue RemoveComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey => (TValue)RemoveComponent(typeof(TKey));
+	public TComponent RemoveComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType => (TComponent)RemoveComponent<TType>();
 
-	public TKeyValue RemoveComponent<TKeyValue>()
-		where TKeyValue : class, IComponent => (TKeyValue)RemoveComponent(typeof(TKeyValue));
+	public TComponent RemoveComponent<TComponent>(TComponent component, Type type = null)
+		where TComponent : class, IComponent => RemoveComponent<TComponent>(type);
+
+	public TComponent RemoveComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent => (TComponent)RemoveComponent(type ?? typeof(TComponent));
 
 	public IComponent RemoveComponent(Type type)
 	{
-		if(!components.ContainsKey(type))
+		if(!components.TryGetValue(type, out var component))
 			return null;
-		var component = components[type];
 		components.Remove(type);
 		component.RemoveManager(this, type);
 		Message<IComponentRemoveMessage>(new ComponentRemoveMessage(type, component));
 		return component;
 	}
 
-	public IComponent RemoveComponent(IComponent component) => RemoveComponent(GetComponentType(component));
+	public TComponent RemoveComponentType<TComponent>(TComponent component)
+		where TComponent : class, IComponent => RemoveComponent<TComponent>(GetComponentType(component));
 
 	public bool RemoveComponents()
 	{
 		if(components.Count <= 0)
 			return false;
-		components.Keys.ToList().ForEach(type => RemoveComponent(type));
+		components.Keys.ToList().ForEach(type => RemoveComponent<IComponent>(type));
 		return true;
 	}
 	#endregion

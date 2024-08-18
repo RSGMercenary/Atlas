@@ -4,6 +4,7 @@ using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Serialization;
 using Atlas.ECS.Systems;
+using Atlas.Tests.Classes;
 using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
@@ -74,14 +75,13 @@ class SerializationTests
 	[Repeat(20)]
 	public void When_SerializeComponent_Then_DeserializeComponent_IsEqual()
 	{
-		var component = new TestComponent();
+		var component = new TestComponent(Random.NextBool());
 
 		component.IsAutoDisposable = Random.NextBool();
 
-		if(Random.NextBool())
+		if(component.IsShareable)
 		{
-			component.IsShareable = true;
-			for(int i = Random.Next(6); i > 0; --i)
+			for(int i = Random.Next(2, 6); i > 0; --i)
 				component.AddManager(new AtlasEntity());
 		}
 		else if(Random.NextBool())

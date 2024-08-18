@@ -20,10 +20,10 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 	private static readonly Dictionary<Type, IPool> pools = new();
 
 	public static IReadOnlyPool<TComponent> AddPool<TComponent>()
-		where TComponent : class, IComponent, new() => AddPool(() => new TComponent());
+		where TComponent : class, Component.IComponent, new() => AddPool(() => new TComponent());
 
 	public static IReadOnlyPool<TComponent> AddPool<TComponent>(Func<TComponent> creator)
-		where TComponent : class, IComponent
+		where TComponent : class, Component.IComponent
 	{
 		var type = typeof(TComponent);
 		if(!pools.ContainsKey(type))
@@ -32,10 +32,10 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 	}
 
 	public static bool RemovePool<TComponent>()
-		where TComponent : class, IComponent => pools.Remove(typeof(TComponent));
+		where TComponent : class, Component.IComponent => pools.Remove(typeof(TComponent));
 
 	public static IReadOnlyPool<TComponent> GetPool<TComponent>()
-		where TComponent : class, IComponent
+		where TComponent : class, Component.IComponent
 	{
 		var type = typeof(TComponent);
 		return pools.ContainsKey(type) ? pools[type] as IReadOnlyPool<TComponent> : null;
@@ -44,7 +44,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 
 	#region Get/Release
 	public static TComponent Get<TComponent>()
-		where TComponent : class, IComponent, new() => GetPool<TComponent>()?.Get() ?? new TComponent();
+		where TComponent : class, Component.IComponent, new() => GetPool<TComponent>()?.Get() ?? new TComponent();
 
 	internal static void Release(IComponent component)
 	{
@@ -54,12 +54,12 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 	}
 	#endregion
 
-	internal static Type GetType(IComponent component, Type type)
+	internal static Type GetType(IComponent component, Type type = null)
 	{
 		if(type == null)
 			type = component.GetType();
 		else if(!type.IsInstanceOfType(component))
-			throw new ArgumentException($"The component '{component.GetType().Name}' is not an instance of type '{type.Name}'.");
+			throw new ArgumentException($"The component '{component.GetType()}' is not an instance of type '{type}'.");
 		return type;
 	}
 	#endregion
@@ -73,7 +73,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	private readonly Group<IEntity> managers = new();
 	private readonly AutoDispose<T> AutoDispose;
 	[JsonProperty(Order = int.MinValue)]
-	public bool IsShareable { get; internal set; } = false;
+	public bool IsShareable { get; private set; } = false;
 	#endregion
 
 	#region Construct / Dispose
@@ -113,10 +113,8 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	#endregion
 
 	#region Get
-	[JsonIgnore]
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
-	[JsonIgnore]
 	public IReadOnlyGroup<IEntity> Managers => managers;
 
 	[JsonProperty(PropertyName = nameof(Managers))]
@@ -169,33 +167,27 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	#endregion
 
 	#region Add
-	public IEntity AddManager<TKey>(IEntity entity)
-		where TKey : IComponent => AddManager(entity, typeof(TKey));
-
-	public IEntity AddManager<TKey>(IEntity entity, int index)
-		where TKey : IComponent => AddManager(entity, typeof(TKey), index);
-
-	public IEntity AddManager(IEntity entity) => AddManager(entity, null);
-
-	public IEntity AddManager(IEntity entity, Type type) => AddManager(entity, type, managers.Count);
+	public IEntity AddManager<TType>(IEntity entity, int? index = null)
+		where TType : class, IComponent => AddManager(entity, typeof(TType), index);
 
 	public IEntity AddManager(IEntity entity, int index) => AddManager(entity, null, index);
 
-	public IEntity AddManager(IEntity entity, Type type, int index)
+	public IEntity AddManager(IEntity entity, Type type = null, int? index = null)
 	{
 		type = AtlasComponent.GetType(this, type);
 		if(entity.GetComponent(type) == this)
 		{
+			index ??= managers.Count;
 			if(!HasManager(entity))
 			{
-				managers.Insert(index, entity);
-				AddingManager(entity, index);
-				Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index, entity));
+				managers.Insert(index.Value, entity);
+				AddingManager(entity, index.Value);
+				Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index.Value, entity));
 				Message<IManagerMessage<T>>(new ManagerMessage<T>());
 			}
 			else
 			{
-				SetManagerIndex(entity, index);
+				SetManagerIndex(entity, index.Value);
 			}
 		}
 		else
@@ -216,12 +208,12 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	#endregion
 
 	#region Remove
-	public IEntity RemoveManager<TKey>(IEntity entity)
-		where TKey : IComponent => RemoveManager(entity, typeof(TKey));
+	public IEntity RemoveManager<TType>(IEntity entity)
+		where TType : class, IComponent => RemoveManager(entity, typeof(TType));
 
 	public IEntity RemoveManager(IEntity entity) => RemoveManager(entity, entity.GetComponentType(this));
 
-	public IEntity RemoveManager(IEntity entity, Type type)
+	public IEntity RemoveManager(IEntity entity, Type type = null)
 	{
 		if(!managers.Contains(entity))
 			return null;
@@ -237,7 +229,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 		}
 		else
 		{
-			entity.RemoveComponent(type);
+			entity.RemoveComponent<IComponent>(type);
 		}
 		return entity;
 	}

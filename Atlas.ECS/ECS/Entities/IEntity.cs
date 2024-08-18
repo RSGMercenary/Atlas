@@ -57,120 +57,108 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 
 	#region Components
 	#region Has
-	bool HasComponent<TKey>()
-		where TKey : class, IComponent;
+	bool HasComponent<TType>()
+		where TType : class, IComponent;
 
 	bool HasComponent(Type type);
 	#endregion
 
 	#region Get
-	TValue GetComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	TComponent GetComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType;
 
-	TKeyValue GetComponent<TKeyValue>()
-		where TKeyValue : class, IComponent;
+	TType GetComponent<TType>()
+		where TType : class, IComponent;
 
 	IComponent GetComponent(Type type);
 
-	TValue GetComponent<TValue>(Type type)
-		where TValue : class, IComponent;
+	TComponent GetComponent<TComponent>(Type type)
+		where TComponent : class, IComponent;
 
 	Type GetComponentType(IComponent component);
 
 	IReadOnlyDictionary<Type, IComponent> Components { get; }
 
-	TKeyValue GetAncestorComponent<TKeyValue>(int depth, bool self)
-		where TKeyValue : class, IComponent;
+	TType GetAncestorComponent<TType>(int depth, bool self)
+		where TType : class, IComponent;
 
-	IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth)
-		where TKeyValue : class, IComponent;
+	IEnumerable<TType> GetDescendantComponents<TType>(int depth)
+		where TType : class, IComponent;
 	#endregion
 
 	#region Add
+	#region Component & Type
 	/// <summary>
 	/// Adds a Component to the Entity with a new instance.
 	/// </summary>
-	/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
-	/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
+	/// <typeparam name="TType">The interface Type of the Component.</typeparam>
+	/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
 	/// <returns></returns>
-	TValue AddComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey, new();
-
-	/// <summary>
-	/// Adds a Component to the Entity with the given instance.
-	/// </summary>
-	/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
-	/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
-	/// <param name="Component">The instance of the Component.</param>
-	/// <returns></returns>
-	TValue AddComponent<TKey, TValue>(TValue component)
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	TComponent AddComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType, new();
 
 	/// <summary>
 	/// Adds a Component to the Entity with the given instance and index.
 	/// </summary>
-	/// <typeparam name="TKey">The interface Type of the Component.</typeparam>
-	/// <typeparam name="TValue">The instance Type of the Component.</typeparam>
+	/// <typeparam name="TType">The interface Type of the Component.</typeparam>
+	/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
 	/// <param name="Component">The instance of the Component.</param>
 	/// <param name="index">The index of the Entity within the Component.</param>
 	/// <returns></returns>
-	TValue AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	TComponent AddComponent<TComponent, TType>(TComponent component, int index)
+		where TType : class, IComponent
+		where TComponent : class, TType;
 
+	TComponent AddComponent<TComponent, TType>(TComponent component)
+		where TType : class, IComponent
+		where TComponent : class, TType;
+	#endregion
+
+	#region Component
 	/// <summary>
 	/// Adds a Component to the Entity with a new instance.
 	/// </summary>
-	/// <typeparam name="TKeyValue">The instance Type of the Component.</typeparam>
+	/// <typeparam name="TComponent">The instance Type of the Component.</typeparam>
 	/// <returns></returns>
-	TKeyValue AddComponent<TKeyValue>()
-		where TKeyValue : class, IComponent, new();
+	TComponent AddComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent, new();
 
-	/// <summary>
-	/// Adds a Component to the Entity with the given instance.
-	/// </summary>
-	/// <typeparam name="TKeyValue">The interface Type of the Component.</typeparam>
-	/// <param name="Component">The instance of the Component.</param>
-	/// <returns></returns>
-	TKeyValue AddComponent<TKeyValue>(TKeyValue component)
-		where TKeyValue : class, IComponent;
+	TComponent AddComponent<TComponent>(TComponent component, int index)
+		where TComponent : class, IComponent;
 
 	/// <summary>
 	/// Adds a Component to the Entity with the given instance and index.
 	/// </summary>
-	/// <typeparam name="TKeyValue">The interface Type of the Component.</typeparam>
+	/// <typeparam name="TType">The interface Type of the Component.</typeparam>
 	/// <param name="component">The instance of the Component.</param>
 	/// <param name="index">The index of the Entity within the Component.</param>
 	/// <returns></returns>
-	TKeyValue AddComponent<TKeyValue>(TKeyValue component, int index)
-		where TKeyValue : class, IComponent;
+	//TType AddComponent<TType>(TType component, int index)
+	//where TType : class, IComponent;
+	TComponent AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
+		where TComponent : class, IComponent;
 
-	TValue AddComponent<TValue>(TValue component, Type type)
-		where TValue : class, IComponent;
-
-	TValue AddComponent<TValue>(Type type)
-		where TValue : class, IComponent, new();
-
-	IComponent AddComponent(IComponent component);
-	IComponent AddComponent(IComponent component, Type type);
-	IComponent AddComponent(IComponent component, int index);
-	IComponent AddComponent(IComponent component, Type type, int index);
+	IComponent AddComponentType(IComponent component, int? index = null);
+	#endregion
 	#endregion
 
 	#region Remove
-	TValue RemoveComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	TComponent RemoveComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType;
 
-	TKeyValue RemoveComponent<TKeyValue>()
-		where TKeyValue : class, IComponent;
+	TComponent RemoveComponent<TComponent>(TComponent component, Type type = null)
+		where TComponent : class, IComponent;
+
+	TComponent RemoveComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent;
+
+	TComponent RemoveComponentType<TComponent>(TComponent component)
+		where TComponent : class, IComponent;
 
 	IComponent RemoveComponent(Type type);
-
-	IComponent RemoveComponent(IComponent component);
 
 	bool RemoveComponents();
 	#endregion
@@ -188,8 +176,4 @@ public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispo
 	/// </summary>
 	int SelfSleeping { get; }
 	#endregion
-
-	IComponent AddComponentAsInterface(IComponent component);
-
-	IComponent AddComponentAsInterface(IComponent component, int index);
 }

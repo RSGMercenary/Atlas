@@ -15,17 +15,32 @@ class EntityTests
 
 		Assert.That(entity.GlobalName == AtlasEntity.RootName == isRoot);
 		Assert.That(entity.LocalName == AtlasEntity.RootName == isRoot);
+		Assert.That(entity.ToString() == AtlasEntity.RootName == isRoot);
 	}
 
-	[Test]
-	public void When_IsRoot_Reset_Then_PropertiesExpected()
+	[TestCase(true)]
+	[TestCase(false)]
+	public void When_IsRoot_Reset_Then_PropertiesExpected(bool isRoot)
 	{
-		var entity = new AtlasEntity(true);
+		var entity = new AtlasEntity(!isRoot);
 
-		entity.IsRoot = false;
+		entity.IsRoot = isRoot;
 
-		Assert.That(entity.GlobalName != AtlasEntity.RootName);
-		Assert.That(entity.LocalName != AtlasEntity.RootName);
+		Assert.That(entity.GlobalName == AtlasEntity.RootName == isRoot);
+		Assert.That(entity.LocalName == AtlasEntity.RootName == isRoot);
+		Assert.That(entity.ToString() == AtlasEntity.RootName == isRoot);
+	}
+
+	[TestCase(true)]
+	[TestCase(false)]
+	public void When_IsRoot_And_NamesInvalid_Then_ThrowsException(bool isRoot)
+	{
+		var entity = new AtlasEntity();
+		entity.IsRoot = isRoot;
+		var name = isRoot ? AtlasEntity.UniqueName : AtlasEntity.RootName;
+
+		Assert.That(() => entity.GlobalName = name, Throws.Exception);
+		Assert.That(() => entity.LocalName = name, Throws.Exception);
 	}
 
 	[TestCase("LocalName")]
@@ -38,16 +53,6 @@ class EntityTests
 		child.LocalName = localName;
 
 		Assert.That(child.LocalName == localName);
-	}
-
-	[Test]
-	public void When_NamesAreRoot_Then_ThrowsException()
-	{
-		var entity = new AtlasEntity();
-		var name = AtlasEntity.RootName;
-
-		Assert.That(() => entity.GlobalName = name, Throws.Exception);
-		Assert.That(() => entity.LocalName = name, Throws.Exception);
 	}
 
 	[Test]

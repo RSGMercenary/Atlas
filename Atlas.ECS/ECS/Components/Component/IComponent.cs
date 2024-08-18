@@ -14,6 +14,13 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// </summary>
 	new bool IsAutoDisposable { get; set; }
 
+	/// <summary>
+	/// A Boolean of whether this Component is shareable. Shareable Components
+	/// are able to be added to multiple Entities at once and can contain
+	/// information that is shared between similar Entities.
+	/// </summary>
+	bool IsShareable { get; }
+
 	bool HasManager(IEntity entity);
 
 	/// <summary>
@@ -51,24 +58,7 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// <returns></returns>
 	bool SwapManagers(int index1, int index2);
 
-	/// <summary>
-	/// Adds an Entity to this Component.
-	/// </summary>
-	/// <param name="entity">The Entity to add to this Component.</param>
-	/// <returns></returns>
-	IEntity AddManager(IEntity entity);
-
-	/// <summary>
-	/// Adds an Entity to this Component with the given Type. The Type
-	/// is used for Component lookup in the Entity and must be a subclass
-	/// or interface if this Component.
-	/// </summary>
-	/// <param name="entity">The Entity to add to this Component.</param>
-	/// <param name="type">A Type used for Component lookup in the Entity 
-	/// that is a subclass or interface of this Component.</param>
-	/// <returns></returns>
-	IEntity AddManager(IEntity entity, Type type);
-
+	#region Add
 	/// <summary>
 	/// Adds an Entity to this Component at the given index.
 	/// </summary>
@@ -87,40 +77,23 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// that is a subclass or interface of this Component.</param>
 	/// <param name="index">The index of the Entity in this Component.</param>
 	/// <returns></returns>
-	IEntity AddManager(IEntity entity, Type type, int index);
-
-	/// <summary>
-	/// Adds an Entity to this Component with the given TIComponent Type. The Type
-	/// is used for Component lookup in the Entity and must be a subclass
-	/// or interface if this Component.
-	/// </summary>
-	/// <typeparam name="TKey">A Type used for Component lookup in the Entity 
-	/// that is a subclass or interface of this Component.</typeparam>
-	/// <param name="entity">The Entity to add to this Component.</param>
-	/// <returns></returns>
-	IEntity AddManager<TKey>(IEntity entity)
-		where TKey : IComponent;
+	IEntity AddManager(IEntity entity, Type type = null, int? index = null);
 
 	/// <summary>
 	/// Adds an Entity to this Component with the given Type and index. The Type
 	/// is used for Component lookup in the Entity and must be a subclass
 	/// or interface if this Component.
 	/// </summary>
-	/// <typeparam name="TKey">A Type used for Component lookup in the Entity 
+	/// <typeparam name="TType">A Type used for Component lookup in the Entity 
 	/// that is a subclass or interface of this Component.</typeparam>
 	/// <param name="entity">The Entity to add to this Component.</param>
 	/// <param name="index">The index of the Entity in this Component.</param>
 	/// <returns></returns>
-	IEntity AddManager<TKey>(IEntity entity, int index)
-		where TKey : IComponent;
+	IEntity AddManager<TType>(IEntity entity, int? index = null)
+		where TType : class, IComponent;
+	#endregion
 
-	/// <summary>
-	/// Removes an Entity from this Component.
-	/// </summary>
-	/// <param name="entity">The Entity to remove from this Component.</param>
-	/// <returns></returns>
-	IEntity RemoveManager(IEntity entity);
-
+	#region Remove
 	/// <summary>
 	/// Removes an Entity from this Component with the given Type. The Type
 	/// is used for Component lookup in the Entity and must be a subclass
@@ -130,7 +103,7 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// <param name="type">A Type used for Component lookup in the Entity 
 	/// that is a subclass or interface of this Component.</param>
 	/// <returns></returns>
-	IEntity RemoveManager(IEntity entity, Type type);
+	IEntity RemoveManager(IEntity entity, Type type = null);
 
 	/// <summary>
 	/// Removes an Entity from this Component at the given index.
@@ -142,11 +115,11 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// <summary>
 	/// 
 	/// </summary>
-	/// <typeparam name="TKey"></typeparam>
+	/// <typeparam name="TType"></typeparam>
 	/// <param name="entity">The Entity to remove from this Component.</param>
 	/// <returns></returns>
-	IEntity RemoveManager<TKey>(IEntity entity)
-		where TKey : IComponent;
+	IEntity RemoveManager<TType>(IEntity entity)
+		where TType : class, IComponent;
 
 	/// <summary>
 	/// Removes all Entities managing this Component. Returns true if successful.
@@ -154,7 +127,9 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// </summary>
 	/// <returns></returns>
 	bool RemoveManagers();
+	#endregion
 
+	#region Managers
 	/// <summary>
 	/// The Entity managing this Component. This is always null if
 	/// the Component is shareable, or only null if no Entity has been
@@ -167,13 +142,7 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	/// regardless of the Component's shareable status.
 	/// </summary>
 	IReadOnlyGroup<IEntity> Managers { get; }
-
-	/// <summary>
-	/// A Boolean of whether this Component is shareable. Shareable Components
-	/// are able to be added to multiple Entities at once and can contain
-	/// information that is shared between similar Entities.
-	/// </summary>
-	bool IsShareable { get; }
+	#endregion
 }
 
 public interface IComponent<T> : IMessenger<T>, IComponent where T : IComponent { }

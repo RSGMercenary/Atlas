@@ -335,7 +335,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Updates
-	#region Delta/Total Times
+	#region Delta / Total Times
 	public float MaxVariableTime
 	{
 		get => maxVariableTime;

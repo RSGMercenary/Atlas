@@ -1,6 +1,7 @@
 ﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
 using Atlas.Tests.Attributes;
+using Atlas.Tests.Classes;
 using Atlas.Tests.ECS.Components.Components;
 using NUnit.Framework;
 using System.Collections;
@@ -10,14 +11,15 @@ namespace Atlas.Tests.ECS.Components;
 [TestFixture]
 class ManagerTests
 {
+	private Random Random = new Random();
+
 	#region Add
-	[TestCase(0)]
-	[TestCase(1)]
-	[TestCase(2)]
-	[TestCase(7)]
-	[TestCase(11)]
-	public void When_AddManagers_Then_ManagersEqualsCount(int count)
+	[Test]
+	[Repeat(10)]
+	public void When_AddManagers_Then_ManagersEqualsCount()
 	{
+		var count = Random.Next(11);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; ++i)
@@ -56,12 +58,13 @@ class ManagerTests
 		Assert.That(component.HasManager(entity));
 	}
 
-	[TestCase(2, 0)]
-	[TestCase(5, 4)]
-	[TestCase(8, 2)]
-	[TestCase(12, 9)]
-	public void When_AddManager_WithTypeAndIndex_Then_HasManager(int count, int index)
+	[Test]
+	[Repeat(10)]
+	public void When_AddManager_WithTypeAndIndex_Then_HasManager()
 	{
+		var count = Random.Next(11);
+		var index = Random.Next(count + 1);
+
 		var component = new TestComponent(true);
 		var entity = new AtlasEntity();
 
@@ -74,12 +77,14 @@ class ManagerTests
 		Assert.That(component.Managers[index] == entity);
 	}
 
-	[TestCase(1, 1, 0)]
-	[TestCase(2, 0, 1)]
-	[TestCase(5, 3, 1)]
-	[TestCase(7, 2, 6)]
-	public void When_AddManager_Twice_Then_ManagerAdded(int count, int index1, int index2)
+	[Test]
+	[Repeat(10)]
+	public void When_AddManager_Twice_Then_ManagerAdded()
 	{
+		var count = Random.Next(2, 11);
+		var index1 = Random.Next(count);
+		var index2 = Random.NextExclude(count, index1);
+
 		var component = new TestComponent(true);
 		var entity = new AtlasEntity();
 
@@ -95,13 +100,12 @@ class ManagerTests
 	#endregion
 
 	#region Remove
-	[TestCase(0)]
-	[TestCase(1)]
-	[TestCase(2)]
-	[TestCase(7)]
-	[TestCase(11)]
-	public void When_RemoveManagers_Then_ManagersEqualsZero(int count)
+	[Test]
+	[Repeat(10)]
+	public void When_RemoveManagers_Then_ManagersEqualsZero()
 	{
+		var count = Random.Next(2, 11);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; ++i)
@@ -119,7 +123,7 @@ class ManagerTests
 	[TestCase<ITestComponent, TestComponent>]
 	[TestCase<TestComponent, TestComponent>]
 	public void When_RemoveManager_Then_ManagerRemoved<TType, TComponent>()
-		where TType : class, IComponent
+		where TType : class, Atlas.ECS.Components.Component.IComponent
 		where TComponent : class, TType, new()
 	{
 		var component = new TComponent();
@@ -190,13 +194,14 @@ class ManagerTests
 	#endregion
 
 	#region Swap / Set
-	[TestCase(2, 0, 1)]
-	[TestCase(5, 0, 4)]
-	[TestCase(7, 3, 4)]
-	[TestCase(10, 2, 7)]
-	[TestCase(12, 5, 5)]
-	public void When_SwapManagers_AsIndex_Then_ManagersSwapped(int count, int index1, int index2)
+	[Test]
+	[Repeat(10)]
+	public void When_SwapManagers_AsIndex_Then_ManagersSwapped()
 	{
+		var count = Random.Next(2, 11);
+		var index1 = Random.Next(count);
+		var index2 = Random.NextExclude(count, index1);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; i++)
@@ -210,13 +215,14 @@ class ManagerTests
 		Assert.That(component.Managers[index2] == entity1);
 	}
 
-	[TestCase(2, 0, 1)]
-	[TestCase(5, 0, 4)]
-	[TestCase(7, 3, 4)]
-	[TestCase(10, 2, 7)]
-	[TestCase(12, 8, 8)]
-	public void When_SwapManagers_AsEntity_Then_ManagersSwapped(int count, int index1, int index2)
+	[Test]
+	[Repeat(10)]
+	public void When_SwapManagers_AsEntity_Then_ManagersSwapped()
 	{
+		var count = Random.Next(2, 11);
+		var index1 = Random.Next(count);
+		var index2 = Random.NextExclude(count, index1);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; i++)
@@ -231,13 +237,14 @@ class ManagerTests
 		Assert.That(component.GetManagerIndex(entity2) == index1);
 	}
 
-	[TestCase(0, -1, -1)]
-	[TestCase(2, -1, 0)]
-	[TestCase(2, 0, -1)]
-	[TestCase(5, 3, 5)]
-	[TestCase(5, 7, 2)]
-	public void When_SwapManagers_WithInvalidIndices_Then_NoManagersSwapped(int count, int index1, int index2)
+	[Test]
+	[Repeat(10)]
+	public void When_SwapManagers_WithInvalidIndices_Then_NoManagersSwapped()
 	{
+		var count = Random.Next(2, 11);
+		var index1 = Random.Next(-10, 0);
+		var index2 = Random.Next(count, count + 10);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; i++)
@@ -280,12 +287,14 @@ class ManagerTests
 		Assert.That(!component.SwapManagers(entity1, entity2));
 	}
 
-	[TestCase(2, 0, 1)]
-	[TestCase(5, 4, 0)]
-	[TestCase(8, 2, 6)]
-	[TestCase(12, 9, 3)]
-	public void When_SetManagerIndex_Then_IndexExpected(int count, int index1, int index2)
+	[Test]
+	[Repeat(10)]
+	public void When_SetManagerIndex_Then_IndexExpected()
 	{
+		var count = Random.Next(2, 11);
+		var index1 = Random.Next(count);
+		var index2 = Random.NextExclude(count, index1);
+
 		var component = new TestComponent(true);
 
 		for(var i = 0; i < count; ++i)
@@ -317,16 +326,15 @@ class ManagerTests
 	#endregion
 
 	#region IsShareable
-	[TestCase(true)]
-	[TestCase(false)]
-	public void When_AddManager_With_IsShareable_Then_ThrowsExpected(bool isShareable)
+	[TestCase(true, 2)]
+	[TestCase(false, 1)]
+	public void When_AddManager_With_IsShareable_Then_CountExpected(bool isShareable, int count)
 	{
 		var component = new TestComponent(isShareable);
-		var method = () => component.AddManager(new AtlasEntity());
+		component.AddManager(new AtlasEntity());
+		component.AddManager(new AtlasEntity());
 
-		method.Invoke();
-
-		Assert.That(method, isShareable ? Throws.Nothing : Throws.Exception);
+		Assert.That(component.Managers.Count == count);
 	}
 
 	[TestCase(true)]

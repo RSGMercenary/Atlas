@@ -35,98 +35,49 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 
 	#region Components
 	#region Add
-	#region KeyValue
-	public IEntityBuilder AddComponent<TKeyValue>()
-		where TKeyValue : class, IComponent, new()
+	#region Component & Type
+	public IEntityBuilder AddComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType, new()
 	{
-		Instance.AddComponent<TKeyValue>();
+		Instance.AddComponent<TComponent, TType>();
 		return this;
 	}
 
-	public IEntityBuilder AddComponent<TKeyValue>(TKeyValue component)
-		where TKeyValue : class, IComponent
+	public IEntityBuilder AddComponent<TComponent, TType>(TComponent component)
+		where TType : class, IComponent
+		where TComponent : class, TType
 	{
-		Instance.AddComponent(component);
+		Instance.AddComponent<TComponent, TType>(component);
 		return this;
 	}
 
-	public IEntityBuilder AddComponent<TKeyValue>(TKeyValue component, int index)
-		where TKeyValue : class, IComponent
+	public IEntityBuilder AddComponent<TComponent, TType>(TComponent component, int index)
+		where TType : class, IComponent
+		where TComponent : class, TType
 	{
-		Instance.AddComponent(component, index);
-		return this;
-	}
-	#endregion
-
-	#region Key, Value
-	public IEntityBuilder AddComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey, new()
-	{
-		Instance.AddComponent<TKey, TValue>();
-		return this;
-	}
-
-	public IEntityBuilder AddComponent<TKey, TValue>(TValue component)
-		where TKey : class, IComponent
-		where TValue : class, TKey
-	{
-		Instance.AddComponent<TKey, TValue>(component);
-		return this;
-	}
-
-	public IEntityBuilder AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : class, IComponent
-		where TValue : class, TKey
-	{
-		Instance.AddComponent<TKey, TValue>(component, index);
+		Instance.AddComponent<TComponent, TType>(component, index);
 		return this;
 	}
 	#endregion
 
-	#region Type, Value
-	public IEntityBuilder AddComponent<TValue>(Type type)
-		where TValue : class, IComponent, new()
+	#region Component
+	public IEntityBuilder AddComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent, new()
 	{
-		Instance.AddComponent<TValue>(type);
+		Instance.AddComponent<TComponent>(type);
 		return this;
 	}
 
-	public IEntityBuilder AddComponent<TValue>(TValue component, Type type)
-		where TValue : class, IComponent
-	{
-		Instance.AddComponent(component, type);
-		return this;
-	}
-
-	public IEntityBuilder AddComponent<TValue>(TValue component, Type type, int index)
-		where TValue : class, IComponent
-	{
-		Instance.AddComponent(component, type, index);
-		return this;
-	}
-	#endregion
-
-	#region Type, Component
-	public IEntityBuilder AddComponent(IComponent component)
-	{
-		Instance.AddComponent(component);
-		return this;
-	}
-
-	public IEntityBuilder AddComponent(IComponent component, Type type)
-	{
-		Instance.AddComponent(component, type);
-		return this;
-	}
-
-	public IEntityBuilder AddComponent(IComponent component, int index)
+	public IEntityBuilder AddComponent<TComponent>(TComponent component, int index)
+		where TComponent : class, IComponent
 	{
 		Instance.AddComponent(component, index);
 		return this;
 	}
 
-	public IEntityBuilder AddComponent(IComponent component, Type type, int index)
+	public IEntityBuilder AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
+		where TComponent : class, IComponent
 	{
 		Instance.AddComponent(component, type, index);
 		return this;
@@ -135,24 +86,18 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	#endregion
 
 	#region Remove
-	public IEntityBuilder RemoveComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey
+	public IEntityBuilder RemoveComponent<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType
 	{
-		Instance.RemoveComponent<TKey, TValue>();
+		Instance.RemoveComponent<TComponent, TType>();
 		return this;
 	}
 
-	public IEntityBuilder RemoveComponent<TKeyValue>()
-		where TKeyValue : class, IComponent
+	public IEntityBuilder RemoveComponent<TComponent>(Type type = null)
+		where TComponent : class, IComponent
 	{
-		Instance.RemoveComponent<TKeyValue>();
-		return this;
-	}
-
-	public IEntityBuilder RemoveComponent(Type type)
-	{
-		Instance.RemoveComponent(type);
+		Instance.RemoveComponent<TComponent>(type);
 		return this;
 	}
 

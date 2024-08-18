@@ -15,61 +15,40 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IM
 	#endregion
 
 	#region Components
-	#region KeyValue
-	IEntityBuilder AddComponent<TKeyValue>()
-		where TKeyValue : class, IComponent, new();
+	#region Add
+	#region Component & Type
+	IEntityBuilder AddComponent<TComponent, TType>()
+		where TType : class, Components.Component.IComponent
+		where TComponent : class, TType, new();
 
-	IEntityBuilder AddComponent<TKeyValue>(TKeyValue component)
-		where TKeyValue : class, IComponent;
+	IEntityBuilder AddComponent<TComponent, TType>(TComponent component, int index)
+		where TType : class, Components.Component.IComponent
+		where TComponent : class, TType;
 
-	IEntityBuilder AddComponent<TKeyValue>(TKeyValue component, int index)
-		where TKeyValue : class, IComponent;
+	IEntityBuilder AddComponent<TComponent, TType>(TComponent component)
+		where TType : class, Components.Component.IComponent
+		where TComponent : class, TType;
 	#endregion
 
-	#region Key, Value
-	IEntityBuilder AddComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey, new();
+	#region Type
+	IEntityBuilder AddComponent<TComponent>(Type type = null)
+		where TComponent : class, Components.Component.IComponent, new();
 
-	IEntityBuilder AddComponent<TKey, TValue>(TValue component)
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	IEntityBuilder AddComponent<TComponent>(TComponent component, int index)
+		where TComponent : class, Components.Component.IComponent;
 
-	IEntityBuilder AddComponent<TKey, TValue>(TValue component, int index)
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	IEntityBuilder AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
+		where TComponent : class, Components.Component.IComponent;
 	#endregion
-
-	#region Type, Value
-	IEntityBuilder AddComponent<TValue>(Type type)
-		where TValue : class, IComponent, new();
-
-	IEntityBuilder AddComponent<TValue>(TValue component, Type type)
-		where TValue : class, IComponent;
-
-	IEntityBuilder AddComponent<TValue>(TValue component, Type type, int index)
-		where TValue : class, IComponent;
-	#endregion
-
-	#region Type, Component
-	IEntityBuilder AddComponent(IComponent component);
-
-	IEntityBuilder AddComponent(IComponent component, Type type);
-
-	IEntityBuilder AddComponent(IComponent component, int index);
-
-	IEntityBuilder AddComponent(IComponent component, Type type, int index);
 	#endregion
 
 	#region Remove
-	IEntityBuilder RemoveComponent<TKey, TValue>()
-		where TKey : class, IComponent
-		where TValue : class, TKey;
+	IEntityBuilder RemoveComponent<TComponent, TType>()
+		where TType : class, Components.Component.IComponent
+		where TComponent : class, TType;
 
-	IEntityBuilder RemoveComponent<TKeyValue>()
-		where TKeyValue : class, IComponent;
-
-	IEntityBuilder RemoveComponent(Type type);
+	IEntityBuilder RemoveComponent<TComponent>(Type type = null)
+		where TComponent : class, Components.Component.IComponent;
 
 	IEntityBuilder RemoveComponent(IComponent component);
 
