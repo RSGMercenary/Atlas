@@ -72,8 +72,6 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	#region Fields
 	private readonly Group<IEntity> managers = new();
 	private readonly AutoDispose<T> AutoDispose;
-	[JsonProperty(Order = int.MinValue)]
-	public bool IsShareable { get; private set; } = false;
 	#endregion
 
 	#region Construct / Dispose
@@ -97,6 +95,9 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	}
 
 	#endregion
+
+	[JsonProperty(Order = int.MinValue)]
+	public bool IsShareable { get; private set; } = false;
 
 	#region AutoDispose
 	[JsonProperty(Order = int.MinValue + 1)]
