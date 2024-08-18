@@ -1,4 +1,5 @@
 ﻿using Atlas.ECS.Serialization;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Linq;
 
@@ -18,16 +19,14 @@ public static class EntityExtensions
 	/// <param name="hierarchy"></param>
 	/// <param name="properties"></param>
 	/// <returns></returns>
-	public static JToken ToJsonString(this IEntity entity, bool hierarchy, params string[] properties)
+	public static string ToJsonString(this IEntity entity, bool hierarchy, params string[] properties)
 	{
 		var token = JObject.Parse(entity.Serialize());
 		token
-			.DescendantsAndSelf()
-			.OfType<JObject>()
-			.Where(o => o.Value<string>("$type")?.Contains("Entity") ?? false)
-			.ToList()
+			.DescendantsAndSelf().OfType<JObject>()
+			.Where(o => o.Value<string>("$type")?.Contains("Entity") ?? false).ToList()
 			.ForEach(e => SetProperties(e, hierarchy, entity.GlobalName, properties));
-		return token;
+		return token.ToString(Formatting.Indented);
 	}
 
 	private static void SetProperties(JObject entity, bool hierarchy, string globalName, params string[] properties)

@@ -123,7 +123,7 @@ class ManagerTests
 	[TestCase<ITestComponent, TestComponent>]
 	[TestCase<TestComponent, TestComponent>]
 	public void When_RemoveManager_Then_ManagerRemoved<TType, TComponent>()
-		where TType : class, Atlas.ECS.Components.Component.IComponent
+		where TType : class, IComponent
 		where TComponent : class, TType, new()
 	{
 		var component = new TComponent();

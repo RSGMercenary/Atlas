@@ -18,37 +18,37 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IM
 	#region Add
 	#region Component & Type
 	IEntityBuilder AddComponent<TComponent, TType>()
-		where TType : class, Components.Component.IComponent
+		where TType : class, IComponent
 		where TComponent : class, TType, new();
 
 	IEntityBuilder AddComponent<TComponent, TType>(TComponent component, int index)
-		where TType : class, Components.Component.IComponent
+		where TType : class, IComponent
 		where TComponent : class, TType;
 
 	IEntityBuilder AddComponent<TComponent, TType>(TComponent component)
-		where TType : class, Components.Component.IComponent
+		where TType : class, IComponent
 		where TComponent : class, TType;
 	#endregion
 
 	#region Type
 	IEntityBuilder AddComponent<TComponent>(Type type = null)
-		where TComponent : class, Components.Component.IComponent, new();
+		where TComponent : class, IComponent, new();
 
 	IEntityBuilder AddComponent<TComponent>(TComponent component, int index)
-		where TComponent : class, Components.Component.IComponent;
+		where TComponent : class, IComponent;
 
 	IEntityBuilder AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
-		where TComponent : class, Components.Component.IComponent;
+		where TComponent : class, IComponent;
 	#endregion
 	#endregion
 
 	#region Remove
 	IEntityBuilder RemoveComponent<TComponent, TType>()
-		where TType : class, Components.Component.IComponent
+		where TType : class, IComponent
 		where TComponent : class, TType;
 
 	IEntityBuilder RemoveComponent<TComponent>(Type type = null)
-		where TComponent : class, Components.Component.IComponent;
+		where TComponent : class, IComponent;
 
 	IEntityBuilder RemoveComponent(IComponent component);
 

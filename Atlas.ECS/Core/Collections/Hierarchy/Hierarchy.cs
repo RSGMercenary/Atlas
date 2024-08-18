@@ -310,11 +310,12 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	#endregion
 
 	#region Get
+	[JsonIgnore]
 	public IReadOnlyGroup<T> Children => children;
 
-	[JsonProperty(PropertyName = nameof(Children), ObjectCreationHandling = ObjectCreationHandling.Replace, Order = int.MaxValue)]
+	[JsonProperty(PropertyName = nameof(Children), Order = int.MaxValue)]
 	[ExcludeFromCodeCoverage]
-	private IEnumerable<T> JsonPropertyChildren
+	private IEnumerable<T> SerializeChildren
 	{
 		get => children;
 		set

@@ -168,11 +168,12 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	public Type GetComponentType(IComponent component) => components.Keys.FirstOrDefault(type => components[type] == component);
 
+	[JsonIgnore]
 	public IReadOnlyDictionary<Type, IComponent> Components => components;
 
 	[JsonProperty(PropertyName = nameof(Components), Order = int.MaxValue - 1)]
 	[ExcludeFromCodeCoverage]
-	private IDictionary<Type, IComponent> JsonPropertyComponents
+	private IDictionary<Type, IComponent> SerializeComponents
 	{
 		get => components;
 		set

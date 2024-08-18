@@ -15,7 +15,7 @@ using System.Reflection;
 
 namespace Atlas.ECS.Families;
 
-[JsonObject]
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
@@ -85,7 +85,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	[JsonProperty(PropertyName = nameof(Members))]
 	[ExcludeFromCodeCoverage]
-	private IEnumerable<TFamilyMember> JsonPropertyMembers
+	private IEnumerable<TFamilyMember> SerializeMembers
 	{
 		get => Members;
 		set

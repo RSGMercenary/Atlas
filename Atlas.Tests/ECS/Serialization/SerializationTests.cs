@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Serialization;
@@ -28,12 +29,7 @@ class SerializationTests
 	[Repeat(20)]
 	public void When_SerializeEntity_Then_DeserializeEntity_IsEqual()
 	{
-		var root = new AtlasEntity(true);
-
-		AddChildren(root, Random, Random.Next(6));
-
-		var json = AtlasSerializer.Serialize(root);
-		var clone = AtlasSerializer.Deserialize<IEntity>(json);
+		GetRootAndClone(out var root, out var clone);
 
 		Assert.That(root.Serialize() == clone.Serialize());
 	}
@@ -53,22 +49,6 @@ class SerializationTests
 		var clone = AtlasSerializer.Deserialize<IEntity>(json);
 
 		Assert.That(root.Serialize(Formatting.None, maxDepth) == clone.Serialize(Formatting.None, maxDepth));
-	}
-
-	private void AddChildren(IEntity entity, Random random, int depth)
-	{
-		entity.IsAutoDisposable = Random.NextBool();
-		entity.IsSleeping = Random.NextBool();
-		entity.IsSelfSleeping = Random.NextBool();
-
-		if(random.NextBool())
-			entity.AddComponent<TestComponent>();
-
-		if(depth <= 0)
-			return;
-
-		for(int i = random.Next(6); i > 0; --i)
-			AddChildren(entity.AddChild(new AtlasEntity()), random, --depth);
 	}
 
 	[Test]
@@ -118,18 +98,24 @@ class SerializationTests
 	[Repeat(20)]
 	public void When_SerializeSystem_Then_DeserializeSystem_IsEqual()
 	{
-		var system = new TestFamilySystem();
-		var family = new AtlasFamily<TestFamilyMember>();
+		var root = new AtlasEntity(true);
+		var engine = new AtlasEngine();
 		var timeSteps = new[] { TimeStep.None, TimeStep.Variable, TimeStep.Fixed };
+
+		root.AddComponent(engine);
 
 		for(int i = Random.Next(6); i > 0; --i)
 		{
 			var entity = new AtlasEntity();
-			entity.AddComponent<TestComponent>();
-			family.AddEntity(entity);
+			var component = new TestComponent();
+
+			entity.AddComponent(component);
+
+			root.AddChild(entity);
 		}
 
-		system.Family = family;
+		var system = engine.AddSystem<TestFamilySystem>();
+
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
 		system.IsSleeping = Random.NextBool();
 		system.UpdateSleepingEntities = Random.NextBool();
@@ -139,6 +125,48 @@ class SerializationTests
 		var json = AtlasSerializer.Serialize(system);
 		var clone = AtlasSerializer.Deserialize<ISystem>(json);
 
-		Assert.That(system.Serialize() == clone.Serialize());
+		var json1 = system.Serialize(Formatting.Indented);
+		var json2 = clone.Serialize(Formatting.Indented);
+
+		Assert.That(json1 == json2);
 	}
+
+	[TestCase(true)]
+	[TestCase(true, "GlobalName")]
+	[TestCase(false)]
+	[Repeat(10)]
+	public void When_ToJsonString_Then_ToJsonString_IsEqual(bool hierarchy, params string[] properties)
+	{
+		GetRootAndClone(out var root, out var clone);
+
+		Assert.That(root.ToJsonString(hierarchy, properties) == clone.ToJsonString(hierarchy, properties));
+	}
+
+	#region Helpers
+	private void GetRootAndClone(out IEntity root, out IEntity clone)
+	{
+		root = new AtlasEntity(true);
+
+		AddChildren(root, Random, Random.Next(6));
+
+		var json = AtlasSerializer.Serialize(root);
+		clone = AtlasSerializer.Deserialize<IEntity>(json);
+	}
+
+	private void AddChildren(IEntity entity, Random random, int depth)
+	{
+		entity.IsAutoDisposable = Random.NextBool();
+		entity.IsSleeping = Random.NextBool();
+		entity.IsSelfSleeping = Random.NextBool();
+
+		if(random.NextBool())
+			entity.AddComponent<TestComponent>();
+
+		if(depth <= 0)
+			return;
+
+		for(int i = random.Next(6); i > 0; --i)
+			AddChildren(entity.AddChild(new AtlasEntity()), random, --depth);
+	}
+	#endregion
 }

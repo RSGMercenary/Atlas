@@ -10,7 +10,7 @@ namespace Atlas.ECS.Components.Component;
 public interface IComponent : IMessenger, IAutoDispose, ISerialize
 {
 	/// <summary>
-	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="Managers"/>.Count == 0.
+	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
 	/// </summary>
 	new bool IsAutoDisposable { get; set; }
 

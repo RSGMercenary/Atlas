@@ -1,6 +1,5 @@
 ﻿using Atlas.Core.Objects.Update;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
@@ -58,11 +57,5 @@ class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 	{
 		get => base.UpdateState;
 		set => base.UpdateState = value;
-	}
-
-	public new IReadOnlyFamily<TestFamilyMember> Family
-	{
-		get => base.Family;
-		set => base.Family = value;
 	}
 }
