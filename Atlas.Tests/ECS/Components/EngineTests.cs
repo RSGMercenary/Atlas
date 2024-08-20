@@ -8,6 +8,7 @@ using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
+using System;
 
 namespace Atlas.Tests.ECS.Components;
 

@@ -1,11 +1,12 @@
-﻿using Atlas.ECS.Components.Engine;
+﻿using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Components.SystemManager;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
-using System.ComponentModel;
+using System;
 
 namespace Atlas.Tests.ECS.Components;
 

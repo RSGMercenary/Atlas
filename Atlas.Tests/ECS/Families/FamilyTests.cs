@@ -4,6 +4,9 @@ using Atlas.ECS.Families;
 using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.Tests.ECS.Families;
 

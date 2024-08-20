@@ -11,6 +11,7 @@ using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using System;
 
 namespace Atlas.Tests.ECS.Serialization;
 

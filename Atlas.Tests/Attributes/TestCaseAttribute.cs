@@ -1,4 +1,6 @@
-﻿namespace Atlas.Tests.Attributes;
+﻿using System;
+
+namespace Atlas.Tests.Attributes;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 class TestCaseAttribute<T> : TestCaseGenericAttribute

@@ -1,6 +1,7 @@
 ﻿using Atlas.ECS.Entities;
 using NUnit.Framework;
 using System.Collections;
+using System.Linq;
 
 namespace Atlas.Tests.ECS.Entities;
 

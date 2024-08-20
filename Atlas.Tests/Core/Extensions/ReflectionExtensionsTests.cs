@@ -6,6 +6,8 @@ using Atlas.Tests.ECS.Components.Components;
 using Atlas.Tests.ECS.Families.Families;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
+using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Atlas.Tests.Core.Extensions;

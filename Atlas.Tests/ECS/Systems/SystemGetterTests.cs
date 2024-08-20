@@ -2,6 +2,8 @@
 using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;
+using System;
+using System.Linq;
 
 namespace Atlas.Tests.ECS.Systems;
 

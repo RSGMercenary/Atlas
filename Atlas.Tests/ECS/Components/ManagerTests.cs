@@ -4,7 +4,9 @@ using Atlas.Tests.Attributes;
 using Atlas.Tests.Classes;
 using Atlas.Tests.ECS.Components.Components;
 using NUnit.Framework;
+using System;
 using System.Collections;
+using System.Linq;
 
 namespace Atlas.Tests.ECS.Components;
 

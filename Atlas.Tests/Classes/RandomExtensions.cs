@@ -1,4 +1,6 @@
-﻿namespace Atlas.Tests.Classes;
+﻿using System;
+
+namespace Atlas.Tests.Classes;
 
 static class RandomExtensions
 {

@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Extensions;
 using Atlas.Tests.Classes;
 using NUnit.Framework;
+using System.Linq;
 
 namespace Atlas.Tests.Core.Extensions;
 

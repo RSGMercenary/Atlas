@@ -1,5 +1,7 @@
 ﻿using Atlas.Core.Extensions;
 using NUnit.Framework;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Atlas.Tests.Core.Extensions;
 
