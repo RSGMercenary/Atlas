@@ -98,8 +98,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	private void RemoveEntity(IEntity entity)
 	{
 		//Protect against parents signaling a child being removed which never got to be added.
-		if(!entitiesGlobalName.ContainsKey(entity.GlobalName) ||
-			entitiesGlobalName[entity.GlobalName] != entity)
+		if(!entitiesGlobalName.TryGetValue(entity.GlobalName, out var global) || global != entity)
 			return;
 
 		foreach(var child in entity.Children.Backward())
@@ -120,16 +119,13 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	[JsonIgnore]
 	public IReadOnlyGroup<IEntity> Entities => entities;
 
-	public IEntity GetEntity(string globalName)
-	{
-		return entitiesGlobalName.ContainsKey(globalName) ? entitiesGlobalName[globalName] : null;
-	}
+	public IEntity GetEntity(string globalName) => entitiesGlobalName.TryGetValue(globalName, out var entity) ? entity : null;
 	#endregion
 
 	#region Has
 	public bool HasEntity(string globalName) => entitiesGlobalName.ContainsKey(globalName);
 
-	public bool HasEntity(IEntity entity) => entitiesGlobalName.ContainsKey(entity.GlobalName) && entitiesGlobalName[entity.GlobalName] == entity;
+	public bool HasEntity(IEntity entity) => entitiesGlobalName.TryGetValue(entity.GlobalName, out var global) && global == entity;
 	#endregion
 
 	#region Messages
@@ -172,9 +168,9 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		var type = typeof(TFamilyMember);
-		if(!familiesType.ContainsKey(type))
+		if(!familiesType.TryGetValue(type, out var family))
 		{
-			var family = CreateFamily<TFamilyMember>();
+			family = CreateFamily<TFamilyMember>();
 			families.Add(family);
 			familiesType.Add(type, family);
 			familiesReference.Add(type, 0);
@@ -191,11 +187,10 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		var type = typeof(TFamilyMember);
-		if(!familiesReference.ContainsKey(type))
+		if(!familiesType.TryGetValue(type, out var family))
 			return;
 		if(--familiesReference[type] > 0)
 			return;
-		var family = familiesType[type];
 		families.Remove(family);
 		familiesType.Remove(type);
 		familiesReference.Remove(type);
@@ -214,11 +209,11 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 		return (IReadOnlyFamily<TFamilyMember>)GetFamily(typeof(TFamilyMember));
 	}
 
-	public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
+	public IReadOnlyFamily GetFamily(Type type) => familiesType.TryGetValue(type, out var family) ? family : null;
 	#endregion
 
 	#region Has
-	public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue(family as IFamily);
+	public bool HasFamily(IReadOnlyFamily family) => familiesType.ContainsValue((IFamily)family);
 
 	public bool HasFamily<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
@@ -250,24 +245,21 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#endregion
 
 	#region Add/Remove
-	public TSystem AddSystem<TSystem>() where TSystem : class, ISystem => AddSystem(typeof(TSystem)) as TSystem;
+	public TSystem AddSystem<TSystem>() where TSystem : class, ISystem => (TSystem)AddSystem(typeof(TSystem));
 
 	public ISystem AddSystem(Type type)
 	{
-		if(!systemsReference.ContainsKey(type))
+		if(!systemsType.TryGetValue(type, out var system))
 		{
-			var system = CreateSystem(type);
+			system = CreateSystem(type);
 			system.AddListener<IPriorityMessage>(SystemPriorityChanged);
 			SystemPriorityChanged(system);
 			systemsType.Add(type, system);
-			systemsReference.Add(type, 1);
+			systemsReference.Add(type, 0);
 			system.Engine = this;
 			Message<ISystemAddMessage>(new SystemAddMessage(type, system));
 		}
-		else
-		{
-			++systemsReference[type];
-		}
+		++systemsReference[type];
 		return systemsType[type];
 	}
 
@@ -275,11 +267,10 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	public bool RemoveSystem(Type type)
 	{
-		if(!systemsReference.ContainsKey(type))
+		if(!systemsType.TryGetValue(type, out var system))
 			return false;
 		if(--systemsReference[type] > 0)
 			return false;
-		var system = systemsType[type];
 		system.RemoveListener<IPriorityMessage>(SystemPriorityChanged);
 		systems.Remove(system);
 		systemsType.Remove(type);
@@ -296,7 +287,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	public TISystem GetSystem<TISystem>() where TISystem : ISystem => (TISystem)GetSystem(typeof(TISystem));
 
-	public ISystem GetSystem(Type type) => systemsType.ContainsKey(type) ? systemsType[type] : null;
+	public ISystem GetSystem(Type type) => systemsType.TryGetValue(type, out var system) ? system : null;
 
 	public ISystem GetSystem(int index) => systems[index];
 	#endregion
