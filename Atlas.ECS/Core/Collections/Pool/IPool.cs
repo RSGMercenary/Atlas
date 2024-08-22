@@ -1,29 +1,20 @@
-﻿namespace Atlas.Core.Collections.Pool;
+﻿using System;
 
-public interface IReadOnlyPool
+namespace Atlas.Core.Collections.Pool;
+
+public interface IPool : IDisposable
 {
 	int MaxCount { get; set; }
 
 	int Count { get; }
 
-	bool Empty();
-	object Get();
-}
-
-public interface IReadOnlyPool<out T> : IReadOnlyPool
-	where T : class
-{
-	new T Get();
-}
-
-public interface IPool : IReadOnlyPool
-{
 	bool Fill();
-	bool Release(object value);
+	bool Empty();
 }
 
-public interface IPool<T> : IPool, IReadOnlyPool<T>
-	where T : class
+public interface IPool<T> : IPool
 {
-	bool Release(T value);
+	T Get();
+
+	bool Put(T value);
 }

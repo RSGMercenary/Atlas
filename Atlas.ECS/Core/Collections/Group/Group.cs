@@ -15,7 +15,7 @@ public class Group<T> : IGroup<T>
 
 	private readonly List<GroupItem> items = new();
 	private readonly Stack<GroupItem> removed = new();
-	private readonly Pool<GroupItem> pool = new InstancePool<GroupItem>();
+	private readonly Pool<GroupItem> pool = new(() => new GroupItem());
 	private int iterators = 0;
 
 	#region Pool
@@ -32,7 +32,7 @@ public class Group<T> : IGroup<T>
 	{
 		element.Value = default;
 		//Leave IsRemoved = true for now. Seems cleaner.
-		pool.Release(element);
+		pool.Put(element);
 	}
 
 	#endregion

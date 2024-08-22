@@ -16,44 +16,6 @@ namespace Atlas.ECS.Components.Component;
 public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 {
 	#region Static
-	#region Pools
-	private static readonly Dictionary<Type, IPool> pools = new();
-
-	public static IReadOnlyPool<TComponent> AddPool<TComponent>()
-		where TComponent : class, IComponent, new() => AddPool(() => new TComponent());
-
-	public static IReadOnlyPool<TComponent> AddPool<TComponent>(Func<TComponent> creator)
-		where TComponent : class, IComponent
-	{
-		var type = typeof(TComponent);
-		if(!pools.ContainsKey(type))
-			pools.Add(type, new Pool<TComponent>(creator));
-		return pools[type] as IReadOnlyPool<TComponent>;
-	}
-
-	public static bool RemovePool<TComponent>()
-		where TComponent : class, IComponent => pools.Remove(typeof(TComponent));
-
-	public static IReadOnlyPool<TComponent> GetPool<TComponent>()
-		where TComponent : class, IComponent
-	{
-		var type = typeof(TComponent);
-		return pools.ContainsKey(type) ? pools[type] as IReadOnlyPool<TComponent> : null;
-	}
-	#endregion
-
-	#region Get/Release
-	public static TComponent Get<TComponent>()
-		where TComponent : class, IComponent, new() => GetPool<TComponent>()?.Get() ?? new TComponent();
-
-	internal static void Release(IComponent component)
-	{
-		var type = component.GetType();
-		if(pools.ContainsKey(type))
-			pools[type].Release(component);
-	}
-	#endregion
-
 	internal static Type GetType(IComponent component, Type type = null)
 	{
 		if(type == null)
@@ -91,7 +53,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 
 		base.Disposing();
 
-		AtlasComponent.Release(this);
+		PoolManager.Instance.Put(this);
 	}
 
 	#endregion

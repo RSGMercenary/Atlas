@@ -31,9 +31,8 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	private readonly Dictionary<IEntity, TFamilyMember> entities = new();
 
 	//Pooling
-	private readonly List<TFamilyMember> added = new();
 	private readonly List<TFamilyMember> removed = new();
-	private readonly Pool<TFamilyMember> pool = new InstancePool<TFamilyMember>();
+	private readonly List<TFamilyMember> added = new();
 	#endregion
 
 	#region Construct / Dispose
@@ -48,6 +47,8 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 		foreach(var field in type.FindFields<IComponent>(flags))
 			componentFields.Add(field.FieldType, field);
+
+		PoolManager.Instance.AddPool<TFamilyMember>();
 	}
 
 	public sealed override void Dispose()
@@ -56,6 +57,12 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		if(Engine != null || removed.Count > 0)
 			return;
 		base.Dispose();
+	}
+
+	protected override void Disposing()
+	{
+		PoolManager.Instance.RemovePool<TFamilyMember>();
+		base.Disposing();
 	}
 	#endregion
 
@@ -123,7 +130,8 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 				return;
 		}
 
-		var member = SetMemberValues(pool.Get(), entity, true);
+		var member = PoolManager.Instance.Get<TFamilyMember>();
+		SetMemberValues(member, entity);
 		entities.Add(entity, member);
 
 		if(!IsUpdating)
@@ -170,7 +178,8 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	private void RemoveMember(TFamilyMember member)
 	{
-		pool.Release(SetMemberValues(member, null, false));
+		SetMemberValues(member, null);
+		PoolManager.Instance.Put(member);
 	}
 	#endregion
 
@@ -190,12 +199,14 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	private bool IsUpdating => (Engine?.UpdateState ?? TimeStep.None) != TimeStep.None;
 
-	private TFamilyMember SetMemberValues(TFamilyMember member, IEntity entity, bool add)
+	private void SetMemberValues(TFamilyMember member, IEntity entity)
 	{
 		entityField.SetValue(member, entity);
 		foreach(var type in componentFields.Keys)
-			componentFields[type].SetValue(member, add ? entity.GetComponent(type) : null);
-		return member;
+		{
+			var component = entity != null ? entity.GetComponent(type) : null;
+			componentFields[type].SetValue(member, component);
+		}
 	}
 
 	public void SortMembers(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare)

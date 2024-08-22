@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Hierarchy;
+using Atlas.Core.Collections.Pool;
 using Atlas.Core.Extensions;
 using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
@@ -21,28 +22,14 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	public static string UniqueName => Guid.NewGuid().ToString("N");
 	#endregion
 
-	public static Func<AtlasEntity> Construct { get; set; }
-	public static Action<AtlasEntity> Disposed { get; set; }
 
 	#region Pool
-	public static AtlasEntity Get() => Construct?.Invoke() ?? new AtlasEntity();
+	public static AtlasEntity Get() => PoolManager.Instance.GetOrNew<AtlasEntity>();
 
-	public static AtlasEntity Get(string localName) => Get(null, localName);
+	public static AtlasEntity Get(string localName = null, string globalName = null) { var entity = Get(); entity.SetNames(localName, globalName); return entity; }
 
-	public static AtlasEntity Get(string globalName = null, string localName = null)
-	{
-		var entity = Get();
-		entity.GlobalName = globalName;
-		entity.LocalName = localName;
-		return entity;
-	}
+	public static AtlasEntity GetRoot() { var root = Get(); root.IsRoot = true; return root; }
 
-	public static AtlasEntity Get(bool isRoot)
-	{
-		var entity = Get();
-		entity.IsRoot = isRoot;
-		return entity;
-	}
 	#endregion
 
 	#region Fields
@@ -82,7 +69,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 		base.Disposing();
 
-		Disposed?.Invoke(this);
+		PoolManager.Instance.Put(this);
 	}
 	#endregion
 
@@ -231,7 +218,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	#region Component
 	public TComponent AddComponent<TComponent>(Type type = null)
-		where TComponent : class, IComponent, new() => AddComponent(AtlasComponent.Get<TComponent>(), type);
+		where TComponent : class, IComponent, new() => AddComponent(PoolManager.Instance.GetOrNew<TComponent>(), type);
 
 	public TComponent AddComponent<TComponent>(TComponent component, int index)
 		where TComponent : class, IComponent => AddComponent(component, null, index);

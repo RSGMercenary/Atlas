@@ -3,22 +3,30 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool;
 
-public class InstancePool<T> : Pool<T>
-	where T : class, new()
-{
-	public InstancePool() : base(() => new T()) { }
-}
-
-public class Pool<T> : IPool<T>
-	where T : class
+public sealed class Pool<T> : IPool<T>
 {
 	private readonly Stack<T> stack = new();
 	private int maxCount = -1;
 	private readonly Func<T> creator;
 
-	public Pool(Func<T> creator)
+	public Pool(Func<T> creator, int maxCount = -1, bool fill = false)
 	{
+		if(creator == null)
+			throw new ArgumentNullException(nameof(creator));
 		this.creator = creator;
+		MaxCount = maxCount;
+		if(fill) Fill();
+	}
+
+	public void Dispose()
+	{
+		Empty();
+	}
+
+	private static void Dispose(T value)
+	{
+		if(value is IDisposable disposable)
+			disposable.Dispose();
 	}
 
 	#region Size
@@ -36,7 +44,7 @@ public class Pool<T> : IPool<T>
 			if(maxCount < 0)
 				return;
 			while(stack.Count > maxCount)
-				stack.Pop();
+				Dispose(stack.Pop());
 		}
 	}
 
@@ -44,7 +52,7 @@ public class Pool<T> : IPool<T>
 
 	#region Add
 
-	public bool Release(T value)
+	public bool Put(T value)
 	{
 		if(value?.GetType() != typeof(T))
 			throw new ArgumentException($"An instance of {value?.GetType()} does not equal {typeof(T)}.");
@@ -54,8 +62,6 @@ public class Pool<T> : IPool<T>
 		return true;
 	}
 
-	public bool Release(object value) => Release(value as T);
-
 	public bool Fill()
 	{
 		if(maxCount <= 0)
@@ -63,26 +69,21 @@ public class Pool<T> : IPool<T>
 		if(stack.Count >= maxCount)
 			return false;
 		while(stack.Count < maxCount)
-			Release(creator());
+			Put(creator.Invoke());
 		return true;
 	}
-
 	#endregion
 
 	#region Remove
-
-	public T Get() => stack.Count > 0 ? stack.Pop() : creator();
-
-	object IReadOnlyPool.Get() => Get();
+	public T Get() => stack.TryPop(out var value) ? value : creator.Invoke();
 
 	public bool Empty()
 	{
 		if(stack.Count <= 0)
 			return false;
-		while(stack.Count > 0)
-			stack.Pop();
+		while(stack.TryPop(out var value))
+			Dispose(value);
 		return true;
 	}
-
 	#endregion
 }
