@@ -33,11 +33,11 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#endregion
 
 	#region Fields
-	private readonly EngineItem<IEntity> EngineItem;
 	private string globalName = UniqueName;
 	private string localName = UniqueName;
 	private int selfSleeping = 0;
 	private readonly Sleep<IEntity> Sleep;
+	private readonly EngineItem<IEntity> EngineItem;
 	private readonly AutoDispose<IEntity> AutoDispose;
 	private readonly Dictionary<Type, IComponent> components = new();
 	#endregion
