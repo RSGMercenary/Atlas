@@ -177,16 +177,13 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 			var family = CreateFamily<TFamilyMember>();
 			families.Add(family);
 			familiesType.Add(type, family);
-			familiesReference.Add(type, 1);
+			familiesReference.Add(type, 0);
 			family.Engine = this;
 			foreach(var entity in entities)
 				family.AddEntity(entity);
 			Message<IFamilyAddMessage>(new FamilyAddMessage(type, family));
 		}
-		else
-		{
-			++familiesReference[type];
-		}
+		++familiesReference[type];
 		return (IReadOnlyFamily<TFamilyMember>)familiesType[type];
 	}
 
@@ -214,7 +211,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	public IReadOnlyFamily<TFamilyMember> GetFamily<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
 	{
-		return GetFamily(typeof(TFamilyMember)) as IReadOnlyFamily<TFamilyMember>;
+		return (IReadOnlyFamily<TFamilyMember>)GetFamily(typeof(TFamilyMember));
 	}
 
 	public IReadOnlyFamily GetFamily(Type type) => familiesType.ContainsKey(type) ? familiesType[type] : null;
