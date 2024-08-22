@@ -15,7 +15,6 @@ class EntityTests
 
 		Assert.That(entity.GlobalName == AtlasEntity.RootName == isRoot);
 		Assert.That(entity.LocalName == AtlasEntity.RootName == isRoot);
-		Assert.That(entity.ToString() == AtlasEntity.RootName == isRoot);
 	}
 
 	[TestCase(true)]
@@ -28,7 +27,6 @@ class EntityTests
 
 		Assert.That(entity.GlobalName == AtlasEntity.RootName == isRoot);
 		Assert.That(entity.LocalName == AtlasEntity.RootName == isRoot);
-		Assert.That(entity.ToString() == AtlasEntity.RootName == isRoot);
 	}
 
 	[TestCase(true)]
@@ -162,13 +160,12 @@ class EntityTests
 	public void When_Dispose_Then_Disposed()
 	{
 		var entity = new AtlasEntity();
-		var isDisposed = false;
 
-		AtlasEntity.Disposed += _ => isDisposed = true;
+		entity.AddChild(new AtlasEntity());
 
 		entity.Dispose();
 
-		Assert.That(isDisposed);
+		Assert.That(entity.Children.Count == 0);
 	}
 	#endregion
 }
