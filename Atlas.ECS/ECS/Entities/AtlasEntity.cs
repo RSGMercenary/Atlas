@@ -17,11 +17,31 @@ namespace Atlas.ECS.Entities;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 {
-	#region Names
+	#region Static
 	public static readonly string RootName = "Root";
 	public static string UniqueName => Guid.NewGuid().ToString("N");
-	#endregion
 
+	private static bool IsValidName(string current, string next, bool isRoot, Func<string, bool> check = null)
+	{
+		if(next == RootName && !isRoot)
+			ThrowNameException(current, RootName);
+		if(next != RootName && isRoot)
+			ThrowNameException(RootName, next);
+
+		if(string.IsNullOrWhiteSpace(next))
+			return false;
+		else
+		{
+			if(current == next)
+				return false;
+			if(check.Invoke(next))
+				return false;
+		}
+		return true;
+	}
+
+	private static void ThrowNameException(string current, string next) => throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{current}' to '{next}'.");
+	#endregion
 
 	#region Pool
 	public static AtlasEntity Get() => PoolManager.Instance.GetOrNew<AtlasEntity>();
@@ -52,11 +72,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
 
-	public AtlasEntity(string globalName = null, string localName = null) : this()
-	{
-		GlobalName = globalName;
-		LocalName = localName;
-	}
+	public AtlasEntity(string localName = null, string globalName = null) : this() { SetNames(localName, globalName); }
 
 	protected override void Disposing()
 	{
@@ -80,7 +96,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		get => globalName;
 		set
 		{
-			if(!IsValidName(globalName, ref value, n => Engine?.HasEntity(n) ?? false))
+			if(!IsValidName(globalName, value, IsRoot, n => Engine?.HasEntity(n) ?? false))
 				return;
 			string previous = globalName;
 			globalName = value;
@@ -94,7 +110,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		get => localName;
 		set
 		{
-			if(!IsValidName(localName, ref value, n => Parent?.HasChild(n) ?? false))
+			if(!IsValidName(localName, value, IsRoot, n => Parent?.HasChild(n) ?? false))
 				return;
 			string previous = localName;
 			localName = value;
@@ -102,24 +118,9 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		}
 	}
 
-	private bool IsValidName(string current, ref string next, Func<string, bool> check = null)
-	{
-		if(next == RootName && !IsRoot)
-			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{current}' to '{RootName}'.");
-		if(next != RootName && IsRoot)
-			throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{RootName}' to '{next}'.");
+	public void SetNames(string name) => SetNames(name, name);
 
-		if(string.IsNullOrWhiteSpace(next))
-			return false;
-		else
-		{
-			if(current == next)
-				return false;
-			if(check.Invoke(next))
-				return false;
-		}
-		return true;
-	}
+	public void SetNames(string localName, string globalName) { LocalName = localName; GlobalName = globalName; }
 
 	public override string ToString() => GlobalName;
 	#endregion
