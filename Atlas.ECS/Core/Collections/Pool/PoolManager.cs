@@ -36,6 +36,7 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 			pool = new Pool<T>(constructor, maxCount, fill);
 			pools.Add(type, pool);
 			references.Add(type, 0);
+			Message<IPoolAddMessage>(new PoolAddMessage(type, pool));
 		}
 		++references[type];
 		return pool;
@@ -46,16 +47,15 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 	public bool RemovePool<T>()
 	{
 		var type = typeof(T);
-		if(pools.TryGetValue(type, out IPool<T> pool))
-		{
-			if(--references[type] <= 0)
-			{
-				pool.Dispose();
-				pools.Remove(type);
-				references.Remove(type);
-			}
-		}
-		return !pools.ContainsKey(type);
+		if(!pools.TryGetValue(type, out IPool<T> pool))
+			return false;
+		if(--references[type] > 0)
+			return false;
+		pool.Dispose();
+		pools.Remove(type);
+		references.Remove(type);
+		Message<IPoolRemoveMessage>(new PoolRemoveMessage(type, pool));
+		return true;
 	}
 	#endregion
 	#endregion
