@@ -35,10 +35,10 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	protected override void AddingEngine(IEngine engine)
 	{
 		Family = engine.AddFamily<TFamilyMember>();
-		Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
-		Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
 		foreach(var member in Family)
 			MemberAdded(Family, member);
+		Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
+		Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
 	}
 
 	protected override void RemovingEngine(IEngine engine)
