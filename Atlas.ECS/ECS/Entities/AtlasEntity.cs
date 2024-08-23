@@ -227,18 +227,14 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	public TComponent AddComponent<TComponent>(TComponent component, Type type = null, int? index = null)
 		where TComponent : class, IComponent
 	{
-		bool isAutoDisposable = false;
-
 		if(component.HasManager(this))
 			return component;
 		else if(component.Manager != null)
 		{
-			if(component.IsAutoDisposable)
-			{
-				isAutoDisposable = true;
-				component.IsAutoDisposable = false;
-			}
+			var isAutoDisposable = component.IsAutoDisposable;
+			component.IsAutoDisposable = false;
 			component.RemoveManagers();
+			component.IsAutoDisposable = isAutoDisposable;
 		}
 
 		type = AtlasComponent.GetType(component, type ?? typeof(TComponent));
@@ -250,8 +246,6 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 		}
 		components.Add(type, component);
 		component.AddManager(this, type, index);
-		if(isAutoDisposable)
-			component.IsAutoDisposable = true;
 		Message<IComponentAddMessage>(new ComponentAddMessage(type, component));
 		return component;
 	}
