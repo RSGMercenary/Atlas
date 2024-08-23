@@ -26,7 +26,6 @@ internal class AutoDispose<T> : IAutoDispose
 			var previous = isAutoDisposable;
 			isAutoDisposable = value;
 			Instance.Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
-			TryAutoDispose();
 		}
 	}
 
