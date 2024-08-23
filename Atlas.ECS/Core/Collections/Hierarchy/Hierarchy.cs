@@ -201,7 +201,6 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		if(next != null)
 		{
 			parent = next;
-			index = Math.Max(0, Math.Min(index, next.Children.Count));
 			next.AddChild(this as T, index);
 		}
 		if(previous != next)
