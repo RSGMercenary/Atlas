@@ -131,8 +131,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	#region Messages
 	private void EntityChildAdded(IChildAddMessage<IEntity> message)
 	{
-		if(!entitiesGlobalName.ContainsKey(message.Value.GlobalName) ||
-			entitiesGlobalName[message.Value.GlobalName] != message.Value)
+		if(!entitiesGlobalName.TryGetValue(message.Value.GlobalName, out var entity) || entity != message.Value)
 			AddEntity(message.Value);
 	}
 
@@ -146,8 +145,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 
 	private void EntityGlobalNameChanged(IGlobalNameMessage message)
 	{
-		if(entitiesGlobalName.ContainsKey(message.PreviousValue) &&
-			entitiesGlobalName[message.PreviousValue] == message.Messenger)
+		if(entitiesGlobalName.TryGetValue(message.PreviousValue, out var entity) && entity == message.Messenger)
 		{
 			entitiesGlobalName.Remove(message.PreviousValue);
 			entitiesGlobalName.Add(message.CurrentValue, message.Messenger);
