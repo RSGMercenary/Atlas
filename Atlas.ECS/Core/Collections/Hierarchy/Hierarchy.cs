@@ -182,7 +182,7 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		set => parent?.SetChildIndex(this as T, value);
 	}
 
-	public T SetParent(T next) => SetParent(next, int.MaxValue);
+	public T SetParent(T next) => SetParent(next, next?.Children.Count ?? -1);
 
 	public T SetParent(T next, int index)
 	{
