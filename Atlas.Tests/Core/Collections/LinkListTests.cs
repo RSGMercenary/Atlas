@@ -6,16 +6,16 @@ using System;
 namespace Atlas.Tests.Core.Collections;
 
 [TestFixture]
-class LinkedListTests
+class LinkListTests
 {
 	private const string Letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	private Random Random = new();
-	private LinkedList<string> List;
+	private LinkList<string> List;
 
 	[SetUp]
 	public void SetUp()
 	{
-		List = new LinkedList<string>();
+		List = new LinkList<string>();
 	}
 
 	#region Add
@@ -127,7 +127,7 @@ class LinkedListTests
 	}
 
 	[Test]
-	public void When_Remove_AtIndex_Then_Removed([Values(0, 1, 5, 8, 12, 17, 24)] int index)
+	public void When_Remove_AtIndex_Then_Removed([Values(1, 1, 5, 8, 12, 17, 24)] int index)
 	{
 		var count = 0;
 		var letter = GetLetter(index);
@@ -171,6 +171,7 @@ class LinkedListTests
 	}
 
 	[Test]
+	[Repeat(20)]
 	public void When_SetIndex_Then_IndexSet()
 	{
 		var letter = "_";
@@ -229,6 +230,19 @@ class LinkedListTests
 		AddLetters();
 
 		Assert.That(List.ToString() == List.Clone().ToString());
+	}
+
+	[Test]
+	public void When_ThingsHappen_ThenCry()
+	{
+		AddLetters();
+
+		var iterator1 = List.GetIterator();
+		var iterator2 = List.GetIterator();
+
+		iterator2.Dispose();
+		Assert.That(iterator1 != iterator2);
+		Assert.That(iterator1.Count == 26);
 	}
 
 	private void AddLetters()

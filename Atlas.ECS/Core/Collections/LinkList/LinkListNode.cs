@@ -2,25 +2,28 @@
 
 namespace Atlas.Core.Collections.LinkedList;
 
-public class LinkedListNode<T> : ILinkedListNode<T>
+public class LinkListNode<T> : ILinkListNode<T>
 {
-	internal ReadOnlyLinkedList<T> list;
-	internal LinkedListNode<T> previous;
-	internal LinkedListNode<T> next;
-	internal LinkedListData<T> data;
+	internal ReadOnlyLinkList<T> list;
+	internal LinkListNode<T> previous;
+	internal LinkListNode<T> next;
+	internal LinkListData<T> data;
 
-	internal LinkedListNode() { }
+	internal LinkListNode() { }
 
 	public void Dispose()
 	{
 		list = null;
 		previous = null;
 		next = null;
+		data.Dispose();
 		data = null;
 		PoolManager.Instance.Put(this);
 	}
 
-	public ILinkedListNode<T> Previous
+	public IReadOnlyLinkList<T> List => list;
+
+	public ILinkListNode<T> Previous
 	{
 		get
 		{
@@ -35,7 +38,7 @@ public class LinkedListNode<T> : ILinkedListNode<T>
 		}
 	}
 
-	public ILinkedListNode<T> Next
+	public ILinkListNode<T> Next
 	{
 		get
 		{

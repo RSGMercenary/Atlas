@@ -3,53 +3,13 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.LinkedList;
-
-public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
+public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 {
 	internal int count = 0;
-	internal LinkedListNode<T> first;
-	internal LinkedListNode<T> last;
-	internal LinkedList<T> source;
+	internal LinkListNode<T> first;
+	internal LinkListNode<T> last;
 
-	internal ReadOnlyLinkedList() { }
-
-	internal ReadOnlyLinkedList<T> Clone(LinkedList<T> list)
-	{
-		this.source = list;
-		this.source.AddIterator();
-
-		if(list.count <= 0)
-			return this;
-
-		var current = PoolManager.Instance.Get<LinkedListNode<T>>();
-		var source = list.first;
-
-		current.data = source.data;
-		source = source.next;
-
-		first = current;
-
-		while(source != null)
-		{
-			if(!source.data.removed)
-			{
-				var node = PoolManager.Instance.Get<LinkedListNode<T>>();
-				node.data = source.data;
-
-				current.next = node;
-				current.next.previous = current;
-				current = node;
-
-				count++;
-			}
-
-			source = source.next;
-		}
-
-		last = current;
-
-		return this;
-	}
+	internal ReadOnlyLinkList() { }
 
 	public virtual void Dispose()
 	{
@@ -68,28 +28,64 @@ public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
 		first = null;
 		last = null;
 		count = 0;
-
-		source.RemoveIterator();
-		source = null;
-
-		PoolManager.Instance.Put(this);
 	}
 
 	public int Count => count;
 
-	public ILinkedListNode<T> First => first;
+	public ILinkListNode<T> First => first;
 
-	public ILinkedListNode<T> Last => last;
+	public ILinkListNode<T> Last => last;
+
+	internal virtual void Copy(LinkList<T> list)
+	{
+		if(list.count <= 0)
+			return;
+
+		var copy = PoolManager.Instance.Get<LinkListNode<T>>();
+		var source = list.first;
+
+		Copy(source, copy);
+
+		first = copy;
+
+		source = source.next;
+		while(source != null)
+		{
+			if(!source.data.removed)
+			{
+				copy.next = PoolManager.Instance.Get<LinkListNode<T>>();
+				copy.next.previous = copy;
+				copy = copy.next;
+
+				Copy(source, copy);
+			}
+
+			source = source.next;
+		}
+
+		last = copy;
+	}
+
+	private void Copy(LinkListNode<T> source, LinkListNode<T> copy)
+	{
+		copy.data = source.data;
+		copy.data.iterators++;
+		count++;
+	}
 
 	#region Get
 	public T this[int index]
 	{
-		get { var node = GetNode(index); return node != null ? node.data.value : default; }
+		get
+		{
+			var node = GetNode(index);
+			return node != null ? node.data.value : default;
+		}
 	}
 
-	public ILinkedListNode<T> Get(int index) => GetNode(index);
+	public ILinkListNode<T> Get(int index) => GetNode(index);
 
-	protected LinkedListNode<T> GetNode(T value)
+	protected LinkListNode<T> GetNode(T value)
 	{
 		if(value == null)
 			return null;
@@ -107,7 +103,7 @@ public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
 		return null;
 	}
 
-	protected LinkedListNode<T> GetNode(int index)
+	protected LinkListNode<T> GetNode(int index)
 	{
 		if(index <= -1 || index >= count)
 			return null;
@@ -132,7 +128,7 @@ public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
 	#endregion
 
 	#region Iterate
-	public IEnumerable<ILinkedListNode<T>> Forward()
+	public IEnumerable<ILinkListNode<T>> Forward()
 	{
 		if(first == null)
 			yield break;
@@ -147,7 +143,7 @@ public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
 		}
 	}
 
-	public IEnumerable<ILinkedListNode<T>> Backward()
+	public IEnumerable<ILinkListNode<T>> Backward()
 	{
 		if(last == null)
 			yield break;
@@ -162,12 +158,12 @@ public class ReadOnlyLinkedList<T> : IReadOnlyLinkedList<T>
 		}
 	}
 
-	public virtual IEnumerable<ILinkedListNode<T>> Enumerate(bool forward = true)
+	public virtual IEnumerable<ILinkListNode<T>> Enumerate(bool forward = true)
 	{
 		return forward ? Forward() : Backward();
 	}
 
-	public IEnumerator<ILinkedListNode<T>> GetEnumerator() => Forward().GetEnumerator();
+	public IEnumerator<ILinkListNode<T>> GetEnumerator() => Forward().GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	#endregion

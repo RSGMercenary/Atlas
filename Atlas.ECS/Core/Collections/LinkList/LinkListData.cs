@@ -2,16 +2,18 @@
 
 namespace Atlas.Core.Collections.LinkedList;
 
-public class LinkedListData<T>
+internal class LinkListData<T>
 {
 	public bool removed = false;
+	public int iterators = 0;
 	public T value;
 
-	public LinkedListData() { }
+	public LinkListData() { }
 
 	public void Dispose()
 	{
-		removed = false;
+		if(--iterators > 0)
+			return;
 		value = default;
 		PoolManager.Instance.Put(this);
 	}

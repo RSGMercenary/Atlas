@@ -3,59 +3,47 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.LinkedList;
 
-public class LinkedList<T> : ReadOnlyLinkedList<T>, ILinkedList<T>
+public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 {
-	private int iterators = 0;
-	private readonly Stack<LinkedListData<T>> removed = new();
-
-	public LinkedList()
+	public LinkList()
 	{
-		PoolManager.Instance.AddPool(() => new ReadOnlyLinkedList<T>());
-		PoolManager.Instance.AddPool(() => new LinkedListNode<T>());
-		PoolManager.Instance.AddPool(() => new LinkedListData<T>());
+		PoolManager.Instance.AddPool(() => new ReadOnlyLinkList<T>());
+		PoolManager.Instance.AddPool(() => new LinkListNode<T>());
+		PoolManager.Instance.AddPool(() => new LinkListData<T>());
 	}
 
-	~LinkedList()
+	~LinkList()
 	{
-		PoolManager.Instance.RemovePool<ReadOnlyLinkedList<T>>();
-		PoolManager.Instance.RemovePool<LinkedListNode<T>>();
-		PoolManager.Instance.RemovePool<LinkedListData<T>>();
+		PoolManager.Instance.RemovePool<ReadOnlyLinkList<T>>();
+		PoolManager.Instance.RemovePool<LinkListNode<T>>();
+		PoolManager.Instance.RemovePool<LinkListData<T>>();
 	}
 
-	public override void Dispose()
+	public IReadOnlyLinkList<T> GetIterator()
 	{
-		RemoveNodes();
-	}
-
-	public IReadOnlyLinkedList<T> Clone() => PoolManager.Instance.Get<ReadOnlyLinkedList<T>>().Clone(this);
-
-	internal void AddIterator() => iterators++;
-
-	internal void RemoveIterator()
-	{
-		if(--iterators == 0)
-		{
-			while(removed.TryPop(out var data))
-				data.Dispose();
-		}
+		var enumerator = PoolManager.Instance.Get<ReadOnlyLinkList<T>>();
+		enumerator.Copy(this);
+		return enumerator;
 	}
 
 	#region Add
-	public void Add(T value) => Add(value, count);
+	public bool Add(T value) => Add(value, count);
 
 	public bool Add(T value, int index)
 	{
 		if(index < 0 || index > count)
 			return false;
 
-		var node = PoolManager.Instance.Get<LinkedListNode<T>>();
-		node.data = PoolManager.Instance.Get<LinkedListData<T>>();
+		var node = PoolManager.Instance.Get<LinkListNode<T>>();
+		node.data = PoolManager.Instance.Get<LinkListData<T>>();
+		node.data.removed = false;
 		node.data.value = value;
+		node.data.iterators++;
 
 		return AddNode(node, index);
 	}
 
-	public bool AddNode(LinkedListNode<T> node, int index)
+	public bool AddNode(LinkListNode<T> node, int index)
 	{
 		if(node == null || (node.list != null && node.list != this))
 			return false;
@@ -67,7 +55,7 @@ public class LinkedList<T> : ReadOnlyLinkedList<T>, ILinkedList<T>
 		return true;
 	}
 
-	private void ListAddNode(LinkedListNode<T> node, int index)
+	private void ListAddNode(LinkListNode<T> node, int index)
 	{
 		node.list = this;
 
@@ -114,27 +102,20 @@ public class LinkedList<T> : ReadOnlyLinkedList<T>, ILinkedList<T>
 
 	public bool RemoveAll() => RemoveNodes();
 
-	public bool RemoveNode(LinkedListNode<T> node)
+	public bool RemoveNode(LinkListNode<T> node)
 	{
 		if(node?.list != this)
 			return false;
 
 		ListRemoveNode(node);
 
-		if(iterators > 0)
-		{
-			node.data.removed = true;
-			removed.Push(node.data);
-		}
-		else
-			node.data.Dispose();
-
+		node.data.removed = true;
 		node.Dispose();
 
 		return true;
 	}
 
-	private void ListRemoveNode(LinkedListNode<T> node)
+	private void ListRemoveNode(LinkListNode<T> node)
 	{
 		node.list = null;
 
@@ -180,16 +161,18 @@ public class LinkedList<T> : ReadOnlyLinkedList<T>, ILinkedList<T>
 		set => GetNode(index).data.value = value;
 	}
 
-	public bool SetNode(ILinkedListNode<T> node, int index)
+	public bool SetNode(ILinkListNode<T> node, int index)
 	{
-		var current = node as LinkedListNode<T>;
+		var current = node as LinkListNode<T>;
+
 		if(current?.list != this)
 			return false;
+
 		ListSetNode(current, index);
 		return true;
 	}
 
-	private void ListSetNode(LinkedListNode<T> node, int index)
+	private void ListSetNode(LinkListNode<T> node, int index)
 	{
 		ListRemoveNode(node);
 		ListAddNode(node, index);
@@ -201,18 +184,56 @@ public class LinkedList<T> : ReadOnlyLinkedList<T>, ILinkedList<T>
 
 	public bool Swap(int index1, int index2) => SwapNodes(GetNode(index1), GetNode(index2));
 
-	private static bool SwapNodes(LinkedListNode<T> node1, LinkedListNode<T> node2)
+	public bool SwapNodes(ILinkListNode<T> node1, ILinkListNode<T> node2)
 	{
-		if(node1 == null || node2 == null)
+		var current1 = node1 as LinkListNode<T>;
+		var current2 = node2 as LinkListNode<T>;
+
+		if(current1?.list != this || current2?.list != this)
 			return false;
-		(node2.data, node1.data) = (node1.data, node2.data);
+
+		if(current1 == first)
+			first = current2;
+		else if(current2 == first)
+			first = current1;
+
+		if(current1 == last)
+			last = current2;
+		else if(current2 == last)
+			last = current1;
+
+		var temp = current1.next;
+		current1.next = current2.next;
+		current2.next = temp;
+
+		if(current1.next != null)
+			current1.next.previous = current1;
+		if(current2.next != null)
+			current2.next.previous = current2;
+
+		temp = current1.previous;
+		current1.previous = current2.previous;
+		current2.previous = temp;
+
+		if(current1.previous != null)
+			current1.previous.next = current1;
+		if(current2.previous != null)
+			current2.previous.next = current2;
+
 		return true;
 	}
 	#endregion
 
-	public override IEnumerable<ILinkedListNode<T>> Enumerate(bool forward = true)
+	public override IEnumerable<ILinkListNode<T>> Enumerate(bool forward = true)
 	{
-		using var list = Clone();
+		using var list = GetIterator();
 		return list.Enumerate(forward);
+	}
+
+	public LinkList<T> Clone()
+	{
+		var clone = new LinkList<T>();
+		clone.Copy(this);
+		return clone;
 	}
 }
