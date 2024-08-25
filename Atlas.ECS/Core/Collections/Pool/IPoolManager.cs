@@ -18,7 +18,5 @@ public interface IPoolManager : IMessenger<IPoolManager>
 
 	public T Get<T>();
 
-	public T GetOrNew<T>() where T : new();
-
 	public bool Put<T>(T value);
 }
