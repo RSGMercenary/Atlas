@@ -13,6 +13,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 {
 	[JsonProperty(Order = int.MaxValue)]
 	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
+
 	[JsonProperty]
 	public bool UpdateSleepingEntities { get; protected set; } = false;
 

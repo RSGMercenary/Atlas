@@ -44,7 +44,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 	#endregion
 
 	#region Pool
-	public static AtlasEntity Get() => PoolManager.Instance.GetOrNew<AtlasEntity>();
+	public static AtlasEntity Get() => PoolManager.Instance.Get<AtlasEntity>();
 
 	public static AtlasEntity Get(string localName = null, string globalName = null) { var entity = Get(); entity.SetNames(localName, globalName); return entity; }
 
@@ -219,7 +219,7 @@ public sealed class AtlasEntity : Hierarchy<IEntity>, IEntity
 
 	#region Component
 	public TComponent AddComponent<TComponent>(Type type = null)
-		where TComponent : class, IComponent, new() => AddComponent(PoolManager.Instance.GetOrNew<TComponent>(), type);
+		where TComponent : class, IComponent, new() => AddComponent(PoolManager.Instance.Get<TComponent>(), type);
 
 	public TComponent AddComponent<TComponent>(TComponent component, int index)
 		where TComponent : class, IComponent => AddComponent(component, null, index);

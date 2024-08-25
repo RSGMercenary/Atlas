@@ -28,7 +28,7 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 	#region Add
 	public IPool<T> AddPool<T>(int maxCount = -1, bool fill = false) where T : new() => AddPool(() => new T(), maxCount, fill);
 
-	public IPool<T> AddPool<T>(Func<T> constructor, int maxCount = -1, bool fill = false)
+	public IPool<T> AddPool<T>(Func<T> constructor = null, int maxCount = -1, bool fill = false)
 	{
 		var type = typeof(T);
 		if(!pools.TryGetValue(type, out IPool<T> pool))
@@ -61,9 +61,7 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 	#endregion
 
 	#region Instances
-	public T Get<T>() => pools.TryGetValue(typeof(T), out IPool<T> pool) ? pool.Get() : default;
-
-	public T GetOrNew<T>() where T : new() => pools.TryGetValue(typeof(T), out IPool<T> pool) ? pool.Get() : new T();
+	public T Get<T>() => pools.TryGetValue(typeof(T), out IPool<T> pool) ? pool.Get() : Activator.CreateInstance<T>();
 
 	public bool Put<T>(T value) => GetPool<T>(value.GetType())?.Put(value) ?? false;
 	#endregion

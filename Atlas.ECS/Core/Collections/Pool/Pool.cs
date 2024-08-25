@@ -3,17 +3,15 @@ using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool;
 
-public sealed class Pool<T> : IPool<T>
+public class Pool<T> : IPool<T>
 {
 	private readonly Stack<T> stack = new();
 	private int maxCount = -1;
-	private readonly Func<T> creator;
+	private readonly Func<T> constructor;
 
-	public Pool(Func<T> creator, int maxCount = -1, bool fill = false)
+	public Pool(Func<T> constructor = null, int maxCount = -1, bool fill = false)
 	{
-		if(creator == null)
-			throw new ArgumentNullException(nameof(creator));
-		this.creator = creator;
+		this.constructor = constructor ?? Activator.CreateInstance<T>;
 		MaxCount = maxCount;
 		if(fill) Fill();
 	}
@@ -69,13 +67,13 @@ public sealed class Pool<T> : IPool<T>
 		if(stack.Count >= maxCount)
 			return false;
 		while(stack.Count < maxCount)
-			Put(creator.Invoke());
+			Put(constructor.Invoke());
 		return true;
 	}
 	#endregion
 
 	#region Remove
-	public T Get() => stack.TryPop(out var value) ? value : creator.Invoke();
+	public T Get() => stack.TryPop(out var value) ? value : constructor.Invoke();
 
 	public bool Empty()
 	{
