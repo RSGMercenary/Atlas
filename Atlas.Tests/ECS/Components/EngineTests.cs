@@ -632,7 +632,7 @@ class EngineTests
 	[Test]
 	public void When_Engine_And_HasNoEngineItem_Then_NoEngine()
 	{
-		var item = new EngineObject<IEntity>(null);
+		var item = new EngineManager<IEntity>(null);
 		item.Engine = new AtlasEngine();
 
 		Assert.That(item.Engine == null);
