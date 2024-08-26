@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
+public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
 {
 	event Action<IEntity, IComponent, Type> ComponentAdded;
 	event Action<IEntity, IComponent, Type> ComponentRemoved;

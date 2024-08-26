@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Families;
 
-public interface IFamilyManager : IReadOnlyEngineObject
+public interface IFamilyManager : IReadOnlyEngineManager
 {
 	event Action<IFamilyManager, IFamily> Added;
 

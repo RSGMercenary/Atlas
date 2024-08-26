@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Systems;
 
-public interface ISystemManager : IReadOnlyEngineObject
+public interface ISystemManager : IReadOnlyEngineManager
 {
 	event Action<ISystemManager, ISystem, Type> Added;
 

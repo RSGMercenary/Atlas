@@ -4,7 +4,7 @@ using Atlas.ECS.Systems;
 using System;
 
 namespace Atlas.ECS.Components.Engine;
-public class EngineObject<T> : IEngineObject<T> where T : IEngineObject<T>
+public class EngineManager<T> : IEngineManager<T> where T : IEngineManager<T>
 {
 	public event Action<T, IEngine, IEngine> EngineChanged;
 
@@ -12,7 +12,7 @@ public class EngineObject<T> : IEngineObject<T> where T : IEngineObject<T>
 	private readonly T Instance;
 	private readonly Action<IEngine, IEngine> Changed;
 
-	public EngineObject(T instance, Action<IEngine, IEngine> changed = null)
+	public EngineManager(T instance, Action<IEngine, IEngine> changed = null)
 	{
 		Instance = instance;
 		Changed = changed;
@@ -24,8 +24,8 @@ public class EngineObject<T> : IEngineObject<T> where T : IEngineObject<T>
 		get => engine;
 		set
 		{
-			if(!(value != null && engine == null && HasEngineObject(value)) &&
-				!(value == null && engine != null && !HasEngineObject(engine)))
+			if(!(value != null && engine == null && HasEngineManager(value)) &&
+				!(value == null && engine != null && !HasEngineManager(engine)))
 				return;
 			var previous = engine;
 			engine = value;
@@ -34,7 +34,7 @@ public class EngineObject<T> : IEngineObject<T> where T : IEngineObject<T>
 		}
 	}
 
-	private bool HasEngineObject(IEngine engine)
+	private bool HasEngineManager(IEngine engine)
 	{
 		if(Instance is IEntity entity)
 			return engine.Entities.Has(entity);

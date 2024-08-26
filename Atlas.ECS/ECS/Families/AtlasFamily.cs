@@ -19,11 +19,8 @@ namespace Atlas.ECS.Families;
 public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
-	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
-	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
-
 	#region Fields
-	private readonly EngineObject<IReadOnlyFamily> EngineObject;
+	private readonly EngineManager<IReadOnlyFamily> EngineManager;
 
 	//Reflection Fields
 	private readonly FieldInfo entityField;
@@ -41,7 +38,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#region Construct / Dispose
 	public AtlasFamily()
 	{
-		EngineObject = new(this, EngineChanging);
+		EngineManager = new(this, EngineChanging);
 
 		var type = typeof(TFamilyMember);
 		var flags = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -71,14 +68,14 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#region Engine
 	public event Action<IReadOnlyFamily, IEngine, IEngine> EngineChanged
 	{
-		add => EngineObject.EngineChanged += value;
-		remove => EngineObject.EngineChanged -= value;
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
 	}
 
 	public IEngine Engine
 	{
-		get => EngineObject.Engine;
-		set => EngineObject.Engine = value;
+		get => EngineManager.Engine;
+		set => EngineManager.Engine = value;
 	}
 
 	private void EngineChanging(IEngine current, IEngine previous)
@@ -120,6 +117,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Add
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+
 	public void AddEntity(IEntity entity) => Add(entity);
 
 	public void AddEntity(IEntity entity, Type componentType)
@@ -158,6 +157,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Remove
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+
 	public void RemoveEntity(IEntity entity) => Remove(entity);
 
 	public void RemoveEntity(IEntity entity, Type componentType)
@@ -168,9 +169,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 
 	private void Remove(IEntity entity)
 	{
-		if(!entities.ContainsKey(entity))
+		if(!entities.TryGetValue(entity, out var member))
 			return;
-		var member = entities[entity];
 		entities.Remove(entity);
 		members.Remove(member);
 		added.Remove(member);

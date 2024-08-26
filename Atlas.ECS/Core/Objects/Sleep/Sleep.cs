@@ -4,7 +4,7 @@ using System;
 namespace Atlas.Core.Objects.Sleep;
 
 internal class Sleep<T> : ISleep<T>
-	where T : ISleep<T>, IEngineObject<T>
+	where T : ISleep<T>, IEngineManager<T>
 {
 	public event Action<T, int, int> SleepingChanged;
 	private readonly T Instance;

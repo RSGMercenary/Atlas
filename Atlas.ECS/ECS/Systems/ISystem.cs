@@ -6,7 +6,7 @@ using System;
 
 namespace Atlas.ECS.Systems;
 
-public interface ISystem : IEngineObject<ISystem>, IUpdate<float>, ISleep<ISystem>, IUpdateState, IDisposable, ISerialize
+public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISystem>, IUpdateState, IDisposable, ISerialize
 {
 	event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
 	event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;

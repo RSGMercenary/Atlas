@@ -9,37 +9,23 @@ namespace Atlas.ECS.Systems;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasSystem : ISystem
 {
-	public event Action<ISystem, int, int> SleepingChanged
-	{
-		add => Sleep.SleepingChanged += value;
-		remove => Sleep.SleepingChanged -= value;
-	}
-	public event Action<ISystem, IEngine, IEngine> EngineChanged
-	{
-		add => EngineObject.EngineChanged += value;
-		remove => EngineObject.EngineChanged -= value;
-	}
-	public event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
-	public event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
-	public event Action<ISystem, float, float> IntervalChanged;
-	public event Action<ISystem, int, int> PriorityChanged;
-
 	#region Fields
-	private readonly Sleep<ISystem> Sleep;
-	private readonly EngineObject<ISystem> EngineObject;
 	private int priority = 0;
 	private float totalIntervalTime = 0;
 	private float deltaIntervalTime = 0;
 	private TimeStep timeStep = TimeStep.Variable;
 	private TimeStep updateState = TimeStep.None;
-	private readonly UpdateLock UpdateLock = new();
+	private readonly EngineManager<ISystem> EngineManager;
+	private readonly UpdateLock UpdateLock;
+	private readonly Sleep<ISystem> Sleep;
 	#endregion
 
 	#region Construct / Dispose
 	protected AtlasSystem()
 	{
+		EngineManager = new(this, EngineChanging);
+		UpdateLock = new();
 		Sleep = new(this);
-		EngineObject = new(this, EngineChanging);
 	}
 
 	public virtual void Dispose()
@@ -47,6 +33,7 @@ public abstract class AtlasSystem : ISystem
 		//Can't dispose System mid-update.
 		if(Engine != null || updateState != TimeStep.None)
 			return;
+		Disposing();
 	}
 
 	protected virtual void Disposing()
@@ -61,10 +48,16 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Engine
+	public event Action<ISystem, IEngine, IEngine> EngineChanged
+	{
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
+	}
+
 	public IEngine Engine
 	{
-		get => EngineObject.Engine;
-		set => EngineObject.Engine = value;
+		get => EngineManager.Engine;
+		set => EngineManager.Engine = value;
 	}
 
 	private void EngineChanging(IEngine current, IEngine previous)
@@ -125,6 +118,8 @@ public abstract class AtlasSystem : ISystem
 		return deltaTime;
 	}
 
+	public event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
+
 	public TimeStep UpdateState
 	{
 		get => updateState;
@@ -137,6 +132,8 @@ public abstract class AtlasSystem : ISystem
 			UpdateStateChanged?.Invoke(this, value, previous);
 		}
 	}
+
+	public event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
 
 	public TimeStep UpdateStep
 	{
@@ -155,6 +152,12 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Sleeping
+	public event Action<ISystem, int, int> SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
+
 	public int Sleeping
 	{
 		get => Sleep.Sleeping;
@@ -169,6 +172,8 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Interval Time
+	public event Action<ISystem, float, float> IntervalChanged;
+
 	public float DeltaIntervalTime
 	{
 		get => deltaIntervalTime;
@@ -215,6 +220,8 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Priority
+	public event Action<ISystem, int, int> PriorityChanged;
+
 	public int Priority
 	{
 		get => priority;

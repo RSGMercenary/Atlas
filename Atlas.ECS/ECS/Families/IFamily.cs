@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families;
 
-public interface IReadOnlyFamily : IEngineObject<IReadOnlyFamily>, IEnumerable, ISerialize
+public interface IReadOnlyFamily : IEngineManager<IReadOnlyFamily>, IEnumerable, ISerialize
 {
 	IReadOnlyLinkList<IFamilyMember> Members { get; }
 
@@ -29,7 +29,7 @@ public interface IFamily : IReadOnlyFamily, IDisposable
 	void RemoveEntity(IEntity entity, Type type);
 }
 
-public interface IReadOnlyFamily<TFamilyMember> : IEngineObject<IReadOnlyFamily>, IReadOnlyFamily, IEnumerable<TFamilyMember>
+public interface IReadOnlyFamily<TFamilyMember> : IEngineManager<IReadOnlyFamily>, IReadOnlyFamily, IEnumerable<TFamilyMember>
 	where TFamilyMember : class, IFamilyMember, new()
 {
 	event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;

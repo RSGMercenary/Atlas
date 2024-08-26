@@ -62,23 +62,23 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Fields
+	private readonly Dictionary<Type, IComponent> components = new();
 	private string globalName = UniqueName;
 	private string localName = UniqueName;
 	private int selfSleeping = 0;
+	private readonly EngineManager<IEntity> EngineManager;
+	private readonly AutoDispose<IEntity> AutoDispose;
 	private readonly Hierarchy<IEntity> Hierarchy;
 	private readonly Sleep<IEntity> Sleep;
-	private readonly EngineObject<IEntity> EngineItem;
-	private readonly AutoDispose<IEntity> AutoDispose;
-	private readonly Dictionary<Type, IComponent> components = new();
 	#endregion
 
 	#region Construct / Dispose
 	public AtlasEntity()
 	{
-		EngineItem = new(this);
+		EngineManager = new(this);
+		AutoDispose = new(this, () => Hierarchy.Parent == null);
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleep = new(this);
-		AutoDispose = new(this, () => Hierarchy.Parent == null);
 
 		Hierarchy.ChildAdded += OnChildAdded;
 		Hierarchy.ParentChanged += OnParentChanged;
@@ -142,14 +142,14 @@ public sealed class AtlasEntity : IEntity
 	#region Engine
 	public event Action<IEntity, IEngine, IEngine> EngineChanged
 	{
-		add => EngineItem.EngineChanged += value;
-		remove => EngineItem.EngineChanged -= value;
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
 	}
 
 	public IEngine Engine
 	{
-		get => EngineItem.Engine;
-		set => EngineItem.Engine = value;
+		get => EngineManager.Engine;
+		set => EngineManager.Engine = value;
 	}
 	#endregion
 

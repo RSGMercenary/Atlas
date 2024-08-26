@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
-public interface IUpdateManager : IReadOnlyEngineObject, IUpdateState
+public interface IUpdateManager : IReadOnlyEngineManager, IUpdateState
 {
 	event Action<IUpdateManager, TimeStep, TimeStep> UpdateStateChanged;
 

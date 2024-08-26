@@ -2,12 +2,12 @@
 
 namespace Atlas.ECS.Components.Engine;
 
-public interface IReadOnlyEngineObject
+public interface IReadOnlyEngineManager
 {
 	IEngine Engine { get; }
 }
 
-public interface IEngineObject<T> : IReadOnlyEngineObject where T : IEngineObject<T>
+public interface IEngineManager<T> : IReadOnlyEngineManager where T : IEngineManager<T>
 {
 	event Action<T, IEngine, IEngine> EngineChanged;
 
