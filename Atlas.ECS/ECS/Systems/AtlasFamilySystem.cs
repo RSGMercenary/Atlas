@@ -35,26 +35,22 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 
 	protected override void AddingEngine(IEngine engine)
 	{
-		Family = engine.AddFamily<TFamilyMember>();
+		Family = engine.Families.Add<TFamilyMember>();
 		foreach(var member in Family)
 			MemberAdded(Family, member);
-		Family.AddListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
-		Family.AddListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
+		Family.MemberAdded += MemberAdded;
+		Family.MemberRemoved += MemberRemoved;
 	}
 
 	protected override void RemovingEngine(IEngine engine)
 	{
-		Family.RemoveListener<IFamilyMemberAddMessage<TFamilyMember>>(MemberAdded);
-		Family.RemoveListener<IFamilyMemberRemoveMessage<TFamilyMember>>(MemberRemoved);
+		Family.MemberAdded -= MemberAdded;
+		Family.MemberRemoved -= MemberRemoved;
 		foreach(var member in Family)
 			MemberRemoved(Family, member);
-		engine.RemoveFamily<TFamilyMember>();
+		engine.Families.Remove<TFamilyMember>();
 		Family = null;
 	}
-
-	private void MemberAdded(IFamilyMemberAddMessage<TFamilyMember> message) => MemberAdded(message.Messenger, message.Value);
-
-	private void MemberRemoved(IFamilyMemberRemoveMessage<TFamilyMember> message) => MemberRemoved(message.Messenger, message.Value);
 
 	public IEnumerator<TFamilyMember> GetEnumerator() => Family?.GetEnumerator() ?? Enumerable.Empty<TFamilyMember>().GetEnumerator();
 

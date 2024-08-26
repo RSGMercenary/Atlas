@@ -1,5 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Messages;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
@@ -9,20 +8,20 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families;
 
-public interface IReadOnlyFamily : IMessenger, IEngineItem, IEnumerable, ISerialize
+public interface IReadOnlyFamily : IEngineObject<IReadOnlyFamily>, IEnumerable, ISerialize
+{
+	IReadOnlyLinkList<IFamilyMember> Members { get; }
+
+	IFamilyMember GetMember(IEntity entity);
+}
+
+public interface IFamily : IReadOnlyFamily, IDisposable
 {
 	/// <summary>
 	/// Automatically called on Families removed from the Engine.
 	/// </summary>
 	new void Dispose();
 
-	IReadOnlyGroup<IFamilyMember> Members { get; }
-
-	IFamilyMember GetMember(IEntity entity);
-}
-
-public interface IFamily : IReadOnlyFamily
-{
 	void AddEntity(IEntity entity);
 	void RemoveEntity(IEntity entity);
 
@@ -30,14 +29,17 @@ public interface IFamily : IReadOnlyFamily
 	void RemoveEntity(IEntity entity, Type type);
 }
 
-public interface IReadOnlyFamily<TFamilyMember> : IMessenger<IReadOnlyFamily<TFamilyMember>>, IReadOnlyFamily, IEnumerable<TFamilyMember>
+public interface IReadOnlyFamily<TFamilyMember> : IEngineObject<IReadOnlyFamily>, IReadOnlyFamily, IEnumerable<TFamilyMember>
 	where TFamilyMember : class, IFamilyMember, new()
 {
-	new IReadOnlyGroup<TFamilyMember> Members { get; }
+	event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+	event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+
+	new IReadOnlyLinkList<TFamilyMember> Members { get; }
 
 	new TFamilyMember GetMember(IEntity entity);
 
-	void SortMembers(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare);
+	void SortMembers(Action<ILinkList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare);
 }
 
 public interface IFamily<TFamilyMember> : IReadOnlyFamily<TFamilyMember>, IFamily

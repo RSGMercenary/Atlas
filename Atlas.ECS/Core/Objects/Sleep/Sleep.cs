@@ -1,10 +1,12 @@
-﻿using Atlas.Core.Messages;
+﻿using Atlas.ECS.Components.Engine;
+using System;
 
 namespace Atlas.Core.Objects.Sleep;
 
-internal class Sleep<T> : ISleep
-	where T : ISleep, IMessenger<T>
+internal class Sleep<T> : ISleep<T>
+	where T : ISleep<T>, IEngineObject<T>
 {
+	public event Action<T, int, int> SleepingChanged;
 	private readonly T Instance;
 	private int sleeping = 0;
 
@@ -22,7 +24,7 @@ internal class Sleep<T> : ISleep
 				return;
 			int previous = sleeping;
 			sleeping = value;
-			Instance.Message<ISleepMessage<T>>(new SleepMessage<T>(value, previous));
+			SleepingChanged?.Invoke(Instance, value, previous);
 		}
 	}
 

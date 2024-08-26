@@ -346,7 +346,7 @@ class HierarchyTests
 	public void When_HasDescendant_And_HasAncestor_Then_ReturnTrue(int depth)
 	{
 		IEntity ancestor = new AtlasEntity();
-		IEntity descendant = ancestor;
+		var descendant = ancestor;
 
 		for(int i = 0; i < depth; i++)
 			descendant = descendant.AddChild(new AtlasEntity());

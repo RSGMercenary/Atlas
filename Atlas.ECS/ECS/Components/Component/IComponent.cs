@@ -1,5 +1,4 @@
 ﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
@@ -7,8 +6,14 @@ using System;
 
 namespace Atlas.ECS.Components.Component;
 
-public interface IComponent : IMessenger, IAutoDispose, ISerialize
+public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
 {
+	event Action<IComponent, IEntity> ManagerAdded;
+
+	event Action<IComponent, IEntity> ManagerRemoved;
+
+	event Action<IComponent> ManagersChanged;
+
 	/// <summary>
 	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
 	/// </summary>
@@ -145,4 +150,4 @@ public interface IComponent : IMessenger, IAutoDispose, ISerialize
 	#endregion
 }
 
-public interface IComponent<T> : IMessenger<T>, IComponent where T : IComponent { }
+public interface IComponent<T> : IComponent where T : IComponent { }

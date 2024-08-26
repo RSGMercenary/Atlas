@@ -1,13 +1,18 @@
-﻿using Atlas.Core.Messages;
-using Atlas.Core.Objects.Sleep;
+﻿using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Serialization;
+using System;
 
 namespace Atlas.ECS.Systems;
 
-public interface ISystem : IMessenger<ISystem>, IUpdate<float>, IEngineItem, ISleep, IUpdateState, ISerialize
+public interface ISystem : IEngineObject<ISystem>, IUpdate<float>, ISleep<ISystem>, IUpdateState, IDisposable, ISerialize
 {
+	event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
+	event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
+	event Action<ISystem, float, float> IntervalChanged;
+	event Action<ISystem, int, int> PriorityChanged;
+
 	/// <summary>
 	/// Automatically called on Systems removed from the Engine.
 	/// </summary>

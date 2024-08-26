@@ -16,4 +16,8 @@ class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
 		base.Dispose();
 		TestDispose = true;
 	}
+
+	private TestComponent TestPrivateField1;
+
+	private TestComponent TestPrivateField2;
 }

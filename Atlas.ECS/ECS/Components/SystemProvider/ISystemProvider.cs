@@ -3,10 +3,13 @@ using Atlas.ECS.Components.Component;
 using Atlas.ECS.Systems;
 using System;
 
-namespace Atlas.ECS.Components.SystemManager;
+namespace Atlas.ECS.Components.SystemProvider;
 
-public interface ISystemManager : IComponent<ISystemManager>
+public interface ISystemProvider : IComponent<ISystemProvider>
 {
+	event Action<ISystemProvider, Type> SystemAdded;
+	event Action<ISystemProvider, Type> SystemRemoved;
+
 	bool HasSystem(Type type);
 	bool HasSystem<TKey>()
 		where TKey : class, ISystem;

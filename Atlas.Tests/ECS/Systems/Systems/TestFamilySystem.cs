@@ -38,7 +38,7 @@ class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 		}
 
 		if(TestRemoveSystem)
-			Engine.RemoveSystem<TestFamilySystem>();
+			Engine.Systems.Remove<TestFamilySystem>();
 	}
 
 	public new bool UpdateSleepingEntities

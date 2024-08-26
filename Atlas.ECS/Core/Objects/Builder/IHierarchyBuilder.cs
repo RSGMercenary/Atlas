@@ -1,5 +1,4 @@
-﻿using Atlas.Core.Collections.Builder;
-using Atlas.Core.Collections.Hierarchy;
+﻿using Atlas.Core.Collections.Hierarchy;
 
 namespace Atlas.Core.Objects.Builder;
 

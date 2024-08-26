@@ -1,6 +1,10 @@
-﻿namespace Atlas.Core.Objects.AutoDispose;
+﻿using System;
 
-public interface IAutoDispose
+namespace Atlas.Core.Objects.AutoDispose;
+
+public interface IAutoDispose<T>
 {
+	event Action<T, bool, bool> IsAutoDisposableChanged;
+
 	bool IsAutoDisposable { get; set; }
 }

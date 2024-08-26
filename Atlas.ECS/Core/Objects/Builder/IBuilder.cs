@@ -1,4 +1,4 @@
-﻿namespace Atlas.Core.Collections.Builder;
+﻿namespace Atlas.Core.Objects.Builder;
 
 public interface IBuilder<out TBuilder, out T>
 		where TBuilder : IBuilder<TBuilder, T>

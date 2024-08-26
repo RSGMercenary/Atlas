@@ -1,6 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.Core.Collections.Pool;
-using Atlas.Core.Messages;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
@@ -28,12 +27,22 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 }
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerable<IEntity>, ISerialize
+public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, ISerialize
 	where T : class, IComponent<T>
 {
+	public event Action<IComponent, bool, bool> IsAutoDisposableChanged
+	{
+		add => AutoDispose.IsAutoDisposableChanged += value;
+		remove => AutoDispose.IsAutoDisposableChanged -= value;
+	}
+	public event Action<IComponent, IEntity> ManagerAdded;
+	public event Action<IComponent, IEntity> ManagerRemoved;
+	public event Action<IComponent> ManagersChanged;
+
+
 	#region Fields
 	private readonly Group<IEntity> managers = new();
-	private readonly AutoDispose<T> AutoDispose;
+	private readonly AutoDispose<IComponent> AutoDispose;
 	#endregion
 
 	#region Construct / Dispose
@@ -46,12 +55,15 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 		AutoDispose = new(this as T, () => managers.Count <= 0);
 	}
 
-	protected override void Disposing()
+	public virtual void Dispose()
+	{
+		Disposing();
+	}
+
+	protected virtual void Disposing()
 	{
 		RemoveManagers();
 		IsAutoDisposable = true;
-
-		base.Disposing();
 
 		PoolManager.Instance.Put(this);
 	}
@@ -106,7 +118,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 		if(!managers.SetIndex(entity, index))
 			return false;
 		if(previous != index)
-			Message<IManagerMessage<T>>(new ManagerMessage<T>());
+			ManagersChanged?.Invoke(this);
 		return true;
 	}
 
@@ -125,7 +137,8 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 	{
 		if(!managers.Swap(index1, index2))
 			return false;
-		Message<IManagerMessage<T>>(new ManagerMessage<T>());
+		if(index1 != index2)
+			ManagersChanged?.Invoke(this);
 		return true;
 	}
 	#endregion
@@ -146,8 +159,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 			{
 				managers.Insert(index.Value, entity);
 				AddingManager(entity, index.Value);
-				Message<IManagerAddMessage<T>>(new ManagerAddMessage<T>(index.Value, entity));
-				Message<IManagerMessage<T>>(new ManagerMessage<T>());
+				ManagerAdded?.Invoke(this, entity);
 			}
 			else
 			{
@@ -187,8 +199,7 @@ public abstract class AtlasComponent<T> : Messenger<T>, IComponent<T>, IEnumerab
 			int index = managers.IndexOf(entity);
 			managers.RemoveAt(index);
 			RemovingManager(entity, index);
-			Message<IManagerRemoveMessage<T>>(new ManagerRemoveMessage<T>(index, entity));
-			Message<IManagerMessage<T>>(new ManagerMessage<T>());
+			ManagerRemoved?.Invoke(this, entity);
 			AutoDispose.TryAutoDispose();
 		}
 		else

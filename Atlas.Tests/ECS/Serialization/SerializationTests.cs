@@ -115,7 +115,7 @@ class SerializationTests
 			root.AddChild(entity);
 		}
 
-		var system = engine.AddSystem<TestFamilySystem>();
+		var system = engine.Systems.Add<TestFamilySystem>();
 
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
 		system.IsSleeping = Random.NextBool();

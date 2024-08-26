@@ -6,17 +6,20 @@ using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
-namespace Atlas.ECS.Components.SystemManager;
+namespace Atlas.ECS.Components.SystemProvider;
 
-public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
+public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvider
 {
+	public event Action<ISystemProvider, Type> SystemAdded;
+	public event Action<ISystemProvider, Type> SystemRemoved;
+
 	private readonly Group<Type> types = new();
 
-	public AtlasSystemManager() { }
+	public AtlasSystemProvider() { }
 
-	public AtlasSystemManager(params Type[] types) : this(types as IEnumerable<Type>) { }
+	public AtlasSystemProvider(params Type[] types) : this(types as IEnumerable<Type>) { }
 
-	public AtlasSystemManager(IEnumerable<Type> types)
+	public AtlasSystemProvider(IEnumerable<Type> types)
 	{
 		foreach(var type in types)
 			AddSystem(type);
@@ -32,21 +35,21 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 	protected override void AddingManager(IEntity entity, int index)
 	{
 		base.AddingManager(entity, index);
-		entity.AddListener<IEngineMessage<IEntity>>(UpdateSystems);
+		entity.EngineChanged += UpdateSystems;
 		UpdateSystems(entity.Engine, true);
 	}
 
 	protected override void RemovingManager(IEntity entity, int index)
 	{
-		entity.RemoveListener<IEngineMessage<IEntity>>(UpdateSystems);
+		entity.EngineChanged -= UpdateSystems;
 		UpdateSystems(entity.Engine, false);
 		base.RemovingManager(entity, index);
 	}
 
-	private void UpdateSystems(IEngineMessage<IEntity> message)
+	private void UpdateSystems(IEntity entity, IEngine current, IEngine previous)
 	{
-		UpdateSystems(message.PreviousValue, false);
-		UpdateSystems(message.CurrentValue, true);
+		UpdateSystems(previous, false);
+		UpdateSystems(current, true);
 	}
 
 	private void UpdateSystems(IEngine engine, bool add)
@@ -56,9 +59,9 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 		foreach(var type in types)
 		{
 			if(add)
-				engine.AddSystem(type);
+				engine.Systems.Add(type);
 			else
-				engine.RemoveSystem(type);
+				engine.Systems.Remove(type);
 		}
 	}
 	#endregion
@@ -85,8 +88,8 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 		if(types.Contains(type))
 			return false;
 		types.Add(type);
-		Manager?.Engine?.AddSystem(type);
-		Message<ISystemTypeAddMessage>(new SystemTypeAddMessage(type));
+		Manager?.Engine?.Systems.Add(type);
+		SystemAdded?.Invoke(this, type);
 		return true;
 	}
 	#endregion
@@ -101,8 +104,8 @@ public class AtlasSystemManager : AtlasComponent<ISystemManager>, ISystemManager
 		if(!types.Contains(type))
 			return false;
 		types.Remove(type);
-		Manager?.Engine?.RemoveSystem(type);
-		Message<ISystemTypeRemoveMessage>(new SystemTypeRemoveMessage(type));
+		Manager?.Engine?.Systems.Remove(type);
+		SystemRemoved?.Invoke(this, type);
 		return true;
 	}
 

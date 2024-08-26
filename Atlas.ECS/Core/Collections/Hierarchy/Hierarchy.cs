@@ -1,32 +1,33 @@
-﻿using Atlas.Core.Collections.Group;
-using Atlas.Core.Messages;
-using Atlas.Signals.Signals;
-using Newtonsoft.Json;
+﻿using Atlas.Core.Collections.LinkList;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Atlas.Core.Collections.Hierarchy;
 
-[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
-		where T : class, IHierarchyMessenger<T>
+public class Hierarchy<T> : IHierarchy<T>, IDisposable
+		where T : class, IHierarchy<T>
 {
+	private readonly T Self;
 	private T root;
 	private T parent;
 	private int parentIndex = -1;
-	private readonly Group<T> children = new();
+	private readonly LinkList<T> children = new();
 
-	protected override void Disposing()
+	public Hierarchy(T self = null)
+	{
+		Self = self ?? this as T;
+	}
+
+	public void Dispose()
 	{
 		RemoveChildren();
 		Parent = null;
 		IsRoot = false;
-		base.Disposing();
 	}
 
 	#region Messages
+	/*
 	protected override Signal<TMessage> CreateSignal<TMessage>()
 	{
 		return new HierarchySignal<TMessage, T>();
@@ -131,10 +132,12 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		where TMessage : IMessage<T>
 	{
 		(AddListenerSlot(listener, priority) as HierarchySlot<TMessage, T>).Messenger = messenger;
-	}
+	}*/
 	#endregion
 
 	#region Root
+	public event Action<T, T, T> RootChanged;
+
 	public T Root
 	{
 		get => root;
@@ -144,14 +147,13 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 				return;
 			var previous = root;
 			root = value;
-			Message<IRootMessage<T>>(new RootMessage<T>(value, previous));
+			RootChanged?.Invoke(Self, value, previous);
 		}
 	}
 
-	[JsonProperty(Order = int.MinValue)]
 	public bool IsRoot
 	{
-		get => this == root;
+		get => Self == root;
 		set
 		{
 			if(IsRoot == value)
@@ -159,7 +161,7 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 			if(value)
 			{
 				Parent = null;
-				Root = this as T;
+				Root = Self;
 			}
 			else
 			{
@@ -170,45 +172,20 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	#endregion
 
 	#region Parent
+	public event Action<T, T, T> ParentChanged;
+
 	public T Parent
 	{
 		get => parent;
 		set => SetParent(value);
 	}
 
+	public event Action<T, int, int> ParentIndexChanged;
+
 	public int ParentIndex
 	{
 		get => parentIndex;
-		set => parent?.SetChildIndex(this as T, value);
-	}
-
-	public T SetParent(T next) => SetParent(next, next?.Children.Count ?? -1);
-
-	public T SetParent(T next, int index)
-	{
-		//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
-		//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
-		if(IsRoot || this == next || HasDescendant(next))
-			throw new InvalidOperationException("Can't set the root's parent, or the parent to itself or a descendant.");
-		Root = next?.Root;
-		var previous = parent;
-		//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
-		if(previous != null && previous != next)
-		{
-			parent = null;
-			previous.RemoveChild(this as T);
-		}
-		if(next != null)
-		{
-			parent = next;
-			next.AddChild(this as T, index);
-		}
-		if(previous != next)
-		{
-			Message<IParentMessage<T>>(new ParentMessage<T>(next, previous));
-			SetParentIndex(next != null ? index : -1);
-		}
-		return next;
+		set => parent?.SetChildIndex(Self, value);
 	}
 
 	private void SetParentIndex(int value)
@@ -217,22 +194,61 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 			return;
 		int previous = parentIndex;
 		parentIndex = value;
-		Message<IParentIndexMessage<T>>(new ParentIndexMessage<T>(value, previous));
+		ParentIndexChanged?.Invoke(Self, value, previous);
 	}
+
+	public T SetParent(T next) => SetParent(next, next?.Children.Count ?? -1);
+
+	public T SetParent(T next, int index)
+	{
+		//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
+		//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
+		if(IsRoot || Self == next || HasDescendant(next))
+			throw new InvalidOperationException("Can't set the root's parent, or the parent to itself or a descendant.");
+		var previous = parent;
+		//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
+		if(previous != null && previous != next)
+		{
+			parent = null;
+			previous.RootChanged -= OnParentRootChanged;
+			previous.ChildrenChanged -= OnParentChildrenChanged;
+			previous.RemoveChild(Self);
+		}
+		if(next != null)
+		{
+			parent = next;
+			next.AddChild(Self, index);
+			next.RootChanged += OnParentRootChanged;
+			next.ChildrenChanged += OnParentChildrenChanged;
+		}
+		if(previous != next)
+		{
+			ParentChanged?.Invoke(Self, next, previous);
+			SetParentIndex(next != null ? index : -1);
+			Root = next?.Root;
+		}
+		return next;
+	}
+
+	private void OnParentRootChanged(T parent, T current, T previous) => Root = current?.Root;
+
+	private void OnParentChildrenChanged(T parent) => SetParentIndex(parent.GetChildIndex(Self));
 	#endregion
 
 	#region Add
+	public event Action<T, T, int> ChildAdded;
+
 	public T AddChild(T child) => AddChild(child, children.Count);
 
 	public T AddChild(T child, int index)
 	{
-		if(child.Parent == this)
+		if(child.Parent == Self)
 		{
 			if(!HasChild(child))
 			{
-				children.Insert(index, child);
-				Message<IChildAddMessage<T>>(new ChildAddMessage<T>(index, child));
-				Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+				children.Add(child, index);
+				ChildAdded?.Invoke(Self, child, index);
+				ChildrenChanged?.Invoke(Self);
 			}
 			else
 			{
@@ -241,23 +257,25 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		}
 		else
 		{
-			child.SetParent(this as T, index);
+			child.SetParent(Self, index);
 		}
 		return child;
 	}
 	#endregion
 
 	#region Remove
+	public event Action<T, T, int> ChildRemoved;
+
 	public T RemoveChild(T child)
 	{
-		if(child.Parent != this)
+		if(child.Parent != Self)
 		{
 			if(!HasChild(child))
 				return null;
-			int index = children.IndexOf(child);
-			children.RemoveAt(index);
-			Message<IChildRemoveMessage<T>>(new ChildRemoveMessage<T>(index, child));
-			Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+			int index = children.GetIndex(child);
+			children.Remove(index);
+			ChildRemoved?.Invoke(Self, child, index);
+			ChildrenChanged?.Invoke(Self);
 		}
 		else
 		{
@@ -279,23 +297,25 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	#endregion
 
 	#region Set
+	public event Action<T> ChildrenChanged;
+
 	public bool SetChildIndex(T child, int index)
 	{
-		int previous = children.IndexOf(child);
-		if(!children.SetIndex(child, index))
+		var previous = children.Set(child, index);
+		if(previous < 0)
 			return false;
 		if(previous != index)
-			Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+			ChildrenChanged?.Invoke(Self);
 		return true;
 	}
 
 	public bool SwapChildren(T child1, T child2)
 	{
-		if(child1 == null || child2 == null)
+		if(!children.Swap(child1, child2))
 			return false;
-		int index1 = children.IndexOf(child1);
-		int index2 = children.IndexOf(child2);
-		return SwapChildren(index1, index2);
+		if(child1 != child2)
+			ChildrenChanged?.Invoke(Self);
+		return true;
 	}
 
 	public bool SwapChildren(int index1, int index2)
@@ -303,26 +323,13 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 		if(!children.Swap(index1, index2))
 			return false;
 		if(index1 != index2)
-			Message<IChildrenMessage<T>>(new ChildrenMessage<T>());
+			ChildrenChanged?.Invoke(Self);
 		return true;
 	}
 	#endregion
 
 	#region Get
-	[JsonIgnore]
-	public IReadOnlyGroup<T> Children => children;
-
-	[JsonProperty(PropertyName = nameof(Children), Order = int.MaxValue)]
-	[ExcludeFromCodeCoverage]
-	private IEnumerable<T> SerializeChildren
-	{
-		get => children;
-		set
-		{
-			foreach(var child in value)
-				AddChild(child);
-		}
-	}
+	public IReadOnlyLinkList<T> Children => children;
 
 	public T this[int index]
 	{
@@ -336,7 +343,7 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 
 	public T GetChild(int index) => children[index];
 
-	public int GetChildIndex(T child) => children.IndexOf(child);
+	public int GetChildIndex(T child) => children.GetIndex(child);
 
 	public IEnumerator<T> GetEnumerator() => children.GetEnumerator();
 
@@ -346,14 +353,14 @@ public abstract class Hierarchy<T> : Messenger<T>, IHierarchy<T>
 	#region Has
 	public bool HasDescendant(T descendant)
 	{
-		if(descendant == this)
+		if(descendant == Self)
 			return false;
-		while(descendant != null && descendant != this)
+		while(descendant != null && descendant != Self)
 			descendant = descendant.Parent;
-		return descendant == this;
+		return descendant == Self;
 	}
 
-	public bool HasAncestor(T ancestor) => ancestor?.HasDescendant(this as T) ?? false;
+	public bool HasAncestor(T ancestor) => ancestor?.HasDescendant(Self) ?? false;
 
 	public bool HasChild(T child) => children.Contains(child);
 

@@ -49,7 +49,7 @@ class ReflectionExtensionsTests
 	[Test]
 	public void When_FindField_WithMultipleFields_Then_ThrowsException()
 	{
-		var method = () => typeof(AtlasEntity).FindField<IEntity>(Flags);
+		var method = () => typeof(TestComponent).FindField<TestComponent>(Flags);
 
 		Assert.That(method, Throws.Exception);
 	}

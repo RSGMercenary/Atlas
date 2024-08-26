@@ -9,8 +9,14 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IHierarchyMessenger<IEntity>, IEngineItem, IAutoDispose, ISleep, ISerialize
+public interface IEntity : IEngineObject<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
 {
+	event Action<IEntity, IComponent, Type> ComponentAdded;
+	event Action<IEntity, IComponent, Type> ComponentRemoved;
+	event Action<IEntity, string, string> GlobalNameChanged;
+	event Action<IEntity, string, string> LocalNameChanged;
+	event Action<IEntity, int, int> FreeSleepingChanged;
+
 	#region Entities
 	/// <summary>
 	/// Determines whether <see cref="IDisposable.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.

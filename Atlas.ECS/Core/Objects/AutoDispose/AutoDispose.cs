@@ -1,11 +1,11 @@
-﻿using Atlas.Core.Messages;
-using System;
+﻿using System;
 
 namespace Atlas.Core.Objects.AutoDispose;
 
-internal class AutoDispose<T> : IAutoDispose
-	where T : IAutoDispose, IMessenger<T>
+internal class AutoDispose<T> : IAutoDispose<T>
+	where T : IAutoDispose<T>, IDisposable
 {
+	public event Action<T, bool, bool> IsAutoDisposableChanged;
 	private readonly T Instance;
 	private readonly Func<bool> Condition;
 	private bool isAutoDisposable = true;
@@ -25,7 +25,7 @@ internal class AutoDispose<T> : IAutoDispose
 				return;
 			var previous = isAutoDisposable;
 			isAutoDisposable = value;
-			Instance.Message<IAutoDisposeMessage<T>>(new AutoDisposeMessage<T>(value, previous));
+			IsAutoDisposableChanged?.Invoke(Instance, value, previous);
 		}
 	}
 

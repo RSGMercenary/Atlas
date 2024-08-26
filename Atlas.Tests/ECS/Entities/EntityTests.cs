@@ -128,7 +128,7 @@ class EntityTests
 	[TestCase(true, true, false)]
 	[TestCase(false, false, false)]
 	[TestCase(false, true, false)]
-	public void When_ParentIsSleeping_And_ChildIsSelfSleeping_Then_ChildIsSleepingExpectedX(bool parentIsSleeping, bool childIsSelfSleeping, bool expected)
+	public void When_ParentIsSleeping_And_ChildIsSelfSleeping_Changed_Then_ChildIsSleepingExpected(bool parentIsSleeping, bool childIsSelfSleeping, bool expected)
 	{
 		var parent = new AtlasEntity();
 		var child = new AtlasEntity();

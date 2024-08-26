@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
-using Atlas.ECS.Components.SystemManager;
+using Atlas.ECS.Components.SystemProvider;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
@@ -11,7 +11,7 @@ using System;
 namespace Atlas.Tests.ECS.Components;
 
 [TestFixture]
-class SystemManagerTests
+class SystemProviderTests
 {
 	#region Add
 	[TestCase<TestSystem>]
@@ -21,7 +21,7 @@ class SystemManagerTests
 	public void When_AddSystem_Then_SystemAdded<T>()
 		where T : class, ISystem, new()
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 		component.AddSystem<T>();
 
 		Assert.That(component.Systems.Count == 1);
@@ -32,7 +32,7 @@ class SystemManagerTests
 	[Test]
 	public void When_AddSystem_Twice_Then_NoSystemAdded()
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 		component.AddSystem<TestSystem>();
 
 		Assert.That(!component.AddSystem<TestSystem>());
@@ -45,7 +45,7 @@ class SystemManagerTests
 	[TestCase(typeof(IComponent))]
 	public void When_AddSystem_Then_NoSystemAdded(Type type)
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 
 		Assert.That(!component.AddSystem(type));
 		Assert.That(component.Systems.Count == 0);
@@ -57,15 +57,15 @@ class SystemManagerTests
 		var root = new AtlasEntity(true);
 		var engine = new AtlasEngine();
 
-		var component = new AtlasSystemManager(typeof(ITestSystem));
+		var component = new AtlasSystemProvider(typeof(ITestSystem));
 
 
-		root.AddComponent<ISystemManager>(component);
+		root.AddComponent<ISystemProvider>(component);
 		root.AddComponent<IEngine>(engine);
 
 
 
-		Assert.That(engine.HasSystem<ITestSystem>());
+		Assert.That(engine.Systems.Has<ITestSystem>());
 	}
 	#endregion
 
@@ -77,7 +77,7 @@ class SystemManagerTests
 	public void When_RemoveSystem_Then_SystemRemoved<T>()
 		where T : class, ISystem, new()
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 		component.AddSystem<T>();
 		component.RemoveSystem<T>();
 
@@ -89,7 +89,7 @@ class SystemManagerTests
 	[TestCase(typeof(IComponent))]
 	public void When_RemoveSystem_Then_NoSystemRemoved(Type type)
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 
 		Assert.That(!component.RemoveSystem(type));
 		Assert.That(component.Systems.Count == 0);
@@ -98,7 +98,7 @@ class SystemManagerTests
 	[Test]
 	public void When_RemoveSystems_Then_SystemsRemoved()
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 		component.AddSystem<TestSystem>();
 		component.AddSystem<TestFamilySystem>();
 
@@ -109,7 +109,7 @@ class SystemManagerTests
 	[Test]
 	public void When_RemoveSystems_Then_NoSystemsRemoved()
 	{
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 
 		Assert.That(!component.RemoveSystems());
 		Assert.That(component.Systems.Count == 0);
@@ -120,14 +120,14 @@ class SystemManagerTests
 	{
 		var root = new AtlasEntity(true);
 		var engine = new AtlasEngine();
-		var component = new AtlasSystemManager(typeof(ITestSystem));
+		var component = new AtlasSystemProvider(typeof(ITestSystem));
 
-		root.AddComponent<ISystemManager>(component);
+		root.AddComponent<ISystemProvider>(component);
 		root.AddComponent<IEngine>(engine);
 
-		root.RemoveComponent<ISystemManager>();
+		root.RemoveComponent<ISystemProvider>();
 
-		Assert.That(!engine.HasSystem<ITestSystem>());
+		Assert.That(!engine.Systems.Has<ITestSystem>());
 	}
 
 	[Test]
@@ -135,7 +135,7 @@ class SystemManagerTests
 	{
 		var root = new AtlasEntity(true);
 		var engine = new AtlasEngine();
-		var component = new AtlasSystemManager();
+		var component = new AtlasSystemProvider();
 
 		//Component
 		component.AddSystem<ITestSystem>();
@@ -146,7 +146,7 @@ class SystemManagerTests
 		Assert.That(component.Systems.Count == 0);
 
 		//Component & Entity
-		root.AddComponent<ISystemManager>(component);
+		root.AddComponent<ISystemProvider>(component);
 
 		component.AddSystem<ITestSystem>();
 		Assert.That(component.HasSystem<ITestSystem>());
@@ -161,13 +161,13 @@ class SystemManagerTests
 		component.AddSystem<ITestSystem>();
 		Assert.That(component.HasSystem<ITestSystem>());
 		Assert.That(component.Systems.Count == 1);
-		Assert.That(engine.HasSystem<ITestSystem>());
-		Assert.That(engine.Systems.Count == 1);
+		Assert.That(engine.Systems.Has<ITestSystem>());
+		Assert.That(engine.Systems.Systems.Count == 1);
 		component.RemoveSystem<ITestSystem>();
 		Assert.That(!component.HasSystem<ITestSystem>());
 		Assert.That(component.Systems.Count == 0);
-		Assert.That(!engine.HasSystem<ITestSystem>());
-		Assert.That(engine.Systems.Count == 0);
+		Assert.That(!engine.Systems.Has<ITestSystem>());
+		Assert.That(engine.Systems.Systems.Count == 0);
 	}
 	#endregion
 }

@@ -23,7 +23,7 @@ class SystemTests
 	public void When_Dispose_And_HasEngine_Then_NotDisposed()
 	{
 		var engine = new AtlasEngine();
-		var system = engine.AddSystem<TestSystem>();
+		var system = engine.Systems.Add<TestSystem>();
 		system.BlockDispose = false;
 		system.Dispose();
 

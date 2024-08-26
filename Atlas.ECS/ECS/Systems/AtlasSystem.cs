@@ -1,17 +1,32 @@
-﻿using Atlas.Core.Messages;
-using Atlas.Core.Objects.Sleep;
+﻿using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 using Newtonsoft.Json;
+using System;
 
 namespace Atlas.ECS.Systems;
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasSystem : Messenger<ISystem>, ISystem
+public abstract class AtlasSystem : ISystem
 {
+	public event Action<ISystem, int, int> SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
+	public event Action<ISystem, IEngine, IEngine> EngineChanged
+	{
+		add => EngineObject.EngineChanged += value;
+		remove => EngineObject.EngineChanged -= value;
+	}
+	public event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
+	public event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
+	public event Action<ISystem, float, float> IntervalChanged;
+	public event Action<ISystem, int, int> PriorityChanged;
+
 	#region Fields
-	private readonly EngineItem<ISystem> EngineItem;
 	private readonly Sleep<ISystem> Sleep;
+	private readonly EngineObject<ISystem> EngineObject;
 	private int priority = 0;
 	private float totalIntervalTime = 0;
 	private float deltaIntervalTime = 0;
@@ -23,19 +38,18 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	#region Construct / Dispose
 	protected AtlasSystem()
 	{
-		EngineItem = new(this, EngineChanged);
 		Sleep = new(this);
+		EngineObject = new(this, EngineChanging);
 	}
 
-	public override void Dispose()
+	public virtual void Dispose()
 	{
 		//Can't dispose System mid-update.
 		if(Engine != null || updateState != TimeStep.None)
 			return;
-		base.Dispose();
 	}
 
-	protected override void Disposing()
+	protected virtual void Disposing()
 	{
 		Priority = 0;
 		Sleeping = 0;
@@ -43,18 +57,17 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 		TotalIntervalTime = 0;
 		UpdateStep = TimeStep.Variable;
 		UpdateState = TimeStep.None;
-		base.Disposing();
 	}
 	#endregion
 
 	#region Engine
 	public IEngine Engine
 	{
-		get => EngineItem.Engine;
-		set => EngineItem.Engine = value;
+		get => EngineObject.Engine;
+		set => EngineObject.Engine = value;
 	}
 
-	private void EngineChanged(IEngine current, IEngine previous)
+	private void EngineChanging(IEngine current, IEngine previous)
 	{
 		if(previous != null)
 		{
@@ -79,7 +92,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 	{
 		if(IsSleeping)
 			return;
-		if(Engine != null && Engine.UpdateSystem != this)
+		if(Engine != null && Engine.Updates.UpdateSystem != this)
 			return;
 
 		deltaTime = GetDeltaTime(deltaTime);
@@ -121,7 +134,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 				return;
 			var previous = updateState;
 			updateState = value;
-			Message<IUpdateStateMessage<ISystem>>(new UpdateStateMessage<ISystem>(value, previous));
+			UpdateStateChanged?.Invoke(this, value, previous);
 		}
 	}
 
@@ -134,7 +147,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 				return;
 			var previous = timeStep;
 			timeStep = value;
-			Message<IUpdateStepMessage>(new UpdateStepMessage(value, previous));
+			UpdateStepChanged?.Invoke(this, value, previous);
 			if(Engine != null)
 				SyncTotalIntervalTime();
 		}
@@ -165,7 +178,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 				return;
 			var previous = deltaIntervalTime;
 			deltaIntervalTime = value;
-			Message<IIntervalMessage>(new IntervalMessage(value, previous));
+			IntervalChanged?.Invoke(this, value, previous);
 			if(Engine != null)
 				SyncTotalIntervalTime();
 		}
@@ -197,7 +210,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 
 	private double? GetEngineTime()
 	{
-		return timeStep == TimeStep.Variable ? Engine?.TotalVariableTime : Engine?.TotalFixedTime;
+		return timeStep == TimeStep.Variable ? Engine?.Updates.TotalVariableTime : Engine?.Updates.TotalFixedTime;
 	}
 	#endregion
 
@@ -211,7 +224,7 @@ public abstract class AtlasSystem : Messenger<ISystem>, ISystem
 				return;
 			int previous = priority;
 			priority = value;
-			Message<IPriorityMessage>(new PriorityMessage(value, previous));
+			PriorityChanged?.Invoke(this, value, previous);
 		}
 	}
 	#endregion

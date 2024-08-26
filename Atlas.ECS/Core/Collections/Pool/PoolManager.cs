@@ -1,20 +1,20 @@
 ﻿using Atlas.Core.Extensions;
-using Atlas.Core.Messages;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Pool;
 
-public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
+public sealed class PoolManager : IPoolManager
 {
 	public static readonly IPoolManager Instance = new PoolManager();
+
+	public event Action<IPoolManager, IPool> PoolAdded;
+	public event Action<IPoolManager, IPool> PoolRemoved;
 
 	private readonly Dictionary<Type, uint> references = new();
 	private readonly Dictionary<Type, IPool> pools = new();
 
 	private PoolManager() { } // PoolManager can only have one instance.
-
-	public override void Dispose() { } // PoolManager can't be disposed.
 
 	#region Pools
 	#region Get
@@ -36,7 +36,7 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 			pool = new Pool<T>(constructor, maxCount, fill);
 			pools.Add(type, pool);
 			references.Add(type, 0);
-			Message<IPoolAddMessage>(new PoolAddMessage(type, pool));
+			PoolAdded?.Invoke(this, pool);
 		}
 		++references[type];
 		return pool;
@@ -54,7 +54,7 @@ public sealed class PoolManager : Messenger<IPoolManager>, IPoolManager
 		pool.Dispose();
 		pools.Remove(type);
 		references.Remove(type);
-		Message<IPoolRemoveMessage>(new PoolRemoveMessage(type, pool));
+		PoolRemoved?.Invoke(this, pool);
 		return true;
 	}
 	#endregion

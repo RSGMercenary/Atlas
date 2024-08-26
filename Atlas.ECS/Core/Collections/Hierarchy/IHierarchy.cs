@@ -1,4 +1,5 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.Hierarchy;
@@ -6,6 +7,13 @@ namespace Atlas.Core.Collections.Hierarchy;
 public interface IReadOnlyHierarchy<T> : IEnumerable<T>
 	where T : IReadOnlyHierarchy<T>
 {
+	event Action<T, T, T> RootChanged;
+	event Action<T, T, T> ParentChanged;
+	event Action<T, int, int> ParentIndexChanged;
+	event Action<T, T, int> ChildAdded;
+	event Action<T, T, int> ChildRemoved;
+	event Action<T> ChildrenChanged;
+
 	T Root { get; }
 
 	bool IsRoot { get; }
@@ -14,7 +22,7 @@ public interface IReadOnlyHierarchy<T> : IEnumerable<T>
 
 	int ParentIndex { get; }
 
-	IReadOnlyGroup<T> Children { get; }
+	IReadOnlyLinkList<T> Children { get; }
 	T this[int index] { get; }
 	T GetChild(int index);
 	int GetChildIndex(T child);

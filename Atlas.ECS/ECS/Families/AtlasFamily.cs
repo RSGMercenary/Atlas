@@ -1,10 +1,10 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Extensions;
-using Atlas.Core.Messages;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Components.Engine.Updates;
 using Atlas.ECS.Entities;
 using Newtonsoft.Json;
 using System;
@@ -16,18 +16,21 @@ using System.Reflection;
 namespace Atlas.ECS.Families;
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMember>>, IFamily<TFamilyMember>
+public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+
 	#region Fields
-	private readonly EngineItem<IReadOnlyFamily<TFamilyMember>> EngineItem;
+	private readonly EngineObject<IReadOnlyFamily> EngineObject;
 
 	//Reflection Fields
 	private readonly FieldInfo entityField;
 	private readonly Dictionary<Type, FieldInfo> componentFields = new();
 
 	//Family Members
-	private readonly Group<TFamilyMember> members = new();
+	private readonly LinkList<TFamilyMember> members = new();
 	private readonly Dictionary<IEntity, TFamilyMember> entities = new();
 
 	//Pooling
@@ -38,7 +41,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	#region Construct / Dispose
 	public AtlasFamily()
 	{
-		EngineItem = new(this, EngineChanged);
+		EngineObject = new(this, EngineChanging);
 
 		var type = typeof(TFamilyMember);
 		var flags = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -51,29 +54,34 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		PoolManager.Instance.AddPool<TFamilyMember>();
 	}
 
-	public sealed override void Dispose()
+	public void Dispose()
 	{
 		//Can't dispose Family mid-update.
 		if(Engine != null || removed.Count > 0)
 			return;
-		base.Dispose();
+		Disposing();
 	}
 
-	protected override void Disposing()
+	protected virtual void Disposing()
 	{
 		PoolManager.Instance.RemovePool<TFamilyMember>();
-		base.Disposing();
 	}
 	#endregion
 
 	#region Engine
-	public IEngine Engine
+	public event Action<IReadOnlyFamily, IEngine, IEngine> EngineChanged
 	{
-		get => EngineItem.Engine;
-		set => EngineItem.Engine = value;
+		add => EngineObject.EngineChanged += value;
+		remove => EngineObject.EngineChanged -= value;
 	}
 
-	private void EngineChanged(IEngine current, IEngine previous)
+	public IEngine Engine
+	{
+		get => EngineObject.Engine;
+		set => EngineObject.Engine = value;
+	}
+
+	private void EngineChanging(IEngine current, IEngine previous)
 	{
 		if(current == null)
 			Dispose();
@@ -85,10 +93,10 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-	IReadOnlyGroup<IFamilyMember> IReadOnlyFamily.Members => Members;
+	IReadOnlyLinkList<IFamilyMember> IReadOnlyFamily.Members => members;
 
 	[JsonIgnore]
-	public IReadOnlyGroup<TFamilyMember> Members => members;
+	public IReadOnlyLinkList<TFamilyMember> Members => members;
 
 	[JsonProperty(PropertyName = nameof(Members))]
 	[ExcludeFromCodeCoverage]
@@ -139,10 +147,11 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		else
 		{
 			added.Add(member);
-			Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
+			Engine.Updates.UpdateStateChanged += UpdateMembers;
 		}
 
-		Message<IFamilyMemberAddMessage<TFamilyMember>>(new FamilyMemberAddMessage<TFamilyMember>(member));
+		//TO-DO Should this only be done after the update?
+		MemberAdded?.Invoke(this, member);
 	}
 
 	private void AddMember(TFamilyMember member) => members.Add(member);
@@ -165,14 +174,16 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		entities.Remove(entity);
 		members.Remove(member);
 		added.Remove(member);
-		Message<IFamilyMemberRemoveMessage<TFamilyMember>>(new FamilyMemberRemoveMessage<TFamilyMember>(member));
+
+		//TO-DO Should this only be done after the update?
+		MemberRemoved?.Invoke(this, member);
 
 		if(!IsUpdating)
 			RemoveMember(member);
 		else
 		{
 			removed.Add(member);
-			Engine.AddListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
+			Engine.Updates.UpdateStateChanged += UpdateMembers;
 		}
 	}
 
@@ -184,11 +195,11 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 	#endregion
 
 	#region Helpers
-	private void UpdateMembers(IUpdateStateMessage<IEngine> message)
+	private void UpdateMembers(IUpdateManager manager, TimeStep current, TimeStep previous)
 	{
-		if(message.CurrentValue != TimeStep.None)
+		if(current != TimeStep.None)
 			return;
-		message.Messenger.RemoveListener<IUpdateStateMessage<IEngine>>(UpdateMembers);
+		manager.UpdateStateChanged -= UpdateMembers;
 		while(removed.Count > 0)
 			RemoveMember(removed.Pop());
 		while(added.Count > 0)
@@ -197,7 +208,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 			Dispose();
 	}
 
-	private bool IsUpdating => (Engine?.UpdateState ?? TimeStep.None) != TimeStep.None;
+	private bool IsUpdating => (Engine?.Updates.UpdateState ?? TimeStep.None) != TimeStep.None;
 
 	private void SetMemberValues(TFamilyMember member, IEntity entity)
 	{
@@ -209,7 +220,7 @@ public class AtlasFamily<TFamilyMember> : Messenger<IReadOnlyFamily<TFamilyMembe
 		}
 	}
 
-	public void SortMembers(Action<IList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare)
+	public void SortMembers(Action<ILinkList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare)
 	{
 		sorter.Invoke(members, compare);
 	}

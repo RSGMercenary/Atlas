@@ -32,10 +32,10 @@ class EngineTests
 
 		root.AddComponent<IEngine>(Engine);
 
-		Assert.That(Engine.HasEntity(root));
-		Assert.That(Engine.HasEntity(root.GlobalName));
-		Assert.That(Engine.GetEntity(root.GlobalName) == root);
-		Assert.That(Engine.Entities.Count == 1);
+		Assert.That(Engine.Entities.Has(root));
+		Assert.That(Engine.Entities.Has(root.GlobalName));
+		Assert.That(Engine.Entities.Get(root.GlobalName) == root);
+		Assert.That(Engine.Entities.Entities.Count == 1);
 	}
 
 	[Test]
@@ -47,10 +47,10 @@ class EngineTests
 		root.AddChild(child);
 		root.AddComponent<IEngine>(Engine);
 
-		Assert.That(Engine.HasEntity(child));
-		Assert.That(Engine.HasEntity(child.GlobalName));
-		Assert.That(Engine.GetEntity(child.GlobalName) == child);
-		Assert.That(Engine.Entities.Count == 2);
+		Assert.That(Engine.Entities.Has(child));
+		Assert.That(Engine.Entities.Has(child.GlobalName));
+		Assert.That(Engine.Entities.Get(child.GlobalName) == child);
+		Assert.That(Engine.Entities.Entities.Count == 2);
 	}
 
 	[Test]
@@ -62,10 +62,10 @@ class EngineTests
 		root.AddComponent<IEngine>(Engine);
 		root.AddChild(child);
 
-		Assert.That(Engine.HasEntity(child));
-		Assert.That(Engine.HasEntity(child.GlobalName));
-		Assert.That(Engine.GetEntity(child.GlobalName) == child);
-		Assert.That(Engine.Entities.Count == 2);
+		Assert.That(Engine.Entities.Has(child));
+		Assert.That(Engine.Entities.Has(child.GlobalName));
+		Assert.That(Engine.Entities.Get(child.GlobalName) == child);
+		Assert.That(Engine.Entities.Entities.Count == 2);
 	}
 	#endregion
 
@@ -78,10 +78,10 @@ class EngineTests
 		root.AddComponent<IEngine>(Engine);
 		root.RemoveComponent<IEngine>();
 
-		Assert.That(!Engine.HasEntity(root));
-		Assert.That(!Engine.HasEntity(root.GlobalName));
-		Assert.That(Engine.GetEntity(root.GlobalName) == null);
-		Assert.That(Engine.Entities.Count == 0);
+		Assert.That(!Engine.Entities.Has(root));
+		Assert.That(!Engine.Entities.Has(root.GlobalName));
+		Assert.That(Engine.Entities.Get(root.GlobalName) == null);
+		Assert.That(Engine.Entities.Entities.Count == 0);
 	}
 
 	[Test]
@@ -96,10 +96,10 @@ class EngineTests
 		root.AddComponent<IEngine>(Engine);
 		root.RemoveComponent<IEngine>();
 
-		Assert.That(!Engine.HasEntity(child));
-		Assert.That(!Engine.HasEntity(child.GlobalName));
-		Assert.That(Engine.GetEntity(child.GlobalName) == null);
-		Assert.That(Engine.Entities.Count == 0);
+		Assert.That(!Engine.Entities.Has(child));
+		Assert.That(!Engine.Entities.Has(child.GlobalName));
+		Assert.That(Engine.Entities.Get(child.GlobalName) == null);
+		Assert.That(Engine.Entities.Entities.Count == 0);
 	}
 
 	[Test]
@@ -112,10 +112,10 @@ class EngineTests
 		root.AddChild(child);
 		root.RemoveChild(child);
 
-		Assert.That(!Engine.HasEntity(child));
-		Assert.That(!Engine.HasEntity(child.GlobalName));
-		Assert.That(Engine.GetEntity(child.GlobalName) == null);
-		Assert.That(Engine.Entities.Count == 1);
+		Assert.That(!Engine.Entities.Has(child));
+		Assert.That(!Engine.Entities.Has(child.GlobalName));
+		Assert.That(Engine.Entities.Get(child.GlobalName) == null);
+		Assert.That(Engine.Entities.Entities.Count == 1);
 	}
 	#endregion
 
@@ -140,13 +140,13 @@ class EngineTests
 
 		Assert.That(child1.GlobalName == child1Name);
 		Assert.That(child2.GlobalName != child1Name);
-		Assert.That(Engine.HasEntity(child1));
-		Assert.That(Engine.HasEntity(child2));
-		Assert.That(Engine.HasEntity(child1Name));
-		Assert.That(Engine.HasEntity(child2Name));
-		Assert.That(Engine.GetEntity(child1Name) == child1);
-		Assert.That(Engine.GetEntity(child2Name) == child2);
-		Assert.That(Engine.Entities.Count == 3);
+		Assert.That(Engine.Entities.Has(child1));
+		Assert.That(Engine.Entities.Has(child2));
+		Assert.That(Engine.Entities.Has(child1Name));
+		Assert.That(Engine.Entities.Has(child2Name));
+		Assert.That(Engine.Entities.Get(child1Name) == child1);
+		Assert.That(Engine.Entities.Get(child2Name) == child2);
+		Assert.That(Engine.Entities.Entities.Count == 3);
 	}
 
 	[Test]
@@ -163,10 +163,10 @@ class EngineTests
 		root.AddComponent<IEngine>(Engine);
 		child.GlobalName = newName;
 
-		Assert.That(!Engine.HasEntity(oldName));
-		Assert.That(Engine.HasEntity(newName));
-		Assert.That(Engine.HasEntity(child));
-		Assert.That(Engine.GetEntity(newName) == child);
+		Assert.That(!Engine.Entities.Has(oldName));
+		Assert.That(Engine.Entities.Has(newName));
+		Assert.That(Engine.Entities.Has(child));
+		Assert.That(Engine.Entities.Get(newName) == child);
 	}
 
 	[Test]
@@ -186,12 +186,12 @@ class EngineTests
 		child2.GlobalName = name;
 		root.AddChild(child2);
 
-		Assert.That(Engine.HasEntity(child1.GlobalName));
-		Assert.That(Engine.HasEntity(child2.GlobalName));
-		Assert.That(Engine.HasEntity(child1));
-		Assert.That(Engine.HasEntity(child2));
-		Assert.That(Engine.GetEntity(child1.GlobalName) == child1);
-		Assert.That(Engine.GetEntity(child2.GlobalName) == child2);
+		Assert.That(Engine.Entities.Has(child1.GlobalName));
+		Assert.That(Engine.Entities.Has(child2.GlobalName));
+		Assert.That(Engine.Entities.Has(child1));
+		Assert.That(Engine.Entities.Has(child2));
+		Assert.That(Engine.Entities.Get(child1.GlobalName) == child1);
+		Assert.That(Engine.Entities.Get(child2.GlobalName) == child2);
 	}
 	#endregion
 
@@ -215,11 +215,11 @@ class EngineTests
 	public void When_AddFamily_Then_FamilyAdded<T>()
 		where T : class, IFamilyMember, new()
 	{
-		var family = Engine.AddFamily<T>();
+		var family = Engine.Families.Add<T>();
 
-		Assert.That(Engine.HasFamily<T>());
-		Assert.That(Engine.GetFamily<T>() == family);
-		Assert.That(Engine.Families.Count == 1);
+		Assert.That(Engine.Families.Has<T>());
+		Assert.That(Engine.Families.Get<T>() == family);
+		Assert.That(Engine.Families.Families.Count == 1);
 	}
 
 	[Test]
@@ -232,14 +232,14 @@ class EngineTests
 		root.AddComponent<IEngine>(engine);
 		root.AddChild(entity);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		entity.AddComponent<TestComponent>();
 
-		Assert.That(engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) != null);
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 1);
+		Assert.That(engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Families.Get<TestFamilyMember>().GetMember(entity) != null);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 1);
 	}
 
 	[Test]
@@ -251,16 +251,16 @@ class EngineTests
 
 		root.AddComponent<IEngine>(engine);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		entity.AddComponent<TestComponent>();
 
 		root.AddChild(entity);
 
-		Assert.That(engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) != null);
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 1);
+		Assert.That(engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Families.Get<TestFamilyMember>().GetMember(entity) != null);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 1);
 	}
 
 	[Test]
@@ -271,8 +271,8 @@ class EngineTests
 
 		root.AddComponent<IEngine>(engine);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		for(var i = 0; i < 10; ++i)
 		{
@@ -280,10 +280,10 @@ class EngineTests
 			entity.AddComponent<TestComponent>();
 		}
 
-		Assert.That(engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 10);
-		Assert.That(engine.HasSystem<TestFamilySystem1>());
-		Assert.That(engine.HasSystem<TestFamilySystem2>());
+		Assert.That(engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 10);
+		Assert.That(engine.Systems.Has<TestFamilySystem1>());
+		Assert.That(engine.Systems.Has<TestFamilySystem2>());
 	}
 	#endregion
 
@@ -292,12 +292,12 @@ class EngineTests
 	public void When_RemoveFamily_Then_FamilyRemoved<T>()
 		where T : class, IFamilyMember, new()
 	{
-		var family = Engine.AddFamily<T>();
-		Engine.RemoveFamily<T>();
+		var family = Engine.Families.Add<T>();
+		Engine.Families.Remove<T>();
 
-		Assert.That(!Engine.HasFamily<T>());
-		Assert.That(Engine.GetFamily<T>() == null);
-		Assert.That(Engine.Families.Count == 0);
+		Assert.That(!Engine.Families.Has<T>());
+		Assert.That(Engine.Families.Get<T>() == null);
+		Assert.That(Engine.Families.Families.Count == 0);
 	}
 
 	[Test]
@@ -310,15 +310,15 @@ class EngineTests
 		root.AddComponent<IEngine>(engine);
 		root.AddChild(entity);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		entity.AddComponent<TestComponent>();
 		entity.RemoveComponent<TestComponent>();
 
-		Assert.That(engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) == null);
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+		Assert.That(engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Families.Get<TestFamilyMember>().GetMember(entity) == null);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 0);
 	}
 
 	[Test]
@@ -330,28 +330,28 @@ class EngineTests
 
 		root.AddComponent<IEngine>(engine);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		entity.AddComponent<TestComponent>();
 
 		root.AddChild(entity);
 		root.RemoveChild(entity);
 
-		Assert.That(engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetFamily<TestFamilyMember>().GetMember(entity) == null);
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+		Assert.That(engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Families.Get<TestFamilyMember>().GetMember(entity) == null);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 0);
 	}
 
 	[TestCase<TestFamilyMember>]
 	public void When_RemoveFamily_Then_NoFamilyRemoved<T>()
 		where T : class, IFamilyMember, new()
 	{
-		Engine.RemoveFamily<T>();
+		Engine.Families.Remove<T>();
 
-		Assert.That(!Engine.HasFamily<T>());
-		Assert.That(Engine.GetFamily<T>() == null);
-		Assert.That(Engine.Families.Count == 0);
+		Assert.That(!Engine.Families.Has<T>());
+		Assert.That(Engine.Families.Get<T>() == null);
+		Assert.That(Engine.Families.Families.Count == 0);
 	}
 
 	[Test]
@@ -362,8 +362,8 @@ class EngineTests
 
 		root.AddComponent<IEngine>(engine);
 
-		engine.AddSystem<TestFamilySystem1>();
-		engine.AddSystem<TestFamilySystem2>();
+		engine.Systems.Add<TestFamilySystem1>();
+		engine.Systems.Add<TestFamilySystem2>();
 
 		for(var i = 0; i < 10; ++i)
 		{
@@ -371,12 +371,12 @@ class EngineTests
 			entity.AddComponent<TestComponent>();
 		}
 
-		engine.RemoveSystem<TestFamilySystem1>();
-		engine.RemoveSystem<TestFamilySystem2>();
+		engine.Systems.Remove<TestFamilySystem1>();
+		engine.Systems.Remove<TestFamilySystem2>();
 
-		Assert.That(!engine.HasFamily<TestFamilyMember>());
-		Assert.That(!engine.HasSystem<TestFamilySystem1>());
-		Assert.That(!engine.HasSystem<TestFamilySystem2>());
+		Assert.That(!engine.Families.Has<TestFamilyMember>());
+		Assert.That(!engine.Systems.Has<TestFamilySystem1>());
+		Assert.That(!engine.Systems.Has<TestFamilySystem2>());
 	}
 	#endregion
 	#endregion
@@ -388,37 +388,37 @@ class EngineTests
 	public void When_AddSystem_Then_SystemAdded<T>()
 		where T : class, ISystem
 	{
-		var system = Engine.AddSystem<T>();
+		var system = Engine.Systems.Add<T>();
 
-		Assert.That(Engine.HasSystem<T>());
-		Assert.That(Engine.HasSystem(system));
-		Assert.That(Engine.GetSystem<T>() == system);
-		Assert.That(Engine.Systems.Count == 1);
+		Assert.That(Engine.Systems.Has<T>());
+		Assert.That(Engine.Systems.Has(system));
+		Assert.That(Engine.Systems.Get<T>() == system);
+		Assert.That(Engine.Systems.Systems.Count == 1);
 	}
 
 	[TestCase(typeof(ITestSystem))]
 	[TestCase(typeof(TestSystem))]
 	public void When_AddSystem_Then_SystemAdded(Type type)
 	{
-		var system = Engine.AddSystem(type);
+		var system = Engine.Systems.Add(type);
 
-		Assert.That(Engine.HasSystem(type));
-		Assert.That(Engine.HasSystem(system));
-		Assert.That(Engine.GetSystem(type) == system);
-		Assert.That(Engine.Systems.Count == 1);
+		Assert.That(Engine.Systems.Has(type));
+		Assert.That(Engine.Systems.Has(system));
+		Assert.That(Engine.Systems.Get(type) == system);
+		Assert.That(Engine.Systems.Systems.Count == 1);
 	}
 
 	[TestCase<ITestSystem>]
 	public void When_AddSystem_Twice_Then_SystemAdded<T>()
 		where T : class, ISystem
 	{
-		var system = Engine.AddSystem<T>();
-		Engine.AddSystem<T>();
+		var system = Engine.Systems.Add<T>();
+		Engine.Systems.Add<T>();
 
-		Assert.That(Engine.HasSystem<T>());
-		Assert.That(Engine.HasSystem(system));
-		Assert.That(Engine.GetSystem<T>() == system);
-		Assert.That(Engine.Systems.Count == 1);
+		Assert.That(Engine.Systems.Has<T>());
+		Assert.That(Engine.Systems.Has(system));
+		Assert.That(Engine.Systems.Get<T>() == system);
+		Assert.That(Engine.Systems.Systems.Count == 1);
 	}
 	#endregion
 
@@ -430,13 +430,13 @@ class EngineTests
 	{
 		var engine = new AtlasEngine();
 
-		var system = engine.AddSystem<T>();
-		engine.RemoveSystem<T>();
+		var system = engine.Systems.Add<T>();
+		engine.Systems.Remove<T>();
 
-		Assert.That(!engine.HasSystem<T>());
-		Assert.That(!Engine.HasSystem(system));
-		Assert.That(engine.GetSystem<T>() == null);
-		Assert.That(engine.Systems.Count == 0);
+		Assert.That(!engine.Systems.Has<T>());
+		Assert.That(!Engine.Systems.Has(system));
+		Assert.That(engine.Systems.Get<T>() == null);
+		Assert.That(engine.Systems.Systems.Count == 0);
 	}
 
 	[TestCase(typeof(ITestSystem))]
@@ -445,39 +445,39 @@ class EngineTests
 	{
 		var engine = new AtlasEngine();
 
-		var system = engine.AddSystem(type);
-		engine.RemoveSystem(type);
+		var system = engine.Systems.Add(type);
+		engine.Systems.Remove(type);
 
-		Assert.That(!engine.HasSystem(type));
-		Assert.That(!Engine.HasSystem(system));
-		Assert.That(engine.GetSystem(type) == null);
-		Assert.That(engine.Systems.Count == 0);
+		Assert.That(!engine.Systems.Has(type));
+		Assert.That(!Engine.Systems.Has(system));
+		Assert.That(engine.Systems.Get(type) == null);
+		Assert.That(engine.Systems.Systems.Count == 0);
 	}
 
 	[TestCase<ITestSystem>]
 	public void When_RemoveSystem_Twice_Then_SystemRemoved<T>()
 		where T : class, ISystem
 	{
-		var system = Engine.AddSystem<T>();
-		Engine.AddSystem<T>();
-		Engine.RemoveSystem<T>();
-		Engine.RemoveSystem<T>();
+		var system = Engine.Systems.Add<T>();
+		Engine.Systems.Add<T>();
+		Engine.Systems.Remove<T>();
+		Engine.Systems.Remove<T>();
 
-		Assert.That(!Engine.HasSystem<T>());
-		Assert.That(!Engine.HasSystem(system));
-		Assert.That(Engine.GetSystem<T>() == null);
-		Assert.That(Engine.Systems.Count == 0);
+		Assert.That(!Engine.Systems.Has<T>());
+		Assert.That(!Engine.Systems.Has(system));
+		Assert.That(Engine.Systems.Get<T>() == null);
+		Assert.That(Engine.Systems.Systems.Count == 0);
 	}
 
 	[TestCase<ITestSystem>]
 	public void When_RemoveSystem_With_NoSystem_Then_SystemRemoved<T>()
 		where T : class, ISystem
 	{
-		Engine.RemoveSystem<T>();
+		Engine.Systems.Remove<T>();
 
-		Assert.That(!Engine.HasSystem<T>());
-		Assert.That(Engine.GetSystem<T>() == null);
-		Assert.That(Engine.Systems.Count == 0);
+		Assert.That(!Engine.Systems.Has<T>());
+		Assert.That(Engine.Systems.Get<T>() == null);
+		Assert.That(Engine.Systems.Systems.Count == 0);
 	}
 	#endregion
 
@@ -487,9 +487,9 @@ class EngineTests
 	public void When_GetSystem_As_Index_Then_ThrowsExpected(bool addSystem)
 	{
 		if(addSystem)
-			Engine.AddSystem<ITestSystem>();
+			Engine.Systems.Add<ITestSystem>();
 
-		Assert.That(() => Engine.GetSystem(0), addSystem ? Throws.Nothing : Throws.Exception);
+		Assert.That(() => Engine.Systems.Get(0), addSystem ? Throws.Nothing : Throws.Exception);
 	}
 	#endregion
 
@@ -497,13 +497,13 @@ class EngineTests
 	[Test]
 	public void When_PriorityChanged_Then_SystemsPrioritized()
 	{
-		var system1 = Engine.AddSystem<TestMultipleSystem1>();
-		var system2 = Engine.AddSystem<TestMultipleSystem2>();
+		var system1 = Engine.Systems.Add<TestMultipleSystem1>();
+		var system2 = Engine.Systems.Add<TestMultipleSystem2>();
 
 		system2.Priority = -1;
 
-		Assert.That(Engine.Systems[0] == system2);
-		Assert.That(Engine.Systems[1] == system1);
+		Assert.That(Engine.Systems.Systems[0] == system2);
+		Assert.That(Engine.Systems.Systems[1] == system1);
 	}
 	#endregion
 	#endregion
@@ -517,7 +517,7 @@ class EngineTests
 	[TestCase(TestFps._1, true)]
 	public void When_Update_Then_SystemUpdated(float deltaTime, bool expected)
 	{
-		var system = Engine.AddSystem<TestSystem>();
+		var system = Engine.Systems.Add<TestSystem>();
 
 		Engine.Update(deltaTime);
 
@@ -534,7 +534,7 @@ class EngineTests
 		Engine.Update(1 / fps);
 		Engine.Update(TestFps._60);
 
-		Assert.That(Engine.FixedLag == expected);
+		Assert.That(Engine.Updates.FixedLag == expected);
 	}
 
 	[TestCase(TestFps._0, TestFps._0)]
@@ -546,11 +546,11 @@ class EngineTests
 	[TestCase(0.25f, TestFps._1)]
 	public void When_Update_Then_DeltaVariableTimeExpected(float maxVariableTime, float deltaVariableTime)
 	{
-		Engine.MaxVariableTime = maxVariableTime;
+		Engine.Updates.MaxVariableTime = maxVariableTime;
 
 		Engine.Update(deltaVariableTime);
 
-		Assert.That(Engine.DeltaVariableTime == float.MinNumber(maxVariableTime, deltaVariableTime));
+		Assert.That(Engine.Updates.DeltaVariableTime == float.MinNumber(maxVariableTime, deltaVariableTime));
 	}
 
 	[TestCase(TestFps._0, TestFps._0, 0f)]
@@ -561,12 +561,12 @@ class EngineTests
 	[TestCase(TestFps._15, TestFps._120, 0.125f)]
 	public void When_Update_Then_VariableInterpolationExpected(float deltaFixedTime, float deltaTime, float variableInterpolation)
 	{
-		Engine.DeltaFixedTime = deltaFixedTime;
-		Engine.MaxVariableTime = deltaTime;
+		Engine.Updates.DeltaFixedTime = deltaFixedTime;
+		Engine.Updates.MaxVariableTime = deltaTime;
 
 		Engine.Update(deltaTime);
 
-		Assert.That(Engine.VariableInterpolation == variableInterpolation);
+		Assert.That(Engine.Updates.VariableInterpolation == variableInterpolation);
 	}
 
 	[TestCase(TestFps._0)]
@@ -576,9 +576,9 @@ class EngineTests
 	[TestCase(TestFps._1)]
 	public void When_MaxVariableTime_Then_MaxVariableTimeExpected(float maxVariableTime)
 	{
-		Engine.MaxVariableTime = maxVariableTime;
+		Engine.Updates.MaxVariableTime = maxVariableTime;
 
-		Assert.That(Engine.MaxVariableTime == maxVariableTime);
+		Assert.That(Engine.Updates.MaxVariableTime == maxVariableTime);
 	}
 
 	[TestCase(TestFps._0)]
@@ -588,16 +588,16 @@ class EngineTests
 	[TestCase(TestFps._1)]
 	public void When_DeltaFixedTime_Then_DeltaFixedTimeExpected(float deltaFixedTime)
 	{
-		Engine.DeltaFixedTime = deltaFixedTime;
+		Engine.Updates.DeltaFixedTime = deltaFixedTime;
 		Engine.Update(deltaFixedTime);
 
-		Assert.That(Engine.DeltaFixedTime == deltaFixedTime);
+		Assert.That(Engine.Updates.DeltaFixedTime == deltaFixedTime);
 	}
 
 	[Test]
 	public void When_SystemUpdate_And_NotUpdateSystem_Then_SystemNoUpdated()
 	{
-		var system = Engine.AddSystem<TestSystem>();
+		var system = Engine.Systems.Add<TestSystem>();
 
 		system.Update(0);
 
@@ -618,7 +618,7 @@ class EngineTests
 		root.AddComponent(component);
 		root.IsSleeping = entitySleeping;
 
-		var system = engine.AddSystem<TestFamilySystem>();
+		var system = engine.Systems.Add<TestFamilySystem>();
 		system.UpdateSleepingEntities = systemSleeping;
 
 		engine.Update(0.125f);
@@ -632,7 +632,7 @@ class EngineTests
 	[Test]
 	public void When_Engine_And_HasNoEngineItem_Then_NoEngine()
 	{
-		var item = new EngineItem<IEntity>(null);
+		var item = new EngineObject<IEntity>(null);
 		item.Engine = new AtlasEngine();
 
 		Assert.That(item.Engine == null);
@@ -644,12 +644,12 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.GetSystem<TestFamilySystem>();
+		var system = engine.Systems.Get<TestFamilySystem>();
 
 		system.TestAddEntity = true;
 		engine.Update(0.125f);
 
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 2);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 2);
 	}
 
 	[Test]
@@ -657,12 +657,12 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.GetSystem<TestFamilySystem>();
+		var system = engine.Systems.Get<TestFamilySystem>();
 
 		system.TestRemoveEntity = true;
 		engine.Update(0.125f);
 
-		Assert.That(engine.GetFamily<TestFamilyMember>().Members.Count == 0);
+		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 0);
 	}
 
 	[Test]
@@ -670,16 +670,16 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.GetSystem<TestFamilySystem>();
+		var system = engine.Systems.Get<TestFamilySystem>();
 
 		system.TestRemoveEntity = true;
 		system.TestRemoveSystem = true;
 		engine.Update(0.125f);
 
-		Assert.That(engine.GetFamily<TestFamilyMember>() == null);
-		Assert.That(!engine.HasFamily<TestFamilyMember>());
-		Assert.That(engine.GetSystem<TestFamilySystem>() == null);
-		Assert.That(!engine.HasSystem<TestFamilySystem>());
+		Assert.That(engine.Families.Get<TestFamilyMember>() == null);
+		Assert.That(!engine.Families.Has<TestFamilyMember>());
+		Assert.That(engine.Systems.Get<TestFamilySystem>() == null);
+		Assert.That(!engine.Systems.Has<TestFamilySystem>());
 	}
 
 	private IEntity GetRoot()
@@ -694,7 +694,7 @@ class EngineTests
 		root.AddComponent(engine);
 		entity.AddComponent(component);
 
-		engine.AddSystem<TestFamilySystem>();
+		engine.Systems.Add<TestFamilySystem>();
 
 		return root;
 	}

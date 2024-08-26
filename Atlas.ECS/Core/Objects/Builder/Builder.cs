@@ -1,4 +1,4 @@
-﻿namespace Atlas.Core.Collections.Builder;
+﻿namespace Atlas.Core.Objects.Builder;
 
 public abstract class Builder<TBuilder, T> : IBuilder<TBuilder, T>
 		where TBuilder : class, IBuilder<TBuilder, T>

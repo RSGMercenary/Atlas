@@ -8,6 +8,8 @@ namespace Atlas.ECS.Components.Builder;
 
 public abstract class AtlasBuilder : AtlasComponent<IBuilder>, IBuilder
 {
+	public event Action<IBuilder, BuildState, BuildState> BuildStateChanged;
+
 	private readonly Stack<Action> builders = new();
 	private BuildState state = BuildState.Unbuilt;
 	private bool autoRemove = true;
@@ -44,7 +46,7 @@ public abstract class AtlasBuilder : AtlasComponent<IBuilder>, IBuilder
 				return;
 			var previous = state;
 			state = value;
-			Message<IBuildStateMessage>(new BuildStateMessage(state, previous));
+			BuildStateChanged?.Invoke(this, value, previous);
 			if(value == BuildState.Building)
 			{
 				var type = GetType();

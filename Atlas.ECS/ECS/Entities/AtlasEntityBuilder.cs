@@ -1,5 +1,4 @@
-﻿using Atlas.Core.Collections.Builder;
-using Atlas.Core.Messages;
+﻿using Atlas.Core.Objects.Builder;
 using Atlas.ECS.Components.Component;
 using System;
 
@@ -185,35 +184,6 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	public IEntityBuilder SetIsAutoDisposable(bool isAutoDisposable)
 	{
 		Instance.IsAutoDisposable = isAutoDisposable;
-		return this;
-	}
-	#endregion
-
-	#region Messages
-	public IEntityBuilder AddListener<TMessage>(Action<TMessage> listener)
-		where TMessage : IMessage<IEntity>
-	{
-		Instance.AddListener(listener);
-		return this;
-	}
-
-	public IEntityBuilder AddListener<TMessage>(Action<TMessage> listener, int priority)
-		where TMessage : IMessage<IEntity>
-	{
-		Instance.AddListener(listener, priority);
-		return this;
-	}
-
-	public IEntityBuilder RemoveListener<TMessage>(Action<TMessage> listener)
-		where TMessage : IMessage<IEntity>
-	{
-		Instance.RemoveListener(listener);
-		return this;
-	}
-
-	public IEntityBuilder RemoveListeners()
-	{
-		Instance.RemoveListeners();
 		return this;
 	}
 	#endregion
