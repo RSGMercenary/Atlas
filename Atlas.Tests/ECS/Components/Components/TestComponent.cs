@@ -17,7 +17,11 @@ class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
 		TestDispose = true;
 	}
 
+#pragma warning disable 0169 // Remove unused private members
 	private TestComponent TestPrivateField1;
+#pragma warning restore 0169 // Remove unused private members
 
+#pragma warning disable 0169 // Remove unused private members
 	private TestComponent TestPrivateField2;
+#pragma warning restore 0169 // Remove unused private members
 }
