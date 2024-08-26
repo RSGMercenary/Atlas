@@ -8,12 +8,24 @@ namespace Atlas.Core.Collections.Hierarchy;
 public class Hierarchy<T> : IHierarchy<T>, IDisposable
 		where T : class, IHierarchy<T>
 {
+	#region Events
+	public event Action<T, T, T> RootChanged;
+	public event Action<T, T, T> ParentChanged;
+	public event Action<T, int, int> ParentIndexChanged;
+	public event Action<T, T, int> ChildAdded;
+	public event Action<T, T, int> ChildRemoved;
+	public event Action<T> ChildrenChanged;
+	#endregion
+
+	#region Fields
 	private readonly T Self;
 	private T root;
 	private T parent;
 	private int parentIndex = -1;
 	private readonly LinkList<T> children = new();
+	#endregion
 
+	#region Construct / Dispose
 	public Hierarchy(T self = null)
 	{
 		Self = self ?? this as T;
@@ -32,6 +44,7 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 		ChildRemoved = null;
 		ChildrenChanged = null;
 	}
+	#endregion
 
 	#region Messages
 	/*
@@ -143,8 +156,6 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 	#endregion
 
 	#region Root
-	public event Action<T, T, T> RootChanged;
-
 	public T Root
 	{
 		get => root;
@@ -179,15 +190,11 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 	#endregion
 
 	#region Parent
-	public event Action<T, T, T> ParentChanged;
-
 	public T Parent
 	{
 		get => parent;
 		set => SetParent(value);
 	}
-
-	public event Action<T, int, int> ParentIndexChanged;
 
 	public int ParentIndex
 	{
@@ -247,8 +254,6 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 	#endregion
 
 	#region Add
-	public event Action<T, T, int> ChildAdded;
-
 	public T AddChild(T child) => AddChild(child, children.Count);
 
 	public T AddChild(T child, int index)
@@ -275,8 +280,6 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 	#endregion
 
 	#region Remove
-	public event Action<T, T, int> ChildRemoved;
-
 	public T RemoveChild(T child)
 	{
 		if(child.Parent != Self)
@@ -308,8 +311,6 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 	#endregion
 
 	#region Set
-	public event Action<T> ChildrenChanged;
-
 	public bool SetChildIndex(T child, int index)
 	{
 		var previous = children.Set(child, index);

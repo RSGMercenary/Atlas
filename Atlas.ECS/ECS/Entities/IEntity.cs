@@ -15,7 +15,7 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleep<
 	event Action<IEntity, IComponent, Type> ComponentRemoved;
 	event Action<IEntity, string, string> GlobalNameChanged;
 	event Action<IEntity, string, string> LocalNameChanged;
-	event Action<IEntity, int, int> FreeSleepingChanged;
+	event Action<IEntity, int, int> SelfSleepingChanged;
 
 	#region Entities
 	/// <summary>

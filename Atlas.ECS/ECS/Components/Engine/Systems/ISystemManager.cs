@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Systems;
 using System;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Systems;
 
@@ -26,6 +27,8 @@ public interface ISystemManager : IReadOnlyEngineManager
 	/// as a Type to an Entity already in the Entity hierarchy.</para>
 	/// </summary>
 	IReadOnlyGroup<ISystem> Systems { get; }
+
+	IReadOnlyDictionary<Type, ISystem> Types { get; }
 
 	/// <summary>
 	/// Returns if the Engine is managing a System with the given instance.

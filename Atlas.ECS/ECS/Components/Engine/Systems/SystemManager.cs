@@ -11,8 +11,8 @@ internal class SystemManager : ISystemManager
 	public event Action<ISystemManager, ISystem, Type> Added;
 	public event Action<ISystemManager, ISystem, Type> Removed;
 
-	private readonly Group<ISystem> list = new();
-	private readonly Dictionary<Type, ISystem> dictionary = new();
+	private readonly Group<ISystem> systems = new();
+	private readonly Dictionary<Type, ISystem> types = new();
 	private readonly Dictionary<Type, int> references = new();
 
 	public IEngine Engine { get; }
@@ -31,34 +31,34 @@ internal class SystemManager : ISystemManager
 
 	public ISystem Add(Type type)
 	{
-		if(!dictionary.TryGetValue(type, out var system))
+		if(!types.TryGetValue(type, out var system))
 		{
 			system = CreateSystem(type);
 			system.PriorityChanged += PriorityChanged;
 			PriorityChanged(system);
-			dictionary.Add(type, system);
+			types.Add(type, system);
 			references.Add(type, 0);
 			system.Engine = Engine;
 
 			Added?.Invoke(this, system, type);
 		}
 		++references[type];
-		return dictionary[type];
+		return types[type];
 	}
 	#endregion
 
-	#region emove
+	#region Remove
 	public bool Remove<TSystem>() where TSystem : class, ISystem => Remove(typeof(TSystem));
 
 	public bool Remove(Type type)
 	{
-		if(!dictionary.TryGetValue(type, out var system))
+		if(!types.TryGetValue(type, out var system))
 			return false;
 		if(--references[type] > 0)
 			return false;
 		system.PriorityChanged -= PriorityChanged;
-		list.Remove(system);
-		dictionary.Remove(type);
+		systems.Remove(system);
+		types.Remove(type);
 		references.Remove(type);
 		system.Engine = null;
 
@@ -69,36 +69,38 @@ internal class SystemManager : ISystemManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<ISystem> Systems => list;
+	public IReadOnlyGroup<ISystem> Systems => systems;
+
+	public IReadOnlyDictionary<Type, ISystem> Types => types;
 
 	public TISystem Get<TISystem>() where TISystem : ISystem => (TISystem)Get(typeof(TISystem));
 
-	public ISystem Get(Type type) => dictionary.TryGetValue(type, out var system) ? system : null;
+	public ISystem Get(Type type) => types.TryGetValue(type, out var system) ? system : null;
 
-	public ISystem Get(int index) => list[index];
+	public ISystem Get(int index) => systems[index];
 	#endregion
 
 	#region Has
-	public bool Has(ISystem system) => list.Contains(system);
+	public bool Has(ISystem system) => systems.Contains(system);
 
 	public bool Has<TISystem>() where TISystem : ISystem => Has(typeof(TISystem));
 
-	public bool Has(Type type) => dictionary.ContainsKey(type);
+	public bool Has(Type type) => types.ContainsKey(type);
 	#endregion
 
 	#region Messages
 	private void PriorityChanged(ISystem system, int current = -1, int previous = -1)
 	{
-		list.Remove(system);
-		for(var index = list.Count; index > 0; --index)
+		systems.Remove(system);
+		for(var index = systems.Count; index > 0; --index)
 		{
-			if(list[index - 1].Priority <= system.Priority)
+			if(systems[index - 1].Priority <= system.Priority)
 			{
-				list.Insert(index, system);
+				systems.Insert(index, system);
 				return;
 			}
 		}
-		list.Insert(0, system);
+		systems.Insert(0, system);
 	}
 	#endregion
 }

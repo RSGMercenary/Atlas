@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.Group;
+using Atlas.Core.Extensions;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine.Entities;
 using Atlas.ECS.Entities;
@@ -14,8 +15,8 @@ internal class FamilyManager : IFamilyManager
 	public event Action<IFamilyManager, IFamily> Added;
 	public event Action<IFamilyManager, IFamily> Removed;
 
-	private readonly Group<IFamily> list = new();
-	private readonly Dictionary<Type, IFamily> dictionary = new();
+	private readonly Group<IFamily> families = new();
+	private readonly Dictionary<Type, IReadOnlyFamily> types = new();
 	private readonly Dictionary<Type, int> references = new();
 
 	public IEngine Engine { get; }
@@ -29,7 +30,7 @@ internal class FamilyManager : IFamilyManager
 
 	private void EntityAdded(IEntityManager manager, IEntity entity)
 	{
-		foreach(var family in list)
+		foreach(var family in families)
 			family.AddEntity(entity);
 		entity.ComponentAdded += ComponentAdded;
 		entity.ComponentRemoved += ComponentRemoved;
@@ -39,12 +40,12 @@ internal class FamilyManager : IFamilyManager
 	{
 		entity.ComponentAdded -= ComponentAdded;
 		entity.ComponentRemoved -= ComponentRemoved;
-		foreach(var family in list)
+		foreach(var family in families)
 			family.RemoveEntity(entity);
 	}
 
 	#region Create
-	protected virtual IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
+	private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
 	#endregion
 
@@ -53,11 +54,11 @@ internal class FamilyManager : IFamilyManager
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		var type = typeof(TFamilyMember);
-		if(!dictionary.TryGetValue(type, out var family))
+		if(!types.TryGetValue(type, out IFamily family))
 		{
 			family = CreateFamily<TFamilyMember>();
-			list.Add(family);
-			dictionary.Add(type, family);
+			families.Add(family);
+			types.Add(type, family);
 			references.Add(type, 0);
 			family.Engine = Engine;
 			foreach(var entity in Engine.Entities.Entities)
@@ -66,7 +67,7 @@ internal class FamilyManager : IFamilyManager
 			Added?.Invoke(this, family);
 		}
 		++references[type];
-		return (IReadOnlyFamily<TFamilyMember>)dictionary[type];
+		return (IReadOnlyFamily<TFamilyMember>)types[type];
 	}
 	#endregion
 
@@ -75,12 +76,12 @@ internal class FamilyManager : IFamilyManager
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		var type = typeof(TFamilyMember);
-		if(!dictionary.TryGetValue(type, out var family))
+		if(!types.TryGetValue(type, out IFamily family))
 			return;
 		if(--references[type] > 0)
 			return;
-		list.Remove(family);
-		dictionary.Remove(type);
+		families.Remove(family);
+		types.Remove(type);
 		references.Remove(type);
 		family.Engine = null;
 
@@ -90,7 +91,9 @@ internal class FamilyManager : IFamilyManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<IReadOnlyFamily> Families => list;
+	public IReadOnlyGroup<IReadOnlyFamily> Families => families;
+
+	public IReadOnlyDictionary<Type, IReadOnlyFamily> Types => types;
 
 	public IReadOnlyFamily<TFamilyMember> Get<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
@@ -98,11 +101,11 @@ internal class FamilyManager : IFamilyManager
 		return (IReadOnlyFamily<TFamilyMember>)Get(typeof(TFamilyMember));
 	}
 
-	public IReadOnlyFamily Get(Type type) => dictionary.TryGetValue(type, out var family) ? family : null;
+	public IReadOnlyFamily Get(Type type) => types.TryGetValue(type, out var family) ? family : null;
 	#endregion
 
 	#region Has
-	public bool Has(IReadOnlyFamily family) => dictionary.ContainsValue((IFamily)family);
+	public bool Has(IReadOnlyFamily family) => types.ContainsValue((IFamily)family);
 
 	public bool Has<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
@@ -110,19 +113,19 @@ internal class FamilyManager : IFamilyManager
 		return Has(typeof(TFamilyMember));
 	}
 
-	public bool Has(Type type) => dictionary.ContainsKey(type);
+	public bool Has(Type type) => types.ContainsKey(type);
 	#endregion
 
 	#region Messages
 	private void ComponentAdded(IEntity entity, IComponent component, Type type)
 	{
-		foreach(var family in list)
+		foreach(var family in families)
 			family.AddEntity(entity, type);
 	}
 
 	private void ComponentRemoved(IEntity entity, IComponent component, Type type)
 	{
-		foreach(var family in list)
+		foreach(var family in families)
 			family.RemoveEntity(entity, type);
 	}
 	#endregion

@@ -8,11 +8,11 @@ namespace Atlas.ECS.Components.Engine.Entities;
 
 internal class EntityManager : IEntityManager
 {
-	private readonly Group<IEntity> list = new();
-	private readonly Dictionary<string, IEntity> dictionary = new();
-
 	public event Action<IEntityManager, IEntity> Added;
 	public event Action<IEntityManager, IEntity> Removed;
+
+	private readonly Group<IEntity> entities = new();
+	private readonly Dictionary<string, IEntity> globalNames = new();
 
 	public IEngine Engine { get; }
 
@@ -25,11 +25,11 @@ internal class EntityManager : IEntityManager
 	internal void AddEntity(IEntity entity)
 	{
 		//Change the Entity's global name if it already exists.
-		if(dictionary.ContainsKey(entity.GlobalName))
+		if(globalNames.ContainsKey(entity.GlobalName))
 			entity.GlobalName = AtlasEntity.UniqueName;
 
-		dictionary[entity.GlobalName] = entity;
-		list.Add(entity);
+		globalNames[entity.GlobalName] = entity;
+		entities.Add(entity);
 		entity.Engine = Engine;
 
 		entity.ChildAdded += ChildAdded;
@@ -45,7 +45,7 @@ internal class EntityManager : IEntityManager
 	internal void RemoveEntity(IEntity entity)
 	{
 		//Protect against parents signaling a child being removed which never got to be added.
-		if(!dictionary.TryGetValue(entity.GlobalName, out var global) || global != entity)
+		if(!globalNames.TryGetValue(entity.GlobalName, out var global) || global != entity)
 			return;
 
 		entity.ChildAdded -= ChildAdded;
@@ -57,29 +57,31 @@ internal class EntityManager : IEntityManager
 
 		Removed?.Invoke(this, entity);
 
-		dictionary.Remove(entity.GlobalName);
-		list.Remove(entity);
+		globalNames.Remove(entity.GlobalName);
+		entities.Remove(entity);
 		entity.Engine = null;
 	}
 	#endregion
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<IEntity> Entities => list;
+	public IReadOnlyGroup<IEntity> Entities => entities;
 
-	public IEntity Get(string globalName) => dictionary.TryGetValue(globalName, out var entity) ? entity : null;
+	public IReadOnlyDictionary<string, IEntity> GlobalNames => globalNames;
+
+	public IEntity Get(string globalName) => globalNames.TryGetValue(globalName, out var entity) ? entity : null;
 	#endregion
 
 	#region Has
-	public bool Has(string globalName) => dictionary.ContainsKey(globalName);
+	public bool Has(string globalName) => globalNames.ContainsKey(globalName);
 
-	public bool Has(IEntity entity) => dictionary.TryGetValue(entity.GlobalName, out var global) && global == entity;
+	public bool Has(IEntity entity) => globalNames.TryGetValue(entity.GlobalName, out var global) && global == entity;
 	#endregion
 
-	#region Messages
+	#region Listeners
 	private void ChildAdded(IEntity parent, IEntity child, int index)
 	{
-		if(!dictionary.TryGetValue(child.GlobalName, out var entity) || entity != child)
+		if(!globalNames.TryGetValue(child.GlobalName, out var entity) || entity != child)
 			AddEntity(child);
 	}
 
@@ -93,10 +95,10 @@ internal class EntityManager : IEntityManager
 
 	private void GlobalNameChanged(IEntity entity, string current, string previous)
 	{
-		if(dictionary.TryGetValue(previous, out var global) && global == entity)
+		if(globalNames.TryGetValue(previous, out var global) && global == entity)
 		{
-			dictionary.Remove(previous);
-			dictionary.Add(current, entity);
+			globalNames.Remove(previous);
+			globalNames.Add(current, entity);
 		}
 	}
 	#endregion

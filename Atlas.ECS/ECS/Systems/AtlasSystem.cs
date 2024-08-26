@@ -38,12 +38,23 @@ public abstract class AtlasSystem : ISystem
 
 	protected virtual void Disposing()
 	{
+		EngineManager.Dispose();
+		Sleep.Dispose();
+
+		PriorityChanged = null;
 		Priority = 0;
-		Sleeping = 0;
-		DeltaIntervalTime = 0;
-		TotalIntervalTime = 0;
-		UpdateStep = TimeStep.Variable;
+
+		UpdateStateChanged = null;
 		UpdateState = TimeStep.None;
+
+		UpdateStepChanged = null;
+		UpdateStep = TimeStep.Variable;
+
+		IntervalChanged = null;
+		DeltaIntervalTime = 0;
+
+		TotalIntervalTime = 0;
+
 	}
 	#endregion
 

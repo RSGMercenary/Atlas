@@ -4,7 +4,7 @@ using Atlas.ECS.Systems;
 using System;
 
 namespace Atlas.ECS.Components.Engine;
-public class EngineManager<T> : IEngineManager<T> where T : IEngineManager<T>
+public class EngineManager<T> : IEngineManager<T>, IDisposable where T : IEngineManager<T>
 {
 	public event Action<T, IEngine, IEngine> EngineChanged;
 
@@ -16,6 +16,11 @@ public class EngineManager<T> : IEngineManager<T> where T : IEngineManager<T>
 	{
 		Instance = instance;
 		Changed = changed;
+	}
+
+	public void Dispose()
+	{
+		EngineChanged = null;
 	}
 
 

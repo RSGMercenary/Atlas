@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Objects.AutoDispose;
 
-internal class AutoDispose<T> : IAutoDispose<T>
+internal class AutoDispose<T> : IAutoDispose<T>, IDisposable
 	where T : IAutoDispose<T>, IDisposable
 {
 	public event Action<T, bool, bool> IsAutoDisposableChanged;
@@ -14,6 +14,12 @@ internal class AutoDispose<T> : IAutoDispose<T>
 	{
 		Instance = instance;
 		Condition = condition;
+	}
+
+	public void Dispose()
+	{
+		IsAutoDisposableChanged = null;
+		IsAutoDisposable = true;
 	}
 
 	public bool IsAutoDisposable

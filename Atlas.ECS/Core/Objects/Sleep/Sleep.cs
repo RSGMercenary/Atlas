@@ -3,7 +3,7 @@ using System;
 
 namespace Atlas.Core.Objects.Sleep;
 
-internal class Sleep<T> : ISleep<T>
+internal class Sleep<T> : ISleep<T>, IDisposable
 	where T : ISleep<T>, IEngineManager<T>
 {
 	public event Action<T, int, int> SleepingChanged;
@@ -13,6 +13,12 @@ internal class Sleep<T> : ISleep<T>
 	public Sleep(T instance)
 	{
 		Instance = instance;
+	}
+
+	public void Dispose()
+	{
+		SleepingChanged = null;
+		Sleeping = 0;
 	}
 
 	public int Sleeping

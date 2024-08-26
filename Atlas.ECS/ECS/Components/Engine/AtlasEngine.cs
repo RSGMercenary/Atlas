@@ -11,7 +11,7 @@ using System;
 namespace Atlas.ECS.Components.Engine;
 
 [JsonObject]
-public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
+public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 {
 	private readonly EntityManager entities;
 	private readonly FamilyManager families;
@@ -34,7 +34,7 @@ public class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
 	protected override void AddingManager(IEntity entity, int index)
 	{
 		if(!entity.IsRoot)
-			throw new InvalidOperationException($"An {nameof(IEngine)} can't be added to a non-root {nameof(IEntity)}.");
+			throw new InvalidOperationException($"{nameof(IEngine)} can't be added to {nameof(IEntity)} when {nameof(IEntity.IsRoot)} is false.");
 
 		base.AddingManager(entity, index);
 		entities.AddEntity(entity);

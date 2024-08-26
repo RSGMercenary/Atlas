@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Families;
 using System;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Families;
 
@@ -17,6 +18,8 @@ public interface IFamilyManager : IReadOnlyEngineManager
 	/// being managed by a System intent on updating that Family.</para>
 	/// </summary>
 	IReadOnlyGroup<IReadOnlyFamily> Families { get; }
+
+	IReadOnlyDictionary<Type, IReadOnlyFamily> Types { get; }
 
 	/// <summary>
 	/// Returns if the Engine is managing a Family with the given instance.

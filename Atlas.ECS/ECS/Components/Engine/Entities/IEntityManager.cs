@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Entities;
 using System;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Entities;
 
@@ -18,6 +19,8 @@ public interface IEntityManager : IReadOnlyEngineManager
 	/// to it, and then adding children to that hierarchy.</para>
 	/// </summary>
 	IReadOnlyGroup<IEntity> Entities { get; }
+
+	IReadOnlyDictionary<string, IEntity> GlobalNames { get; }
 
 	/// <summary>
 	/// Returns if the Engine is managing an Entity with the given global name.

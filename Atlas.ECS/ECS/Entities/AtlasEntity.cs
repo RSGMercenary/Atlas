@@ -50,15 +50,74 @@ public sealed class AtlasEntity : IEntity
 	public static AtlasEntity Get(string localName = null, string globalName = null) { var entity = Get(); entity.SetNames(localName, globalName); return entity; }
 
 	public static AtlasEntity GetRoot() { var root = Get(); root.IsRoot = true; return root; }
-
 	#endregion
 
 	#region Events
+	#region Engine
+	public event Action<IEntity, IEngine, IEngine> EngineChanged
+	{
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
+	}
+	#endregion
+
+	#region Hierarchy
+	public event Action<IEntity, IEntity, IEntity> RootChanged
+	{
+		add => Hierarchy.RootChanged += value;
+		remove => Hierarchy.RootChanged -= value;
+	}
+
+	public event Action<IEntity, IEntity, IEntity> ParentChanged
+	{
+		add => Hierarchy.ParentChanged += value;
+		remove => Hierarchy.ParentChanged -= value;
+	}
+
+	public event Action<IEntity, int, int> ParentIndexChanged
+	{
+		add => Hierarchy.ParentIndexChanged += value;
+		remove => Hierarchy.ParentIndexChanged -= value;
+	}
+
+	public event Action<IEntity> ChildrenChanged
+	{
+		add => Hierarchy.ChildrenChanged += value;
+		remove => Hierarchy.ChildrenChanged -= value;
+	}
+
+	public event Action<IEntity, IEntity, int> ChildAdded
+	{
+		add => Hierarchy.ChildAdded += value;
+		remove => Hierarchy.ChildAdded -= value;
+	}
+
+	public event Action<IEntity, IEntity, int> ChildRemoved
+	{
+		add => Hierarchy.ChildRemoved += value;
+		remove => Hierarchy.ChildRemoved -= value;
+	}
+	#endregion
+
+	#region Sleeping
+	public event Action<IEntity, int, int> SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
+	#endregion
+
+	public event Action<IEntity, bool, bool> IsAutoDisposableChanged
+	{
+		add => AutoDispose.IsAutoDisposableChanged += value;
+		remove => AutoDispose.IsAutoDisposableChanged -= value;
+	}
+
 	public event Action<IEntity, IComponent, Type> ComponentAdded;
 	public event Action<IEntity, IComponent, Type> ComponentRemoved;
 	public event Action<IEntity, string, string> GlobalNameChanged;
 	public event Action<IEntity, string, string> LocalNameChanged;
-	public event Action<IEntity, int, int> FreeSleepingChanged;
+	public event Action<IEntity, int, int> SelfSleepingChanged;
 	#endregion
 
 	#region Fields
@@ -75,14 +134,12 @@ public sealed class AtlasEntity : IEntity
 	#region Construct / Dispose
 	public AtlasEntity()
 	{
-		EngineManager = new(this);
-		AutoDispose = new(this, () => Hierarchy.Parent == null);
+		EngineManager = new EngineManager<IEntity>(this);
+		AutoDispose = new AutoDispose<IEntity>(this, () => Hierarchy.Parent == null);
 		Hierarchy = new Hierarchy<IEntity>(this);
-		Sleep = new(this);
+		Sleep = new Sleep<IEntity>(this);
 
-		Hierarchy.ChildAdded += OnChildAdded;
-		Hierarchy.ParentChanged += OnParentChanged;
-		Hierarchy.RootChanged += OnRootChanged;
+		SetHierarchyEvents();
 	}
 
 	public AtlasEntity(bool isRoot) : this() => Hierarchy.IsRoot = isRoot;
@@ -91,15 +148,34 @@ public sealed class AtlasEntity : IEntity
 
 	public void Dispose()
 	{
-		RemoveComponents();
 		Hierarchy.Dispose();
+		EngineManager.Dispose();
+		AutoDispose.Dispose();
+		Sleep.Dispose();
+
+		SetHierarchyEvents();
+
+		ComponentAdded = null;
+		ComponentRemoved = null;
+		RemoveComponents();
+
+		GlobalNameChanged = null;
 		GlobalName = UniqueName;
+
+		LocalNameChanged = null;
 		LocalName = UniqueName;
-		IsAutoDisposable = true;
-		Sleeping = 0;
+
+		SelfSleepingChanged = null;
 		SelfSleeping = 0;
 
 		PoolManager.Instance.Put(this);
+	}
+
+	private void SetHierarchyEvents()
+	{
+		Hierarchy.ChildAdded += OnChildAdded;
+		Hierarchy.ParentChanged += OnParentChanged;
+		Hierarchy.RootChanged += OnRootChanged;
 	}
 	#endregion
 
@@ -140,12 +216,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Engine
-	public event Action<IEntity, IEngine, IEngine> EngineChanged
-	{
-		add => EngineManager.EngineChanged += value;
-		remove => EngineManager.EngineChanged -= value;
-	}
-
 	public IEngine Engine
 	{
 		get => EngineManager.Engine;
@@ -155,12 +225,6 @@ public sealed class AtlasEntity : IEntity
 
 	#region Hierarchy
 	#region Root
-	public event Action<IEntity, IEntity, IEntity> RootChanged
-	{
-		add => Hierarchy.RootChanged += value;
-		remove => Hierarchy.RootChanged -= value;
-	}
-
 	public IEntity Root => Hierarchy.Root;
 
 	[JsonProperty(Order = int.MinValue)]
@@ -172,22 +236,10 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Parent
-	public event Action<IEntity, IEntity, IEntity> ParentChanged
-	{
-		add => Hierarchy.ParentChanged += value;
-		remove => Hierarchy.ParentChanged -= value;
-	}
-
 	public IEntity Parent
 	{
 		get => Hierarchy.Parent;
 		set => Hierarchy.Parent = value;
-	}
-
-	public event Action<IEntity, int, int> ParentIndexChanged
-	{
-		add => Hierarchy.ParentIndexChanged += value;
-		remove => Hierarchy.ParentIndexChanged -= value;
 	}
 
 	public int ParentIndex
@@ -202,12 +254,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Get
-	public event Action<IEntity> ChildrenChanged
-	{
-		add => Hierarchy.ChildrenChanged += value;
-		remove => Hierarchy.ChildrenChanged -= value;
-	}
-
 	[JsonIgnore]
 	public IReadOnlyLinkList<IEntity> Children => Hierarchy.Children;
 
@@ -223,7 +269,7 @@ public sealed class AtlasEntity : IEntity
 		}
 	}
 
-	public IEnumerator<IEntity> GetEnumerator() => Hierarchy.Children.GetEnumerator();
+	public IEnumerator<IEntity> GetEnumerator() => Hierarchy.GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -247,24 +293,12 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Add
-	public event Action<IEntity, IEntity, int> ChildAdded
-	{
-		add => Hierarchy.ChildAdded += value;
-		remove => Hierarchy.ChildAdded -= value;
-	}
-
 	public IEntity AddChild(IEntity child) => Hierarchy.AddChild(child);
 
 	public IEntity AddChild(IEntity child, int index) => Hierarchy.AddChild(child, index);
 	#endregion
 
 	#region Remove
-	public event Action<IEntity, IEntity, int> ChildRemoved
-	{
-		add => Hierarchy.ChildRemoved += value;
-		remove => Hierarchy.ChildRemoved -= value;
-	}
-
 	public IEntity RemoveChild(IEntity child) => Hierarchy.RemoveChild(child);
 
 	public IEntity RemoveChild(int index) => Hierarchy.RemoveChild(index);
@@ -484,12 +518,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Sleep
-	public event Action<IEntity, int, int> SleepingChanged
-	{
-		add => Sleep.SleepingChanged += value;
-		remove => Sleep.SleepingChanged -= value;
-	}
-
 	public int Sleeping
 	{
 		get => Sleep.Sleeping;
@@ -511,16 +539,18 @@ public sealed class AtlasEntity : IEntity
 				return;
 			int previous = selfSleeping;
 			selfSleeping = value;
-			FreeSleepingChanged?.Invoke(this, value, previous);
+			SelfSleepingChanged?.Invoke(this, value, previous);
 			if(Parent == null)
 				return;
 			if(value > 0 && previous <= 0)
 			{
+				Parent.SleepingChanged -= OnParentSleepingChanged;
 				if(Parent.IsSleeping)
 					--Sleeping;
 			}
 			else if(value <= 0 && previous > 0)
 			{
+				Parent.SleepingChanged += OnParentSleepingChanged;
 				if(Parent.IsSleeping)
 					++Sleeping;
 			}
@@ -541,12 +571,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region AutoDispose
-	public event Action<IEntity, bool, bool> IsAutoDisposableChanged
-	{
-		add => AutoDispose.IsAutoDisposableChanged += value;
-		remove => AutoDispose.IsAutoDisposableChanged -= value;
-	}
-
 	[JsonProperty(Order = int.MinValue + 1)]
 	public bool IsAutoDisposable
 	{
@@ -587,29 +611,33 @@ public sealed class AtlasEntity : IEntity
 		if(!IsSelfSleeping)
 		{
 			int deltaSleeping = 0;
-			if(previous?.IsSleeping ?? false)
-				--deltaSleeping;
-			if(current?.IsSleeping ?? false)
-				++deltaSleeping;
+
+			if(previous != null)
+			{
+				if(previous.IsSleeping)
+					--deltaSleeping;
+				previous.SleepingChanged -= OnParentSleepingChanged;
+			}
+
+			if(current != null)
+			{
+				if(current.IsSleeping)
+					++deltaSleeping;
+				current.SleepingChanged += OnParentSleepingChanged;
+			}
+
 			Sleeping += deltaSleeping;
 		}
-		if(previous != null)
-			previous.SleepingChanged -= OnParentSleepingChanged;
-		if(current != null)
-			current.SleepingChanged += OnParentSleepingChanged;
 
 		AutoDispose.TryAutoDispose();
 	}
 
 	private void OnParentSleepingChanged(IEntity parent, int current, int previous)
 	{
-		if(!IsSelfSleeping)
-		{
-			if(current > 0 && previous <= 0)
-				++Sleeping;
-			else if(current <= 0 && previous > 0)
-				--Sleeping;
-		}
+		if(current > 0 && previous <= 0)
+			++Sleeping;
+		else if(current <= 0 && previous > 0)
+			--Sleeping;
 	}
 	#endregion
 }
