@@ -7,10 +7,10 @@ namespace Atlas.Core.Collections.Group;
 
 public class Group<T> : IGroup<T>
 {
-	private class GroupItem
+	class GroupItem
 	{
-		public T Value { get; set; }
-		public bool IsRemoved { get; set; } = false;
+		public T Value;
+		public bool IsRemoved;
 	}
 
 	private readonly List<GroupItem> items = new();
@@ -138,7 +138,7 @@ public class Group<T> : IGroup<T>
 
 	#region Has
 
-	public bool Contains(T item) => items.Find(element => element.Value.Equals(item)) != null;
+	public bool Contains(T item) => items.Find(element => element.Value.Equals(item)) != default;
 
 	#endregion
 
