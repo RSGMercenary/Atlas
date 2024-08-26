@@ -24,6 +24,13 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 		RemoveChildren();
 		Parent = null;
 		IsRoot = false;
+
+		RootChanged = null;
+		ParentChanged = null;
+		ParentIndexChanged = null;
+		ChildAdded = null;
+		ChildRemoved = null;
+		ChildrenChanged = null;
 	}
 
 	#region Messages
@@ -221,18 +228,22 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 			next.RootChanged += OnParentRootChanged;
 			next.ChildrenChanged += OnParentChildrenChanged;
 		}
+		Root = next?.Root;
 		if(previous != next)
 		{
 			ParentChanged?.Invoke(Self, next, previous);
 			SetParentIndex(next != null ? index : -1);
-			Root = next?.Root;
 		}
 		return next;
 	}
 
 	private void OnParentRootChanged(T parent, T current, T previous) => Root = current?.Root;
 
-	private void OnParentChildrenChanged(T parent) => SetParentIndex(parent.GetChildIndex(Self));
+	private void OnParentChildrenChanged(T parent)
+	{
+		if(parent.GetChild(parentIndex) != Self)
+			SetParentIndex(parent.GetChildIndex(Self));
+	}
 	#endregion
 
 	#region Add
@@ -341,7 +352,12 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 		}
 	}
 
-	public T GetChild(int index) => children[index];
+	public T GetChild(int index)
+	{
+		if(index <= -1 || index >= children.Count)
+			return null;
+		return children[index];
+	}
 
 	public int GetChildIndex(T child) => children.GetIndex(child);
 
