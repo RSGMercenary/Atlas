@@ -45,8 +45,10 @@ internal class FamilyManager : IFamilyManager
 	}
 
 	#region Create
+	public IFamilyCreator Creator { get; set; }
+
 	private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new() => new AtlasFamily<TFamilyMember>();
+		where TFamilyMember : class, IFamilyMember, new() => Creator?.Create<TFamilyMember>() ?? new AtlasFamily<TFamilyMember>();
 	#endregion
 
 	#region Add
@@ -72,20 +74,21 @@ internal class FamilyManager : IFamilyManager
 	#endregion
 
 	#region Remove
-	public void Remove<TFamilyMember>()
+	public bool Remove<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
 	{
 		var type = typeof(TFamilyMember);
 		if(!types.TryGetValue(type, out IFamily family))
-			return;
+			return false;
 		if(--references[type] > 0)
-			return;
+			return false;
 		families.Remove(family);
 		types.Remove(type);
 		references.Remove(type);
 		family.Engine = null;
 
 		Removed?.Invoke(this, family);
+		return true;
 	}
 	#endregion
 
