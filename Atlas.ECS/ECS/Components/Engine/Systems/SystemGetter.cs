@@ -1,9 +1,10 @@
 ﻿using Atlas.Core.Extensions;
+using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Atlas.ECS.Systems;
+namespace Atlas.ECS.Components.Engine.Systems;
 
 public static class SystemGetter
 {
