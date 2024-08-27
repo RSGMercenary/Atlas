@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Collections.Group;
 using Atlas.ECS.Families;
+using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
@@ -11,56 +12,69 @@ public interface IFamilyManager : IReadOnlyEngineManager
 
 	event Action<IFamilyManager, IFamily> Removed;
 
-	/// <summary>
-	/// A collection of all Families managed by this Engine.
-	/// 
-	/// <para>Families of Entities are added to and removed from the Engine by
-	/// being managed by a System intent on updating that Family.</para>
+	/// /// <summary>
+	/// All <see cref="IFamily"/> instances being managed by the <see cref="IFamilyManager"/>.
+	/// <para><see cref="IFamily"/> instances are added/removed by <see cref="ISystem"/> instances.</para>
 	/// </summary>
 	IReadOnlyGroup<IReadOnlyFamily> Families { get; }
 
+	/// /// <summary>
+	/// All <see cref="IFamily"/> instances by <see cref="Type"/> being managed by the <see cref="IFamilyManager"/>.
+	/// </summary>
 	IReadOnlyDictionary<Type, IReadOnlyFamily> Types { get; }
 
-	/// <summary>
-	/// Returns if the Engine is managing a Family with the given instance.
-	/// </summary>
-	/// <param name="family"></param>
-	/// <returns></returns>
-	bool Has(IReadOnlyFamily family);
+	IFamilyCreator Creator { get; set; }
 
 	/// <summary>
-	/// Returns if the Engine is managing a Family with the given Type.
+	/// Adds an <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/> to the <see cref="IFamilyManager"/>.
 	/// </summary>
-	/// <typeparam name="TFamilyType"></typeparam>
+	/// <typeparam name="TFamilyMember">The <see cref="IFamilyMember"/> generic <see cref="Type"/>.</typeparam>
 	/// <returns></returns>
-	bool Has<TFamilyMember>()
+	IReadOnlyFamily<TFamilyMember> Add<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new();
 
 	/// <summary>
-	/// Returns if the Engine is managing a Family with the given Type.
+	/// Removes an <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/> from the <see cref="IFamilyManager"/>.
 	/// </summary>
-	/// <param name="type"></param>
+	/// <typeparam name="TFamilyMember">The <see cref="IFamilyMember"/> generic <see cref="Type"/>.</typeparam>
 	/// <returns></returns>
-	bool Has(Type type);
+	bool Remove<TFamilyMember>()
+		where TFamilyMember : class, IFamilyMember, new();
 
 	/// <summary>
-	/// Returns the Family with the given Type.
+	/// Returns the <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/>.
 	/// </summary>
-	/// <typeparam name="TFamilyMember"></typeparam>
+	/// <typeparam name="TFamilyMember">The <see cref="IFamilyMember"/> generic <see cref="Type"/>.</typeparam>
 	/// <returns></returns>
 	IReadOnlyFamily<TFamilyMember> Get<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new();
 
 	/// <summary>
-	/// Returns the Family with the given Type.
+	/// Returns the <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/>.
 	/// </summary>
-	/// <param name="type"></param>
+	/// <param name="type">The <see cref="IFamilyMember"/> <see cref="Type"/>.</param>
 	/// <returns></returns>
 	IReadOnlyFamily Get(Type type);
 
-	IReadOnlyFamily<TFamilyMember> Add<TFamilyMember>()
+	/// <summary>
+	/// Returns if the <see cref="IFamilyManager"/> is managing a <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/>.
+	/// </summary>
+	/// <typeparam name="TFamilyMember">The <see cref="IFamilyMember"/> generic <see cref="Type"/>.</typeparam>
+	/// <returns></returns>
+	bool Has<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new();
 
-	void Remove<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new();
+	/// <summary>
+	/// Returns if the <see cref="IFamilyManager"/> is managing a <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/>.
+	/// </summary>
+	/// <param name="type">The <see cref="IFamilyMember"/> <see cref="Type"/>.</param>
+	/// <returns></returns>
+	bool Has(Type type);
+
+	/// <summary>
+	/// Returns if the <see cref="IFamilyManager"/> is managing a <see cref="IFamily"/> with the given instance.
+	/// </summary>
+	/// <param name="family">The <see cref="IFamily"/> instance.</param>
+	/// <returns></returns>
+	bool Has(IReadOnlyFamily family);
 }

@@ -11,37 +11,35 @@ public interface IEntityManager : IReadOnlyEngineManager
 
 	event Action<IEntityManager, IEntity> Removed;
 
-	/// <summary>
-	/// A collection of all Entities managed by this Engine.
-	/// <para>Entities are added to and removed from the Engine by being
-	/// added as a child of an Entity already in the Entity hierarchy.
-	/// This is done by creating a root Entity, adding an Engine Component
-	/// to it, and then adding children to that hierarchy.</para>
+	/// /// <summary>
+	/// All <see cref="IEntity"/> instances being managed by the <see cref="IEntityManager"/>.
+	/// <para><see cref="IEntity"/> instances are added/removed by becoming descendants of the <see cref="IEntity"/>.Root instance.</para>
 	/// </summary>
 	IReadOnlyGroup<IEntity> Entities { get; }
 
+	/// <summary>
+	/// All <see cref="IEntity"/> instances by <see cref="IEntity.GlobalName"/> being managed by the <see cref="IEntityManager"/>.
+	/// </summary>
 	IReadOnlyDictionary<string, IEntity> GlobalNames { get; }
 
 	/// <summary>
-	/// Returns if the Engine is managing an Entity with the given global name.
-	/// Every Entity has its own unique global name that can't be duplicated.
+	/// Returns the <see cref="IEntity"/> with the given <see cref="IEntity.GlobalName"/>.
 	/// </summary>
-	/// <param name="globalName">The global name of the Entity.</param>
+	/// <param name="globalName">The <see cref="IEntity.GlobalName"/>.</param>
+	/// <returns></returns>
+	IEntity Get(string globalName);
+
+	/// <summary>
+	/// Returns if the <see cref="IEntityManager"/> is managing an <see cref="IEntity"/> with the given <see cref="IEntity.GlobalName"/>.
+	/// </summary>
+	/// <param name="globalName">The <see cref="IEntity.GlobalName"/>.</param>
 	/// <returns></returns>
 	bool Has(string globalName);
 
 	/// <summary>
-	/// Returns if the Engine is managing an Entity with the given instance.
+	/// Returns if the <see cref="IEntityManager"/> is managing an <see cref="IEntity"/> with the given instance.
 	/// </summary>
-	/// <param name="entity"></param>
+	/// <param name="entity">The <see cref="IEntity"/> instance.</param>
 	/// <returns></returns>
 	bool Has(IEntity entity);
-
-	/// <summary>
-	/// Returns the Entity with the given global name.
-	/// Every Entity has its own unique global name that can't be duplicated.
-	/// </summary>
-	/// <param name="globalName"></param>
-	/// <returns></returns>
-	IEntity Get(string globalName);
 }

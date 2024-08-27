@@ -11,65 +11,89 @@ public interface ISystemManager : IReadOnlyEngineManager
 
 	event Action<ISystemManager, ISystem, Type> Removed;
 
-	TSystem Add<TSystem>()
-		where TSystem : class, ISystem;
-
-	ISystem Add(Type type);
-
-	bool Remove<TSystem>()
-		where TSystem : class, ISystem;
-
-	bool Remove(Type type);
-
 	/// <summary>
-	/// A collection of all Systems managed by this Engine.
-	/// <para>Systems are added to and removed from the Engine by being managed
-	/// as a Type to an Entity already in the Entity hierarchy.</para>
+	/// All <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
+	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
 	IReadOnlyGroup<ISystem> Systems { get; }
 
+	/// <summary>
+	/// All <see cref="ISystem"/> instances by <see cref="Type"/> being managed by the <see cref="ISystemManager"/>.
+	/// </summary>
 	IReadOnlyDictionary<Type, ISystem> Types { get; }
 
-	/// <summary>
-	/// Returns if the Engine is managing a System with the given instance.
-	/// </summary>
-	/// <param name="system"></param>
-	/// <returns></returns>
-	bool Has(ISystem system);
+	ISystemCreator Creator { get; set; }
 
 	/// <summary>
-	/// Returns if the Engine is managing a System with the given Type.
+	/// Adds an <see cref="ISystem"/> with the given <see cref="Type"/> to the <see cref="ISystemManager"/>.
 	/// </summary>
-	/// <typeparam name="TSystem"></typeparam>
+	/// <typeparam name="TSystem">The <see cref="ISystem"/> generic <see cref="Type"/>.</typeparam>
 	/// <returns></returns>
-	bool Has<TSystem>() where TSystem : ISystem;
+	TSystem Add<TSystem>()
+		where TSystem : class, ISystem;
 
 	/// <summary>
-	/// Returns if the Engine is managing a System with the given Type.
+	/// Adds an <see cref="ISystem"/> with the given <see cref="Type"/> to the <see cref="ISystemManager"/>.
 	/// </summary>
-	/// <param name="type"></param>
+	/// <param name="type">The <see cref="ISystem"/> <see cref="Type"/>.</param>
 	/// <returns></returns>
-	bool Has(Type type);
+	ISystem Add(Type type);
 
 	/// <summary>
-	/// Returns the System with the given Type.
+	/// Removes an <see cref="ISystem"/> with the given <see cref="Type"/> from the <see cref="ISystemManager"/>.
 	/// </summary>
-	/// <typeparam name="TSystem"></typeparam>
+	/// <typeparam name="TSystem">The <see cref="ISystem"/> generic <see cref="Type"/>.</typeparam>
 	/// <returns></returns>
-	TSystem Get<TSystem>() where TSystem : ISystem;
+	bool Remove<TSystem>()
+		where TSystem : class, ISystem;
 
 	/// <summary>
-	/// Returns the System with the given Type.
+	/// Removes an <see cref="ISystem"/> with the given <see cref="Type"/> from the <see cref="ISystemManager"/>.
 	/// </summary>
-	/// <param name="type"></param>
+	/// <param name="type">The <see cref="ISystem"/> <see cref="Type"/>.</param>
+	/// <returns></returns>
+	bool Remove(Type type);
+
+	/// <summary>
+	/// Returns the <see cref="ISystem"/> with the given <see cref="Type"/>.
+	/// </summary>
+	/// <typeparam name="TSystem">The <see cref="ISystem"/> <see cref="Type"/>.</typeparam>
+	/// <returns></returns>
+	TSystem Get<TSystem>() where TSystem : class, ISystem;
+
+	/// <summary>
+	/// Returns the <see cref="ISystem"/> with the given <see cref="Type"/>.
+	/// </summary>
+	/// <param name="type">The <see cref="ISystem"/> <see cref="Type"/>.</param>
 	/// <returns></returns>
 	ISystem Get(Type type);
 
 	/// <summary>
-	/// Returns the System at the given index. Systems are order
-	/// and updated by their priority.
+	/// Returns the <see cref="ISystem"/> at the given index.
+	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
-	/// <param name="index"></param>
+	/// <param name="index">The <see cref="ISystem"/> index.</param>
 	/// <returns></returns>
 	ISystem Get(int index);
+
+	/// <summary>
+	/// Returns if the <see cref="ISystemManager"/> is managing a <see cref="ISystem"/> with the given <see cref="Type"/>.
+	/// </summary>
+	/// <typeparam name="TSystem">The <see cref="ISystem"/> <see cref="Type"/>.</typeparam>
+	/// <returns></returns>
+	bool Has<TSystem>() where TSystem : class, ISystem;
+
+	/// <summary>
+	/// Returns if the <see cref="ISystemManager"/> is managing a <see cref="ISystem"/> with the given <see cref="Type"/>.
+	/// </summary>
+	/// <param name="type">The <see cref="ISystem"/> <see cref="Type"/>.</param>
+	/// <returns></returns>
+	bool Has(Type type);
+
+	/// <summary>
+	/// Returns if the <see cref="ISystemManager"/> is managing a <see cref="ISystem"/> with the given instance.
+	/// </summary>
+	/// <param name="system">The <see cref="ISystem"/> instance.</param>
+	/// <returns></returns>
+	bool Has(ISystem system);
 }
