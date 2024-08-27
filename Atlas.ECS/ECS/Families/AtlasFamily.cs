@@ -19,6 +19,11 @@ namespace Atlas.ECS.Families;
 public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
+	#region Events
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+	#endregion
+
 	#region Fields
 	private readonly EngineManager<IReadOnlyFamily> EngineManager;
 
@@ -117,8 +122,6 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Add
-	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
-
 	public void AddEntity(IEntity entity) => Add(entity);
 
 	public void AddEntity(IEntity entity, Type componentType)
@@ -157,8 +160,6 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Remove
-	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
-
 	public void RemoveEntity(IEntity entity) => Remove(entity);
 
 	public void RemoveEntity(IEntity entity, Type componentType)
