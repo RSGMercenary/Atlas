@@ -35,8 +35,8 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 	protected override void AddingManager(IEntity entity, int index)
 	{
 		base.AddingManager(entity, index);
-		entity.EngineChanged += UpdateSystems;
 		UpdateSystems(entity.Engine, true);
+		entity.EngineChanged += UpdateSystems;
 	}
 
 	protected override void RemovingManager(IEntity entity, int index)
@@ -71,19 +71,17 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 	#endregion
 
 	#region Has
-	public bool HasSystem<TKey>() where TKey : class, ISystem => HasSystem(typeof(TKey));
+	public bool HasSystem<TSystem>() where TSystem : class, ISystem => HasSystem(typeof(TSystem));
 
 	public bool HasSystem(Type type) => types.Contains(type);
 	#endregion
 
 	#region Add
-	public bool AddSystem<TKey>() where TKey : class, ISystem => AddSystem(typeof(TKey));
+	public bool AddSystem<TSystem>() where TSystem : class, ISystem => AddSystem(typeof(TSystem));
 
 	public bool AddSystem(Type type)
 	{
-		if(type == null)
-			return false;
-		if(!type.IsAssignableTo(typeof(ISystem)))
+		if(!typeof(ISystem).IsAssignableFrom(type))
 			return false;
 		if(types.Contains(type))
 			return false;
@@ -95,11 +93,11 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 	#endregion
 
 	#region Remove
-	public bool RemoveSystem<TKey>() where TKey : class, ISystem => RemoveSystem(typeof(TKey));
+	public bool RemoveSystem<TSystem>() where TSystem : class, ISystem => RemoveSystem(typeof(TSystem));
 
 	public bool RemoveSystem(Type type)
 	{
-		if(type == null)
+		if(!typeof(ISystem).IsAssignableFrom(type))
 			return false;
 		if(!types.Contains(type))
 			return false;

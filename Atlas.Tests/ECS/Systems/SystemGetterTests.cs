@@ -1,4 +1,5 @@
-﻿using Atlas.ECS.Systems;
+﻿using Atlas.ECS.Components.Engine.Systems;
+using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
 using Atlas.Tests.ECS.Systems.Systems;
 using NUnit.Framework;

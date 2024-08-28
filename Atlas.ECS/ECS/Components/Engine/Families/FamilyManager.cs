@@ -108,8 +108,6 @@ internal class FamilyManager : IFamilyManager
 	#endregion
 
 	#region Has
-	public bool Has(IReadOnlyFamily family) => types.ContainsValue((IFamily)family);
-
 	public bool Has<TFamilyMember>()
 		where TFamilyMember : class, IFamilyMember, new()
 	{
@@ -117,6 +115,8 @@ internal class FamilyManager : IFamilyManager
 	}
 
 	public bool Has(Type type) => types.ContainsKey(type);
+
+	public bool Has(IReadOnlyFamily family) => types.ContainsValue((IFamily)family);
 	#endregion
 
 	#region Messages
