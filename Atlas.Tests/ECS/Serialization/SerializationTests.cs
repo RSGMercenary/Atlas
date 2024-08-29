@@ -101,6 +101,7 @@ class SerializationTests
 	{
 		var root = new AtlasEntity(true);
 		var engine = new AtlasEngine();
+		var phases = new[] { UpdatePhase.UpdateStart, UpdatePhase.UpdateEnd };
 		var timeSteps = new[] { TimeStep.None, TimeStep.Variable, TimeStep.Fixed };
 
 		root.AddComponent(engine);
@@ -120,8 +121,8 @@ class SerializationTests
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
 		system.IsSleeping = Random.NextBool();
 		system.UpdateSleepingEntities = Random.NextBool();
-		system.UpdateState = timeSteps[Random.Next(3)];
-		system.UpdateStep = timeSteps[Random.Next(3)];
+		system.UpdatePhase = phases[Random.Next(phases.Length)];
+		system.TimeStep = timeSteps[Random.Next(timeSteps.Length)];
 
 		var json = AtlasSerializer.Serialize(system);
 		var clone = AtlasSerializer.Deserialize<ISystem>(json);
