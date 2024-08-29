@@ -71,17 +71,6 @@ class EntityTests
 		Assert.That(child1.LocalName == localName);
 		Assert.That(child2.LocalName != localName);
 	}
-
-	/*
-	[TestCase(null, false)]
-	[TestCase("NotRoot", true)]
-	public void When_GlobalName_Invalid_Then_GlobalNameNotChanged(string name, bool expected)
-	{
-		var entity = new AtlasEntity(name, null);
-
-
-		Assert.That(() => entity.GlobalName, expected);
-	}*/
 	#endregion
 
 	#region Sleeping
