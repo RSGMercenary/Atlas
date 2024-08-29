@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.LinkedList;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Tests.Classes;
 using NUnit.Framework;
 using System;
@@ -167,7 +167,7 @@ class LinkListTests
 	[TestCase(1)]
 	public void When_Get_AtInvalidIndex_Then_NullExpected(int index)
 	{
-		Assert.That(List.Get(index) == default);
+		Assert.That(List.GetNode(index) == default);
 	}
 
 	[Test]
@@ -229,7 +229,7 @@ class LinkListTests
 	{
 		AddLetters();
 
-		Assert.That(List.ToString() == List.Clone().ToString());
+		Assert.That(List.ToString() == List.GetIterator().ToString());
 	}
 
 	[Test]

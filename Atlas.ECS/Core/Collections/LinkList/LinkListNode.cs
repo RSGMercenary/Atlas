@@ -1,6 +1,6 @@
 ﻿using Atlas.Core.Collections.Pool;
 
-namespace Atlas.Core.Collections.LinkedList;
+namespace Atlas.Core.Collections.LinkList;
 
 public class LinkListNode<T> : ILinkListNode<T>
 {
@@ -55,5 +55,5 @@ public class LinkListNode<T> : ILinkListNode<T>
 
 	public T Value => data.value;
 
-	public override string ToString() => Value.ToString();
+	public override string ToString() => data.value.ToString();
 }

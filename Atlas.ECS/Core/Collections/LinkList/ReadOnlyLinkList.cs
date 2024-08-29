@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Collections.LinkedList;
-public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
+namespace Atlas.Core.Collections.LinkList;
+public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 {
 	internal int count = 0;
 	internal LinkListNode<T> first;
@@ -11,24 +11,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 
 	internal ReadOnlyLinkList() { }
 
-	public virtual void Dispose()
-	{
-		if(last != null)
-		{
-			var current = last.previous;
-			last.Dispose();
-			while(current != null)
-			{
-				var node = current.previous;
-				current.Dispose();
-				current = node;
-			}
-		}
-
-		first = null;
-		last = null;
-		count = 0;
-	}
+	public virtual void Dispose() => RemoveNodes();
 
 	public int Count => count;
 
@@ -36,7 +19,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 
 	public ILinkListNode<T> Last => last;
 
-	internal virtual void Copy(LinkList<T> list)
+	internal void Copy(LinkList<T> list)
 	{
 		if(list.count <= 0)
 			return;
@@ -78,14 +61,37 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 	{
 		get
 		{
-			var node = GetNode(index);
+			var node = InternalGetNode(index);
 			return node != null ? node.data.value : default;
 		}
 	}
 
-	public ILinkListNode<T> Get(int index) => GetNode(index);
+	public int GetIndex(T value)
+	{
+		if(value == null)
+			return -1;
 
-	protected LinkListNode<T> GetNode(T value)
+		var nodeIndex = 0;
+		var node = first;
+		while(node != null)
+		{
+			if(!node.data.removed)
+			{
+				if(node.data.value.Equals(value))
+					return nodeIndex;
+				nodeIndex++;
+			}
+			node = node.next;
+
+		}
+		return -1;
+	}
+
+	public ILinkListNode<T> GetNode(int index) => InternalGetNode(index);
+
+	public ILinkListNode<T> GetNode(T value) => InternalGetNode(value);
+
+	protected LinkListNode<T> InternalGetNode(T value)
 	{
 		if(value == null)
 			return null;
@@ -103,7 +109,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 		return null;
 	}
 
-	protected LinkListNode<T> GetNode(int index)
+	protected LinkListNode<T> InternalGetNode(int index)
 	{
 		if(index <= -1 || index >= count)
 			return null;
@@ -119,16 +125,35 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 				nodeIndex++;
 			}
 			node = node.next;
-
 		}
 		return null;
 	}
 
-	public bool Contains(T value) => GetNode(value) != null;
+	public bool Contains(T value) => InternalGetNode(value) != null;
 	#endregion
 
+	protected bool RemoveNodes()
+	{
+		if(last == null)
+			return false;
+
+		var current = last.previous;
+		last.Dispose();
+		while(current != null)
+		{
+			var node = current.previous;
+			current.Dispose();
+			current = node;
+		}
+
+		first = null;
+		last = null;
+		count = 0;
+		return true;
+	}
+
 	#region Iterate
-	public IEnumerable<ILinkListNode<T>> Forward()
+	public virtual IEnumerable<T> Forward()
 	{
 		if(first == null)
 			yield break;
@@ -138,12 +163,12 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 		while(node != null)
 		{
 			if(!node.data.removed)
-				yield return node;
+				yield return node.data.value;
 			node = node.next;
 		}
 	}
 
-	public IEnumerable<ILinkListNode<T>> Backward()
+	public virtual IEnumerable<T> Backward()
 	{
 		if(last == null)
 			yield break;
@@ -153,17 +178,17 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>
 		while(node != null)
 		{
 			if(!node.data.removed)
-				yield return node;
+				yield return node.data.value;
 			node = node.previous;
 		}
 	}
 
-	public virtual IEnumerable<ILinkListNode<T>> Enumerate(bool forward = true)
+	public IEnumerable<T> Enumerate(bool forward = true)
 	{
 		return forward ? Forward() : Backward();
 	}
 
-	public IEnumerator<ILinkListNode<T>> GetEnumerator() => Forward().GetEnumerator();
+	public IEnumerator<T> GetEnumerator() => Forward().GetEnumerator();
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 	#endregion

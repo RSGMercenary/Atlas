@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Atlas.Core.Collections.LinkedList;
+namespace Atlas.Core.Collections.LinkList;
 
-public interface IReadOnlyLinkList<T> : IEnumerable<ILinkListNode<T>>, IDisposable
+public interface IReadOnlyLinkList<out T> : IEnumerable<T>
 {
 	int Count { get; }
 
@@ -11,15 +10,13 @@ public interface IReadOnlyLinkList<T> : IEnumerable<ILinkListNode<T>>, IDisposab
 
 	ILinkListNode<T> Last { get; }
 
-	ILinkListNode<T> Get(int index);
+	ILinkListNode<T> GetNode(int index);
 
 	T this[int index] { get; }
 
-	bool Contains(T value);
+	IEnumerable<T> Forward();
 
-	IEnumerable<ILinkListNode<T>> Forward();
+	IEnumerable<T> Backward();
 
-	IEnumerable<ILinkListNode<T>> Backward();
-
-	IEnumerable<ILinkListNode<T>> Enumerate(bool forward = true);
+	IEnumerable<T> Enumerate(bool forward = true);
 }

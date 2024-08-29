@@ -1,6 +1,6 @@
 ﻿using Atlas.Core.Collections.Pool;
 
-namespace Atlas.Core.Collections.LinkedList;
+namespace Atlas.Core.Collections.LinkList;
 
 internal class LinkListData<T>
 {

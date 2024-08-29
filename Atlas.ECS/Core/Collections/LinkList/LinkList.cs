@@ -1,7 +1,7 @@
 ﻿using Atlas.Core.Collections.Pool;
 using System.Collections.Generic;
 
-namespace Atlas.Core.Collections.LinkedList;
+namespace Atlas.Core.Collections.LinkList;
 
 public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 {
@@ -19,13 +19,6 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		PoolManager.Instance.RemovePool<LinkListData<T>>();
 	}
 
-	public IReadOnlyLinkList<T> GetIterator()
-	{
-		var enumerator = PoolManager.Instance.Get<ReadOnlyLinkList<T>>();
-		enumerator.Copy(this);
-		return enumerator;
-	}
-
 	#region Add
 	public bool Add(T value) => Add(value, count);
 
@@ -40,22 +33,25 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		node.data.value = value;
 		node.data.iterators++;
 
-		return AddNode(node, index);
-	}
-
-	public bool AddNode(LinkListNode<T> node, int index)
-	{
-		if(node == null || (node.list != null && node.list != this))
-			return false;
-
-		if(node.list == this)
-			ListSetNode(node, index);
-		else
-			ListAddNode(node, index);
+		InternalAddNode(node, index);
 		return true;
 	}
 
-	private void ListAddNode(LinkListNode<T> node, int index)
+	public bool AddNode(ILinkListNode<T> node, int index)
+	{
+		var current = node as LinkListNode<T>;
+
+		if(current == null || (current.list != null && current.list != this))
+			return false;
+
+		if(current.list == this)
+			InternalSetNode(current, index);
+		else
+			InternalAddNode(current, index);
+		return true;
+	}
+
+	private void InternalAddNode(LinkListNode<T> node, int index)
 	{
 		node.list = this;
 
@@ -80,7 +76,7 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 			}
 			else
 			{
-				var current = GetNode(index);
+				var current = InternalGetNode(index);
 
 				node.previous = current.previous;
 				node.next = current;
@@ -96,27 +92,30 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 	#endregion
 
 	#region Remove
-	public bool Remove(T value) => RemoveNode(GetNode(value));
+	public bool Remove(T value) => InternalRemoveNode(InternalGetNode(value));
 
-	public bool Remove(int index) => RemoveNode(GetNode(index));
+	public bool Remove(int index) => InternalRemoveNode(InternalGetNode(index));
 
 	public bool RemoveAll() => RemoveNodes();
 
-	public bool RemoveNode(LinkListNode<T> node)
+	public bool RemoveNode(ILinkListNode<T> node)
 	{
-		if(node?.list != this)
+		var current = node as LinkListNode<T>;
+		if(current?.list != this)
 			return false;
 
-		ListRemoveNode(node);
-
-		node.data.removed = true;
-		node.Dispose();
+		InternalRemoveNode(current);
+		current.data.removed = true;
+		current.Dispose();
 
 		return true;
 	}
 
-	private void ListRemoveNode(LinkListNode<T> node)
+	private bool InternalRemoveNode(LinkListNode<T> node)
 	{
+		if(node == null)
+			return false;
+
 		node.list = null;
 
 		if(node == first)
@@ -141,15 +140,10 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 			node.next.previous = node.previous;
 		}
 
-		count--;
-	}
+		node.previous = null;
+		node.next = null;
 
-	private bool RemoveNodes()
-	{
-		if(last == null)
-			return false;
-		while(last != null)
-			RemoveNode(last);
+		count--;
 		return true;
 	}
 	#endregion
@@ -157,8 +151,16 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 	#region Get / Set
 	public new T this[int index]
 	{
-		get => GetNode(index).data.value;
-		set => GetNode(index).data.value = value;
+		get => InternalGetNode(index).data.value;
+		set => InternalGetNode(index).data.value = value;
+	}
+
+	public int Set(T value, int index)
+	{
+		var previous = GetIndex(value);
+		if(previous > -1)
+			InternalSetNode(InternalGetNode(previous), index);
+		return previous;
 	}
 
 	public bool SetNode(ILinkListNode<T> node, int index)
@@ -168,21 +170,21 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		if(current?.list != this)
 			return false;
 
-		ListSetNode(current, index);
+		InternalSetNode(current, index);
 		return true;
 	}
 
-	private void ListSetNode(LinkListNode<T> node, int index)
+	private void InternalSetNode(LinkListNode<T> node, int index)
 	{
-		ListRemoveNode(node);
-		ListAddNode(node, index);
+		InternalRemoveNode(node);
+		InternalAddNode(node, index);
 	}
 	#endregion
 
 	#region Swap
-	public bool Swap(T value1, T value2) => SwapNodes(GetNode(value1), GetNode(value2));
+	public bool Swap(T value1, T value2) => InternalSwapNodes(InternalGetNode(value1), InternalGetNode(value2));
 
-	public bool Swap(int index1, int index2) => SwapNodes(GetNode(index1), GetNode(index2));
+	public bool Swap(int index1, int index2) => InternalSwapNodes(InternalGetNode(index1), InternalGetNode(index2));
 
 	public bool SwapNodes(ILinkListNode<T> node1, ILinkListNode<T> node2)
 	{
@@ -192,48 +194,66 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		if(current1?.list != this || current2?.list != this)
 			return false;
 
-		if(current1 == first)
-			first = current2;
-		else if(current2 == first)
-			first = current1;
+		return InternalSwapNodes(current1, current2);
+	}
 
-		if(current1 == last)
-			last = current2;
-		else if(current2 == last)
-			last = current1;
+	protected bool InternalSwapNodes(LinkListNode<T> node1, LinkListNode<T> node2)
+	{
+		if(node1 == null || node2 == null)
+			return false;
 
-		var temp = current1.next;
-		current1.next = current2.next;
-		current2.next = temp;
+		if(node1 == first)
+			first = node2;
+		else if(node2 == first)
+			first = node1;
 
-		if(current1.next != null)
-			current1.next.previous = current1;
-		if(current2.next != null)
-			current2.next.previous = current2;
+		if(node1 == last)
+			last = node2;
+		else if(node2 == last)
+			last = node1;
 
-		temp = current1.previous;
-		current1.previous = current2.previous;
-		current2.previous = temp;
+		var temp = node1.next;
+		node1.next = node2.next;
+		node2.next = temp;
 
-		if(current1.previous != null)
-			current1.previous.next = current1;
-		if(current2.previous != null)
-			current2.previous.next = current2;
+		if(node1.next != null)
+			node1.next.previous = node1;
+		if(node2.next != null)
+			node2.next.previous = node2;
+
+		temp = node1.previous;
+		node1.previous = node2.previous;
+		node2.previous = temp;
+
+		if(node1.previous != null)
+			node1.previous.next = node1;
+		if(node2.previous != null)
+			node2.previous.next = node2;
 
 		return true;
 	}
 	#endregion
 
-	public override IEnumerable<ILinkListNode<T>> Enumerate(bool forward = true)
+	#region Iterate
+	public override IEnumerable<T> Forward()
 	{
 		using var list = GetIterator();
-		return list.Enumerate(forward);
+		foreach(var value in list.Forward())
+			yield return value;
 	}
 
-	public LinkList<T> Clone()
+	public override IEnumerable<T> Backward()
 	{
-		var clone = new LinkList<T>();
-		clone.Copy(this);
-		return clone;
+		using var list = GetIterator();
+		foreach(var value in list.Backward())
+			yield return value;
 	}
+
+	public ILinkListIterator<T> GetIterator()
+	{
+		var enumerator = PoolManager.Instance.Get<ReadOnlyLinkList<T>>();
+		enumerator.Copy(this);
+		return enumerator;
+	}
+	#endregion
 }

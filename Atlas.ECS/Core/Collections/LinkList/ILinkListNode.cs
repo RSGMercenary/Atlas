@@ -1,5 +1,5 @@
-﻿namespace Atlas.Core.Collections.LinkedList;
-public interface ILinkListNode<T>
+﻿namespace Atlas.Core.Collections.LinkList;
+public interface ILinkListNode<out T>
 {
 	public IReadOnlyLinkList<T> List { get; }
 
