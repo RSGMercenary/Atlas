@@ -1,25 +1,25 @@
-﻿using Atlas.Core.Collections.Group;
-using Atlas.ECS.Components.Component;
+﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-namespace Atlas.ECS.Components.SystemProvider;
+namespace Atlas.ECS.Components.SystemRunner;
 
-public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvider
+public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 {
-	public event Action<ISystemProvider, Type> SystemAdded;
-	public event Action<ISystemProvider, Type> SystemRemoved;
+	public event Action<ISystemRunner, Type> Added;
+	public event Action<ISystemRunner, Type> Removed;
 
-	private readonly Group<Type> types = new();
+	private readonly HashSet<Type> types = new();
 
-	public AtlasSystemProvider() { }
+	public AtlasSystemRunner() { }
 
-	public AtlasSystemProvider(params Type[] types) : this(types as IEnumerable<Type>) { }
+	public AtlasSystemRunner(params Type[] types) : this(types as IEnumerable<Type>) { }
 
-	public AtlasSystemProvider(IEnumerable<Type> types)
+	public AtlasSystemRunner(IEnumerable<Type> types)
 	{
 		foreach(var type in types)
 			AddSystem(type);
@@ -67,7 +67,7 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 	#endregion
 
 	#region Get
-	public IReadOnlyGroup<Type> Systems => types;
+	public IReadOnlySet<Type> Systems => types;
 	#endregion
 
 	#region Has
@@ -86,8 +86,8 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 		if(types.Contains(type))
 			return false;
 		types.Add(type);
+		Added?.Invoke(this, type);
 		Manager?.Engine?.Systems.Add(type);
-		SystemAdded?.Invoke(this, type);
 		return true;
 	}
 	#endregion
@@ -102,8 +102,8 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 		if(!types.Contains(type))
 			return false;
 		types.Remove(type);
+		Removed?.Invoke(this, type);
 		Manager?.Engine?.Systems.Remove(type);
-		SystemRemoved?.Invoke(this, type);
 		return true;
 	}
 
@@ -111,7 +111,7 @@ public class AtlasSystemProvider : AtlasComponent<ISystemProvider>, ISystemProvi
 	{
 		if(types.Count <= 0)
 			return false;
-		foreach(var type in types)
+		foreach(var type in types.ToArray())
 			RemoveSystem(type);
 		return true;
 	}
