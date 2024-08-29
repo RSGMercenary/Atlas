@@ -149,7 +149,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		else
 		{
 			added.Add(member);
-			Engine.Updates.UpdateStateChanged += UpdateMembers;
+			Engine.Updates.UpdatePhaseChanged += UpdateMembers;
 		}
 
 		//TO-DO Should this only be done after the update?
@@ -184,7 +184,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		else
 		{
 			removed.Add(member);
-			Engine.Updates.UpdateStateChanged += UpdateMembers;
+			Engine.Updates.UpdatePhaseChanged += UpdateMembers;
 		}
 	}
 
@@ -196,11 +196,11 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Helpers
-	private void UpdateMembers(IUpdateManager manager, TimeStep current, TimeStep previous)
+	private void UpdateMembers(IUpdateManager manager, UpdatePhase current, UpdatePhase previous)
 	{
-		if(current != TimeStep.None)
+		if(current != UpdatePhase.UpdateEnd)
 			return;
-		manager.UpdateStateChanged -= UpdateMembers;
+		manager.UpdatePhaseChanged -= UpdateMembers;
 		while(removed.Count > 0)
 			RemoveMember(removed.Pop());
 		while(added.Count > 0)
@@ -209,7 +209,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 			Dispose();
 	}
 
-	private bool IsUpdating => (Engine?.Updates.UpdateState ?? TimeStep.None) != TimeStep.None;
+	private bool IsUpdating => (Engine?.Updates.UpdatePhase ?? UpdatePhase.UpdateEnd) != UpdatePhase.UpdateEnd;
 
 	private void SetMemberValues(TFamilyMember member, IEntity entity)
 	{

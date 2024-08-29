@@ -9,12 +9,34 @@ namespace Atlas.ECS.Systems;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasSystem : ISystem
 {
+	#region Events
+	public event Action<ISystem, IEngine, IEngine> EngineChanged
+	{
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
+	}
+
+	public event Action<ISystem, int, int> SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
+
+	public event Action<ISystem, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+
+	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged;
+
+	public event Action<ISystem, float, float> IntervalChanged;
+
+	public event Action<ISystem, int, int> PriorityChanged;
+	#endregion
+
 	#region Fields
 	private int priority = 0;
 	private float totalIntervalTime = 0;
 	private float deltaIntervalTime = 0;
 	private TimeStep timeStep = TimeStep.Variable;
-	private TimeStep updateState = TimeStep.None;
+	private UpdatePhase updatePhase = UpdatePhase.UpdateEnd;
 	private readonly EngineManager<ISystem> EngineManager;
 	private readonly UpdateLock UpdateLock;
 	private readonly Sleep<ISystem> Sleep;
@@ -31,7 +53,7 @@ public abstract class AtlasSystem : ISystem
 	public virtual void Dispose()
 	{
 		//Can't dispose System mid-update.
-		if(Engine != null || updateState != TimeStep.None)
+		if(Engine != null || updatePhase != UpdatePhase.UpdateEnd)
 			return;
 		Disposing();
 	}
@@ -44,11 +66,11 @@ public abstract class AtlasSystem : ISystem
 		PriorityChanged = null;
 		Priority = 0;
 
-		UpdateStateChanged = null;
-		UpdateState = TimeStep.None;
+		UpdatePhaseChanged = null;
+		UpdatePhase = UpdatePhase.UpdateEnd;
 
-		UpdateStepChanged = null;
-		UpdateStep = TimeStep.Variable;
+		TimeStepChanged = null;
+		TimeStep = TimeStep.Variable;
 
 		IntervalChanged = null;
 		DeltaIntervalTime = 0;
@@ -59,12 +81,6 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Engine
-	public event Action<ISystem, IEngine, IEngine> EngineChanged
-	{
-		add => EngineManager.EngineChanged += value;
-		remove => EngineManager.EngineChanged -= value;
-	}
-
 	public IEngine Engine
 	{
 		get => EngineManager.Engine;
@@ -105,9 +121,9 @@ public abstract class AtlasSystem : ISystem
 
 		UpdateLock.Lock();
 
-		UpdateState = UpdateStep;
+		UpdatePhase = UpdatePhase.UpdateStart;
 		SystemUpdate(deltaTime);
-		UpdateState = TimeStep.None;
+		UpdatePhase = UpdatePhase.UpdateEnd;
 
 		UpdateLock.Unlock();
 
@@ -129,24 +145,20 @@ public abstract class AtlasSystem : ISystem
 		return deltaTime;
 	}
 
-	public event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
-
-	public TimeStep UpdateState
+	public UpdatePhase UpdatePhase
 	{
-		get => updateState;
+		get => updatePhase;
 		internal set
 		{
-			if(updateState == value)
+			if(updatePhase == value)
 				return;
-			var previous = updateState;
-			updateState = value;
-			UpdateStateChanged?.Invoke(this, value, previous);
+			var previous = updatePhase;
+			updatePhase = value;
+			UpdatePhaseChanged?.Invoke(this, value, previous);
 		}
 	}
 
-	public event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
-
-	public TimeStep UpdateStep
+	public TimeStep TimeStep
 	{
 		get => timeStep;
 		protected set
@@ -155,7 +167,7 @@ public abstract class AtlasSystem : ISystem
 				return;
 			var previous = timeStep;
 			timeStep = value;
-			UpdateStepChanged?.Invoke(this, value, previous);
+			TimeStepChanged?.Invoke(this, value, previous);
 			if(Engine != null)
 				SyncTotalIntervalTime();
 		}
@@ -163,12 +175,6 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Sleeping
-	public event Action<ISystem, int, int> SleepingChanged
-	{
-		add => Sleep.SleepingChanged += value;
-		remove => Sleep.SleepingChanged -= value;
-	}
-
 	public int Sleeping
 	{
 		get => Sleep.Sleeping;
@@ -183,8 +189,6 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Interval Time
-	public event Action<ISystem, float, float> IntervalChanged;
-
 	public float DeltaIntervalTime
 	{
 		get => deltaIntervalTime;
@@ -231,8 +235,6 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Priority
-	public event Action<ISystem, int, int> PriorityChanged;
-
 	public int Priority
 	{
 		get => priority;

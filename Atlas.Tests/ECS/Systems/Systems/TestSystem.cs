@@ -32,15 +32,15 @@ class TestSystem : AtlasSystem, ITestSystem
 		set => base.DeltaIntervalTime = value;
 	}
 
-	public new TimeStep UpdateStep
+	public new TimeStep TimeStep
 	{
-		get => base.UpdateStep;
-		set => base.UpdateStep = value;
+		get => base.TimeStep;
+		set => base.TimeStep = value;
 	}
 
-	public new TimeStep UpdateState
+	public new UpdatePhase UpdatePhase
 	{
-		get => base.UpdateState;
-		set => base.UpdateState = value;
+		get => base.UpdatePhase;
+		set => base.UpdatePhase = value;
 	}
 }

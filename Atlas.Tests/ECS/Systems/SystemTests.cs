@@ -80,19 +80,18 @@ class SystemTests
 	[TestCase(TimeStep.None)]
 	public void When_UpdateStep_Then_UpdateStepExpected(TimeStep updateStep)
 	{
-		System.UpdateStep = updateStep;
+		System.TimeStep = updateStep;
 
-		Assert.That(System.UpdateStep == updateStep);
+		Assert.That(System.TimeStep == updateStep);
 	}
 
-	[TestCase(TimeStep.Fixed)]
-	[TestCase(TimeStep.Variable)]
-	[TestCase(TimeStep.None)]
-	public void When_UpdateState_Then_UpdateStateExpected(TimeStep updateState)
+	[TestCase(UpdatePhase.UpdateStart)]
+	[TestCase(UpdatePhase.UpdateEnd)]
+	public void When_UpdateState_Then_UpdateStateExpected(UpdatePhase updatehase)
 	{
-		System.UpdateState = updateState;
+		System.UpdatePhase = updatehase;
 
-		Assert.That(System.UpdateState == updateState);
+		Assert.That(System.UpdatePhase == updatehase);
 	}
 
 	[TestCase(TestFps._0, 1, 0)]

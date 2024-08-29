@@ -6,10 +6,10 @@ using System;
 
 namespace Atlas.ECS.Systems;
 
-public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISystem>, IUpdateState, IDisposable, ISerialize
+public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISystem>, IDisposable, ISerialize
 {
-	event Action<ISystem, TimeStep, TimeStep> UpdateStateChanged;
-	event Action<ISystem, TimeStep, TimeStep> UpdateStepChanged;
+	event Action<ISystem, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+	event Action<ISystem, TimeStep, TimeStep> TimeStepChanged;
 	event Action<ISystem, float, float> IntervalChanged;
 	event Action<ISystem, int, int> PriorityChanged;
 
@@ -31,5 +31,5 @@ public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISyst
 	/// <summary>
 	/// Determines whether the System is fixed-time, variable-time, or event-based.
 	/// </summary>
-	TimeStep UpdateStep { get; }
+	TimeStep TimeStep { get; }
 }

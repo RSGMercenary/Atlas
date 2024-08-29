@@ -4,9 +4,11 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
-public interface IUpdateManager : IReadOnlyEngineManager, IUpdateState
+public interface IUpdateManager : IReadOnlyEngineManager
 {
-	event Action<IUpdateManager, TimeStep, TimeStep> UpdateStateChanged;
+	event Action<IUpdateManager, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+	event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
+	event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;
 
 	#region Variable Time
 	/// <summary>
@@ -48,5 +50,7 @@ public interface IUpdateManager : IReadOnlyEngineManager, IUpdateState
 	/// The current System that's undergoing an Update().
 	/// </summary>
 	ISystem UpdateSystem { get; }
+
+	UpdatePhase UpdatePhase { get; }
 	#endregion
 }

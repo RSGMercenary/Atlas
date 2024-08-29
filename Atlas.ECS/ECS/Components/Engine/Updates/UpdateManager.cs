@@ -7,11 +7,13 @@ namespace Atlas.ECS.Components.Engine.Updates;
 
 internal class UpdateManager : IUpdateManager, IUpdate<float>
 {
-	public event Action<IUpdateManager, TimeStep, TimeStep> UpdateStateChanged;
+	public event Action<IUpdateManager, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+	public event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
+	public event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;
 
 	//Update State
 	private readonly UpdateLock UpdateLock = new();
-	private TimeStep updateState = TimeStep.None;
+	private UpdatePhase updatePhase = UpdatePhase.UpdateEnd;
 	private ISystem updateSystem;
 
 	//Variable Time
@@ -42,7 +44,9 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 		{
 			if(maxVariableTime == value)
 				return;
+			var previous = maxVariableTime;
 			maxVariableTime = value;
+			MaxVariableTimeChanged?.Invoke(this, value, previous);
 		}
 	}
 
@@ -79,7 +83,9 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 		{
 			if(deltaFixedTime == value)
 				return;
+			var previous = deltaFixedTime;
 			deltaFixedTime = value;
+			DeltaFixedTimeChanged?.Invoke(this, value, previous);
 		}
 	}
 
@@ -119,16 +125,16 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 
 	[JsonIgnore]
-	public TimeStep UpdateState
+	public UpdatePhase UpdatePhase
 	{
-		get => updateState;
+		get => updatePhase;
 		private set
 		{
-			if(updateState == value)
+			if(updatePhase == value)
 				return;
-			var previous = updateState;
-			updateState = value;
-			UpdateStateChanged?.Invoke(this, value, previous);
+			var previous = updatePhase;
+			updatePhase = value;
+			UpdatePhaseChanged?.Invoke(this, value, previous);
 		}
 	}
 
@@ -140,7 +146,7 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 		{
 			if(updateSystem == value)
 				return;
-			//If a Signal/Message were to ever be put here, do it before the set.
+			//If an event were to ever be put here, do it before the set.
 			//Prevents System.Update() from being mis-called.
 			updateSystem = value;
 		}
@@ -152,6 +158,8 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 	{
 		UpdateLock.Lock();
 
+		UpdatePhase = UpdatePhase.UpdateStart;
+
 		//Variable-time cap and set.
 		DeltaVariableTime = deltaTime;
 		//Fixed-time cache to avoid modification during update.
@@ -160,17 +168,25 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 		//Fixed-time updates
 		CalculateFixedUpdates(deltaFixedTime);
 		CalculateFixedLag();
+
+		UpdatePhase = UpdatePhase.FixedStart;
 		while(FixedUpdates > 0)
 		{
 			FixedUpdates--;
 			TotalFixedTime += deltaFixedTime;
 			UpdateSystems(TimeStep.Fixed, deltaFixedTime);
 		}
+		UpdatePhase = UpdatePhase.FixedEnd;
 
 		//Variable-time updates
 		TotalVariableTime += deltaVariableTime;
 		CalculateVariableInterpolation(deltaFixedTime);
+
+		UpdatePhase = UpdatePhase.VariableStart;
 		UpdateSystems(TimeStep.Variable, deltaVariableTime);
+		UpdatePhase = UpdatePhase.VariableEnd;
+
+		UpdatePhase = UpdatePhase.UpdateEnd;
 
 		UpdateLock.Unlock();
 	}
@@ -205,16 +221,16 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 
 	private void UpdateSystems(TimeStep timeStep, float deltaTime)
 	{
-		UpdateState = timeStep;
-		foreach(var system in Engine.Systems.Systems)
+		for(var current = Engine.Systems.Systems.First; current != null; current = current.Next)
 		{
-			if(system.UpdateStep != timeStep)
+			var system = current.Value;
+
+			if(system.TimeStep != timeStep)
 				continue;
 			UpdateSystem = system;
 			system.Update(deltaTime);
 			UpdateSystem = null;
 		}
-		UpdateState = TimeStep.None;
 	}
 	#endregion
 	#endregion
