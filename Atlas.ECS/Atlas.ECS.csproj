@@ -8,9 +8,9 @@
 		<Product>Atlas ECS</Product>
 		<Title>Atlas ECS</Title>
 		<Description>Hierarchy-Based Entity Component System (ECS) Framework</Description>
-		<PackageProjectUrl>https://github.com/RSGMercenary/Atlas.ECS</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/RSGMercenary/Atlas.ECS</RepositoryUrl>
-		<PackageTags>atlas ecs entity component system hierarchy</PackageTags>
+		<PackageProjectUrl>https://github.com/RSGMercenary/Atlas</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/RSGMercenary/Atlas</RepositoryUrl>
+		<PackageTags>atlas ecs entity component system hierarchy family framework video game</PackageTags>
 		<Copyright>Copyright 2019 RSG Mercenary</Copyright>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
 		<PackageIcon>Icon.png</PackageIcon>
