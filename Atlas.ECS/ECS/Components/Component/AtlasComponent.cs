@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
@@ -41,7 +41,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 
 
 	#region Fields
-	private readonly Group<IEntity> managers = new();
+	private readonly LinkList<IEntity> managers = new();
 	private readonly AutoDispose<IComponent> AutoDispose;
 	#endregion
 
@@ -91,7 +91,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
 	[JsonIgnore]
-	public IReadOnlyGroup<IEntity> Managers => managers;
+	public IReadOnlyLinkList<IEntity> Managers => managers;
 
 	[JsonProperty(PropertyName = nameof(Managers))]
 	private IEnumerable<IEntity> SerializeManagers
@@ -104,7 +104,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		}
 	}
 
-	public int GetManagerIndex(IEntity entity) => managers.IndexOf(entity);
+	public int GetManagerIndex(IEntity entity) => managers.GetIndex(entity);
 
 	public IEnumerator<IEntity> GetEnumerator() => managers.GetEnumerator();
 
@@ -114,8 +114,8 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 	#region Set
 	public bool SetManagerIndex(IEntity entity, int index)
 	{
-		int previous = managers.IndexOf(entity);
-		if(!managers.SetIndex(entity, index))
+		int previous = managers.Set(entity, index);
+		if(previous < 0)
 			return false;
 		if(previous != index)
 			ManagersChanged?.Invoke(this);
@@ -124,13 +124,11 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 
 	public bool SwapManagers(IEntity entity1, IEntity entity2)
 	{
-		if(entity1 == null)
+		if(!managers.Swap(entity1, entity2))
 			return false;
-		if(entity2 == null)
-			return false;
-		int index1 = managers.IndexOf(entity1);
-		int index2 = managers.IndexOf(entity2);
-		return SwapManagers(index1, index2);
+		if(entity1 != entity2)
+			ManagersChanged?.Invoke(this);
+		return true;
 	}
 
 	public bool SwapManagers(int index1, int index2)
@@ -157,7 +155,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 			index ??= managers.Count;
 			if(!HasManager(entity))
 			{
-				managers.Insert(index.Value, entity);
+				managers.Add(entity, index.Value);
 				AddingManager(entity, index.Value);
 				ManagerAdded?.Invoke(this, entity);
 			}
@@ -196,8 +194,8 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		type = AtlasComponent.GetType(this, type);
 		if(entity.GetComponent(type) != this)
 		{
-			int index = managers.IndexOf(entity);
-			managers.RemoveAt(index);
+			int index = managers.GetIndex(entity);
+			managers.Remove(index);
 			RemovingManager(entity, index);
 			ManagerRemoved?.Invoke(this, entity);
 			AutoDispose.TryAutoDispose();

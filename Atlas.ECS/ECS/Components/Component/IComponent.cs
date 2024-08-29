@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
@@ -146,7 +146,7 @@ public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
 	/// The Entities managing this Component. This will return all Entities
 	/// regardless of the Component's shareable status.
 	/// </summary>
-	IReadOnlyGroup<IEntity> Managers { get; }
+	IReadOnlyLinkList<IEntity> Managers { get; }
 	#endregion
 }
 

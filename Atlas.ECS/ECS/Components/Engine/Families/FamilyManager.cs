@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Extensions;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine.Entities;
@@ -15,7 +15,7 @@ internal class FamilyManager : IFamilyManager
 	public event Action<IFamilyManager, IFamily> Added;
 	public event Action<IFamilyManager, IFamily> Removed;
 
-	private readonly Group<IFamily> families = new();
+	private readonly LinkList<IFamily> families = new();
 	private readonly Dictionary<Type, IReadOnlyFamily> types = new();
 	private readonly Dictionary<Type, int> references = new();
 
@@ -94,7 +94,7 @@ internal class FamilyManager : IFamilyManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<IReadOnlyFamily> Families => families;
+	public IReadOnlyLinkList<IReadOnlyFamily> Families => families;
 
 	public IReadOnlyDictionary<Type, IReadOnlyFamily> Types => types;
 

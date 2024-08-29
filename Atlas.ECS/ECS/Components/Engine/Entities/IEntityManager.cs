@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Entities;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ public interface IEntityManager : IReadOnlyEngineManager
 	/// All <see cref="IEntity"/> instances being managed by the <see cref="IEntityManager"/>.
 	/// <para><see cref="IEntity"/> instances are added/removed by becoming descendants of the <see cref="IEntity"/>.Root instance.</para>
 	/// </summary>
-	IReadOnlyGroup<IEntity> Entities { get; }
+	IReadOnlyLinkList<IEntity> Entities { get; }
 
 	/// <summary>
 	/// All <see cref="IEntity"/> instances by <see cref="IEntity.GlobalName"/> being managed by the <see cref="IEntityManager"/>.

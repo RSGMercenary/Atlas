@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Extensions;
 using Atlas.ECS.Systems;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ internal class SystemManager : ISystemManager
 	public event Action<ISystemManager, ISystem, Type> Added;
 	public event Action<ISystemManager, ISystem, Type> Removed;
 
-	private readonly Group<ISystem> systems = new();
+	private readonly LinkList<ISystem> systems = new();
 	private readonly Dictionary<Type, ISystem> types = new();
 	private readonly Dictionary<Type, int> references = new();
 
@@ -84,7 +84,7 @@ internal class SystemManager : ISystemManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<ISystem> Systems => systems;
+	public IReadOnlyLinkList<ISystem> Systems => systems;
 
 	public IReadOnlyDictionary<Type, ISystem> Types => types;
 

@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,7 @@ public interface ISystemManager : IReadOnlyEngineManager
 	/// All <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
 	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
-	IReadOnlyGroup<ISystem> Systems { get; }
+	IReadOnlyLinkList<ISystem> Systems { get; }
 
 	/// <summary>
 	/// All <see cref="ISystem"/> instances by <see cref="Type"/> being managed by the <see cref="ISystemManager"/>.

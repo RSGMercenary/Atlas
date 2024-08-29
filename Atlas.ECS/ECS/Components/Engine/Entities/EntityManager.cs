@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Entities;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +11,7 @@ internal class EntityManager : IEntityManager
 	public event Action<IEntityManager, IEntity> Added;
 	public event Action<IEntityManager, IEntity> Removed;
 
-	private readonly Group<IEntity> entities = new();
+	private readonly LinkList<IEntity> entities = new();
 	private readonly Dictionary<string, IEntity> globalNames = new();
 
 	public IEngine Engine { get; }
@@ -65,7 +65,7 @@ internal class EntityManager : IEntityManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyGroup<IEntity> Entities => entities;
+	public IReadOnlyLinkList<IEntity> Entities => entities;
 
 	public IReadOnlyDictionary<string, IEntity> GlobalNames => globalNames;
 

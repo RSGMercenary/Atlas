@@ -1,4 +1,4 @@
-﻿using Atlas.Core.Collections.Group;
+﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
 using System;
@@ -16,7 +16,7 @@ public interface IFamilyManager : IReadOnlyEngineManager
 	/// All <see cref="IFamily"/> instances being managed by the <see cref="IFamilyManager"/>.
 	/// <para><see cref="IFamily"/> instances are added/removed by <see cref="ISystem"/> instances.</para>
 	/// </summary>
-	IReadOnlyGroup<IReadOnlyFamily> Families { get; }
+	IReadOnlyLinkList<IReadOnlyFamily> Families { get; }
 
 	/// /// <summary>
 	/// All <see cref="IFamily"/> instances by <see cref="Type"/> being managed by the <see cref="IFamilyManager"/>.
