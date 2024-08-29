@@ -48,7 +48,7 @@ internal class FamilyManager : IFamilyManager
 	public IFamilyCreator Creator { get; set; }
 
 	private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new() => Creator?.Create<TFamilyMember>() ?? new AtlasFamily<TFamilyMember>();
+		where TFamilyMember : class, IFamilyMember, new() => Creator != null ? Creator.Create<TFamilyMember>() : new AtlasFamily<TFamilyMember>();
 	#endregion
 
 	#region Add
@@ -59,10 +59,12 @@ internal class FamilyManager : IFamilyManager
 		if(!types.TryGetValue(type, out IFamily family))
 		{
 			family = CreateFamily<TFamilyMember>();
+
 			families.Add(family);
 			types.Add(type, family);
 			references.Add(type, 0);
 			family.Engine = Engine;
+
 			foreach(var entity in Engine.Entities.Entities)
 				family.AddEntity(entity);
 
@@ -82,6 +84,7 @@ internal class FamilyManager : IFamilyManager
 			return false;
 		if(--references[type] > 0)
 			return false;
+
 		families.Remove(family);
 		types.Remove(type);
 		references.Remove(type);
