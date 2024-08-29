@@ -3,9 +3,9 @@ using System;
 
 namespace Atlas.ECS.Components.Builder;
 
-public interface IBuilder : IComponent<IBuilder>
+public interface IBuilder<T> : IComponent<IBuilder<T>> where T : IBuilder<T>
 {
-	event Action<IBuilder, BuildState, BuildState> BuildStateChanged;
+	event Action<T, BuildState, BuildState> BuildStateChanged;
 
 	/// <summary>
 	/// The current state of the build process. This can be
@@ -13,5 +13,5 @@ public interface IBuilder : IComponent<IBuilder>
 	/// </summary>
 	BuildState BuildState { get; }
 
-	bool AutoRemove { get; set; }
+	bool AutoRemove { get; }
 }
