@@ -13,5 +13,5 @@ public interface IBuilder<T> : IComponent<IBuilder<T>> where T : IBuilder<T>
 	/// </summary>
 	BuildState BuildState { get; }
 
-	bool AutoRemove { get; }
+	bool AutoRemove { get; set; }
 }
