@@ -12,14 +12,16 @@ namespace Atlas.ECS.Components.Engine.Families;
 
 internal class FamilyManager : IFamilyManager
 {
+	#region Events
 	public event Action<IFamilyManager, IFamily> Added;
 	public event Action<IFamilyManager, IFamily> Removed;
+	#endregion
 
+	#region Fields
 	private readonly LinkList<IFamily> families = new();
 	private readonly Dictionary<Type, IReadOnlyFamily> types = new();
 	private readonly Dictionary<Type, int> references = new();
-
-	public IEngine Engine { get; }
+	#endregion
 
 	internal FamilyManager(IEngine engine)
 	{
@@ -27,6 +29,8 @@ internal class FamilyManager : IFamilyManager
 		Engine.Entities.Added += EntityAdded;
 		Engine.Entities.Removed += EntityRemoved;
 	}
+
+	public IEngine Engine { get; }
 
 	private void EntityAdded(IEntityManager manager, IEntity entity)
 	{
@@ -122,7 +126,7 @@ internal class FamilyManager : IFamilyManager
 	public bool Has(IReadOnlyFamily family) => types.ContainsValue((IFamily)family);
 	#endregion
 
-	#region Messages
+	#region Listeners
 	private void ComponentAdded(IEntity entity, IComponent component, Type type)
 	{
 		foreach(var family in families)

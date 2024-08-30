@@ -9,19 +9,23 @@ namespace Atlas.ECS.Components.Engine.Systems;
 
 internal class SystemManager : ISystemManager
 {
+	#region Events
 	public event Action<ISystemManager, ISystem, Type> Added;
 	public event Action<ISystemManager, ISystem, Type> Removed;
+	#endregion
 
+	#region Fields
 	private readonly LinkList<ISystem> systems = new();
 	private readonly Dictionary<Type, ISystem> types = new();
 	private readonly Dictionary<Type, int> references = new();
-
-	public IEngine Engine { get; }
+	#endregion
 
 	public SystemManager(IEngine engine)
 	{
 		Engine = engine;
 	}
+
+	public IEngine Engine { get; }
 
 	#region Create
 	public ISystemCreator Creator { get; set; }
@@ -107,7 +111,7 @@ internal class SystemManager : ISystemManager
 	public bool Has(ISystem system) => systems.Contains(system);
 	#endregion
 
-	#region Messages
+	#region Listeners
 	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1)
 	{
 		var node = systems.GetNode(system);

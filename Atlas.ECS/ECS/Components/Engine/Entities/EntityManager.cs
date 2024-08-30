@@ -8,20 +8,24 @@ namespace Atlas.ECS.Components.Engine.Entities;
 
 internal class EntityManager : IEntityManager
 {
+	#region Events
 	public event Action<IEntityManager, IEntity> Added;
 	public event Action<IEntityManager, IEntity> Removed;
+	#endregion
 
+	#region Fields
 	private readonly LinkList<IEntity> entities = new();
 	private readonly Dictionary<string, IEntity> globalNames = new();
-
-	public IEngine Engine { get; }
+	#endregion
 
 	internal EntityManager(IEngine engine)
 	{
 		Engine = engine;
 	}
 
-	#region Add/Remove
+	public IEngine Engine { get; }
+
+	#region Add / Remove
 	internal void AddEntity(IEntity entity)
 	{
 		//Change the Entity's global name if it already exists.
