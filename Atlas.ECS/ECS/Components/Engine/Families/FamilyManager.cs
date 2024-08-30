@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Families;
 
-internal class FamilyManager : IFamilyManager
+internal sealed class FamilyManager : IFamilyManager
 {
 	#region Events
 	public event Action<IFamilyManager, IFamily> Added;

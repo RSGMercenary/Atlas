@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Entities;
 
-internal class EntityManager : IEntityManager
+internal sealed class EntityManager : IEntityManager
 {
 	#region Events
 	public event Action<IEntityManager, IEntity> Added;

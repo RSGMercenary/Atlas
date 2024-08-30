@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Systems;
 
-internal class SystemManager : ISystemManager
+internal sealed class SystemManager : ISystemManager
 {
 	#region Events
 	public event Action<ISystemManager, ISystem, Type> Added;

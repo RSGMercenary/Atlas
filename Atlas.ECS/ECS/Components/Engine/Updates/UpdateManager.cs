@@ -5,7 +5,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
-internal class UpdateManager : IUpdateManager, IUpdate<float>
+internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 {
 	#region Events
 	public event Action<IUpdateManager, bool> IsUpdatingChanged
