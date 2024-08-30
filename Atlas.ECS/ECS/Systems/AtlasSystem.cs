@@ -55,6 +55,7 @@ public abstract class AtlasSystem : ISystem
 		EngineManager = new(this, EngineChanging);
 		Updater = new(this);
 		Sleep = new(this);
+
 		//Default all systems to be Variable.
 		TimeStep = TimeStep.Variable;
 	}
@@ -125,9 +126,9 @@ public abstract class AtlasSystem : ISystem
 
 		Updater.Assert();
 
-		Updater.IsUpdating = true;
+		IsUpdating = true;
 		SystemUpdate(deltaTime);
-		Updater.IsUpdating = false;
+		IsUpdating = false;
 
 		if(Engine == null)
 			Dispose();
@@ -161,6 +162,21 @@ public abstract class AtlasSystem : ISystem
 			Updater.TimeStep = value;
 			if(Engine != null)
 				SyncTotalIntervalTime();
+		}
+	}
+	#endregion
+
+	#region Priority
+	public int Priority
+	{
+		get => priority;
+		set
+		{
+			if(priority == value)
+				return;
+			int previous = priority;
+			priority = value;
+			PriorityChanged?.Invoke(this, value, previous);
 		}
 	}
 	#endregion
@@ -222,21 +238,6 @@ public abstract class AtlasSystem : ISystem
 	private double? GetEngineTime()
 	{
 		return TimeStep == TimeStep.Variable ? Engine?.Updates.TotalVariableTime : Engine?.Updates.TotalFixedTime;
-	}
-	#endregion
-
-	#region Priority
-	public int Priority
-	{
-		get => priority;
-		set
-		{
-			if(priority == value)
-				return;
-			int previous = priority;
-			priority = value;
-			PriorityChanged?.Invoke(this, value, previous);
-		}
 	}
 	#endregion
 }
