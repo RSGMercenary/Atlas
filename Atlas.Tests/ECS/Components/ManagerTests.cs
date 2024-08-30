@@ -70,7 +70,7 @@ class ManagerTests
 		var component = new TestComponent(true);
 		var entity = new AtlasEntity();
 
-		for(int i = 0; i < count; i++)
+		for(var i = 0; i < count; ++i)
 			component.AddManager(new AtlasEntity());
 
 		component.AddManager<TestComponent>(entity, index);
@@ -206,7 +206,7 @@ class ManagerTests
 
 		var component = new TestComponent(true);
 
-		for(var i = 0; i < count; i++)
+		for(var i = 0; i < count; ++i)
 			component.AddManager(new AtlasEntity());
 
 		var entity1 = component.Managers[index1];
@@ -227,7 +227,7 @@ class ManagerTests
 
 		var component = new TestComponent(true);
 
-		for(var i = 0; i < count; i++)
+		for(var i = 0; i < count; ++i)
 			component.AddManager(new AtlasEntity());
 
 		var entity1 = component.Managers[index1];
@@ -249,7 +249,7 @@ class ManagerTests
 
 		var component = new TestComponent(true);
 
-		for(var i = 0; i < count; i++)
+		for(var i = 0; i < count; ++i)
 			component.AddManager(new AtlasEntity());
 
 		Assert.That(!component.SwapManagers(index1, index2));
@@ -269,7 +269,7 @@ class ManagerTests
 		var entity1 = null as AtlasEntity;
 		var entity2 = null as AtlasEntity;
 
-		for(var i = 0; i < 5; i++)
+		for(var i = 0; i < 5; ++i)
 			component.AddManager(new AtlasEntity());
 
 		if(add1.HasValue)

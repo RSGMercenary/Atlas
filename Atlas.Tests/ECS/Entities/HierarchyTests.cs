@@ -90,7 +90,7 @@ class HierarchyTests
 	{
 		var parent = new AtlasEntity();
 
-		for(int i = 0; i < count; i++)
+		for(int i = 0; i < count; ++i)
 			parent.AddChild(new AtlasEntity());
 
 		var child = parent[index];
@@ -236,7 +236,7 @@ class HierarchyTests
 	{
 		var parent = new AtlasEntity();
 
-		for(var i = 0; i < count; i++)
+		for(var i = 0; i < count; ++i)
 			parent.AddChild(new AtlasEntity());
 
 		var child = parent[index1];
@@ -348,7 +348,7 @@ class HierarchyTests
 		IEntity ancestor = new AtlasEntity();
 		var descendant = ancestor;
 
-		for(int i = 0; i < depth; i++)
+		for(int i = 0; i < depth; ++i)
 			descendant = descendant.AddChild(new AtlasEntity());
 
 		Assert.That(ancestor.HasDescendant(descendant));

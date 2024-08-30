@@ -112,7 +112,7 @@ class SystemTests
 	{
 		System.DeltaIntervalTime = deltaIntervalTime;
 
-		for(int i = 0; i < count; i++)
+		for(int i = 0; i < count; ++i)
 			System.Update(deltaIntervalTime);
 
 		Assert.That(System.DeltaIntervalTime == deltaIntervalTime);

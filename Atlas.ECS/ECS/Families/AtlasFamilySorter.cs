@@ -12,9 +12,9 @@ public static class AtlasFamilySorter
 	#region Bubble
 	public static void Bubble<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		for(var i = list.Count - 1; i > 0; i--)
+		for(var i = list.Count - 1; i > 0; --i)
 		{
-			for(var j = 0; j < i; j++)
+			for(var j = 0; j < i; ++j)
 			{
 				if(compare(list[j], list[j + 1]) > 0)
 					list.Swap(j, j + 1);
@@ -58,7 +58,7 @@ public static class AtlasFamilySorter
 		var pivot = new Random().Next(left, right);
 		list.Swap(pivot, left);
 		pivot = left;
-		left++;
+		++left;
 
 		while(right >= left)
 		{
@@ -66,13 +66,13 @@ public static class AtlasFamilySorter
 				&& compare(list[right], list[pivot]) < 0)
 				list.Swap(left, right);
 			else if(compare(list[left], list[pivot]) >= 0)
-				right--;
+				--right;
 			else if(compare(list[right], list[pivot]) < 0)
-				left++;
+				++left;
 			else
 			{
-				right--;
-				left++;
+				--right;
+				++left;
 			}
 		}
 		list.Swap(pivot, right);
@@ -87,10 +87,10 @@ public static class AtlasFamilySorter
 	#region Selection
 	public static void Selection<T>(IList<T> list, Func<T, T, int> compare)
 	{
-		for(var i = 0; i < list.Count - 1; i++)
+		for(var i = 0; i < list.Count - 1; ++i)
 		{
 			var min = i;
-			for(var j = i + 1; j < list.Count; j++)
+			for(var j = i + 1; j < list.Count; ++j)
 			{
 				if(compare(list[j], list[min]) < 0)
 					min = j;
@@ -154,10 +154,10 @@ public static class AtlasFamilySorter
 		var left = new List<T>();
 		var right = new List<T>();
 
-		for(var i = 0; i < mid; i++)
+		for(var i = 0; i < mid; ++i)
 			left.Add(list[i]);
 
-		for(var i = mid; i < list.Count; i++)
+		for(var i = mid; i < list.Count; ++i)
 			right.Add(list[i]);
 
 		return Merge(MergeCopy(left, compare), MergeCopy(right, compare), compare);
@@ -181,10 +181,10 @@ public static class AtlasFamilySorter
 			}
 		}
 
-		for(var i = 0; i < left.Count; i++)
+		for(var i = 0; i < left.Count; ++i)
 			list.Add(left[i]);
 
-		for(var i = 0; i < right.Count; i++)
+		for(var i = 0; i < right.Count; ++i)
 			list.Add(right[i]);
 
 		return list;

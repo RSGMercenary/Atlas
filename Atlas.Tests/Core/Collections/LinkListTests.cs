@@ -42,7 +42,7 @@ class LinkListTests
 		AddLetters();
 
 		for(var node = List.First; node != null; node = node.Next)
-			count++;
+			++count;
 
 		Assert.That(List.Count == count);
 	}
@@ -58,7 +58,7 @@ class LinkListTests
 		List.Add(letter, index);
 
 		for(var node = List.First; node != null; node = node.Next)
-			count++;
+			++count;
 
 		Assert.That(Letters.Length + 1 == count);
 		Assert.That(List[index] == letter);
@@ -75,7 +75,7 @@ class LinkListTests
 		List.Add(letter, index);
 
 		for(var node = List.First; node != null; node = node.Next)
-			count++;
+			++count;
 
 		Assert.That(List.Count == 0);
 		Assert.That(count == 0);
@@ -120,7 +120,7 @@ class LinkListTests
 		List.RemoveAll();
 
 		for(var node = List.First; node != null; node = node.Next)
-			count++;
+			++count;
 
 		Assert.That(count == 0);
 		Assert.That(List.Count == 0);
@@ -137,7 +137,7 @@ class LinkListTests
 		List.Remove(index);
 
 		for(var node = List.First; node != null; node = node.Next)
-			count++;
+			++count;
 
 		Assert.That(count == Letters.Length - 1);
 		Assert.That(List[index] != letter);
@@ -247,7 +247,7 @@ class LinkListTests
 
 	private void AddLetters()
 	{
-		for(int i = 0; i < Letters.Length; i++)
+		for(int i = 0; i < Letters.Length; ++i)
 			List.Add(GetLetter(i));
 	}
 

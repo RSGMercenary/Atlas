@@ -31,7 +31,7 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		node.data = PoolManager.Instance.Get<LinkListData<T>>();
 		node.data.removed = false;
 		node.data.value = value;
-		node.data.iterators++;
+		++node.data.iterators;
 
 		InternalAddNode(node, index);
 		return true;
@@ -84,7 +84,7 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 			}
 		}
 
-		count++;
+		++count;
 	}
 
 	#endregion
@@ -141,7 +141,7 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 			node.Dispose();
 		}
 
-		count--;
+		--count;
 		return true;
 	}
 	#endregion

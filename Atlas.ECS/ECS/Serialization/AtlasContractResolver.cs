@@ -84,7 +84,7 @@ public class AtlasContractResolver : DefaultContractResolver
 		while(entity.Parent != null)
 		{
 			entity = entity.Parent;
-			depth++;
+			++depth;
 		}
 		return depth;
 	}

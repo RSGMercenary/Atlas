@@ -129,7 +129,7 @@ class FamilyTests
 			AtlasFamilySorter.Merge, AtlasFamilySorter.Selection, AtlasFamilySorter.Quick,
 		};
 
-		for(int i = 0; i < 200; i++)
+		for(int i = 0; i < 200; ++i)
 		{
 			var entity = new AtlasEntity();
 			var component = new TestComponent();
@@ -147,7 +147,7 @@ class FamilyTests
 
 	private static bool IsAlphabetical(IReadOnlyList<TestFamilyMember> members)
 	{
-		for(int i = 0; i < members.Count - 1; i++)
+		for(int i = 0; i < members.Count - 1; ++i)
 		{
 			var name1 = members[i].Entity.GlobalName;
 			var name2 = members[i + 1].Entity.GlobalName;

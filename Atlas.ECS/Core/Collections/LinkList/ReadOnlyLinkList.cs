@@ -52,8 +52,8 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 	private void Copy(LinkListNode<T> source, LinkListNode<T> copy)
 	{
 		copy.data = source.data;
-		copy.data.iterators++;
-		count++;
+		++copy.data.iterators;
+		++count;
 	}
 
 	#region Get
@@ -72,7 +72,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 			{
 				if(node.data.value.Equals(value))
 					return nodeIndex;
-				nodeIndex++;
+				++nodeIndex;
 			}
 			node = node.next;
 
@@ -115,7 +115,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 			{
 				if(nodeIndex == index)
 					return node;
-				nodeIndex++;
+				++nodeIndex;
 			}
 			node = node.next;
 		}
