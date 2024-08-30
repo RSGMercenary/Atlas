@@ -57,14 +57,7 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 	}
 
 	#region Get
-	public T this[int index]
-	{
-		get
-		{
-			var node = InternalGetNode(index);
-			return node != null ? node.data.value : default;
-		}
-	}
+	public T this[int index] => InternalGetNode(index).data.value;
 
 	public int GetIndex(T value)
 	{
