@@ -1,4 +1,5 @@
-﻿using Atlas.Core.Objects.Update;
+﻿using Atlas.Core.Collections.LinkList;
+using Atlas.Core.Objects.Update;
 using Atlas.ECS.Systems;
 using Newtonsoft.Json;
 using System;
@@ -186,9 +187,9 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 
 		while(FixedUpdates > 0)
 		{
-			FixedUpdates--;
+			--FixedUpdates;
 			TotalFixedTime += deltaFixedTime;
-			UpdateSystems(TimeStep.Fixed, deltaFixedTime);
+			UpdateSystems(Engine.Systems.FixedSystems, deltaFixedTime);
 		}
 
 		//Variable-time updates
@@ -196,7 +197,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		CalculateVariableInterpolation(deltaFixedTime);
 		TimeStep = TimeStep.Variable;
 
-		UpdateSystems(TimeStep.Variable, deltaVariableTime);
+		UpdateSystems(Engine.Systems.VariableSystems, deltaVariableTime);
 
 		TimeStep = TimeStep.None;
 		IsUpdating = false;
@@ -230,14 +231,12 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		VariableInterpolation = deltaFixedTime <= 0 ? 0 : (TotalVariableTime - TotalFixedTime) / deltaFixedTime;
 	}
 
-	private void UpdateSystems(TimeStep timeStep, float deltaTime)
+	private void UpdateSystems(IReadOnlyLinkList<ISystem> systems, float deltaTime)
 	{
-		for(var current = Engine.Systems.Systems.First; current != null; current = current.Next)
+		for(var current = systems.First; current != null; current = current.Next)
 		{
 			var system = current.Value;
 
-			if(system.TimeStep != timeStep)
-				continue;
 			UpdateSystem = system;
 			system.Update(deltaTime);
 			UpdateSystem = null;

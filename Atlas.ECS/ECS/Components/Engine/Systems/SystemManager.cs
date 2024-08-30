@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Extensions;
+using Atlas.Core.Objects.Update;
 using Atlas.ECS.Systems;
 using Newtonsoft.Json;
 using System;
@@ -15,7 +16,8 @@ internal sealed class SystemManager : ISystemManager
 	#endregion
 
 	#region Fields
-	private readonly LinkList<ISystem> systems = new();
+	private readonly LinkList<ISystem> fixedSystems = new();
+	private readonly LinkList<ISystem> variableSystems = new();
 	private readonly Dictionary<Type, ISystem> types = new();
 	private readonly Dictionary<Type, int> references = new();
 	#endregion
@@ -52,8 +54,9 @@ internal sealed class SystemManager : ISystemManager
 			system = CreateSystem<TSystem>();
 
 			system.PriorityChanged += PriorityChanged;
-			PriorityChanged(system);
+			system.TimeStepChanged += TimeStepChanged;
 
+			AddSystem(system);
 			types.Add(type, system);
 			references.Add(type, 0);
 			system.Engine = Engine;
@@ -77,7 +80,8 @@ internal sealed class SystemManager : ISystemManager
 			return false;
 
 		system.PriorityChanged -= PriorityChanged;
-		systems.Remove(system);
+		system.TimeStepChanged -= TimeStepChanged;
+		RemoveSystem(system);
 
 		types.Remove(type);
 		references.Remove(type);
@@ -92,7 +96,10 @@ internal sealed class SystemManager : ISystemManager
 
 	#region Get
 	[JsonIgnore]
-	public IReadOnlyLinkList<ISystem> Systems => systems;
+	public IReadOnlyLinkList<ISystem> FixedSystems => fixedSystems;
+
+	public IReadOnlyLinkList<ISystem> VariableSystems => variableSystems;
+
 
 	public IReadOnlyDictionary<Type, ISystem> Types => types;
 
@@ -100,7 +107,7 @@ internal sealed class SystemManager : ISystemManager
 
 	public ISystem Get(Type type) => types.TryGetValue(type, out var system) ? system : null;
 
-	public ISystem Get(int index) => systems[index];
+	public ISystem Get(TimeStep timeStep, int index) => GetSystems(timeStep)[index];
 	#endregion
 
 	#region Has
@@ -108,19 +115,47 @@ internal sealed class SystemManager : ISystemManager
 
 	public bool Has(Type type) => Get(type) != null;
 
-	public bool Has(ISystem system) => systems.Contains(system);
+	public bool Has(ISystem system) => types.ContainsValue(system);
 	#endregion
 
 	#region Listeners
-	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1)
+	private void TimeStepChanged(ISystem system, TimeStep current, TimeStep previous) => SetSystem(system, current, previous);
+
+	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1) => SetSystem(system, system.TimeStep, system.TimeStep);
+
+	private LinkList<ISystem> GetSystems(TimeStep timeStep)
 	{
-		var node = systems.GetNode(system);
+		if(timeStep == TimeStep.Fixed)
+			return fixedSystems;
+		if(timeStep == TimeStep.Variable)
+			return variableSystems;
+		return null;
+	}
+
+	private void SetSystem(ISystem system, TimeStep current, TimeStep previous)
+	{
+		RemoveSystem(system, previous);
+		AddSystem(system, current);
+	}
+
+	private void RemoveSystem(ISystem system, TimeStep? timeStep = null)
+	{
+		GetSystems(timeStep ?? system.TimeStep)?.Remove(system);
+	}
+
+	private void AddSystem(ISystem system, TimeStep? timeStep = null)
+	{
+		var systems = GetSystems(timeStep ?? system.TimeStep);
+
+		if(systems == null)
+			return;
+
 		var index = systems.Count - 1;
 		for(var current = systems.Last; current != null; current = current.Previous)
 		{
 			if(current.Value.Priority <= system.Priority)
 			{
-				systems.SetNode(node, index);
+				systems.Add(system, index);
 				return;
 			}
 			--index;

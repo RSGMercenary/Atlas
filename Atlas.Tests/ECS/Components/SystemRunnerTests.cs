@@ -160,12 +160,12 @@ class SystemRunnerTests
 		Assert.That(component.HasSystem<ITestSystem>());
 		Assert.That(component.Systems.Count == 1);
 		Assert.That(engine.Systems.Has<ITestSystem>());
-		Assert.That(engine.Systems.Systems.Count == 1);
+		Assert.That(engine.Systems.VariableSystems.Count == 1);
 		component.RemoveSystem<ITestSystem>();
 		Assert.That(!component.HasSystem<ITestSystem>());
 		Assert.That(component.Systems.Count == 0);
 		Assert.That(!engine.Systems.Has<ITestSystem>());
-		Assert.That(engine.Systems.Systems.Count == 0);
+		Assert.That(engine.Systems.VariableSystems.Count == 0);
 	}
 	#endregion
 }

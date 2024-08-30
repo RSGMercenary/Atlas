@@ -1,4 +1,5 @@
 ﻿using Atlas.Core.Collections.LinkList;
+using Atlas.Core.Objects.Update;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,16 @@ public interface ISystemManager : IReadOnlyEngineManager
 	event Action<ISystemManager, ISystem, Type> Removed;
 
 	/// <summary>
-	/// All <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
+	/// All fixed time <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
 	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
-	IReadOnlyLinkList<ISystem> Systems { get; }
+	IReadOnlyLinkList<ISystem> FixedSystems { get; }
+
+	/// <summary>
+	/// All variable time <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
+	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
+	/// </summary>
+	IReadOnlyLinkList<ISystem> VariableSystems { get; }
 
 	/// <summary>
 	/// All <see cref="ISystem"/> instances by <see cref="Type"/> being managed by the <see cref="ISystemManager"/>.
@@ -74,7 +81,7 @@ public interface ISystemManager : IReadOnlyEngineManager
 	/// </summary>
 	/// <param name="index">The <see cref="ISystem"/> index.</param>
 	/// <returns></returns>
-	ISystem Get(int index);
+	ISystem Get(TimeStep timeStep, int index);
 
 	/// <summary>
 	/// Returns if the <see cref="ISystemManager"/> is managing a <see cref="ISystem"/> with the given <see cref="Type"/>.

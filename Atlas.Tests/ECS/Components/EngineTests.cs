@@ -1,4 +1,5 @@
-﻿using Atlas.ECS.Components.Engine;
+﻿using Atlas.Core.Objects.Update;
+using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Families;
 using Atlas.ECS.Systems;
@@ -393,7 +394,7 @@ class EngineTests
 		Assert.That(Engine.Systems.Has<T>());
 		Assert.That(Engine.Systems.Has(system));
 		Assert.That(Engine.Systems.Get<T>() == system);
-		Assert.That(Engine.Systems.Systems.Count == 1);
+		Assert.That(Engine.Systems.VariableSystems.Count == 1);
 	}
 
 	[TestCase(typeof(ITestSystem))]
@@ -405,7 +406,7 @@ class EngineTests
 		Assert.That(Engine.Systems.Has(type));
 		Assert.That(Engine.Systems.Has(system));
 		Assert.That(Engine.Systems.Get(type) == system);
-		Assert.That(Engine.Systems.Systems.Count == 1);
+		Assert.That(Engine.Systems.VariableSystems.Count == 1);
 	}
 
 	[TestCase<ITestSystem>]
@@ -418,7 +419,7 @@ class EngineTests
 		Assert.That(Engine.Systems.Has<T>());
 		Assert.That(Engine.Systems.Has(system));
 		Assert.That(Engine.Systems.Get<T>() == system);
-		Assert.That(Engine.Systems.Systems.Count == 1);
+		Assert.That(Engine.Systems.VariableSystems.Count == 1);
 	}
 	#endregion
 
@@ -436,7 +437,7 @@ class EngineTests
 		Assert.That(!engine.Systems.Has<T>());
 		Assert.That(!Engine.Systems.Has(system));
 		Assert.That(engine.Systems.Get<T>() == null);
-		Assert.That(engine.Systems.Systems.Count == 0);
+		Assert.That(engine.Systems.VariableSystems.Count == 0);
 	}
 
 	[TestCase(typeof(ITestSystem))]
@@ -451,7 +452,7 @@ class EngineTests
 		Assert.That(!engine.Systems.Has(type));
 		Assert.That(!Engine.Systems.Has(system));
 		Assert.That(engine.Systems.Get(type) == null);
-		Assert.That(engine.Systems.Systems.Count == 0);
+		Assert.That(engine.Systems.VariableSystems.Count == 0);
 	}
 
 	[TestCase<ITestSystem>]
@@ -466,7 +467,7 @@ class EngineTests
 		Assert.That(!Engine.Systems.Has<T>());
 		Assert.That(!Engine.Systems.Has(system));
 		Assert.That(Engine.Systems.Get<T>() == null);
-		Assert.That(Engine.Systems.Systems.Count == 0);
+		Assert.That(Engine.Systems.VariableSystems.Count == 0);
 	}
 
 	[TestCase<ITestSystem>]
@@ -477,7 +478,7 @@ class EngineTests
 
 		Assert.That(!Engine.Systems.Has<T>());
 		Assert.That(Engine.Systems.Get<T>() == null);
-		Assert.That(Engine.Systems.Systems.Count == 0);
+		Assert.That(Engine.Systems.VariableSystems.Count == 0);
 	}
 	#endregion
 
@@ -489,7 +490,7 @@ class EngineTests
 		if(addSystem)
 			Engine.Systems.Add<ITestSystem>();
 
-		Assert.That(() => Engine.Systems.Get(0), addSystem ? Throws.Nothing : Throws.Exception);
+		Assert.That(() => Engine.Systems.Get(TimeStep.Variable, 0), addSystem ? Throws.Nothing : Throws.Exception);
 	}
 	#endregion
 
@@ -502,8 +503,8 @@ class EngineTests
 
 		system2.Priority = -1;
 
-		Assert.That(Engine.Systems.Systems[0] == system2);
-		Assert.That(Engine.Systems.Systems[1] == system1);
+		Assert.That(Engine.Systems.VariableSystems[0] == system2);
+		Assert.That(Engine.Systems.VariableSystems[1] == system1);
 	}
 	#endregion
 	#endregion
