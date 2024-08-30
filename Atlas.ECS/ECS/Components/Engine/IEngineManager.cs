@@ -7,7 +7,7 @@ public interface IReadOnlyEngineManager
 	IEngine Engine { get; }
 }
 
-public interface IEngineManager<T> : IReadOnlyEngineManager where T : IEngineManager<T>
+public interface IEngineManager<out T> : IReadOnlyEngineManager where T : IEngineManager<T>
 {
 	event Action<T, IEngine, IEngine> EngineChanged;
 
