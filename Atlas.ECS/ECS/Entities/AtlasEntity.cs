@@ -413,13 +413,6 @@ public sealed class AtlasEntity : IEntity
 	{
 		if(component.HasManager(this))
 			return component;
-		else if(component.Manager != null)
-		{
-			var isAutoDisposable = component.IsAutoDisposable;
-			component.IsAutoDisposable = false;
-			component.RemoveManagers();
-			component.IsAutoDisposable = isAutoDisposable;
-		}
 
 		type = AtlasComponent.GetType(component, type ?? typeof(TComponent));
 		if(components.TryGetValue(type, out var current))
@@ -579,7 +572,7 @@ public sealed class AtlasEntity : IEntity
 	}
 	#endregion
 
-	#region Messages
+	#region Listeners
 	private void OnRootChanged(IEntity entity, IEntity current, IEntity previous)
 	{
 		if(previous == this)
@@ -608,28 +601,32 @@ public sealed class AtlasEntity : IEntity
 
 	private void OnParentChanged(IEntity entity, IEntity current, IEntity previous)
 	{
-		if(!IsSelfSleeping)
+		SetSleeping(current, previous);
+		AutoDispose.TryAutoDispose();
+	}
+
+	private void SetSleeping(IEntity current, IEntity previous)
+	{
+		if(IsSelfSleeping)
+			return;
+
+		int deltaSleeping = 0;
+
+		if(previous != null)
 		{
-			int deltaSleeping = 0;
-
-			if(previous != null)
-			{
-				if(previous.IsSleeping)
-					--deltaSleeping;
-				previous.SleepingChanged -= OnParentSleepingChanged;
-			}
-
-			if(current != null)
-			{
-				if(current.IsSleeping)
-					++deltaSleeping;
-				current.SleepingChanged += OnParentSleepingChanged;
-			}
-
-			Sleeping += deltaSleeping;
+			if(previous.IsSleeping)
+				--deltaSleeping;
+			previous.SleepingChanged -= OnParentSleepingChanged;
 		}
 
-		AutoDispose.TryAutoDispose();
+		if(current != null)
+		{
+			if(current.IsSleeping)
+				++deltaSleeping;
+			current.SleepingChanged += OnParentSleepingChanged;
+		}
+
+		Sleeping += deltaSleeping;
 	}
 
 	private void OnParentSleepingChanged(IEntity parent, int current, int previous)

@@ -30,6 +30,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, ISerialize
 	where T : class, IComponent<T>
 {
+	#region Events
 	public event Action<IComponent, bool, bool> IsAutoDisposableChanged
 	{
 		add => AutoDispose.IsAutoDisposableChanged += value;
@@ -38,7 +39,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 	public event Action<IComponent, IEntity> ManagerAdded;
 	public event Action<IComponent, IEntity> ManagerRemoved;
 	public event Action<IComponent> ManagersChanged;
-
+	#endregion
 
 	#region Fields
 	private readonly LinkList<IEntity> managers = new();
@@ -152,15 +153,19 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		type = AtlasComponent.GetType(this, type);
 		if(entity.GetComponent(type) == this)
 		{
-			index ??= managers.Count;
 			if(!HasManager(entity))
 			{
+				index ??= managers.Count;
+				if(SwapNonShareable())
+					index = 0;
+
 				managers.Add(entity, index.Value);
 				AddingManager(entity, index.Value);
 				ManagerAdded?.Invoke(this, entity);
 			}
 			else
 			{
+				index ??= managers.Count - 1;
 				SetManagerIndex(entity, index.Value);
 			}
 		}
@@ -169,6 +174,18 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 			entity.AddComponent(this, type, index);
 		}
 		return entity;
+	}
+
+	private bool SwapNonShareable()
+	{
+		if(Manager == null)
+			return false;
+
+		var isAutoDisposable = IsAutoDisposable;
+		IsAutoDisposable = false;
+		RemoveManagers();
+		IsAutoDisposable = isAutoDisposable;
+		return true;
 	}
 
 	/// <summary>
@@ -223,7 +240,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		if(managers.Count <= 0)
 			return false;
 		while(managers.Count > 0)
-			RemoveManager(managers[managers.Count - 1]);
+			RemoveManager(managers.Last.Value);
 		return true;
 	}
 	#endregion
