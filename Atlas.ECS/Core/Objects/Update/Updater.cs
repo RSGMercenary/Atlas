@@ -1,48 +1,62 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Numerics;
 
 namespace Atlas.Core.Objects.Update;
 
-/// <summary>
-/// Updater is a class used to test the update loop of the IEngine in environments where you don't have
-/// a framework or other engine to provide an update loop for you. For example, in MonoGame the best practice
-/// is to put your AtlasEngine.Update() call directly into Game.Update() so MonoGame can provide the time.
-/// </summary>
-public class Updater<T> where T : INumber<T>
+public class Updater<T> : IUpdater<T>, IDisposable where T : IUpdater<T>
 {
-	private readonly Stopwatch timer = new();
-	private readonly IUpdate<T> instance;
-	private bool isRunning = false;
+	#region Events
+	public event Action<T, bool> IsUpdatingChanged;
+	public event Action<T, TimeStep, TimeStep> TimeStepChanged;
+	#endregion
 
-	public Updater(IUpdate<T> instance)
+	#region Fields
+	private readonly T instance;
+	private bool isUpdating = false;
+	private TimeStep timeStep = TimeStep.None;
+	#endregion
+
+	public Updater(T instance)
 	{
-		this.instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<T>)} instance is null.");
+		this.instance = instance;
 	}
 
-	public bool IsRunning
+	public void Dispose()
 	{
-		get => isRunning;
+		IsUpdatingChanged = null;
+		isUpdating = false;
+
+		TimeStepChanged = null;
+		timeStep = TimeStep.None;
+	}
+
+	public bool IsUpdating
+	{
+		get => isUpdating;
 		set
 		{
-			if(isRunning == value)
+			if(isUpdating == value)
 				return;
-			isRunning = value;
-			//Only run again when the last Update()/timer is done.
-			//If the Updater is turned off and on during an Update()
-			//loop, while(isRunning) will catch it.
-			if(value && !timer.IsRunning)
-			{
-				timer.Restart();
-				var previousTime = T.Zero;
-				while(isRunning)
-				{
-					var currentTime = T.CreateChecked(timer.Elapsed.TotalSeconds);
-					instance.Update(currentTime - previousTime);
-					previousTime = currentTime;
-				}
-				timer.Stop();
-			}
+			isUpdating = value;
+			IsUpdatingChanged?.Invoke(instance, value);
+		}
+	}
+
+	public void Assert()
+	{
+		if(isUpdating)
+			throw new InvalidOperationException("Update is already running, and can't be run again.");
+	}
+
+	public TimeStep TimeStep
+	{
+		get => timeStep;
+		set
+		{
+			if(timeStep == value)
+				return;
+			var previous = timeStep;
+			timeStep = value;
+			TimeStepChanged?.Invoke(instance, value, previous);
 		}
 	}
 }

@@ -16,29 +16,36 @@ public abstract class AtlasSystem : ISystem
 		remove => EngineManager.EngineChanged -= value;
 	}
 
+	public event Action<ISystem, bool> IsUpdatingChanged
+	{
+		add => Updater.IsUpdatingChanged += value;
+		remove => Updater.IsUpdatingChanged -= value;
+	}
+
 	public event Action<ISystem, int, int> SleepingChanged
 	{
 		add => Sleep.SleepingChanged += value;
 		remove => Sleep.SleepingChanged -= value;
 	}
 
-	public event Action<ISystem, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged
+	{
+		add => Updater.TimeStepChanged += value;
+		remove => Updater.TimeStepChanged -= value;
+	}
 
-	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged;
+	public event Action<ISystem, int, int> PriorityChanged;
 
 	public event Action<ISystem, float, float> IntervalChanged;
 
-	public event Action<ISystem, int, int> PriorityChanged;
 	#endregion
 
 	#region Fields
 	private int priority = 0;
 	private float totalIntervalTime = 0;
 	private float deltaIntervalTime = 0;
-	private TimeStep timeStep = TimeStep.Variable;
-	private UpdatePhase updatePhase = UpdatePhase.UpdateEnd;
 	private readonly EngineManager<ISystem> EngineManager;
-	private readonly UpdateLock UpdateLock;
+	private readonly Updater<ISystem> Updater;
 	private readonly Sleep<ISystem> Sleep;
 	#endregion
 
@@ -46,14 +53,16 @@ public abstract class AtlasSystem : ISystem
 	protected AtlasSystem()
 	{
 		EngineManager = new(this, EngineChanging);
-		UpdateLock = new();
+		Updater = new(this);
 		Sleep = new(this);
+		//Default all systems to be Variable.
+		TimeStep = TimeStep.Variable;
 	}
 
 	public virtual void Dispose()
 	{
 		//Can't dispose System mid-update.
-		if(Engine != null || updatePhase != UpdatePhase.UpdateEnd)
+		if(Engine != null || Updater.IsUpdating)
 			return;
 		Disposing();
 	}
@@ -61,16 +70,11 @@ public abstract class AtlasSystem : ISystem
 	protected virtual void Disposing()
 	{
 		EngineManager.Dispose();
+		Updater.Dispose();
 		Sleep.Dispose();
 
 		PriorityChanged = null;
 		Priority = 0;
-
-		UpdatePhaseChanged = null;
-		UpdatePhase = UpdatePhase.UpdateEnd;
-
-		TimeStepChanged = null;
-		TimeStep = TimeStep.Variable;
 
 		IntervalChanged = null;
 		DeltaIntervalTime = 0;
@@ -119,13 +123,11 @@ public abstract class AtlasSystem : ISystem
 		if(deltaTime <= 0)
 			return;
 
-		UpdateLock.Lock();
+		Updater.Assert();
 
-		UpdatePhase = UpdatePhase.UpdateStart;
+		Updater.IsUpdating = true;
 		SystemUpdate(deltaTime);
-		UpdatePhase = UpdatePhase.UpdateEnd;
-
-		UpdateLock.Unlock();
+		Updater.IsUpdating = false;
 
 		if(Engine == null)
 			Dispose();
@@ -145,29 +147,18 @@ public abstract class AtlasSystem : ISystem
 		return deltaTime;
 	}
 
-	public UpdatePhase UpdatePhase
+	public bool IsUpdating
 	{
-		get => updatePhase;
-		internal set
-		{
-			if(updatePhase == value)
-				return;
-			var previous = updatePhase;
-			updatePhase = value;
-			UpdatePhaseChanged?.Invoke(this, value, previous);
-		}
+		get => Updater.IsUpdating;
+		internal set => Updater.IsUpdating = value;
 	}
 
 	public TimeStep TimeStep
 	{
-		get => timeStep;
+		get => Updater.TimeStep;
 		protected set
 		{
-			if(timeStep == value)
-				return;
-			var previous = timeStep;
-			timeStep = value;
-			TimeStepChanged?.Invoke(this, value, previous);
+			Updater.TimeStep = value;
 			if(Engine != null)
 				SyncTotalIntervalTime();
 		}
@@ -230,7 +221,7 @@ public abstract class AtlasSystem : ISystem
 
 	private double? GetEngineTime()
 	{
-		return timeStep == TimeStep.Variable ? Engine?.Updates.TotalVariableTime : Engine?.Updates.TotalFixedTime;
+		return TimeStep == TimeStep.Variable ? Engine?.Updates.TotalVariableTime : Engine?.Updates.TotalFixedTime;
 	}
 	#endregion
 

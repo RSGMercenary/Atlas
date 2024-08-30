@@ -6,10 +6,8 @@ using System;
 
 namespace Atlas.ECS.Systems;
 
-public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISystem>, IDisposable, ISerialize
+public interface ISystem : IEngineManager<ISystem>, IUpdater<ISystem>, IUpdate<float>, ISleep<ISystem>, IDisposable, ISerialize
 {
-	event Action<ISystem, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
-	event Action<ISystem, TimeStep, TimeStep> TimeStepChanged;
 	event Action<ISystem, float, float> IntervalChanged;
 	event Action<ISystem, int, int> PriorityChanged;
 
@@ -27,9 +25,4 @@ public interface ISystem : IEngineManager<ISystem>, IUpdate<float>, ISleep<ISyst
 	float DeltaIntervalTime { get; }
 
 	float TotalIntervalTime { get; }
-
-	/// <summary>
-	/// Determines whether the System is fixed-time, variable-time, or event-based.
-	/// </summary>
-	TimeStep TimeStep { get; }
 }

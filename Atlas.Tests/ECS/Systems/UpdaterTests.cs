@@ -12,7 +12,7 @@ class UpdaterTests
 	public void When_IsRunning_And_Stopped_Then_IsRunningFalse(bool isRunning)
 	{
 		var system = new TestSystem();
-		var updater = new Updater<float>(system);
+		var updater = new UpdateRunner<float>(system);
 
 		system.TestAction = () => updater.IsRunning = false;
 		updater.IsRunning = isRunning;
@@ -26,6 +26,6 @@ class UpdaterTests
 	{
 		var system = instance ? new TestSystem() : null;
 
-		Assert.That(() => new Updater<float>(system), instance ? Throws.Nothing : Throws.Exception);
+		Assert.That(() => new UpdateRunner<float>(system), instance ? Throws.Nothing : Throws.Exception);
 	}
 }

@@ -85,13 +85,13 @@ class SystemTests
 		Assert.That(System.TimeStep == updateStep);
 	}
 
-	[TestCase(UpdatePhase.UpdateStart)]
-	[TestCase(UpdatePhase.UpdateEnd)]
-	public void When_UpdateState_Then_UpdateStateExpected(UpdatePhase updatehase)
+	[TestCase(true)]
+	[TestCase(false)]
+	public void When_IsUpdating_Then_IsUpdatingExpected(bool isUpdating)
 	{
-		System.UpdatePhase = updatehase;
+		System.IsUpdating = isUpdating;
 
-		Assert.That(System.UpdatePhase == updatehase);
+		Assert.That(System.IsUpdating == isUpdating);
 	}
 
 	[TestCase(TestFps._0, 1, 0)]

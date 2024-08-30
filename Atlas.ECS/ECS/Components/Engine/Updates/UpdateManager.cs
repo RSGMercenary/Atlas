@@ -7,20 +7,27 @@ namespace Atlas.ECS.Components.Engine.Updates;
 
 internal class UpdateManager : IUpdateManager, IUpdate<float>
 {
-	public event Action<IUpdateManager, UpdatePhase, UpdatePhase> UpdatePhaseChanged;
+	#region Events
+	public event Action<IUpdateManager, bool> IsUpdatingChanged
+	{
+		add => Updater.IsUpdatingChanged += value;
+		remove => Updater.IsUpdatingChanged -= value;
+	}
+
+	public event Action<IUpdateManager, TimeStep, TimeStep> TimeStepChanged
+	{
+		add => Updater.TimeStepChanged += value;
+		remove => Updater.TimeStepChanged -= value;
+	}
+
 	public event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
 	public event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;
+	#endregion
 
-	//Update State
-	private readonly UpdateLock UpdateLock = new();
-	private UpdatePhase updatePhase = UpdatePhase.UpdateEnd;
+	#region Fields
+	//Updates
+	private readonly Updater<IUpdateManager> Updater;
 	private ISystem updateSystem;
-
-	//Variable Time
-	private float deltaVariableTime = 0;
-	private float totalVariableTime = 0;
-	private float maxVariableTime = 0.25f;
-	private float variableInterpolation = 0;
 
 	//Fixed Time
 	private float deltaFixedTime = 1f / 60f;
@@ -28,14 +35,36 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 	private int fixedUpdates = 0;
 	private int fixedLag = 0;
 
-	public IEngine Engine { get; }
+	//Variable Time
+	private float deltaVariableTime = 0;
+	private float totalVariableTime = 0;
+	private float maxVariableTime = 0.25f;
+	private float variableInterpolation = 0;
+	#endregion
 
 	internal UpdateManager(IEngine engine)
 	{
 		Engine = engine;
+		Updater = new(this);
 	}
 
+	public IEngine Engine { get; }
+
 	#region Updates
+	[JsonIgnore]
+	public bool IsUpdating
+	{
+		get => Updater.IsUpdating;
+		private set => Updater.IsUpdating = value;
+	}
+
+	[JsonIgnore]
+	public TimeStep TimeStep
+	{
+		get => Updater.TimeStep;
+		private set => Updater.TimeStep = value;
+	}
+
 	#region Delta / Total Times
 	public float MaxVariableTime
 	{
@@ -125,20 +154,6 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 
 	[JsonIgnore]
-	public UpdatePhase UpdatePhase
-	{
-		get => updatePhase;
-		private set
-		{
-			if(updatePhase == value)
-				return;
-			var previous = updatePhase;
-			updatePhase = value;
-			UpdatePhaseChanged?.Invoke(this, value, previous);
-		}
-	}
-
-	[JsonIgnore]
 	public ISystem UpdateSystem
 	{
 		get => updateSystem;
@@ -153,12 +168,11 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 	#endregion
 
-	#region Fixed/Variable Update Loop
+	#region Update
 	public void Update(float deltaTime)
 	{
-		UpdateLock.Lock();
-
-		UpdatePhase = UpdatePhase.UpdateStart;
+		Updater.Assert();
+		IsUpdating = true;
 
 		//Variable-time cap and set.
 		DeltaVariableTime = deltaTime;
@@ -168,27 +182,24 @@ internal class UpdateManager : IUpdateManager, IUpdate<float>
 		//Fixed-time updates
 		CalculateFixedUpdates(deltaFixedTime);
 		CalculateFixedLag();
+		TimeStep = TimeStep.Fixed;
 
-		UpdatePhase = UpdatePhase.FixedStart;
 		while(FixedUpdates > 0)
 		{
 			FixedUpdates--;
 			TotalFixedTime += deltaFixedTime;
 			UpdateSystems(TimeStep.Fixed, deltaFixedTime);
 		}
-		UpdatePhase = UpdatePhase.FixedEnd;
 
 		//Variable-time updates
 		TotalVariableTime += deltaVariableTime;
 		CalculateVariableInterpolation(deltaFixedTime);
+		TimeStep = TimeStep.Variable;
 
-		UpdatePhase = UpdatePhase.VariableStart;
 		UpdateSystems(TimeStep.Variable, deltaVariableTime);
-		UpdatePhase = UpdatePhase.VariableEnd;
 
-		UpdatePhase = UpdatePhase.UpdateEnd;
-
-		UpdateLock.Unlock();
+		TimeStep = TimeStep.None;
+		IsUpdating = false;
 	}
 
 	private void CalculateFixedUpdates(float deltaFixedTime)

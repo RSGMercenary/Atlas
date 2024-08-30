@@ -53,9 +53,9 @@ class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 		set => base.TimeStep = value;
 	}
 
-	public new UpdatePhase UpdatePhase
+	public new bool IsUpdating
 	{
-		get => base.UpdatePhase;
-		set => base.UpdatePhase = value;
+		get => base.IsUpdating;
+		set => base.IsUpdating = value;
 	}
 }

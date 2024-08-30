@@ -1,7 +1,6 @@
 ﻿using Atlas.Core.Collections.LinkList;
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Extensions;
-using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Components.Engine.Updates;
@@ -20,6 +19,11 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
 {
 	#region Events
+	public event Action<IReadOnlyFamily, IEngine, IEngine> EngineChanged
+	{
+		add => EngineManager.EngineChanged += value;
+		remove => EngineManager.EngineChanged -= value;
+	}
 	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
 	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
 	#endregion
@@ -71,12 +75,6 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Engine
-	public event Action<IReadOnlyFamily, IEngine, IEngine> EngineChanged
-	{
-		add => EngineManager.EngineChanged += value;
-		remove => EngineManager.EngineChanged -= value;
-	}
-
 	public IEngine Engine
 	{
 		get => EngineManager.Engine;
@@ -149,7 +147,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		else
 		{
 			added.Add(member);
-			Engine.Updates.UpdatePhaseChanged += UpdateMembers;
+			Engine.Updates.IsUpdatingChanged -= UpdateMembers;
+			Engine.Updates.IsUpdatingChanged += UpdateMembers;
 		}
 
 		//TO-DO Should this only be done after the update?
@@ -184,7 +183,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		else
 		{
 			removed.Add(member);
-			Engine.Updates.UpdatePhaseChanged += UpdateMembers;
+			Engine.Updates.IsUpdatingChanged -= UpdateMembers;
+			Engine.Updates.IsUpdatingChanged += UpdateMembers;
 		}
 	}
 
@@ -196,11 +196,11 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#endregion
 
 	#region Helpers
-	private void UpdateMembers(IUpdateManager manager, UpdatePhase current, UpdatePhase previous)
+	private void UpdateMembers(IUpdateManager manager, bool isUpdating)
 	{
-		if(current != UpdatePhase.UpdateEnd)
+		if(isUpdating)
 			return;
-		manager.UpdatePhaseChanged -= UpdateMembers;
+		manager.IsUpdatingChanged -= UpdateMembers;
 		while(removed.Count > 0)
 			RemoveMember(removed.Pop());
 		while(added.Count > 0)
@@ -209,7 +209,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 			Dispose();
 	}
 
-	private bool IsUpdating => (Engine?.Updates.UpdatePhase ?? UpdatePhase.UpdateEnd) != UpdatePhase.UpdateEnd;
+	private bool IsUpdating => Engine?.Updates.IsUpdating ?? false;
 
 	private void SetMemberValues(TFamilyMember member, IEntity entity)
 	{
