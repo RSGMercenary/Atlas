@@ -39,15 +39,13 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 	public bool AddNode(ILinkListNode<T> node, int index)
 	{
-		var current = node as LinkListNode<T>;
-
-		if(current == null || (current.list != null && current.list != this))
+		if(node == null || (node.List != null && node.List != this))
 			return false;
 
-		if(current.list == this)
-			InternalSetNode(current, index);
+		if(node.List == this)
+			InternalSetNode((LinkListNode<T>)node, index);
 		else
-			InternalAddNode(current, index);
+			InternalAddNode((LinkListNode<T>)node, index);
 		return true;
 	}
 
@@ -100,18 +98,13 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 	public bool RemoveNode(ILinkListNode<T> node)
 	{
-		var current = node as LinkListNode<T>;
-		if(current?.list != this)
+		if(node?.List != this)
 			return false;
 
-		InternalRemoveNode(current);
-		current.data.removed = true;
-		current.Dispose();
-
-		return true;
+		return InternalRemoveNode((LinkListNode<T>)node);
 	}
 
-	private bool InternalRemoveNode(LinkListNode<T> node)
+	private bool InternalRemoveNode(LinkListNode<T> node, bool removed = true)
 	{
 		if(node == null)
 			return false;
@@ -142,6 +135,11 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 		node.previous = null;
 		node.next = null;
+		if(removed)
+		{
+			node.data.removed = true;
+			node.Dispose();
+		}
 
 		count--;
 		return true;
@@ -165,18 +163,16 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 	public bool SetNode(ILinkListNode<T> node, int index)
 	{
-		var current = node as LinkListNode<T>;
-
-		if(current?.list != this)
+		if(node?.List != this)
 			return false;
 
-		InternalSetNode(current, index);
+		InternalSetNode((LinkListNode<T>)node, index);
 		return true;
 	}
 
 	private void InternalSetNode(LinkListNode<T> node, int index)
 	{
-		InternalRemoveNode(node);
+		InternalRemoveNode(node, false);
 		InternalAddNode(node, index);
 	}
 	#endregion
@@ -188,13 +184,10 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 	public bool SwapNodes(ILinkListNode<T> node1, ILinkListNode<T> node2)
 	{
-		var current1 = node1 as LinkListNode<T>;
-		var current2 = node2 as LinkListNode<T>;
-
-		if(current1?.list != this || current2?.list != this)
+		if(node1?.List != this || node2?.List != this)
 			return false;
 
-		return InternalSwapNodes(current1, current2);
+		return InternalSwapNodes((LinkListNode<T>)node1, (LinkListNode<T>)node2);
 	}
 
 	protected bool InternalSwapNodes(LinkListNode<T> node1, LinkListNode<T> node2)

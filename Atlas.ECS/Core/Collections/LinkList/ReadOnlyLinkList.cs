@@ -137,14 +137,14 @@ public class ReadOnlyLinkList<T> : IReadOnlyLinkList<T>, ILinkListIterator<T>
 		if(last == null)
 			return false;
 
-		var current = last.previous;
-		last.Dispose();
-		while(current != null)
+		var current = last;
+		do
 		{
 			var node = current.previous;
 			current.Dispose();
 			current = node;
 		}
+		while(current != null);
 
 		first = null;
 		last = null;
