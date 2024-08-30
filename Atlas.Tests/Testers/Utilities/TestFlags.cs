@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Atlas.Tests.Classes;
+namespace Atlas.Tests.Testers.Utilities;
 
 [Flags]
 enum TestFlags

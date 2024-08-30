@@ -1,8 +1,8 @@
 ﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Entities;
 using Atlas.Tests.Attributes;
-using Atlas.Tests.Classes;
-using Atlas.Tests.ECS.Components.Components;
+using Atlas.Tests.Testers.Components;
+using Atlas.Tests.Testers.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections;

@@ -1,7 +1,7 @@
 ﻿using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
-using Atlas.Tests.Classes;
-using Atlas.Tests.ECS.Systems.Systems;
+using Atlas.Tests.Testers.Systems;
+using Atlas.Tests.Testers.Utilities;
 using NUnit.Framework;
 using System.Collections;
 

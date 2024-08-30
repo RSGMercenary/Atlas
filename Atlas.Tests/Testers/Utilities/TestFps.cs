@@ -1,4 +1,4 @@
-﻿namespace Atlas.Tests.Classes;
+﻿namespace Atlas.Tests.Testers.Utilities;
 static class TestFps
 {
 	public const float _0 = 0f;

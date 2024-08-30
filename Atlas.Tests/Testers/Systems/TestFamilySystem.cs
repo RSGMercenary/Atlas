@@ -1,10 +1,10 @@
 ﻿using Atlas.Core.Objects.Update;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
-using Atlas.Tests.ECS.Components.Components;
-using Atlas.Tests.ECS.Families.Families;
+using Atlas.Tests.Testers.Components;
+using Atlas.Tests.Testers.Families;
 
-namespace Atlas.Tests.ECS.Systems.Systems;
+namespace Atlas.Tests.Testers.Systems;
 
 class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 {

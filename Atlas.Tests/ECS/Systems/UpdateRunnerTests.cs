@@ -1,5 +1,5 @@
 ﻿using Atlas.Core.Objects.Update;
-using Atlas.Tests.ECS.Systems.Systems;
+using Atlas.Tests.Testers.Systems;
 using NUnit.Framework;
 
 namespace Atlas.Tests.ECS.Systems;

@@ -1,4 +1,4 @@
-﻿namespace Atlas.Tests.Core.Extensions.Classes;
+﻿namespace Atlas.Tests.Testers.Objects;
 
 interface ITestSubInterface2 : ITestBaseInterface
 {

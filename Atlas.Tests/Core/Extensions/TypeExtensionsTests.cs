@@ -4,9 +4,9 @@ using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
-using Atlas.Tests.Core.Extensions.Classes;
-using Atlas.Tests.ECS.Components.Components;
-using Atlas.Tests.ECS.Systems.Systems;
+using Atlas.Tests.Testers.Components;
+using Atlas.Tests.Testers.Objects;
+using Atlas.Tests.Testers.Systems;
 using NUnit.Framework;
 
 namespace Atlas.Tests.Core.Extensions;

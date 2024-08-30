@@ -1,6 +1,6 @@
 ﻿using Atlas.ECS.Components.Component;
 
-namespace Atlas.Tests.ECS.Components.Components;
+namespace Atlas.Tests.Testers.Components;
 
 class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
 {

@@ -1,5 +1,5 @@
 ﻿using Atlas.Core.Extensions;
-using Atlas.Tests.Classes;
+using Atlas.Tests.Testers.Utilities;
 using NUnit.Framework;
 using System.Linq;
 

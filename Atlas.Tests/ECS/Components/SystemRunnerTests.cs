@@ -4,7 +4,7 @@ using Atlas.ECS.Components.SystemRunner;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
-using Atlas.Tests.ECS.Systems.Systems;
+using Atlas.Tests.Testers.Systems;
 using NUnit.Framework;
 using System;
 

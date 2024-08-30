@@ -1,5 +1,5 @@
 ﻿using Atlas.Core.Collections.Pool;
-using Atlas.Tests.Core.Collections.Classes;
+using Atlas.Tests.Testers.Objects;
 using NUnit.Framework;
 using System;
 
@@ -8,19 +8,19 @@ namespace Atlas.Tests.Core.Collections;
 [TestFixture]
 internal class PoolTests
 {
-	private IPool<TestInstance> Pool;
+	private IPool<TestClass> Pool;
 	private Random Random = new Random();
 
 	[SetUp]
 	public void SetUp()
 	{
-		Pool = new Pool<TestInstance>();
+		Pool = new Pool<TestClass>();
 	}
 
 	[Test]
 	public void When_Put_Then_Pooled()
 	{
-		Pool.Put(new TestInstance());
+		Pool.Put(new TestClass());
 
 		Assert.That(Pool.Count == 1);
 	}
@@ -28,7 +28,7 @@ internal class PoolTests
 	[Test]
 	public void When_Get_Then_Unpooled()
 	{
-		Pool.Put(new TestInstance());
+		Pool.Put(new TestClass());
 		Pool.Get();
 
 		Assert.That(Pool.Count == 0);
@@ -39,7 +39,7 @@ internal class PoolTests
 	public void When_Fill_Then_Filled()
 	{
 		var maxCount = Random.Next(101);
-		var pool = new Pool<TestInstance>(null, maxCount, true);
+		var pool = new Pool<TestClass>(null, maxCount, true);
 
 		Assert.That(pool.Count == maxCount);
 		Assert.That(pool.MaxCount == maxCount);
@@ -50,7 +50,7 @@ internal class PoolTests
 	public void When_Empty_Then_Emptied()
 	{
 		var maxCount = Random.Next(101);
-		var pool = new Pool<TestInstance>(null, maxCount, true);
+		var pool = new Pool<TestClass>(null, maxCount, true);
 		pool.Empty();
 
 		Assert.That(pool.Count == 0);

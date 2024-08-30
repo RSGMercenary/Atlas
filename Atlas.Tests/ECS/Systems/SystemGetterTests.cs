@@ -1,7 +1,7 @@
 ﻿using Atlas.ECS.Components.Engine.Systems;
 using Atlas.ECS.Systems;
 using Atlas.Tests.Attributes;
-using Atlas.Tests.ECS.Systems.Systems;
+using Atlas.Tests.Testers.Systems;
 using NUnit.Framework;
 using System;
 using System.Linq;

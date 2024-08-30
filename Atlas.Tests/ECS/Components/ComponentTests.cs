@@ -2,7 +2,7 @@
 using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Entities;
 using Atlas.Tests.Attributes;
-using Atlas.Tests.ECS.Components.Components;
+using Atlas.Tests.Testers.Components;
 using NUnit.Framework;
 using System;
 

@@ -2,7 +2,7 @@
 using Atlas.ECS.Systems;
 using System;
 
-namespace Atlas.Tests.ECS.Systems.Systems;
+namespace Atlas.Tests.Testers.Systems;
 
 class TestSystem : AtlasSystem, ITestSystem
 {
