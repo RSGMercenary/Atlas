@@ -48,18 +48,18 @@ internal class EntityManager : IEntityManager
 		if(!globalNames.TryGetValue(entity.GlobalName, out var global) || global != entity)
 			return;
 
+		foreach(var child in entity.Children.Backward())
+			RemoveEntity(child);
+
 		entity.ChildAdded -= ChildAdded;
 		entity.RootChanged -= RootChanged;
 		entity.GlobalNameChanged -= GlobalNameChanged;
 
-		foreach(var child in entity.Children.Backward())
-			RemoveEntity(child);
-
-		Removed?.Invoke(this, entity);
-
 		globalNames.Remove(entity.GlobalName);
 		entities.Remove(entity);
 		entity.Engine = null;
+
+		Removed?.Invoke(this, entity);
 	}
 	#endregion
 
@@ -73,7 +73,7 @@ internal class EntityManager : IEntityManager
 	#endregion
 
 	#region Has
-	public bool Has(string globalName) => globalNames.ContainsKey(globalName);
+	public bool Has(string globalName) => Get(globalName) != null;
 
 	public bool Has(IEntity entity) => globalNames.TryGetValue(entity.GlobalName, out var global) && global == entity;
 	#endregion

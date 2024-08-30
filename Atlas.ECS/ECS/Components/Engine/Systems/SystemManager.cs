@@ -102,7 +102,7 @@ internal class SystemManager : ISystemManager
 	#region Has
 	public bool Has<TSystem>() where TSystem : class, ISystem => Has(typeof(TSystem));
 
-	public bool Has(Type type) => types.ContainsKey(type);
+	public bool Has(Type type) => Get(type) != null;
 
 	public bool Has(ISystem system) => systems.Contains(system);
 	#endregion
