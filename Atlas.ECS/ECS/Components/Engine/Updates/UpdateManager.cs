@@ -227,7 +227,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 
 	private void CalculateVariableInterpolation(float deltaFixedTime)
 	{
-		VariableInterpolation = deltaFixedTime > 0 ? (TotalVariableTime - TotalFixedTime) / deltaFixedTime : 0;
+		VariableInterpolation = deltaFixedTime <= 0 ? 0 : (TotalVariableTime - TotalFixedTime) / deltaFixedTime;
 	}
 
 	private void UpdateSystems(TimeStep timeStep, float deltaTime)

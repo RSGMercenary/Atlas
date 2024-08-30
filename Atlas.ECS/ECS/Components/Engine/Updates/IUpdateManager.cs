@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
-public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManager>
+public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManager>, IUpdate<float>
 {
 	event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
 	event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;

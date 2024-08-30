@@ -1,5 +1,4 @@
-﻿using Atlas.Core.Objects.Update;
-using Atlas.ECS.Components.Component;
+﻿using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine.Entities;
 using Atlas.ECS.Components.Engine.Families;
 using Atlas.ECS.Components.Engine.Systems;
@@ -11,17 +10,12 @@ using System;
 namespace Atlas.ECS.Components.Engine;
 
 [JsonObject]
-public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<float>
+public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 {
 	private readonly EntityManager entities;
 	private readonly FamilyManager families;
 	private readonly SystemManager systems;
 	private readonly UpdateManager updates;
-
-	public IEntityManager Entities => entities;
-	public IFamilyManager Families => families;
-	public ISystemManager Systems => systems;
-	public IUpdateManager Updates => updates;
 
 	public AtlasEngine()
 	{
@@ -30,6 +24,11 @@ public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<floa
 		systems = new SystemManager(this);
 		updates = new UpdateManager(this);
 	}
+
+	public IEntityManager Entities => entities;
+	public IFamilyManager Families => families;
+	public ISystemManager Systems => systems;
+	public IUpdateManager Updates => updates;
 
 	protected override void AddingManager(IEntity entity, int index)
 	{
@@ -45,6 +44,4 @@ public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine, IUpdate<floa
 		entities.RemoveEntity(entity);
 		base.RemovingManager(entity, index);
 	}
-
-	public void Update(float time) => updates.Update(time);
 }

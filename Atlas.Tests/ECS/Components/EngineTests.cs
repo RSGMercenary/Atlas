@@ -519,7 +519,7 @@ class EngineTests
 	{
 		var system = Engine.Systems.Add<TestSystem>();
 
-		Engine.Update(deltaTime);
+		Engine.Updates.Update(deltaTime);
 
 		Assert.That(system.TestUpdate == expected);
 	}
@@ -531,8 +531,8 @@ class EngineTests
 	[TestCase(10, 4)]
 	public void When_Update_Then_FixedLagExpected(float fps, int expected)
 	{
-		Engine.Update(1 / fps);
-		Engine.Update(TestFps._60);
+		Engine.Updates.Update(1 / fps);
+		Engine.Updates.Update(TestFps._60);
 
 		Assert.That(Engine.Updates.FixedLag == expected);
 	}
@@ -548,7 +548,7 @@ class EngineTests
 	{
 		Engine.Updates.MaxVariableTime = maxVariableTime;
 
-		Engine.Update(deltaVariableTime);
+		Engine.Updates.Update(deltaVariableTime);
 
 		Assert.That(Engine.Updates.DeltaVariableTime == float.MinNumber(maxVariableTime, deltaVariableTime));
 	}
@@ -564,7 +564,7 @@ class EngineTests
 		Engine.Updates.DeltaFixedTime = deltaFixedTime;
 		Engine.Updates.MaxVariableTime = deltaTime;
 
-		Engine.Update(deltaTime);
+		Engine.Updates.Update(deltaTime);
 
 		Assert.That(Engine.Updates.VariableInterpolation == variableInterpolation);
 	}
@@ -589,7 +589,7 @@ class EngineTests
 	public void When_DeltaFixedTime_Then_DeltaFixedTimeExpected(float deltaFixedTime)
 	{
 		Engine.Updates.DeltaFixedTime = deltaFixedTime;
-		Engine.Update(deltaFixedTime);
+		Engine.Updates.Update(deltaFixedTime);
 
 		Assert.That(Engine.Updates.DeltaFixedTime == deltaFixedTime);
 	}
@@ -621,7 +621,7 @@ class EngineTests
 		var system = engine.Systems.Add<TestFamilySystem>();
 		system.UpdateSleepingEntities = systemSleeping;
 
-		engine.Update(0.125f);
+		engine.Updates.Update(0.125f);
 
 		Assert.That(component.TestUpdate == expected);
 	}
@@ -647,7 +647,7 @@ class EngineTests
 		var system = engine.Systems.Get<TestFamilySystem>();
 
 		system.TestAddEntity = true;
-		engine.Update(0.125f);
+		engine.Updates.Update(0.125f);
 
 		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 2);
 	}
@@ -660,7 +660,7 @@ class EngineTests
 		var system = engine.Systems.Get<TestFamilySystem>();
 
 		system.TestRemoveEntity = true;
-		engine.Update(0.125f);
+		engine.Updates.Update(0.125f);
 
 		Assert.That(engine.Families.Get<TestFamilyMember>().Members.Count == 0);
 	}
@@ -674,7 +674,7 @@ class EngineTests
 
 		system.TestRemoveEntity = true;
 		system.TestRemoveSystem = true;
-		engine.Update(0.125f);
+		engine.Updates.Update(0.125f);
 
 		Assert.That(engine.Families.Get<TestFamilyMember>() == null);
 		Assert.That(!engine.Families.Has<TestFamilyMember>());
