@@ -5,12 +5,12 @@ using System.Numerics;
 namespace Atlas.Core.Objects.Update;
 
 /// <summary>
-/// Updater is a class used to test the update loop of the IEngine in environments where you don't have
-/// a framework or other engine to provide an update loop for you. For example, in MonoGame the best practice
-/// is to put your AtlasEngine.Update() call directly into Game.Update() so MonoGame can provide the time.
+/// <see cref="UpdateRunner{T}"/> provides an update loop to an <see cref="IUpdate{T}"/> instance.
 /// </summary>
-public class UpdateRunner<T> where T : INumber<T>
+public sealed class UpdateRunner<T> : IUpdateRunner where T : INumber<T>
 {
+	public event Action<IUpdateRunner, bool> IsRunningChanged;
+
 	private readonly Stopwatch timer = new();
 	private readonly IUpdate<T> instance;
 	private bool isRunning = false;
@@ -28,8 +28,9 @@ public class UpdateRunner<T> where T : INumber<T>
 			if(isRunning == value)
 				return;
 			isRunning = value;
+			IsRunningChanged?.Invoke(this, value);
 			//Only run again when the last Update()/timer is done.
-			//If the Updater is turned off and on during an Update()
+			//If the UpdateRunner is turned off and on during an Update()
 			//loop, while(isRunning) will catch it.
 			if(value && !timer.IsRunning)
 			{
