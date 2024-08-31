@@ -6,6 +6,7 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 {
 	#region Events
@@ -52,14 +53,12 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	public IEngine Engine { get; }
 
 	#region Updates
-	[JsonIgnore]
 	public bool IsUpdating
 	{
 		get => Updater.IsUpdating;
 		private set => Updater.IsUpdating = value;
 	}
 
-	[JsonIgnore]
 	public TimeStep TimeStep
 	{
 		get => Updater.TimeStep;
@@ -67,6 +66,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 
 	#region Delta / Total Times
+	[JsonProperty]
 	public float MaxVariableTime
 	{
 		get => maxVariableTime;
@@ -80,7 +80,6 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	[JsonIgnore]
 	public float DeltaVariableTime
 	{
 		get => deltaVariableTime;
@@ -94,7 +93,6 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	[JsonIgnore]
 	public float TotalVariableTime
 	{
 		get => totalVariableTime;
@@ -106,6 +104,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
+	[JsonProperty]
 	public float DeltaFixedTime
 	{
 		get => deltaFixedTime;
@@ -119,7 +118,6 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	[JsonIgnore]
 	public float TotalFixedTime
 	{
 		get => totalFixedTime;
@@ -133,28 +131,24 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	#endregion
 
 	#region State
-	[JsonIgnore]
 	public int FixedLag
 	{
 		get => fixedLag;
 		private set => fixedLag = value;
 	}
 
-	[JsonIgnore]
 	public int FixedUpdates
 	{
 		get => fixedUpdates;
 		private set => fixedUpdates = value;
 	}
 
-	[JsonIgnore]
 	public float VariableInterpolation
 	{
 		get => variableInterpolation;
 		private set => variableInterpolation = value;
 	}
 
-	[JsonIgnore]
 	public ISystem UpdateSystem
 	{
 		get => updateSystem;

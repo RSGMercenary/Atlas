@@ -10,6 +10,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Families;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 internal sealed class FamilyManager : IFamilyManager
 {
 	#region Events
@@ -100,7 +101,7 @@ internal sealed class FamilyManager : IFamilyManager
 	#endregion
 
 	#region Get
-	[JsonIgnore]
+	[JsonProperty]
 	public IReadOnlyLinkList<IReadOnlyFamily> Families => families;
 
 	public IReadOnlyDictionary<Type, IReadOnlyFamily> Types => types;

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Systems;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 internal sealed class SystemManager : ISystemManager
 {
 	#region Events
@@ -95,11 +96,11 @@ internal sealed class SystemManager : ISystemManager
 	#endregion
 
 	#region Get
-	[JsonIgnore]
+	[JsonProperty]
 	public IReadOnlyLinkList<ISystem> FixedSystems => fixedSystems;
 
+	[JsonProperty]
 	public IReadOnlyLinkList<ISystem> VariableSystems => variableSystems;
-
 
 	public IReadOnlyDictionary<Type, ISystem> Types => types;
 

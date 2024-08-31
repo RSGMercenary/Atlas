@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Entities;
 
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 internal sealed class EntityManager : IEntityManager
 {
 	#region Events
@@ -68,7 +69,7 @@ internal sealed class EntityManager : IEntityManager
 	#endregion
 
 	#region Get
-	[JsonIgnore]
+	[JsonProperty]
 	public IReadOnlyLinkList<IEntity> Entities => entities;
 
 	public IReadOnlyDictionary<string, IEntity> GlobalNames => globalNames;

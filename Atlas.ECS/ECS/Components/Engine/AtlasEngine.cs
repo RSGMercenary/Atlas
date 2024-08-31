@@ -9,26 +9,28 @@ using System;
 
 namespace Atlas.ECS.Components.Engine;
 
-[JsonObject]
+[JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 {
-	private readonly EntityManager entities;
-	private readonly FamilyManager families;
-	private readonly SystemManager systems;
-	private readonly UpdateManager updates;
-
 	public AtlasEngine()
 	{
-		entities = new EntityManager(this);
-		families = new FamilyManager(this);
-		systems = new SystemManager(this);
-		updates = new UpdateManager(this);
+		Entities = new EntityManager(this);
+		Families = new FamilyManager(this);
+		Systems = new SystemManager(this);
+		Updates = new UpdateManager(this);
 	}
 
-	public IEntityManager Entities => entities;
-	public IFamilyManager Families => families;
-	public ISystemManager Systems => systems;
-	public IUpdateManager Updates => updates;
+	[JsonProperty]
+	public IEntityManager Entities { get; }
+
+	[JsonProperty]
+	public IFamilyManager Families { get; }
+
+	[JsonProperty]
+	public ISystemManager Systems { get; }
+
+	[JsonProperty]
+	public IUpdateManager Updates { get; }
 
 	protected override void AddingManager(IEntity entity, int index)
 	{
@@ -36,12 +38,12 @@ public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 			throw new InvalidOperationException($"{nameof(IEngine)} can't be added to {nameof(IEntity)} when {nameof(IEntity.IsRoot)} is false.");
 
 		base.AddingManager(entity, index);
-		entities.AddEntity(entity);
+		((EntityManager)Entities).AddEntity(entity);
 	}
 
 	protected override void RemovingManager(IEntity entity, int index)
 	{
-		entities.RemoveEntity(entity);
+		((EntityManager)Entities).RemoveEntity(entity);
 		base.RemovingManager(entity, index);
 	}
 }

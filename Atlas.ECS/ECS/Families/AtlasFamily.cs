@@ -95,7 +95,6 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 
 	IReadOnlyLinkList<IFamilyMember> IReadOnlyFamily.Members => members;
 
-	[JsonIgnore]
 	public IReadOnlyLinkList<TFamilyMember> Members => members;
 
 	[JsonProperty(PropertyName = nameof(Members))]

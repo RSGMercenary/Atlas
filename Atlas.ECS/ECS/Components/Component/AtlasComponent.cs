@@ -91,7 +91,6 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 	#region Get
 	public IEntity Manager => !IsShareable && managers.Count > 0 ? managers[0] : null;
 
-	[JsonIgnore]
 	public IReadOnlyLinkList<IEntity> Managers => managers;
 
 	[JsonProperty(PropertyName = nameof(Managers))]

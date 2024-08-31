@@ -180,7 +180,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Names
-	[JsonProperty(Order = int.MinValue + 2)]
 	public string GlobalName
 	{
 		get => globalName;
@@ -194,7 +193,19 @@ public sealed class AtlasEntity : IEntity
 		}
 	}
 
-	[JsonProperty(Order = int.MinValue + 3)]
+	[JsonProperty(PropertyName = nameof(GlobalName), Order = int.MinValue)]
+	private string SerializeGlobalName
+	{
+		get => GlobalName;
+		set
+		{
+			if(value == RootName)
+				IsRoot = true;
+			GlobalName = value;
+		}
+	}
+
+	[JsonProperty(Order = int.MinValue + 1)]
 	public string LocalName
 	{
 		get => localName;
@@ -227,7 +238,6 @@ public sealed class AtlasEntity : IEntity
 	#region Root
 	public IEntity Root => Hierarchy.Root;
 
-	[JsonProperty(Order = int.MinValue)]
 	public bool IsRoot
 	{
 		get => Hierarchy.IsRoot;
@@ -254,7 +264,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Get
-	[JsonIgnore]
 	public IReadOnlyLinkList<IEntity> Children => Hierarchy.Children;
 
 	[JsonProperty(PropertyName = nameof(Children), Order = int.MaxValue)]
@@ -340,7 +349,6 @@ public sealed class AtlasEntity : IEntity
 
 	public Type GetComponentType(IComponent component) => components.Keys.FirstOrDefault(type => components[type] == component);
 
-	[JsonIgnore]
 	public IReadOnlyDictionary<Type, IComponent> Components => components;
 
 	[JsonProperty(PropertyName = nameof(Components), Order = int.MaxValue - 1)]
@@ -564,7 +572,7 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region AutoDispose
-	[JsonProperty(Order = int.MinValue + 1)]
+	[JsonProperty(Order = int.MinValue + 2)]
 	public bool IsAutoDisposable
 	{
 		get => AutoDispose.IsAutoDisposable;
