@@ -11,6 +11,9 @@ namespace Atlas.ECS.Families;
 
 public interface IReadOnlyFamily : IEngineManager<IReadOnlyFamily>, IEnumerable, IDisposable, ISerialize
 {
+	event Action<IReadOnlyFamily, IFamilyMember> MemberAdded;
+	event Action<IReadOnlyFamily, IFamilyMember> MemberRemoved;
+
 	/// <summary>
 	/// Automatically called on <see cref="IFamily"/> instances removed from the <see cref="IFamilyManager"/>.
 	/// </summary>
@@ -33,8 +36,8 @@ public interface IFamily : IReadOnlyFamily
 public interface IReadOnlyFamily<TFamilyMember> : IEngineManager<IReadOnlyFamily>, IReadOnlyFamily, IEnumerable<TFamilyMember>
 	where TFamilyMember : class, IFamilyMember, new()
 {
-	event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
-	event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+	new event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+	new event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
 
 	new IReadOnlyLinkList<TFamilyMember> Members { get; }
 

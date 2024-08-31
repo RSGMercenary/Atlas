@@ -24,8 +24,22 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		add => EngineManager.EngineChanged += value;
 		remove => EngineManager.EngineChanged -= value;
 	}
+
 	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberAdded;
+
 	public event Action<IReadOnlyFamily<TFamilyMember>, TFamilyMember> MemberRemoved;
+
+	event Action<IReadOnlyFamily, IFamilyMember> IReadOnlyFamily.MemberAdded
+	{
+		add => MemberAdded += value;
+		remove => MemberAdded -= value;
+	}
+
+	event Action<IReadOnlyFamily, IFamilyMember> IReadOnlyFamily.MemberRemoved
+	{
+		add => MemberRemoved += value;
+		remove => MemberRemoved -= value;
+	}
 	#endregion
 
 	#region Fields
