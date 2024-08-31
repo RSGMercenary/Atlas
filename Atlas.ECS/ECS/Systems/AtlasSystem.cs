@@ -2,6 +2,7 @@
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 
 namespace Atlas.ECS.Systems;
@@ -154,6 +155,8 @@ public abstract class AtlasSystem : ISystem
 		internal set => Updater.IsUpdating = value;
 	}
 
+	[JsonProperty]
+	[JsonConverter(typeof(StringEnumConverter))]
 	public TimeStep TimeStep
 	{
 		get => Updater.TimeStep;
@@ -167,6 +170,7 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Priority
+	[JsonProperty]
 	public int Priority
 	{
 		get => priority;
