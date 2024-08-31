@@ -18,6 +18,17 @@ public interface ISystem : IEngineManager<ISystem>, IUpdater<ISystem>, IUpdate<f
 	/// </summary>
 	new void Dispose();
 
+	/// <summary>
+	/// The <see cref="Core.Objects.Update.TimeStep"/> of the <see cref="ISystem"/>.
+	/// <para><see cref="ISystem"/> instances are added to <see cref="ISystemManager.FixedSystems"/>, 
+	/// <see cref="ISystemManager.VariableSystems"/>, or no list based on their <see cref="TimeStep"/>.</para>
+	/// </summary>
+	new TimeStep TimeStep { get; }
+
+	/// <summary>
+	/// The <see cref="Priority"/> of the <see cref="ISystem"/>.
+	/// <para><see cref="ISystem"/> instances are ordered and updated in <see cref="ISystemManager"/> based on their <see cref="Priority"/>.</para>
+	/// </summary>
 	int Priority { get; set; }
 
 	/// <summary>
