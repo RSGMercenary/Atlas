@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Objects.Sleep;
 using Atlas.Core.Objects.Update;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Components.Engine.Systems;
 using Atlas.ECS.Serialization;
 using System;
 
@@ -8,11 +9,12 @@ namespace Atlas.ECS.Systems;
 
 public interface ISystem : IEngineManager<ISystem>, IUpdater<ISystem>, IUpdate<float>, ISleep<ISystem>, IDisposable, ISerialize
 {
-	event Action<ISystem, float, float> IntervalChanged;
 	event Action<ISystem, int, int> PriorityChanged;
 
+	event Action<ISystem, float, float> IntervalChanged;
+
 	/// <summary>
-	/// Automatically called on Systems removed from the Engine.
+	/// Automatically called on <see cref="ISystem"/> instances removed from the <see cref="ISystemManager"/>.
 	/// </summary>
 	new void Dispose();
 

@@ -1,5 +1,6 @@
 ﻿using Atlas.Core.Collections.LinkList;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Components.Engine.Families;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
 using System;
@@ -8,20 +9,20 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Families;
 
-public interface IReadOnlyFamily : IEngineManager<IReadOnlyFamily>, IEnumerable, ISerialize
+public interface IReadOnlyFamily : IEngineManager<IReadOnlyFamily>, IEnumerable, IDisposable, ISerialize
 {
+	/// <summary>
+	/// Automatically called on <see cref="IFamily"/> instances removed from the <see cref="IFamilyManager"/>.
+	/// </summary>
+	new void Dispose();
+
 	IReadOnlyLinkList<IFamilyMember> Members { get; }
 
 	IFamilyMember GetMember(IEntity entity);
 }
 
-public interface IFamily : IReadOnlyFamily, IDisposable
+public interface IFamily : IReadOnlyFamily
 {
-	/// <summary>
-	/// Automatically called on Families removed from the Engine.
-	/// </summary>
-	new void Dispose();
-
 	void AddEntity(IEntity entity);
 	void RemoveEntity(IEntity entity);
 
