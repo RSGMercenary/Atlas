@@ -55,7 +55,7 @@ class ReflectionExtensionsTests
 	}
 
 	[Test]
-	public void When_FindField_IsNull_Then_()
+	public void When_FindField_AsNull_Then_NullExpected()
 	{
 		var result = (null as Type).FindField("name", Flags);
 

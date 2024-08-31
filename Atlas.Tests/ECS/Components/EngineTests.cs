@@ -596,7 +596,7 @@ class EngineTests
 	}
 
 	[Test]
-	public void When_SystemUpdate_And_NotUpdateSystem_Then_SystemNoUpdated()
+	public void When_SystemUpdate_And_NotUpdateSystem_Then_SystemNotUpdated()
 	{
 		var system = Engine.Systems.Add<TestSystem>();
 

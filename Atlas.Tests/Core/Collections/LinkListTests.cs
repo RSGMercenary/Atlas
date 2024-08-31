@@ -233,7 +233,7 @@ class LinkListTests
 	}
 
 	[Test]
-	public void When_ThingsHappen_ThenCry()
+	public void When_GetIterators_AndDisposeOne_Then_IteratorTwoRetained()
 	{
 		AddLetters();
 

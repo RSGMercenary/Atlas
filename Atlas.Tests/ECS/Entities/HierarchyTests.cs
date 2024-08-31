@@ -248,7 +248,7 @@ class HierarchyTests
 	}
 
 	[Test]
-	public void When_ParentIndex_Then_IndexIs()
+	public void When_ParentIndex_Then_IndexIsNegativeOne()
 	{
 		var child = new AtlasEntity();
 

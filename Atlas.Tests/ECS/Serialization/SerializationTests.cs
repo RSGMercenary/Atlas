@@ -127,10 +127,7 @@ class SerializationTests
 		var json = AtlasSerializer.Serialize(system);
 		var clone = AtlasSerializer.Deserialize<ISystem>(json);
 
-		var json1 = system.Serialize(Formatting.Indented);
-		var json2 = clone.Serialize(Formatting.Indented);
-
-		Assert.That(json1 == json2);
+		Assert.That(system.Serialize() == clone.Serialize());
 	}
 
 	[TestCase(true)]

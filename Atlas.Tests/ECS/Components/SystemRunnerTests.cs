@@ -129,7 +129,7 @@ class SystemRunnerTests
 	}
 
 	[Test]
-	public void When_RemoveSystem_Then_SystemRemovedFromEnginez()
+	public void When_RemoveSystem_InDifferentStates_Then_SystemRemovedFromEngine()
 	{
 		var root = new AtlasEntity(true);
 		var engine = new AtlasEngine();

@@ -132,7 +132,7 @@ class SystemTests
 	}
 
 	[Test]
-	public void When_()
+	public void When_Enumerate_Then_Enumerated()
 	{
 		var system = new TestFamilySystem();
 		foreach(var member in (IEnumerable)system)
