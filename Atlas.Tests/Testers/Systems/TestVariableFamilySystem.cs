@@ -6,13 +6,17 @@ using Atlas.Tests.Testers.Families;
 
 namespace Atlas.Tests.Testers.Systems;
 
-class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
+class TestVariableFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 {
 	public bool TestUpdate = false;
 	public bool TestAddEntity = false;
 	public bool TestRemoveEntity = false;
 	public bool TestRemoveSystem = false;
 
+	public TestVariableFamilySystem()
+	{
+		TimeStep = TimeStep.Variable;
+	}
 
 	protected override void SystemUpdate(float deltaTime)
 	{
@@ -38,7 +42,7 @@ class TestFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
 		}
 
 		if(TestRemoveSystem)
-			Engine.Systems.Remove<TestFamilySystem>();
+			Engine.Systems.Remove<TestVariableFamilySystem>();
 	}
 
 	public new bool UpdateSleepingEntities

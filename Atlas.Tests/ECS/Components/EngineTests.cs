@@ -619,7 +619,7 @@ class EngineTests
 		root.AddComponent(component);
 		root.IsSleeping = entitySleeping;
 
-		var system = engine.Systems.Add<TestFamilySystem>();
+		var system = engine.Systems.Add<TestVariableFamilySystem>();
 		system.UpdateSleepingEntities = systemSleeping;
 
 		engine.Updates.Update(0.125f);
@@ -645,7 +645,7 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.Systems.Get<TestFamilySystem>();
+		var system = engine.Systems.Get<TestVariableFamilySystem>();
 
 		system.TestAddEntity = true;
 		engine.Updates.Update(0.125f);
@@ -658,7 +658,7 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.Systems.Get<TestFamilySystem>();
+		var system = engine.Systems.Get<TestVariableFamilySystem>();
 
 		system.TestRemoveEntity = true;
 		engine.Updates.Update(0.125f);
@@ -671,7 +671,7 @@ class EngineTests
 	{
 		var root = GetRoot();
 		var engine = root.GetComponent<AtlasEngine>();
-		var system = engine.Systems.Get<TestFamilySystem>();
+		var system = engine.Systems.Get<TestVariableFamilySystem>();
 
 		system.TestRemoveEntity = true;
 		system.TestRemoveSystem = true;
@@ -679,8 +679,8 @@ class EngineTests
 
 		Assert.That(engine.Families.Get<TestFamilyMember>() == null);
 		Assert.That(!engine.Families.Has<TestFamilyMember>());
-		Assert.That(engine.Systems.Get<TestFamilySystem>() == null);
-		Assert.That(!engine.Systems.Has<TestFamilySystem>());
+		Assert.That(engine.Systems.Get<TestVariableFamilySystem>() == null);
+		Assert.That(!engine.Systems.Has<TestVariableFamilySystem>());
 	}
 
 	private IEntity GetRoot()
@@ -695,7 +695,7 @@ class EngineTests
 		root.AddComponent(engine);
 		entity.AddComponent(component);
 
-		engine.Systems.Add<TestFamilySystem>();
+		engine.Systems.Add<TestVariableFamilySystem>();
 
 		return root;
 	}

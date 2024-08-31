@@ -32,7 +32,10 @@ class SerializationTests
 	{
 		GetRootAndClone(out var root, out var clone);
 
-		Assert.That(root.Serialize() == clone.Serialize());
+		var json1 = root.Serialize(Formatting.Indented);
+		var json2 = clone.Serialize(Formatting.Indented);
+
+		Assert.That(json1 == json2);
 	}
 
 	[TestCase]
@@ -72,6 +75,26 @@ class SerializationTests
 		var clone = AtlasSerializer.Deserialize<IComponent>(json);
 
 		Assert.That(component.Serialize() == clone.Serialize());
+	}
+
+	[Test]
+	public void When_SerializeEngine_Then_JsonIsntNull()
+	{
+		var root = new AtlasEntity(true);
+		var child = new AtlasEntity("Child", "Child");
+		var engine = new AtlasEngine();
+
+		root.AddComponent(engine);
+		root.AddChild(child);
+
+		child.AddComponent<TestComponent>();
+
+		engine.Systems.Add<TestFixedFamilySystem>();
+		engine.Systems.Add<TestVariableFamilySystem>();
+
+		var json = engine.Serialize(Formatting.Indented);
+
+		Assert.That(json != null);
 	}
 
 	[Test]
@@ -116,7 +139,7 @@ class SerializationTests
 			root.AddChild(entity);
 		}
 
-		var system = engine.Systems.Add<TestFamilySystem>();
+		var system = engine.Systems.Add<TestVariableFamilySystem>();
 
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
 		system.IsSleeping = Random.NextBool();
@@ -145,6 +168,7 @@ class SerializationTests
 	private void GetRootAndClone(out IEntity root, out IEntity clone)
 	{
 		root = new AtlasEntity(true);
+		root.AddComponent<AtlasEngine>();
 
 		AddChildren(root, Random, Random.Next(6));
 

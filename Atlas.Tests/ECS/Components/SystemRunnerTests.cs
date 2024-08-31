@@ -15,7 +15,7 @@ class SystemRunnerTests
 {
 	#region Add
 	[TestCase<TestSystem>]
-	[TestCase<TestFamilySystem>]
+	[TestCase<TestVariableFamilySystem>]
 	[TestCase<TestMultipleSystem1>]
 	[TestCase<TestMultipleSystem2>]
 	public void When_AddSystem_Then_SystemAdded<T>()
@@ -69,7 +69,7 @@ class SystemRunnerTests
 
 	#region Remove
 	[TestCase<TestSystem>]
-	[TestCase<TestFamilySystem>]
+	[TestCase<TestVariableFamilySystem>]
 	[TestCase<TestMultipleSystem1>]
 	[TestCase<TestMultipleSystem2>]
 	public void When_RemoveSystem_Then_SystemRemoved<T>()
@@ -98,7 +98,7 @@ class SystemRunnerTests
 	{
 		var component = new AtlasSystemRunner();
 		component.AddSystem<TestSystem>();
-		component.AddSystem<TestFamilySystem>();
+		component.AddSystem<TestVariableFamilySystem>();
 
 		Assert.That(component.RemoveSystems());
 		Assert.That(component.Systems.Count == 0);

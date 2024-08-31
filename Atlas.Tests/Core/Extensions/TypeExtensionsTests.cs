@@ -17,7 +17,7 @@ class TypeExtensionsTests
 	[TestCase<IComponent, TestComponent, ITestComponent>(false)]
 	[TestCase<ITestComponent, TestComponent, ITestComponent>(true)]
 	[TestCase<ISystem, TestSystem, ITestSystem>(false)]
-	[TestCase<ISystem, TestFamilySystem, ITestFamilySystem>(false)]
+	[TestCase<ISystem, TestVariableFamilySystem, ITestFamilySystem>(false)]
 	[TestCase<IComponent, AtlasEngine, IEngine>(false)]
 	[TestCase<IEntity, AtlasEntity, IEntity>(true)]
 	public void When_GetInterfaceType_Then_TypeExpected<TType, TInstance, TExpected>(bool inclusive)
