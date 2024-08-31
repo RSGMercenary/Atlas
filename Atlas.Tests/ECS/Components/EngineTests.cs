@@ -384,9 +384,22 @@ class EngineTests
 
 	#region Systems
 	#region Add
-	[TestCase<ITestSystem>]
-	[TestCase<TestSystem>]
-	public void When_AddSystem_Then_SystemAdded<T>()
+	[TestCase<ITestFixedFamilySystem>]
+	[TestCase<TestFixedFamilySystem>]
+	public void When_AddFixedSystem_Then_SystemAdded<T>()
+		where T : class, ISystem
+	{
+		var system = Engine.Systems.Add<T>();
+
+		Assert.That(Engine.Systems.Has<T>());
+		Assert.That(Engine.Systems.Has(system));
+		Assert.That(Engine.Systems.Get<T>() == system);
+		Assert.That(Engine.Systems.FixedSystems.Count == 1);
+	}
+
+	[TestCase<ITestVariableFamilySystem>]
+	[TestCase<TestVariableFamilySystem>]
+	public void When_AddVariableSystem_Then_SystemAdded<T>()
 		where T : class, ISystem
 	{
 		var system = Engine.Systems.Add<T>();

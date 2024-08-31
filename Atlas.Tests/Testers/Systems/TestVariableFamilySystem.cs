@@ -6,7 +6,7 @@ using Atlas.Tests.Testers.Families;
 
 namespace Atlas.Tests.Testers.Systems;
 
-class TestVariableFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
+class TestVariableFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestVariableFamilySystem
 {
 	public bool TestUpdate = false;
 	public bool TestAddEntity = false;

@@ -6,7 +6,7 @@ using Atlas.Tests.Testers.Families;
 
 namespace Atlas.Tests.Testers.Systems;
 
-class TestFixedFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySystem
+class TestFixedFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFixedFamilySystem
 {
 	public bool TestUpdate = false;
 	public bool TestAddEntity = false;
@@ -42,7 +42,7 @@ class TestFixedFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFamilySy
 		}
 
 		if(TestRemoveSystem)
-			Engine.Systems.Remove<TestVariableFamilySystem>();
+			Engine.Systems.Remove<TestFixedFamilySystem>();
 	}
 
 	public new bool UpdateSleepingEntities
