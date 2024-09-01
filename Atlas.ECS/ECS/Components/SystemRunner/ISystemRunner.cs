@@ -1,31 +1,42 @@
 ﻿using Atlas.ECS.Components.Component;
+using Atlas.ECS.Components.Engine.Systems;
 using Atlas.ECS.Systems;
 using System;
 using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.SystemRunner;
 
+/// <summary>
+/// An <see langword="interface"/> providing <see cref="ISystem"/> <see cref="Type"/> values to be run by <see cref="ISystemManager"/>.
+/// </summary>
 public interface ISystemRunner : IComponent<ISystemRunner>
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="ISystem"/> <see cref="Type"/> is added.
+	/// </summary>
 	event Action<ISystemRunner, Type> Added;
+
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="ISystem"/> <see cref="Type"/> is removed.
+	/// </summary>
 	event Action<ISystemRunner, Type> Removed;
 
-	bool HasSystem(Type type);
+	bool Has(Type type);
 
-	bool HasSystem<TSystem>()
+	bool Has<TSystem>()
 		where TSystem : class, ISystem;
 
-	bool AddSystem(Type type);
+	bool Add(Type type);
 
-	bool AddSystem<TSystem>()
+	bool Add<TSystem>()
 		where TSystem : class, ISystem;
 
-	bool RemoveSystem(Type type);
+	bool Remove(Type type);
 
-	bool RemoveSystem<TSystem>()
+	bool Remove<TSystem>()
 		where TSystem : class, ISystem;
 
-	bool RemoveSystems();
+	bool RemoveAll();
 
-	IReadOnlySet<Type> Systems { get; }
+	IReadOnlySet<Type> Types { get; }
 }

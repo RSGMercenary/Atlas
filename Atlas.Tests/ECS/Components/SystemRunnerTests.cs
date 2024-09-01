@@ -22,21 +22,21 @@ class SystemRunnerTests
 		where T : class, ISystem, new()
 	{
 		var component = new AtlasSystemRunner();
-		component.AddSystem<T>();
+		component.Add<T>();
 
-		Assert.That(component.Systems.Count == 1);
-		Assert.That(component.HasSystem<T>());
+		Assert.That(component.Types.Count == 1);
+		Assert.That(component.Has<T>());
 	}
 
 	[Test]
 	public void When_AddSystem_Twice_Then_NoSystemAdded()
 	{
 		var component = new AtlasSystemRunner();
-		component.AddSystem<TestSystem>();
+		component.Add<TestSystem>();
 
-		Assert.That(!component.AddSystem<TestSystem>());
-		Assert.That(component.HasSystem<TestSystem>());
-		Assert.That(component.Systems.Count == 1);
+		Assert.That(!component.Add<TestSystem>());
+		Assert.That(component.Has<TestSystem>());
+		Assert.That(component.Types.Count == 1);
 	}
 
 	[TestCase(null)]
@@ -45,8 +45,8 @@ class SystemRunnerTests
 	{
 		var component = new AtlasSystemRunner();
 
-		Assert.That(!component.AddSystem(type));
-		Assert.That(component.Systems.Count == 0);
+		Assert.That(!component.Add(type));
+		Assert.That(component.Types.Count == 0);
 	}
 
 	[Test]
@@ -76,11 +76,11 @@ class SystemRunnerTests
 		where T : class, ISystem, new()
 	{
 		var component = new AtlasSystemRunner();
-		component.AddSystem<T>();
-		component.RemoveSystem<T>();
+		component.Add<T>();
+		component.Remove<T>();
 
-		Assert.That(component.Systems.Count == 0);
-		Assert.That(!component.HasSystem<T>());
+		Assert.That(component.Types.Count == 0);
+		Assert.That(!component.Has<T>());
 	}
 
 	[TestCase(null)]
@@ -89,19 +89,19 @@ class SystemRunnerTests
 	{
 		var component = new AtlasSystemRunner();
 
-		Assert.That(!component.RemoveSystem(type));
-		Assert.That(component.Systems.Count == 0);
+		Assert.That(!component.Remove(type));
+		Assert.That(component.Types.Count == 0);
 	}
 
 	[Test]
 	public void When_RemoveSystems_Then_SystemsRemoved()
 	{
 		var component = new AtlasSystemRunner();
-		component.AddSystem<TestSystem>();
-		component.AddSystem<TestVariableFamilySystem>();
+		component.Add<TestSystem>();
+		component.Add<TestVariableFamilySystem>();
 
-		Assert.That(component.RemoveSystems());
-		Assert.That(component.Systems.Count == 0);
+		Assert.That(component.RemoveAll());
+		Assert.That(component.Types.Count == 0);
 	}
 
 	[Test]
@@ -109,8 +109,8 @@ class SystemRunnerTests
 	{
 		var component = new AtlasSystemRunner();
 
-		Assert.That(!component.RemoveSystems());
-		Assert.That(component.Systems.Count == 0);
+		Assert.That(!component.RemoveAll());
+		Assert.That(component.Types.Count == 0);
 	}
 
 	[Test]
@@ -136,34 +136,34 @@ class SystemRunnerTests
 		var component = new AtlasSystemRunner();
 
 		//Component
-		component.AddSystem<ITestSystem>();
-		Assert.That(component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 1);
-		component.RemoveSystem<ITestSystem>();
-		Assert.That(!component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 0);
+		component.Add<ITestSystem>();
+		Assert.That(component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 1);
+		component.Remove<ITestSystem>();
+		Assert.That(!component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 0);
 
 		//Component & Entity
 		root.AddComponent<ISystemRunner>(component);
 
-		component.AddSystem<ITestSystem>();
-		Assert.That(component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 1);
-		component.RemoveSystem<ITestSystem>();
-		Assert.That(!component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 0);
+		component.Add<ITestSystem>();
+		Assert.That(component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 1);
+		component.Remove<ITestSystem>();
+		Assert.That(!component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 0);
 
 		//Component & Entity & Engine
 		root.AddComponent<IEngine>(engine);
 
-		component.AddSystem<ITestSystem>();
-		Assert.That(component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 1);
+		component.Add<ITestSystem>();
+		Assert.That(component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 1);
 		Assert.That(engine.Systems.Has<ITestSystem>());
 		Assert.That(engine.Systems.VariableSystems.Count == 1);
-		component.RemoveSystem<ITestSystem>();
-		Assert.That(!component.HasSystem<ITestSystem>());
-		Assert.That(component.Systems.Count == 0);
+		component.Remove<ITestSystem>();
+		Assert.That(!component.Has<ITestSystem>());
+		Assert.That(component.Types.Count == 0);
 		Assert.That(!engine.Systems.Has<ITestSystem>());
 		Assert.That(engine.Systems.VariableSystems.Count == 0);
 	}

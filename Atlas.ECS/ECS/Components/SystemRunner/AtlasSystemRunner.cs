@@ -22,12 +22,12 @@ public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 	public AtlasSystemRunner(IEnumerable<Type> types)
 	{
 		foreach(var type in types)
-			AddSystem(type);
+			Add(type);
 	}
 
 	protected override void Disposing()
 	{
-		RemoveSystems();
+		RemoveAll();
 		base.Disposing();
 	}
 
@@ -67,19 +67,19 @@ public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 	#endregion
 
 	#region Get
-	public IReadOnlySet<Type> Systems => types;
+	public IReadOnlySet<Type> Types => types;
 	#endregion
 
 	#region Has
-	public bool HasSystem<TSystem>() where TSystem : class, ISystem => HasSystem(typeof(TSystem));
+	public bool Has<TSystem>() where TSystem : class, ISystem => Has(typeof(TSystem));
 
-	public bool HasSystem(Type type) => types.Contains(type);
+	public bool Has(Type type) => types.Contains(type);
 	#endregion
 
 	#region Add
-	public bool AddSystem<TSystem>() where TSystem : class, ISystem => AddSystem(typeof(TSystem));
+	public bool Add<TSystem>() where TSystem : class, ISystem => Add(typeof(TSystem));
 
-	public bool AddSystem(Type type)
+	public bool Add(Type type)
 	{
 		if(!typeof(ISystem).IsAssignableFrom(type))
 			return false;
@@ -93,9 +93,9 @@ public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 	#endregion
 
 	#region Remove
-	public bool RemoveSystem<TSystem>() where TSystem : class, ISystem => RemoveSystem(typeof(TSystem));
+	public bool Remove<TSystem>() where TSystem : class, ISystem => Remove(typeof(TSystem));
 
-	public bool RemoveSystem(Type type)
+	public bool Remove(Type type)
 	{
 		if(!typeof(ISystem).IsAssignableFrom(type))
 			return false;
@@ -107,12 +107,12 @@ public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 		return true;
 	}
 
-	public bool RemoveSystems()
+	public bool RemoveAll()
 	{
 		if(types.Count <= 0)
 			return false;
 		foreach(var type in types.ToArray())
-			RemoveSystem(type);
+			Remove(type);
 		return true;
 	}
 	#endregion
