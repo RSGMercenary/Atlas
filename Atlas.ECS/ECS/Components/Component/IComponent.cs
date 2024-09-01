@@ -9,10 +9,19 @@ namespace Atlas.ECS.Components.Component;
 
 public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is added.
+	/// </summary>
 	event Action<IComponent, IEntity> ManagerAdded;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is removed.
+	/// </summary>
 	event Action<IComponent, IEntity> ManagerRemoved;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when <see cref="Managers"/> has changed.
+	/// </summary>
 	event Action<IComponent> ManagersChanged;
 
 	/// <summary>
@@ -151,9 +160,18 @@ public interface IComponent<out T> : IComponent, IAutoDispose<T> where T : IComp
 	/// </summary>
 	new bool IsAutoDisposable { get; set; }
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is added.
+	/// </summary>
 	new event Action<T, IEntity> ManagerAdded;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is removed.
+	/// </summary>
 	new event Action<T, IEntity> ManagerRemoved;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when <see cref="IComponent.Managers"/> has changed.
+	/// </summary>
 	new event Action<T> ManagersChanged;
 }
