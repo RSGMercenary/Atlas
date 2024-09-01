@@ -6,7 +6,7 @@ namespace Atlas.Core.Objects.Sleep;
 /// An <see langword="interface"/> providing <see cref="Sleeping"/> and <see cref="IsSleeping"/> properties for sleep instances.
 /// </summary>
 /// <typeparam name="T">A generic <see cref="Type"/> that is a <see cref="ISleep{T}"/>.</typeparam>
-public interface ISleep<T> where T : ISleep<T>
+public interface ISleep<out T> where T : ISleep<T>
 {
 	/// <summary>
 	/// The <see langword="event"/> invoked when <see cref="Sleeping"/> has changed.
