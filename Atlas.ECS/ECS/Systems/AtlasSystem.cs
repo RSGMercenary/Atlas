@@ -29,6 +29,12 @@ public abstract class AtlasSystem : ISystem
 		remove => Sleep.SleepingChanged -= value;
 	}
 
+	event Action<ISleep, int, int> ISleep.SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
+
 	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged
 	{
 		add => Updater.TimeStepChanged += value;
