@@ -22,8 +22,9 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		remove => Updater.TimeStepChanged -= value;
 	}
 
-	public event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
 	public event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;
+
+	public event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
 	#endregion
 
 	#region Fields
@@ -52,34 +53,46 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 
 	public IEngine Engine { get; }
 
-	#region Updates
-	public bool IsUpdating
-	{
-		get => Updater.IsUpdating;
-		private set => Updater.IsUpdating = value;
-	}
-
-	public TimeStep TimeStep
-	{
-		get => Updater.TimeStep;
-		private set => Updater.TimeStep = value;
-	}
-
-	#region Delta / Total Times
+	#region Fixed Time
 	[JsonProperty]
-	public float MaxVariableTime
+	public float DeltaFixedTime
 	{
-		get => maxVariableTime;
+		get => deltaFixedTime;
 		set
 		{
-			if(maxVariableTime == value)
+			if(deltaFixedTime == value)
 				return;
-			var previous = maxVariableTime;
-			maxVariableTime = value;
-			MaxVariableTimeChanged?.Invoke(this, value, previous);
+			var previous = deltaFixedTime;
+			deltaFixedTime = value;
+			DeltaFixedTimeChanged?.Invoke(this, value, previous);
 		}
 	}
 
+	public float TotalFixedTime
+	{
+		get => totalFixedTime;
+		private set
+		{
+			if(totalFixedTime == value)
+				return;
+			totalFixedTime = value;
+		}
+	}
+
+	public int FixedLag
+	{
+		get => fixedLag;
+		private set => fixedLag = value;
+	}
+
+	public int FixedUpdates
+	{
+		get => fixedUpdates;
+		private set => fixedUpdates = value;
+	}
+	#endregion
+
+	#region Variable Time
 	public float DeltaVariableTime
 	{
 		get => deltaVariableTime;
@@ -105,48 +118,37 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 
 	[JsonProperty]
-	public float DeltaFixedTime
+	public float MaxVariableTime
 	{
-		get => deltaFixedTime;
+		get => maxVariableTime;
 		set
 		{
-			if(deltaFixedTime == value)
+			if(maxVariableTime == value)
 				return;
-			var previous = deltaFixedTime;
-			deltaFixedTime = value;
-			DeltaFixedTimeChanged?.Invoke(this, value, previous);
+			var previous = maxVariableTime;
+			maxVariableTime = value;
+			MaxVariableTimeChanged?.Invoke(this, value, previous);
 		}
-	}
-
-	public float TotalFixedTime
-	{
-		get => totalFixedTime;
-		private set
-		{
-			if(totalFixedTime == value)
-				return;
-			totalFixedTime = value;
-		}
-	}
-	#endregion
-
-	#region State
-	public int FixedLag
-	{
-		get => fixedLag;
-		private set => fixedLag = value;
-	}
-
-	public int FixedUpdates
-	{
-		get => fixedUpdates;
-		private set => fixedUpdates = value;
 	}
 
 	public float VariableInterpolation
 	{
 		get => variableInterpolation;
 		private set => variableInterpolation = value;
+	}
+	#endregion
+
+	#region State
+	public bool IsUpdating
+	{
+		get => Updater.IsUpdating;
+		private set => Updater.IsUpdating = value;
+	}
+
+	public TimeStep TimeStep
+	{
+		get => Updater.TimeStep;
+		private set => Updater.TimeStep = value;
 	}
 
 	public ISystem UpdateSystem
@@ -163,7 +165,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	}
 	#endregion
 
-	#region Update
+	#region Updates
 	public void Update(float deltaTime)
 	{
 		Updater.Assert();
@@ -236,6 +238,5 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 			UpdateSystem = null;
 		}
 	}
-	#endregion
 	#endregion
 }

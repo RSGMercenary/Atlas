@@ -6,26 +6,16 @@ namespace Atlas.ECS.Components.Engine.Updates;
 
 public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManager>, IUpdate<float>
 {
-	event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
+	#region Events
+	/// <summary>
+	/// The <see langword="event"/> invoked when <see cref="DeltaFixedTime"/> has changed.
+	/// </summary>
 	event Action<IUpdateManager, float, float> DeltaFixedTimeChanged;
 
-	#region Variable Time
 	/// <summary>
-	/// The max delta time between updates. Prevents the update loop "spiral of death".
+	/// The <see langword="event"/> invoked when <see cref="MaxVariableTime"/> has changed.
 	/// </summary>
-	float MaxVariableTime { get; set; }
-
-	/// <summary>
-	/// The delta time between variable-time updates. This is set every loop.
-	/// </summary>
-	float DeltaVariableTime { get; }
-
-	/// <summary>
-	/// The total time running variable-time updates. This is set every loop.
-	/// </summary>
-	float TotalVariableTime { get; }
-
-	float VariableInterpolation { get; }
+	event Action<IUpdateManager, float, float> MaxVariableTimeChanged;
 	#endregion
 
 	#region Fixed Time
@@ -42,6 +32,25 @@ public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManage
 	int FixedLag { get; }
 
 	int FixedUpdates { get; }
+	#endregion
+
+	#region Variable Time
+	/// <summary>
+	/// The delta time between variable-time updates. This is set every loop.
+	/// </summary>
+	float DeltaVariableTime { get; }
+
+	/// <summary>
+	/// The total time running variable-time updates. This is set every loop.
+	/// </summary>
+	float TotalVariableTime { get; }
+
+	/// <summary>
+	/// The max delta time between updates. Prevents the update loop "spiral of death".
+	/// </summary>
+	float MaxVariableTime { get; set; }
+
+	float VariableInterpolation { get; }
 	#endregion
 
 	#region Updates

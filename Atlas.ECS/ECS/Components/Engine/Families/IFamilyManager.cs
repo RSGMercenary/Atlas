@@ -13,13 +13,13 @@ public interface IFamilyManager : IReadOnlyEngineManager
 	event Action<IFamilyManager, IFamily> Removed;
 
 	/// /// <summary>
-	/// All <see cref="IFamily"/> instances being managed by the <see cref="IFamilyManager"/>.
+	/// All <see cref="IFamily"/> instances managed by the <see cref="IFamilyManager"/>.
 	/// <para><see cref="IFamily"/> instances are added/removed by <see cref="ISystem"/> instances.</para>
 	/// </summary>
 	IReadOnlyLinkList<IReadOnlyFamily> Families { get; }
 
 	/// /// <summary>
-	/// All <see cref="IFamily"/> instances by <see cref="Type"/> being managed by the <see cref="IFamilyManager"/>.
+	/// All <see cref="IFamily"/> instances by <see cref="Type"/> managed by the <see cref="IFamilyManager"/>.
 	/// </summary>
 	IReadOnlyDictionary<Type, IReadOnlyFamily> Types { get; }
 

@@ -12,13 +12,13 @@ public interface IEntityManager : IReadOnlyEngineManager
 	event Action<IEntityManager, IEntity> Removed;
 
 	/// /// <summary>
-	/// All <see cref="IEntity"/> instances being managed by the <see cref="IEntityManager"/>.
+	/// All <see cref="IEntity"/> instances managed by the <see cref="IEntityManager"/>.
 	/// <para><see cref="IEntity"/> instances are added/removed by becoming descendants of the <see cref="IEntity"/>.Root instance.</para>
 	/// </summary>
 	IReadOnlyLinkList<IEntity> Entities { get; }
 
 	/// <summary>
-	/// All <see cref="IEntity"/> instances by <see cref="IEntity.GlobalName"/> being managed by the <see cref="IEntityManager"/>.
+	/// All <see cref="IEntity"/> instances by <see cref="IEntity.GlobalName"/> managed by the <see cref="IEntityManager"/>.
 	/// </summary>
 	IReadOnlyDictionary<string, IEntity> GlobalNames { get; }
 

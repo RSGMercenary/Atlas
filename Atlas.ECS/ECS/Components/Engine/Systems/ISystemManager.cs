@@ -13,13 +13,13 @@ public interface ISystemManager : IReadOnlyEngineManager
 	event Action<ISystemManager, ISystem, Type> Removed;
 
 	/// <summary>
-	/// All fixed time <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
+	/// All fixed time <see cref="ISystem"/> instances managed by the <see cref="ISystemManager"/>.
 	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
 	IReadOnlyLinkList<ISystem> FixedSystems { get; }
 
 	/// <summary>
-	/// All variable time <see cref="ISystem"/> instances being managed by the <see cref="ISystemManager"/>.
+	/// All variable time <see cref="ISystem"/> instances managed by the <see cref="ISystemManager"/>.
 	/// <para>Systems are ordered and updated by their <see cref="ISystem.Priority"/>.</para>
 	/// </summary>
 	IReadOnlyLinkList<ISystem> VariableSystems { get; }
