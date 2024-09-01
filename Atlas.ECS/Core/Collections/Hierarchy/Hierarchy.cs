@@ -215,13 +215,14 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 
 	public T SetParent(T next, int index)
 	{
+		if(parent == next)
+			return parent;
 		//Prevent changing the Parent of the Root Entity. The root must be the bottom-most entity.
 		//Prevent ancestor/descendant loops by blocking descendants becoming ancestors of their ancestors.
 		if(IsRoot || Self == next || HasDescendant(next))
 			throw new InvalidOperationException("Can't set the root's parent, or the parent to itself or a descendant.");
 		var previous = parent;
-		//TO-DO This may need more checking if parent multi-setting happens during Dispatches.
-		if(previous != null && previous != next)
+		if(previous != null)
 		{
 			parent = null;
 			previous.RootChanged -= OnParentRootChanged;
@@ -236,11 +237,8 @@ public class Hierarchy<T> : IHierarchy<T>, IDisposable
 			next.ChildrenChanged += OnParentChildrenChanged;
 		}
 		Root = next?.Root;
-		if(previous != next)
-		{
-			ParentChanged?.Invoke(Self, next, previous);
-			SetParentIndex(next != null ? index : -1);
-		}
+		ParentChanged?.Invoke(Self, next, previous);
+		SetParentIndex(next != null ? index : -1);
 		return next;
 	}
 
