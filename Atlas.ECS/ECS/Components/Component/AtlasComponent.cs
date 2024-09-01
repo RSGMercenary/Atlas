@@ -2,7 +2,6 @@
 using Atlas.Core.Collections.Pool;
 using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
-using Atlas.ECS.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
@@ -27,23 +26,50 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 }
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, ISerialize
+public abstract class AtlasComponent<T> : IComponent<T>
 	where T : class, IComponent<T>
 {
 	#region Events
-	public event Action<IComponent, bool, bool> IsAutoDisposableChanged
+	public event Action<T, bool> IsAutoDisposableChanged
 	{
 		add => AutoDispose.IsAutoDisposableChanged += value;
 		remove => AutoDispose.IsAutoDisposableChanged -= value;
 	}
-	public event Action<IComponent, IEntity> ManagerAdded;
-	public event Action<IComponent, IEntity> ManagerRemoved;
-	public event Action<IComponent> ManagersChanged;
+
+	event Action<IAutoDispose, bool> IAutoDispose.IsAutoDisposableChanged
+	{
+		add => AutoDispose.IsAutoDisposableChanged += value;
+		remove => AutoDispose.IsAutoDisposableChanged -= value;
+	}
+
+	public event Action<T, IEntity> ManagerAdded;
+
+	public event Action<T, IEntity> ManagerRemoved;
+
+	public event Action<T> ManagersChanged;
+
+	event Action<IComponent, IEntity> IComponent.ManagerAdded
+	{
+		add => ManagerAdded += value;
+		remove => ManagerAdded -= value;
+	}
+
+	event Action<IComponent, IEntity> IComponent.ManagerRemoved
+	{
+		add => ManagerRemoved += value;
+		remove => ManagerRemoved -= value;
+	}
+
+	event Action<IComponent> IComponent.ManagersChanged
+	{
+		add => ManagersChanged += value;
+		remove => ManagersChanged -= value;
+	}
 	#endregion
 
 	#region Fields
 	private readonly LinkList<IEntity> managers = new();
-	private readonly AutoDispose<IComponent> AutoDispose;
+	private readonly AutoDispose<T> AutoDispose;
 	#endregion
 
 	#region Construct / Dispose
@@ -118,7 +144,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		if(previous < 0)
 			return false;
 		if(previous != index)
-			ManagersChanged?.Invoke(this);
+			ManagersChanged?.Invoke(this as T);
 		return true;
 	}
 
@@ -127,7 +153,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		if(!managers.Swap(entity1, entity2))
 			return false;
 		if(entity1 != entity2)
-			ManagersChanged?.Invoke(this);
+			ManagersChanged?.Invoke(this as T);
 		return true;
 	}
 
@@ -136,7 +162,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 		if(!managers.Swap(index1, index2))
 			return false;
 		if(index1 != index2)
-			ManagersChanged?.Invoke(this);
+			ManagersChanged?.Invoke(this as T);
 		return true;
 	}
 	#endregion
@@ -160,7 +186,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 
 				managers.Add(entity, index.Value);
 				AddingManager(entity, index.Value);
-				ManagerAdded?.Invoke(this, entity);
+				ManagerAdded?.Invoke(this as T, entity);
 			}
 			else
 			{
@@ -213,7 +239,7 @@ public abstract class AtlasComponent<T> : IComponent<T>, IEnumerable<IEntity>, I
 			int index = managers.GetIndex(entity);
 			managers.Remove(index);
 			RemovingManager(entity, index);
-			ManagerRemoved?.Invoke(this, entity);
+			ManagerRemoved?.Invoke(this as T, entity);
 			AutoDispose.TryAutoDispose();
 		}
 		else

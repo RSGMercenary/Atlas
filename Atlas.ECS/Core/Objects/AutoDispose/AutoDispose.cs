@@ -2,13 +2,24 @@
 
 namespace Atlas.Core.Objects.AutoDispose;
 
-internal class AutoDispose<T> : IAutoDispose<T>, IDisposable
-	where T : IAutoDispose<T>, IDisposable
+internal class AutoDispose<T> : IAutoDispose<T>
+	where T : class, IAutoDispose<T>
 {
-	public event Action<T, bool, bool> IsAutoDisposableChanged;
+	#region Events
+	public event Action<T, bool> IsAutoDisposableChanged;
+
+	event Action<IAutoDispose, bool> IAutoDispose.IsAutoDisposableChanged
+	{
+		add => IsAutoDisposableChanged += value;
+		remove => IsAutoDisposableChanged -= value;
+	}
+	#endregion
+
+	#region Fields
 	private readonly T Instance;
 	private readonly Func<bool> Condition;
 	private bool isAutoDisposable = true;
+	#endregion
 
 	public AutoDispose(T instance, Func<bool> condition)
 	{
@@ -31,7 +42,7 @@ internal class AutoDispose<T> : IAutoDispose<T>, IDisposable
 				return;
 			var previous = isAutoDisposable;
 			isAutoDisposable = value;
-			IsAutoDisposableChanged?.Invoke(Instance, value, previous);
+			IsAutoDisposableChanged?.Invoke(Instance, value);
 		}
 	}
 

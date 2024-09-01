@@ -3,21 +3,17 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.ECS.Entities;
 using Atlas.ECS.Serialization;
 using System;
+using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Component;
 
-public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
+public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 {
 	event Action<IComponent, IEntity> ManagerAdded;
 
 	event Action<IComponent, IEntity> ManagerRemoved;
 
 	event Action<IComponent> ManagersChanged;
-
-	/// <summary>
-	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
-	/// </summary>
-	new bool IsAutoDisposable { get; set; }
 
 	/// <summary>
 	/// A Boolean of whether this Component is shareable. Shareable Components
@@ -65,7 +61,7 @@ public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
 
 	#region Add
 	/// <summary>
-	/// Adds an Entity to this Component at the given index.
+	/// Adds an <see cref="IEntity"/> to this <see cref="IComponent"/> at the given index.
 	/// </summary>
 	/// <param name="entity">The Entity to add to this Component.</param>
 	/// <param name="index">The index of the Entity in this Component.</param>
@@ -73,7 +69,7 @@ public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
 	IEntity AddManager(IEntity entity, int index);
 
 	/// <summary>
-	/// Adds an Entity to this Component with the given Type and index. The Type
+	/// Adds an <see cref="IEntity"/> to this <see cref="IComponent"/> with the given <paramref name="type"/> and <paramref name="index"/>. The Type
 	/// is used for Component lookup in the Entity and must be a subclass
 	/// or interface if this Component.
 	/// </summary>
@@ -136,18 +132,28 @@ public interface IComponent : IAutoDispose<IComponent>, IDisposable, ISerialize
 
 	#region Managers
 	/// <summary>
-	/// The Entity managing this Component. This is always null if
-	/// the Component is shareable, or only null if no Entity has been
-	/// added yet.
+	/// The <see cref="IEntity"/> instance managing this <see cref="IComponent"/>.
+	/// <para>Returns <see langword="null"/> if <see cref="IComponent.IsShareable"/> is <see langword="true"/>.</para>
 	/// </summary>
 	IEntity Manager { get; }
 
 	/// <summary>
-	/// The Entities managing this Component. This will return all Entities
-	/// regardless of the Component's shareable status.
+	/// The <see cref="IEntity"/> instances managing this <see cref="IComponent"/>.
 	/// </summary>
 	IReadOnlyLinkList<IEntity> Managers { get; }
 	#endregion
 }
 
-public interface IComponent<T> : IComponent where T : IComponent { }
+public interface IComponent<out T> : IComponent, IAutoDispose<T> where T : IComponent<T>
+{
+	/// <summary>
+	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
+	/// </summary>
+	new bool IsAutoDisposable { get; set; }
+
+	new event Action<T, IEntity> ManagerAdded;
+
+	new event Action<T, IEntity> ManagerRemoved;
+
+	new event Action<T> ManagersChanged;
+}
