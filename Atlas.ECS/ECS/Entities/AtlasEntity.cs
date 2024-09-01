@@ -105,13 +105,27 @@ public sealed class AtlasEntity : IEntity
 		add => Sleep.SleepingChanged += value;
 		remove => Sleep.SleepingChanged -= value;
 	}
+
+	event Action<ISleep, int, int> ISleep.SleepingChanged
+	{
+		add => Sleep.SleepingChanged += value;
+		remove => Sleep.SleepingChanged -= value;
+	}
 	#endregion
 
-	public event Action<IEntity, bool, bool> IsAutoDisposableChanged
+	#region AutoDispose
+	public event Action<IEntity, bool> IsAutoDisposableChanged
 	{
 		add => AutoDispose.IsAutoDisposableChanged += value;
 		remove => AutoDispose.IsAutoDisposableChanged -= value;
 	}
+
+	event Action<IAutoDispose, bool> IAutoDispose.IsAutoDisposableChanged
+	{
+		add => AutoDispose.IsAutoDisposableChanged += value;
+		remove => AutoDispose.IsAutoDisposableChanged -= value;
+	}
+	#endregion
 
 	public event Action<IEntity, IComponent, Type> ComponentAdded;
 	public event Action<IEntity, IComponent, Type> ComponentRemoved;
