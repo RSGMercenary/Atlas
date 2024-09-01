@@ -6,10 +6,19 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Families;
 
+/// <summary>
+/// An <see langword="interface"/> providing <see cref="IFamily"/> management.
+/// </summary>
 public interface IFamilyManager : IReadOnlyEngineManager
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IFamily"/> is added.
+	/// </summary>
 	event Action<IFamilyManager, IFamily> Added;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IFamily"/> is removed.
+	/// </summary>
 	event Action<IFamilyManager, IFamily> Removed;
 
 	/// /// <summary>

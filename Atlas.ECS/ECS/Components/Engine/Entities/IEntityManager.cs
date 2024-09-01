@@ -5,10 +5,19 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Entities;
 
+/// <summary>
+/// An <see langword="interface"/> providing <see cref="IEntity"/> management.
+/// </summary>
 public interface IEntityManager : IReadOnlyEngineManager
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> is added.
+	/// </summary>
 	event Action<IEntityManager, IEntity> Added;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> is removed.
+	/// </summary>
 	event Action<IEntityManager, IEntity> Removed;
 
 	/// /// <summary>

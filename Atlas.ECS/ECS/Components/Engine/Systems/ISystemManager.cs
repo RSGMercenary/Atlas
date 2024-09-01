@@ -6,10 +6,19 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Engine.Systems;
 
+/// <summary>
+/// An <see langword="interface"/> providing <see cref="ISystem"/> management.
+/// </summary>
 public interface ISystemManager : IReadOnlyEngineManager
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="ISystem"/> is added.
+	/// </summary>
 	event Action<ISystemManager, ISystem, Type> Added;
 
+	/// <summary>
+	/// The <see langword="event"/> invoked when an <see cref="ISystem"/> is removed.
+	/// </summary>
 	event Action<ISystemManager, ISystem, Type> Removed;
 
 	/// <summary>

@@ -5,6 +5,9 @@ using System;
 
 namespace Atlas.ECS.Components.Engine.Updates;
 
+/// <summary>
+/// An <see langword="interface"/> providing <see cref="IUpdate{T}.Update(T)"/> management.
+/// </summary>
 public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManager>, IUpdate<float>
 {
 	#region Events
