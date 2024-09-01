@@ -10,11 +10,14 @@ namespace Atlas.ECS.Serialization;
 
 public static class AtlasSerializer
 {
+	#region Contract Resolvers
 	private static readonly EntityContractResolver EntityContractResolver = new();
 	private static readonly ComponentContractResolver ComponentContractResolver = new();
 	private static readonly FamilyContractResolver FamilyContractResolver = new();
 	private static readonly SystemContractResolver SystemContractResolver = new();
+	#endregion
 
+	#region Settings
 	//DO NOT MAKE THIS A METHOD!!
 	//Newtonsoft does some weird caching when it's a method.
 	//Breakpoints then won't be hit when debugging.
@@ -27,42 +30,50 @@ public static class AtlasSerializer
 		PreserveReferencesHandling = PreserveReferencesHandling.Objects,
 		TypeNameHandling = TypeNameHandling.Objects,
 	};
+	#endregion
 
-	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.None, int maxDepth = -1)
+	#region Serialize
+	public static string Serialize(this IEntity entity, Formatting formatting = Formatting.None, int maxDepth = -1, params string[] properties)
 	{
 		EntityContractResolver.MaxDepth = maxDepth;
+		EntityContractResolver.Properties = properties;
 		Settings.ContractResolver = EntityContractResolver;
-		return Serialize((ISerialize)entity, formatting);
+		return SerializeInstance(entity, formatting);
 	}
 
 	public static string Serialize(this IComponent component, Formatting formatting = Formatting.None)
 	{
 		ComponentContractResolver.IsEngine = IsEngine(component);
 		Settings.ContractResolver = ComponentContractResolver;
-		return Serialize((ISerialize)component, formatting);
+		return SerializeInstance(component, formatting);
 	}
 
 	public static string Serialize(this IReadOnlyFamily family, Formatting formatting = Formatting.None)
 	{
 		Settings.ContractResolver = FamilyContractResolver;
-		return Serialize((ISerialize)family, formatting);
+		return SerializeInstance(family, formatting);
 	}
 
 	public static string Serialize(this ISystem system, Formatting formatting = Formatting.None)
 	{
 		Settings.ContractResolver = SystemContractResolver;
-		return Serialize((ISerialize)system, formatting);
+		return SerializeInstance(system, formatting);
 	}
 
-	private static string Serialize(ISerialize value, Formatting formatting = Formatting.None)
+	private static string SerializeInstance(ISerialize instance, Formatting formatting = Formatting.None)
 	{
-		return JsonConvert.SerializeObject(value, formatting, Settings);
+		return JsonConvert.SerializeObject(instance, formatting, Settings);
 	}
+	#endregion
 
+	#region Deserialize
 	public static T Deserialize<T>(string json) where T : ISerialize
 	{
 		return JsonConvert.DeserializeObject<T>(json, Settings);
 	}
+	#endregion
 
+	#region Helpers
 	private static bool IsEngine(IComponent component) => component.GetType().IsAssignableTo(typeof(IEngine));
+	#endregion
 }

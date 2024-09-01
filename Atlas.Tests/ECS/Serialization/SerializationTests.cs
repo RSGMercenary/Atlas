@@ -35,6 +35,10 @@ class SerializationTests
 		var json1 = root.Serialize(Formatting.Indented);
 		var json2 = clone.Serialize(Formatting.Indented);
 
+		var json = root.Serialize(Formatting.Indented, -1, "GlobalName");
+
+		var d = AtlasSerializer.Deserialize<IEntity>(json1);
+
 		Assert.That(json1 == json2);
 	}
 
@@ -151,17 +155,6 @@ class SerializationTests
 		var clone = AtlasSerializer.Deserialize<ISystem>(json);
 
 		Assert.That(system.Serialize() == clone.Serialize());
-	}
-
-	[TestCase(true)]
-	[TestCase(true, "GlobalName")]
-	[TestCase(false)]
-	[Repeat(10)]
-	public void When_ToJsonString_Then_ToJsonString_IsEqual(bool hierarchy, params string[] properties)
-	{
-		GetRootAndClone(out var root, out var clone);
-
-		Assert.That(root.ToJsonString(hierarchy, properties) == clone.ToJsonString(hierarchy, properties));
 	}
 
 	#region Helpers
