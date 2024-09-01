@@ -69,5 +69,12 @@ public interface IUpdateManager : IReadOnlyEngineManager, IUpdater<IUpdateManage
 	/// The <see cref="ISystem"/> being updated during the <see cref="IUpdate{T}.Update(T)"/> loop.
 	/// </summary>
 	ISystem UpdateSystem { get; }
+
+	/// <summary>
+	/// The <see cref="Core.Objects.Update.TimeStep"/> of the <see cref="IUpdateManager"/> during the <see cref="IUpdate{T}.Update(T)"/> loop.
+	/// </summary>
+	new TimeStep TimeStep { get; }
+
+	new void Update(float deltaTime);
 	#endregion
 }

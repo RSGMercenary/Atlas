@@ -9,6 +9,9 @@ namespace Atlas.ECS.Systems;
 
 public interface ISystem : IEngineManager<ISystem>, IUpdater<ISystem>, IUpdate<float>, ISleep<ISystem>, IDisposable, ISerialize
 {
+	/// <summary>
+	/// The <see langword="event"/> invoked when <see cref="Priority"/> has changed.
+	/// </summary>
 	event Action<ISystem, int, int> PriorityChanged;
 
 	event Action<ISystem, float, float> IntervalChanged;
