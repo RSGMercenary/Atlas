@@ -23,6 +23,24 @@ public abstract class AtlasSystem : ISystem
 		remove => Updater.IsUpdatingChanged -= value;
 	}
 
+	event Action<IUpdater, bool> IUpdater.IsUpdatingChanged
+	{
+		add => Updater.IsUpdatingChanged += value;
+		remove => Updater.IsUpdatingChanged -= value;
+	}
+
+	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged
+	{
+		add => Updater.TimeStepChanged += value;
+		remove => Updater.TimeStepChanged -= value;
+	}
+
+	event Action<IUpdater, TimeStep, TimeStep> IUpdater.TimeStepChanged
+	{
+		add => Updater.TimeStepChanged += value;
+		remove => Updater.TimeStepChanged -= value;
+	}
+
 	public event Action<ISystem, int, int> SleepingChanged
 	{
 		add => Sleeper.SleepingChanged += value;
@@ -33,12 +51,6 @@ public abstract class AtlasSystem : ISystem
 	{
 		add => Sleeper.SleepingChanged += value;
 		remove => Sleeper.SleepingChanged -= value;
-	}
-
-	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged
-	{
-		add => Updater.TimeStepChanged += value;
-		remove => Updater.TimeStepChanged -= value;
 	}
 
 	public event Action<ISystem, int, int> PriorityChanged;

@@ -16,7 +16,19 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		remove => Updater.IsUpdatingChanged -= value;
 	}
 
+	event Action<IUpdater, bool> IUpdater.IsUpdatingChanged
+	{
+		add => Updater.IsUpdatingChanged += value;
+		remove => Updater.IsUpdatingChanged -= value;
+	}
+
 	public event Action<IUpdateManager, TimeStep, TimeStep> TimeStepChanged
+	{
+		add => Updater.TimeStepChanged += value;
+		remove => Updater.TimeStepChanged -= value;
+	}
+
+	event Action<IUpdater, TimeStep, TimeStep> IUpdater.TimeStepChanged
 	{
 		add => Updater.TimeStepChanged += value;
 		remove => Updater.TimeStepChanged -= value;

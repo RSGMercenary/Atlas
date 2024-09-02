@@ -2,11 +2,25 @@
 
 namespace Atlas.Core.Objects.Update;
 
-internal class Updater<T> : IUpdater<T>, IDisposable where T : IUpdater<T>
+internal class Updater<T> : IUpdater<T>, IDisposable
+	where T : class, IUpdater<T>
 {
 	#region Events
 	public event Action<T, bool> IsUpdatingChanged;
+
+	event Action<IUpdater, bool> IUpdater.IsUpdatingChanged
+	{
+		add => IsUpdatingChanged += value;
+		remove => IsUpdatingChanged -= value;
+	}
+
 	public event Action<T, TimeStep, TimeStep> TimeStepChanged;
+
+	event Action<IUpdater, TimeStep, TimeStep> IUpdater.TimeStepChanged
+	{
+		add => TimeStepChanged += value;
+		remove => TimeStepChanged -= value;
+	}
 	#endregion
 
 	#region Fields
