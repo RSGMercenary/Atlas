@@ -15,4 +15,8 @@ public static class AtlasSettings
 	/// The <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasComponent"/> instances. The default is <see langword="true"/>.
 	/// </summary>
 	public static bool DefaultComponentAutoDispose { get; set; } = true;
+
+	internal static void SetDefaultAutoDispose(IEntity entity) => entity.AutoDispose = DefaultEntityAutoDispose;
+
+	internal static void SetDefaultAutoDispose(IComponent component) => component.AutoDispose = DefaultComponentAutoDispose;
 }

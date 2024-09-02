@@ -150,9 +150,10 @@ public sealed class AtlasEntity : IEntity
 	{
 		EngineManager = new EngineManager<IEntity>(this);
 		AutoDisposer = new AutoDisposer<IEntity>(this, () => Parent == null);
-		AutoDisposer.AutoDispose = AtlasSettings.DefaultEntityAutoDispose;
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleeper = new Sleeper<IEntity>(this);
+
+		AtlasSettings.SetDefaultAutoDispose(this);
 	}
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
@@ -165,6 +166,8 @@ public sealed class AtlasEntity : IEntity
 		EngineManager.Dispose();
 		AutoDisposer.Dispose();
 		Sleeper.Dispose();
+
+		AtlasSettings.SetDefaultAutoDispose(this);
 
 		ComponentAdded = null;
 		ComponentRemoved = null;

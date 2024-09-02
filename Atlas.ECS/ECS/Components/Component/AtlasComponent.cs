@@ -79,7 +79,8 @@ public abstract class AtlasComponent<T> : IComponent<T>
 	{
 		IsShareable = isShareable;
 		AutoDisposer = new(this as T, () => managers.Count <= 0);
-		AutoDisposer.AutoDispose = AtlasSettings.DefaultComponentAutoDispose;
+
+		AtlasSettings.SetDefaultAutoDispose(this);
 	}
 
 	public void Dispose()
@@ -91,6 +92,8 @@ public abstract class AtlasComponent<T> : IComponent<T>
 	{
 		RemoveManagers();
 		AutoDisposer.Dispose();
+
+		AtlasSettings.SetDefaultAutoDispose(this);
 
 		PoolManager.Instance.Put(this);
 	}
