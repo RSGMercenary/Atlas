@@ -1,9 +1,6 @@
 ﻿using Atlas.ECS.Components.Engine;
 using Atlas.ECS.Families;
 using Newtonsoft.Json;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Atlas.ECS.Systems;
 
@@ -51,8 +48,4 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 		engine.Families.Remove<TFamilyMember>();
 		Family = null;
 	}
-
-	public IEnumerator<TFamilyMember> GetEnumerator() => Family?.GetEnumerator() ?? Enumerable.Empty<TFamilyMember>().GetEnumerator();
-
-	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
