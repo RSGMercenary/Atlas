@@ -19,13 +19,13 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 		return this;
 	}
 
-	public IEntityBuilder SetGlobalName(string globalName)
+	public IEntityBuilder GlobalName(string globalName)
 	{
 		Instance.GlobalName = globalName;
 		return this;
 	}
 
-	public IEntityBuilder SetLocalName(string localName)
+	public IEntityBuilder LocalName(string localName)
 	{
 		Instance.LocalName = localName;
 		return this;
@@ -116,9 +116,9 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 
 	#region Hierarchy
 	#region Root
-	public IEntityBuilder SetRoot(bool root)
+	public IEntityBuilder IsRoot(bool isRoot)
 	{
-		Instance.IsRoot = root;
+		Instance.IsRoot = isRoot;
 		return this;
 	}
 	#endregion
@@ -166,24 +166,24 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	#endregion
 	#endregion
 
-	#region Sleeping
-	public IEntityBuilder SetSleeping(bool sleeping)
+	#region Sleep
+	public IEntityBuilder Sleep(bool sleep)
 	{
-		Instance.Sleep(sleeping);
+		Instance.Sleep(sleep);
 		return this;
 	}
 
-	public IEntityBuilder SetSelfSleeping(bool selfSleeping)
+	public IEntityBuilder SelfSleep(bool selfSleep)
 	{
-		Instance.SelfSleep(selfSleeping);
+		Instance.SelfSleep(selfSleep);
 		return this;
 	}
 	#endregion
 
 	#region AutoDispose
-	public IEntityBuilder SetIsAutoDisposable(bool isAutoDisposable)
+	public IEntityBuilder AutoDispose(bool autoDispose)
 	{
-		Instance.IsAutoDisposable = isAutoDisposable;
+		Instance.AutoDispose = autoDispose;
 		return this;
 	}
 	#endregion

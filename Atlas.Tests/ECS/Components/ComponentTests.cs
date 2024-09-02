@@ -163,7 +163,7 @@ class ComponentTests
 		Assert.That(entity1.GetComponent<TestComponent>() == null);
 		Assert.That(entity2.GetComponent<TestComponent>() == component);
 		Assert.That(component.TestDispose == false);
-		Assert.That(component.IsAutoDisposable == true);
+		Assert.That(component.AutoDispose == true);
 	}
 	#endregion
 
@@ -280,11 +280,11 @@ class ComponentTests
 		var entity = new AtlasEntity();
 		var component = new TestComponent();
 
-		component.IsAutoDisposable = isAutoDisposable;
+		component.AutoDispose = isAutoDisposable;
 		entity.AddComponent(component);
 		entity.RemoveComponent(component);
 
-		Assert.That(component.IsAutoDisposable == isAutoDisposable);
+		Assert.That(component.AutoDispose == isAutoDisposable);
 		Assert.That(component.TestDispose == isAutoDisposable);
 	}
 	#endregion

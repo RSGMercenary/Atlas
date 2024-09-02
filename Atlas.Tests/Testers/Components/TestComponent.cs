@@ -2,7 +2,7 @@
 
 namespace Atlas.Tests.Testers.Components;
 
-class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
+internal class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
 {
 	public bool TestUpdate = false;
 	public bool TestDispose = false;
@@ -11,10 +11,10 @@ class TestComponent : AtlasComponent<ITestComponent>, ITestComponent
 
 	public TestComponent(bool isShareable) : base(isShareable) { }
 
-	public override void Dispose()
+	protected override void Disposing()
 	{
-		base.Dispose();
 		TestDispose = true;
+		base.Disposing();
 	}
 
 #pragma warning disable 0169 // Remove unused private members

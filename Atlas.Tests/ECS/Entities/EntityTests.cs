@@ -139,9 +139,9 @@ class EntityTests
 	{
 		var entity = new AtlasEntity();
 
-		entity.IsAutoDisposable = isAutoDisposable;
+		entity.AutoDispose = isAutoDisposable;
 
-		Assert.That(entity.IsAutoDisposable == isAutoDisposable);
+		Assert.That(entity.AutoDispose == isAutoDisposable);
 	}
 
 	[Test]

@@ -65,7 +65,7 @@ class SerializationTests
 	{
 		var component = new TestComponent(Random.NextBool());
 
-		component.IsAutoDisposable = Random.NextBool();
+		component.AutoDispose = Random.NextBool();
 
 		if(component.IsShareable)
 		{
@@ -171,7 +171,7 @@ class SerializationTests
 
 	private void AddChildren(IEntity entity, Random random, int depth)
 	{
-		entity.IsAutoDisposable = Random.NextBool();
+		entity.AutoDispose = Random.NextBool();
 		entity.Sleep(Random.NextBool());
 		entity.SelfSleep(Random.NextBool());
 

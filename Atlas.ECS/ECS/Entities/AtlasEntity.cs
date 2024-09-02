@@ -114,16 +114,16 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region AutoDispose
-	public event Action<IEntity, bool> IsAutoDisposableChanged
+	public event Action<IEntity, bool> AutoDisposeChanged
 	{
-		add => AutoDispose.IsAutoDisposableChanged += value;
-		remove => AutoDispose.IsAutoDisposableChanged -= value;
+		add => AutoDisposer.AutoDisposeChanged += value;
+		remove => AutoDisposer.AutoDisposeChanged -= value;
 	}
 
-	event Action<IAutoDispose, bool> IAutoDispose.IsAutoDisposableChanged
+	event Action<IAutoDisposer, bool> IAutoDisposer.AutoDisposeChanged
 	{
-		add => AutoDispose.IsAutoDisposableChanged += value;
-		remove => AutoDispose.IsAutoDisposableChanged -= value;
+		add => AutoDisposer.AutoDisposeChanged += value;
+		remove => AutoDisposer.AutoDisposeChanged -= value;
 	}
 	#endregion
 
@@ -140,7 +140,7 @@ public sealed class AtlasEntity : IEntity
 	private string localName = UniqueName;
 	private int selfSleeping = 0;
 	private readonly EngineManager<IEntity> EngineManager;
-	private readonly AutoDispose<IEntity> AutoDispose;
+	private readonly AutoDisposer<IEntity> AutoDisposer;
 	private readonly Hierarchy<IEntity> Hierarchy;
 	private readonly Sleeper<IEntity> Sleeper;
 	#endregion
@@ -149,7 +149,7 @@ public sealed class AtlasEntity : IEntity
 	public AtlasEntity()
 	{
 		EngineManager = new EngineManager<IEntity>(this);
-		AutoDispose = new AutoDispose<IEntity>(this, () => Hierarchy.Parent == null);
+		AutoDisposer = new AutoDisposer<IEntity>(this, () => Parent == null);
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleeper = new Sleeper<IEntity>(this);
 	}
@@ -162,7 +162,7 @@ public sealed class AtlasEntity : IEntity
 	{
 		Hierarchy.Dispose();
 		EngineManager.Dispose();
-		AutoDispose.Dispose();
+		AutoDisposer.Dispose();
 		Sleeper.Dispose();
 
 		ComponentAdded = null;
@@ -229,6 +229,15 @@ public sealed class AtlasEntity : IEntity
 	public override string ToString() => GlobalName;
 	#endregion
 
+	#region AutoDispose
+	[JsonProperty(Order = int.MinValue + 2)]
+	public bool AutoDispose
+	{
+		get => AutoDisposer.AutoDispose;
+		set => AutoDisposer.AutoDispose = value;
+	}
+	#endregion
+
 	#region Engine
 	public IEngine Engine
 	{
@@ -284,7 +293,7 @@ public sealed class AtlasEntity : IEntity
 		var previous = Parent;
 		var current = Hierarchy.SetParent(parent, index);
 		SetSleep(current, previous);
-		AutoDispose.TryAutoDispose();
+		AutoDisposer.TryAutoDispose();
 		return parent;
 	}
 	#endregion
@@ -647,14 +656,5 @@ public sealed class AtlasEntity : IEntity
 			Sleep(false);
 	}
 	#endregion
-	#endregion
-
-	#region AutoDispose
-	[JsonProperty(Order = int.MinValue + 2)]
-	public bool IsAutoDisposable
-	{
-		get => AutoDispose.IsAutoDisposable;
-		set => AutoDispose.IsAutoDisposable = value;
-	}
 	#endregion
 }

@@ -9,9 +9,9 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IB
 	#region Names
 	IEntityBuilder SetNames(string name);
 
-	IEntityBuilder SetGlobalName(string globalName);
+	IEntityBuilder GlobalName(string globalName);
 
-	IEntityBuilder SetLocalName(string localName);
+	IEntityBuilder LocalName(string localName);
 	#endregion
 
 	#region Components
@@ -57,12 +57,12 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IB
 	#endregion
 
 	#region Sleeping
-	IEntityBuilder SetSleeping(bool sleeping);
+	IEntityBuilder Sleep(bool sleeping);
 
-	IEntityBuilder SetSelfSleeping(bool selfSleeping);
+	IEntityBuilder SelfSleep(bool selfSleeping);
 	#endregion
 
 	#region AutoDispose
-	IEntityBuilder SetIsAutoDisposable(bool isAutoDisposable);
+	IEntityBuilder AutoDispose(bool isAutoDisposable);
 	#endregion
 }

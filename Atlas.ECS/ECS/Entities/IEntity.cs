@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
+public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDisposer<IEntity>, IDisposable, ISerialize
 {
 	#region Events
 	event Action<IEntity, IComponent, Type> ComponentAdded;
@@ -23,7 +23,7 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleepe
 	/// <summary>
 	/// Determines if <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IEntity"/>.Parent == <see langword="null"/>.
 	/// </summary>
-	new bool IsAutoDisposable { get; set; }
+	new bool AutoDispose { get; set; }
 
 	/// <summary>
 	/// This <see cref="IEntity"/>'s global name. This name is unique to its Engine.

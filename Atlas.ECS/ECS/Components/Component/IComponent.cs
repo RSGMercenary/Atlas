@@ -7,7 +7,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Component;
 
-public interface IComponent : IEnumerable<IEntity>, IAutoDispose, IDisposable, ISerialize
+public interface IComponent : IEnumerable<IEntity>, IAutoDisposer, IDisposable, ISerialize
 {
 	#region Events
 	/// <summary>
@@ -36,7 +36,7 @@ public interface IComponent : IEnumerable<IEntity>, IAutoDispose, IDisposable, I
 	/// <summary>
 	/// Determines if <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
 	/// </summary>
-	new bool IsAutoDispose { get; set; }
+	new bool AutoDispose { get; set; }
 
 	#region Get
 	/// <summary>
@@ -162,7 +162,7 @@ public interface IComponent : IEnumerable<IEntity>, IAutoDispose, IDisposable, I
 	#endregion
 }
 
-public interface IComponent<out T> : IComponent, IAutoDispose<T> where T : IComponent<T>
+public interface IComponent<out T> : IComponent, IAutoDisposer<T> where T : IComponent<T>
 {
 	#region Events
 	/// <summary>

@@ -6,7 +6,7 @@ public interface IHierarchyBuilder<TBuilder, T> : IBuilder<TBuilder, T>
 	where TBuilder : IHierarchyBuilder<TBuilder, T>
 	where T : class, IHierarchy<T>
 {
-	TBuilder SetRoot(bool root);
+	TBuilder IsRoot(bool root);
 
 	TBuilder AddChild(T child);
 

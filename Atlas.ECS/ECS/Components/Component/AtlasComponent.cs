@@ -30,16 +30,16 @@ public abstract class AtlasComponent<T> : IComponent<T>
 	where T : class, IComponent<T>
 {
 	#region Events
-	public event Action<T, bool> IsAutoDisposableChanged
+	public event Action<T, bool> AutoDisposeChanged
 	{
-		add => AutoDispose.IsAutoDisposableChanged += value;
-		remove => AutoDispose.IsAutoDisposableChanged -= value;
+		add => AutoDisposer.AutoDisposeChanged += value;
+		remove => AutoDisposer.AutoDisposeChanged -= value;
 	}
 
-	event Action<IAutoDispose, bool> IAutoDispose.IsAutoDisposableChanged
+	event Action<IAutoDisposer, bool> IAutoDisposer.AutoDisposeChanged
 	{
-		add => AutoDispose.IsAutoDisposableChanged += value;
-		remove => AutoDispose.IsAutoDisposableChanged -= value;
+		add => AutoDisposer.AutoDisposeChanged += value;
+		remove => AutoDisposer.AutoDisposeChanged -= value;
 	}
 
 	public event Action<T, IEntity> ManagerAdded;
@@ -69,20 +69,19 @@ public abstract class AtlasComponent<T> : IComponent<T>
 
 	#region Fields
 	private readonly LinkList<IEntity> managers = new();
-	private readonly AutoDispose<T> AutoDispose;
+	private readonly AutoDisposer<T> AutoDisposer;
 	#endregion
 
 	#region Construct / Dispose
-
 	protected AtlasComponent() : this(false) { }
 
 	protected AtlasComponent(bool isShareable)
 	{
 		IsShareable = isShareable;
-		AutoDispose = new(this as T, () => managers.Count <= 0);
+		AutoDisposer = new(this as T, () => managers.Count <= 0);
 	}
 
-	public virtual void Dispose()
+	public void Dispose()
 	{
 		Disposing();
 	}
@@ -90,11 +89,10 @@ public abstract class AtlasComponent<T> : IComponent<T>
 	protected virtual void Disposing()
 	{
 		RemoveManagers();
-		IsAutoDisposable = true;
+		AutoDisposer.Dispose();
 
 		PoolManager.Instance.Put(this);
 	}
-
 	#endregion
 
 	[JsonProperty(Order = int.MinValue)]
@@ -102,10 +100,10 @@ public abstract class AtlasComponent<T> : IComponent<T>
 
 	#region AutoDispose
 	[JsonProperty(Order = int.MinValue + 1)]
-	public bool IsAutoDisposable
+	public bool AutoDispose
 	{
-		get => AutoDispose.IsAutoDisposable;
-		set => AutoDispose.IsAutoDisposable = value;
+		get => AutoDisposer.AutoDispose;
+		set => AutoDisposer.AutoDispose = value;
 	}
 	#endregion
 
@@ -206,10 +204,10 @@ public abstract class AtlasComponent<T> : IComponent<T>
 		if(Manager == null)
 			return false;
 
-		var isAutoDisposable = IsAutoDisposable;
-		IsAutoDisposable = false;
+		var isAutoDisposable = AutoDispose;
+		AutoDispose = false;
 		RemoveManagers();
-		IsAutoDisposable = isAutoDisposable;
+		AutoDispose = isAutoDisposable;
 		return true;
 	}
 
@@ -240,7 +238,7 @@ public abstract class AtlasComponent<T> : IComponent<T>
 			managers.Remove(index);
 			RemovingManager(entity, index);
 			ManagerRemoved?.Invoke(this as T, entity);
-			AutoDispose.TryAutoDispose();
+			AutoDisposer.TryAutoDispose();
 		}
 		else
 		{
