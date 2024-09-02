@@ -79,7 +79,7 @@ public abstract class AtlasComponent<T> : IComponent<T>
 	{
 		IsShareable = isShareable;
 		AutoDisposer = new(this as T, () => managers.Count <= 0);
-		AutoDisposer.AutoDispose = Atlas.DefaultComponentAutoDispose;
+		AutoDisposer.AutoDispose = AtlasSettings.DefaultComponentAutoDispose;
 	}
 
 	public void Dispose()

@@ -4,7 +4,7 @@ using Atlas.ECS.Entities;
 
 namespace Atlas.ECS;
 
-public static class Atlas
+public static class AtlasSettings
 {
 	/// <summary>
 	/// The <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasEntity"/> instances. The default is <see langword="true"/>.
