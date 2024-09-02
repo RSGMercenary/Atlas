@@ -26,12 +26,12 @@ internal sealed class EntityManager : IEntityManager
 
 	public IEngine Engine { get; }
 
+	public bool RenameDuplicateGlobalNames { get; set; } = true;
+
 	#region Add / Remove
 	internal void AddEntity(IEntity entity)
 	{
-		//Change the Entity's global name if it already exists.
-		if(globalNames.ContainsKey(entity.GlobalName))
-			entity.GlobalName = AtlasEntity.UniqueName;
+		AssertGlobalName(entity);
 
 		globalNames[entity.GlobalName] = entity;
 		entities.Add(entity);
@@ -49,7 +49,7 @@ internal sealed class EntityManager : IEntityManager
 
 	internal void RemoveEntity(IEntity entity)
 	{
-		//Protect against parents signaling a child being removed which never got to be added.
+		//Protect against parents removing a child that never got to be added.
 		if(!globalNames.TryGetValue(entity.GlobalName, out var global) || global != entity)
 			return;
 
@@ -67,6 +67,16 @@ internal sealed class EntityManager : IEntityManager
 		Removed?.Invoke(this, entity);
 	}
 	#endregion
+
+	private void AssertGlobalName(IEntity entity)
+	{
+		if(globalNames.ContainsKey(entity.GlobalName))
+		{
+			if(!RenameDuplicateGlobalNames)
+				throw new InvalidOperationException($"'{entity.GlobalName}' already exists as a Global Name.");
+			entity.GlobalName = AtlasEntity.UniqueName;
+		}
+	}
 
 	#region Get
 	[JsonProperty]

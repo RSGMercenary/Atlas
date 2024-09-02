@@ -32,6 +32,12 @@ public interface IEntityManager : IReadOnlyEngineManager
 	IReadOnlyDictionary<string, IEntity> GlobalNames { get; }
 
 	/// <summary>
+	/// Determines if <see cref="IEntity"/> instances have their <see cref="IEntity.GlobalName"/> renamed if the name is already taken.
+	/// <para>If <see langword="true"/>, the <see cref="IEntity"/> is renamed. If <see langword="false"/>, an <see cref="Exception"/> is thrown. Thr default is <see langword="true"/>.</para>
+	/// </summary>
+	bool RenameDuplicateGlobalNames { get; set; }
+
+	/// <summary>
 	/// Returns the <see cref="IEntity"/> with the given <see cref="IEntity.GlobalName"/>.
 	/// </summary>
 	/// <param name="globalName">The <see cref="IEntity.GlobalName"/>.</param>
