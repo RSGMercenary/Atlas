@@ -38,7 +38,7 @@ internal sealed class SystemManager : ISystemManager
 	private T GenericInvoke<T>(Type type, string name)
 	{
 		if(!typeof(ISystem).IsAssignableFrom(type))
-			throw new ArgumentException($"{type} is not assignable to {typeof(ISystem)}.");
+			throw new ArgumentException($"'{type}' is not assignable to '{typeof(ISystem)}'.");
 		return (T)GetType()
 			.GetMethod(name, 1, [])
 			.MakeGenericMethod(type)

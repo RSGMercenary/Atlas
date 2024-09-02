@@ -19,7 +19,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 		if(type == null)
 			type = component.GetType();
 		else if(!type.IsInstanceOfType(component))
-			throw new ArgumentException($"The component '{component.GetType()}' is not an instance of type '{type}'.");
+			throw new ArgumentException($"'{component.GetType()}' is not assignable to '{type}'.");
 		return type;
 	}
 	#endregion
