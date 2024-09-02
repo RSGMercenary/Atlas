@@ -25,14 +25,14 @@ public abstract class AtlasSystem : ISystem
 
 	public event Action<ISystem, int, int> SleepingChanged
 	{
-		add => Sleep.SleepingChanged += value;
-		remove => Sleep.SleepingChanged -= value;
+		add => Sleeper.SleepingChanged += value;
+		remove => Sleeper.SleepingChanged -= value;
 	}
 
-	event Action<ISleep, int, int> ISleep.SleepingChanged
+	event Action<ISleeper, int, int> ISleeper.SleepingChanged
 	{
-		add => Sleep.SleepingChanged += value;
-		remove => Sleep.SleepingChanged -= value;
+		add => Sleeper.SleepingChanged += value;
+		remove => Sleeper.SleepingChanged -= value;
 	}
 
 	public event Action<ISystem, TimeStep, TimeStep> TimeStepChanged
@@ -53,7 +53,7 @@ public abstract class AtlasSystem : ISystem
 	private float deltaIntervalTime = 0;
 	private readonly EngineManager<ISystem> EngineManager;
 	private readonly Updater<ISystem> Updater;
-	private readonly Sleep<ISystem> Sleep;
+	private readonly Sleeper<ISystem> Sleeper;
 	#endregion
 
 	#region Construct / Dispose
@@ -61,7 +61,7 @@ public abstract class AtlasSystem : ISystem
 	{
 		EngineManager = new(this, EngineChanging);
 		Updater = new(this);
-		Sleep = new(this);
+		Sleeper = new(this);
 
 		//Default all systems to be Variable.
 		TimeStep = TimeStep.Variable;
@@ -79,7 +79,7 @@ public abstract class AtlasSystem : ISystem
 	{
 		EngineManager.Dispose();
 		Updater.Dispose();
-		Sleep.Dispose();
+		Sleeper.Dispose();
 
 		PriorityChanged = null;
 		Priority = 0;
@@ -192,17 +192,11 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Sleeping
-	public int Sleeping
-	{
-		get => Sleep.Sleeping;
-		private set => Sleep.Sleeping = value;
-	}
+	public int Sleeping => Sleeper.Sleeping;
 
-	public bool IsSleeping
-	{
-		get => Sleep.IsSleeping;
-		set => Sleep.IsSleeping = value;
-	}
+	public bool IsSleeping => Sleeper.IsSleeping;
+
+	public void Sleep(bool sleep) => Sleeper.Sleep(sleep);
 	#endregion
 
 	#region Interval Time

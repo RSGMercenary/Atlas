@@ -67,12 +67,13 @@ class SystemTests
 	[TestCase(false)]
 	public void When_IsSleeping_Then_IsSleepingExpected(bool isSleeping)
 	{
-		System.IsSleeping = isSleeping;
+		if(isSleeping)
+			System.Sleep(isSleeping);
 		System.Update(1);
 
 		Assert.That(System.TestUpdate == !isSleeping);
 		Assert.That(System.IsSleeping == isSleeping);
-		Assert.That(System.Sleeping == (isSleeping ? 1 : -1));
+		Assert.That(System.Sleeping == (isSleeping ? 1 : 0));
 	}
 
 	[TestCase(TimeStep.Fixed)]

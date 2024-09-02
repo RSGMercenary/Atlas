@@ -79,7 +79,8 @@ class EntityTests
 	public void When_IsSleeping_Then_IsSleepingExpected(bool isSleeping)
 	{
 		var entity = new AtlasEntity();
-		entity.IsSleeping = isSleeping;
+
+		entity.Sleep(isSleeping);
 
 		Assert.That(entity.IsSleeping == isSleeping);
 	}
@@ -89,7 +90,8 @@ class EntityTests
 	public void When_IsSelfSleeping_Then_IsSelfSleepingExpected(bool isSelfSleeping)
 	{
 		var entity = new AtlasEntity();
-		entity.IsSelfSleeping = isSelfSleeping;
+
+		entity.SelfSleep(isSelfSleeping);
 
 		Assert.That(entity.IsSelfSleeping == isSelfSleeping);
 	}
@@ -105,28 +107,25 @@ class EntityTests
 
 		parent.AddChild(child);
 
-		parent.IsSleeping = parentIsSleeping;
-		child.IsSelfSleeping = childIsSelfSleeping;
+		parent.Sleep(parentIsSleeping);
+		child.SelfSleep(childIsSelfSleeping);
 
 		Assert.That(parent.IsSleeping == parentIsSleeping);
 		Assert.That(child.IsSelfSleeping == childIsSelfSleeping);
 		Assert.That(child.IsSleeping == expected);
 	}
 
-	[TestCase(true, false, true)]
-	[TestCase(true, true, false)]
-	[TestCase(false, false, false)]
-	[TestCase(false, true, false)]
-	public void When_ParentIsSleeping_And_ChildIsSelfSleeping_Changed_Then_ChildIsSleepingExpected(bool parentIsSleeping, bool childIsSelfSleeping, bool expected)
+	[Test]
+	public void When_ParentIsSleeping_And_ChildIsSelfSleeping_Changed_Then_ChildIsSleepingExpected()
 	{
 		var parent = new AtlasEntity();
 		var child = new AtlasEntity();
 
 		parent.AddChild(child);
 
-		parent.IsSleeping = true;
-		child.IsSelfSleeping = true;
-		child.IsSelfSleeping = false;
+		parent.Sleep(true);
+		child.SelfSleep(true);
+		child.SelfSleep(false);
 
 		Assert.That(parent.IsSleeping == true);
 		Assert.That(child.IsSleeping == true);

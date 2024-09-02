@@ -169,13 +169,13 @@ public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuild
 	#region Sleeping
 	public IEntityBuilder SetSleeping(bool sleeping)
 	{
-		Instance.IsSleeping = sleeping;
+		Instance.Sleep(sleeping);
 		return this;
 	}
 
 	public IEntityBuilder SetSelfSleeping(bool selfSleeping)
 	{
-		Instance.IsSelfSleeping = selfSleeping;
+		Instance.SelfSleep(selfSleeping);
 		return this;
 	}
 	#endregion

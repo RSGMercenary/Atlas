@@ -146,7 +146,7 @@ class SerializationTests
 		var system = engine.Systems.Add<TestVariableFamilySystem>();
 
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
-		system.IsSleeping = Random.NextBool();
+		system.Sleep(Random.NextBool());
 		system.UpdateSleepingEntities = Random.NextBool();
 		system.IsUpdating = phases[Random.Next(phases.Length)];
 		system.TimeStep = timeSteps[Random.Next(timeSteps.Length)];
@@ -172,8 +172,8 @@ class SerializationTests
 	private void AddChildren(IEntity entity, Random random, int depth)
 	{
 		entity.IsAutoDisposable = Random.NextBool();
-		entity.IsSleeping = Random.NextBool();
-		entity.IsSelfSleeping = Random.NextBool();
+		entity.Sleep(Random.NextBool());
+		entity.SelfSleep(Random.NextBool());
 
 		if(random.NextBool())
 			entity.AddComponent<TestComponent>();

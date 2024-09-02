@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleep<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
+public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
 {
 	event Action<IEntity, IComponent, Type> ComponentAdded;
 	event Action<IEntity, IComponent, Type> ComponentRemoved;
@@ -174,12 +174,14 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleep<
 	/// <summary>
 	/// Return whether this Entity.SelfSleeping > 0;
 	/// </summary>
-	bool IsSelfSleeping { get; set; }
+	bool IsSelfSleeping { get; }
 
 	/// <summary>
 	/// This Entity's self-sleeping count. If this Entity is self-sleeping,
 	/// its sleeping is not changed by its parent sleeping.
 	/// </summary>
 	int SelfSleeping { get; }
+
+	void SelfSleep(bool selfSleep);
 	#endregion
 }
