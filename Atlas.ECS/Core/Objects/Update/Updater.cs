@@ -2,7 +2,7 @@
 
 namespace Atlas.Core.Objects.Update;
 
-public class Updater<T> : IUpdater<T>, IDisposable where T : IUpdater<T>
+internal class Updater<T> : IUpdater<T>, IDisposable where T : IUpdater<T>
 {
 	#region Events
 	public event Action<T, bool> IsUpdatingChanged;
