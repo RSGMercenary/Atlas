@@ -11,15 +11,17 @@ namespace Atlas.ECS.Entities;
 
 public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDispose<IEntity>, IDisposable, ISerialize
 {
+	#region Events
 	event Action<IEntity, IComponent, Type> ComponentAdded;
 	event Action<IEntity, IComponent, Type> ComponentRemoved;
 	event Action<IEntity, string, string> GlobalNameChanged;
 	event Action<IEntity, string, string> LocalNameChanged;
 	event Action<IEntity, int, int> SelfSleepingChanged;
+	#endregion
 
 	#region Entities
 	/// <summary>
-	/// Determines whether <see cref="IDisposable.Dispose"/> is called when <see cref="Parent"/> == <see langword="null"/>.
+	/// Determines if <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IEntity"/>.Parent == <see langword="null"/>.
 	/// </summary>
 	new bool IsAutoDisposable { get; set; }
 
