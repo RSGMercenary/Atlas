@@ -57,7 +57,8 @@ internal sealed class SystemManager : ISystemManager
 			system.PriorityChanged += PriorityChanged;
 			system.TimeStepChanged += TimeStepChanged;
 
-			AddSystem(system);
+			Add(system);
+
 			types.Add(type, system);
 			references.Add(type, 0);
 			system.Engine = Engine;
@@ -82,7 +83,8 @@ internal sealed class SystemManager : ISystemManager
 
 		system.PriorityChanged -= PriorityChanged;
 		system.TimeStepChanged -= TimeStepChanged;
-		RemoveSystem(system);
+
+		Remove(system);
 
 		types.Remove(type);
 		references.Remove(type);
@@ -108,7 +110,7 @@ internal sealed class SystemManager : ISystemManager
 
 	public ISystem Get(Type type) => types.TryGetValue(type, out var system) ? system : null;
 
-	public ISystem Get(TimeStep timeStep, int index) => GetSystems(timeStep)[index];
+	public ISystem Get(TimeStep timeStep, int index) => Get(timeStep)[index];
 	#endregion
 
 	#region Has
@@ -120,33 +122,26 @@ internal sealed class SystemManager : ISystemManager
 	#endregion
 
 	#region Listeners
-	private void TimeStepChanged(ISystem system, TimeStep current, TimeStep previous) => SetSystem(system, current, previous);
+	private void TimeStepChanged(ISystem system, TimeStep current, TimeStep previous) => Set(system, current, previous);
 
-	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1) => SetSystem(system, system.TimeStep, system.TimeStep);
+	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1) => Set(system, system.TimeStep, system.TimeStep);
+	#endregion
 
-	private LinkList<ISystem> GetSystems(TimeStep timeStep)
+	#region Priority
+	private void Set(ISystem system, TimeStep current, TimeStep previous)
 	{
-		if(timeStep == TimeStep.Fixed)
-			return fixedSystems;
-		if(timeStep == TimeStep.Variable)
-			return variableSystems;
-		return null;
+		Remove(system, previous);
+		Add(system, current);
 	}
 
-	private void SetSystem(ISystem system, TimeStep current, TimeStep previous)
+	private void Remove(ISystem system, TimeStep? timeStep = null)
 	{
-		RemoveSystem(system, previous);
-		AddSystem(system, current);
+		Get(timeStep ?? system.TimeStep)?.Remove(system);
 	}
 
-	private void RemoveSystem(ISystem system, TimeStep? timeStep = null)
+	private void Add(ISystem system, TimeStep? timeStep = null)
 	{
-		GetSystems(timeStep ?? system.TimeStep)?.Remove(system);
-	}
-
-	private void AddSystem(ISystem system, TimeStep? timeStep = null)
-	{
-		var systems = GetSystems(timeStep ?? system.TimeStep);
+		var systems = Get(timeStep ?? system.TimeStep);
 
 		if(systems == null)
 			return;
@@ -162,6 +157,15 @@ internal sealed class SystemManager : ISystemManager
 			--index;
 		}
 		systems.Add(system, 0);
+	}
+
+	private LinkList<ISystem> Get(TimeStep timeStep)
+	{
+		if(timeStep == TimeStep.Fixed)
+			return fixedSystems;
+		if(timeStep == TimeStep.Variable)
+			return variableSystems;
+		return null;
 	}
 	#endregion
 }
