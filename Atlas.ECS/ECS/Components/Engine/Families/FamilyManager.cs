@@ -124,7 +124,7 @@ internal sealed class FamilyManager : IFamilyManager
 
 	public bool Has(Type type) => types.ContainsKey(type);
 
-	public bool Has(IReadOnlyFamily family) => types.ContainsValue((IFamily)family);
+	public bool Has(IReadOnlyFamily family) => types.ContainsValue(family);
 	#endregion
 
 	#region Listeners
