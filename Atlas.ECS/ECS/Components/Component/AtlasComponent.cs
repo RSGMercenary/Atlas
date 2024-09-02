@@ -14,6 +14,11 @@ namespace Atlas.ECS.Components.Component;
 public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 {
 	#region Static
+	/// <summary>
+	/// The default <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasComponent"/> instances. The default is <see langword="true"/>.
+	/// </summary>
+	public static bool DefaultAutoDispose { get; set; } = true;
+
 	internal static Type GetType(IComponent component, Type type = null)
 	{
 		if(type == null)
@@ -80,7 +85,7 @@ public abstract class AtlasComponent<T> : IComponent<T>
 		IsShareable = isShareable;
 		AutoDisposer = new(this as T, () => managers.Count <= 0);
 
-		AtlasSettings.SetDefaultAutoDispose(this);
+		AutoDispose = AtlasComponent.DefaultAutoDispose;
 	}
 
 	public void Dispose()
@@ -93,7 +98,7 @@ public abstract class AtlasComponent<T> : IComponent<T>
 		RemoveManagers();
 		AutoDisposer.Dispose();
 
-		AtlasSettings.SetDefaultAutoDispose(this);
+		AutoDispose = AtlasComponent.DefaultAutoDispose;
 
 		PoolManager.Instance.Put(this);
 	}

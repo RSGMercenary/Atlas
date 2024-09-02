@@ -10,6 +10,18 @@ namespace Atlas.ECS.Systems;
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasSystem : ISystem
 {
+	#region Static
+	/// <summary>
+	/// The <see cref="Core.Objects.Update.TimeStep"/> value used for all new <see cref="AtlasSystem"/> instances. The default is <see cref="TimeStep.Variable"/>.
+	/// </summary>
+	public static TimeStep DefaultTimeStep { get; set; } = TimeStep.Variable;
+
+	/// <summary>
+	/// The <see cref="AtlasFamilySystem"/>.UpdateSleepingEntities value used for all new <see cref="AtlasFamilySystem"/> instances. The default is <see langword="false"/>.
+	/// </summary>
+	public static bool DefaultUpdateSleepingEntities { get; set; } = false;
+	#endregion
+
 	#region Events
 	public event Action<ISystem, IEngine, IEngine> EngineChanged
 	{
@@ -75,8 +87,7 @@ public abstract class AtlasSystem : ISystem
 		Updater = new(this);
 		Sleeper = new(this);
 
-		//Default all systems to be Variable.
-		TimeStep = TimeStep.Variable;
+		TimeStep = DefaultTimeStep;
 	}
 
 	public virtual void Dispose()

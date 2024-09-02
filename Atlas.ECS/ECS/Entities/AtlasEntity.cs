@@ -19,7 +19,19 @@ namespace Atlas.ECS.Entities;
 public sealed class AtlasEntity : IEntity
 {
 	#region Static
+	/// <summary>
+	/// The default <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasEntity"/> instances. The default is <see langword="true"/>.
+	/// </summary>
+	public static bool DefaultAutoDispose { get; set; } = true;
+
+	/// <summary>
+	/// A constant name used by the <see cref="Root"/> instance.
+	/// </summary>
 	public static readonly string RootName = "Root";
+
+	/// <summary>
+	/// A random default name used by <see cref="IEntity"/> instances.
+	/// </summary>
 	public static string UniqueName => Guid.NewGuid().ToString("N");
 
 	private static bool IsValidName(string current, string next, bool isRoot, Func<string, bool> check = null)
@@ -153,7 +165,7 @@ public sealed class AtlasEntity : IEntity
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleeper = new Sleeper<IEntity>(this);
 
-		AtlasSettings.SetDefaultAutoDispose(this);
+		AutoDispose = DefaultAutoDispose;
 	}
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
@@ -167,7 +179,7 @@ public sealed class AtlasEntity : IEntity
 		AutoDisposer.Dispose();
 		Sleeper.Dispose();
 
-		AtlasSettings.SetDefaultAutoDispose(this);
+		AutoDispose = DefaultAutoDispose;
 
 		ComponentAdded = null;
 		ComponentRemoved = null;

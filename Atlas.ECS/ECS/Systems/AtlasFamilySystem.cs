@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 
 namespace Atlas.ECS.Systems;
 
+internal class AtlasFamilySystem { }
+
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
@@ -12,7 +14,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 
 	[JsonProperty]
-	public bool UpdateSleepingEntities { get; protected set; } = false;
+	public bool UpdateSleepingEntities { get; protected set; } = DefaultUpdateSleepingEntities;
 
 	protected override void SystemUpdate(float deltaTime)
 	{
