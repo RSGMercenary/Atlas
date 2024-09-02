@@ -150,6 +150,7 @@ public sealed class AtlasEntity : IEntity
 	{
 		EngineManager = new EngineManager<IEntity>(this);
 		AutoDisposer = new AutoDisposer<IEntity>(this, () => Parent == null);
+		AutoDisposer.AutoDispose = Atlas.DefaultEntityAutoDispose;
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleeper = new Sleeper<IEntity>(this);
 	}
