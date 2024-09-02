@@ -7,8 +7,9 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Components.Component;
 
-public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
+public interface IComponent : IEnumerable<IEntity>, IAutoDispose, IDisposable, ISerialize
 {
+	#region Events
 	/// <summary>
 	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is added.
 	/// </summary>
@@ -23,6 +24,7 @@ public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 	/// The <see langword="event"/> invoked when <see cref="Managers"/> has changed.
 	/// </summary>
 	event Action<IComponent> ManagersChanged;
+	#endregion
 
 	/// <summary>
 	/// A Boolean of whether this Component is shareable. Shareable Components
@@ -30,6 +32,23 @@ public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 	/// information that is shared between similar Entities.
 	/// </summary>
 	bool IsShareable { get; }
+
+	/// <summary>
+	/// Determines if <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
+	/// </summary>
+	new bool IsAutoDispose { get; set; }
+
+	#region Get
+	/// <summary>
+	/// The <see cref="IEntity"/> instance managing this <see cref="IComponent"/>.
+	/// <para>Returns <see langword="null"/> if <see cref="IComponent.IsShareable"/> is <see langword="true"/>.</para>
+	/// </summary>
+	IEntity Manager { get; }
+
+	/// <summary>
+	/// The <see cref="IEntity"/> instances managing this <see cref="IComponent"/>.
+	/// </summary>
+	IReadOnlyLinkList<IEntity> Managers { get; }
 
 	bool HasManager(IEntity entity);
 
@@ -40,7 +59,9 @@ public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 	/// <param name="entity"></param>
 	/// <returns></returns>
 	int GetManagerIndex(IEntity entity);
+	#endregion
 
+	#region Set
 	/// <summary>
 	/// Sets the index of the Entity. Returns true if successful. Returns false if
 	/// the Entity isn't found in this Component.
@@ -67,6 +88,7 @@ public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 	/// <param name="index2">The index of the second Entity.</param>
 	/// <returns></returns>
 	bool SwapManagers(int index1, int index2);
+	#endregion
 
 	#region Add
 	/// <summary>
@@ -138,28 +160,11 @@ public interface IComponent : IEnumerable<IEntity>, IDisposable, ISerialize
 	/// <returns></returns>
 	bool RemoveManagers();
 	#endregion
-
-	#region Managers
-	/// <summary>
-	/// The <see cref="IEntity"/> instance managing this <see cref="IComponent"/>.
-	/// <para>Returns <see langword="null"/> if <see cref="IComponent.IsShareable"/> is <see langword="true"/>.</para>
-	/// </summary>
-	IEntity Manager { get; }
-
-	/// <summary>
-	/// The <see cref="IEntity"/> instances managing this <see cref="IComponent"/>.
-	/// </summary>
-	IReadOnlyLinkList<IEntity> Managers { get; }
-	#endregion
 }
 
 public interface IComponent<out T> : IComponent, IAutoDispose<T> where T : IComponent<T>
 {
-	/// <summary>
-	/// Determines whether <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IComponent.Managers"/>.Count == 0.
-	/// </summary>
-	new bool IsAutoDisposable { get; set; }
-
+	#region Events
 	/// <summary>
 	/// The <see langword="event"/> invoked when an <see cref="IEntity"/> manager is added.
 	/// </summary>
@@ -174,4 +179,5 @@ public interface IComponent<out T> : IComponent, IAutoDispose<T> where T : IComp
 	/// The <see langword="event"/> invoked when <see cref="IComponent.Managers"/> has changed.
 	/// </summary>
 	new event Action<T> ManagersChanged;
+	#endregion
 }
