@@ -1,6 +1,6 @@
 ﻿namespace Atlas.ECS.Entities;
 
-public static class EntityExtensions
+public static class IEntityExtensions
 {
 	public static IEntityBuilder Builder(this IEntity entity)
 	{
