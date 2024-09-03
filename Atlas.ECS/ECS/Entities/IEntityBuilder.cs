@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IBuilder<IEntityBuilder, IEntity>
+public interface IEntityBuilder : IBuilder<IEntityBuilder, IEntity>
 {
 	#region Names
 	IEntityBuilder SetNames(string name);
@@ -54,6 +54,22 @@ public interface IEntityBuilder : IHierarchyBuilder<IEntityBuilder, IEntity>, IB
 
 	IEntityBuilder RemoveComponents();
 	#endregion
+	#endregion
+
+	#region Hierarchy
+	IEntityBuilder IsRoot(bool root);
+
+	IEntityBuilder AddChild(IEntity child);
+
+	IEntityBuilder AddChild(IEntity child, int index);
+
+	IEntityBuilder RemoveChild(IEntity child);
+
+	IEntityBuilder RemoveChild(int index);
+
+	IEntityBuilder SetParent(IEntity parent);
+
+	IEntityBuilder SetParent(IEntity parent, int index);
 	#endregion
 
 	#region Sleeping

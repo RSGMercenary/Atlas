@@ -9,7 +9,7 @@ using System;
 namespace Atlas.Tests.ECS.Entities;
 
 [TestFixture]
-internal class EntityExtensionsTests
+internal class EntityBuilderTests
 {
 	private AtlasEntity Entity;
 
@@ -33,7 +33,7 @@ internal class EntityExtensionsTests
 		var parent = new AtlasEntity();
 		var child = new AtlasEntity();
 
-		var builder = Entity.Builder()
+		var builder = Entity.Build()
 			.GlobalName(globalName)
 			.LocalName(localName)
 			.Sleep(sleep)
@@ -64,7 +64,7 @@ internal class EntityExtensionsTests
 	{
 		var entity = new AtlasEntity();
 
-		Entity.Builder()
+		Entity.Build()
 			.IsRoot(true)
 			.AddComponent<AtlasEngine>()
 			.Finish();
@@ -80,7 +80,7 @@ internal class EntityExtensionsTests
 	public void When_AddComponent_AsNew_Then_ComponentAdded<TComponent>(Type type)
 		where TComponent : class, IComponent, new()
 	{
-		Entity.Builder().AddComponent<TComponent>(type);
+		Entity.Build().AddComponent<TComponent>(type);
 
 		Assert.That(Entity.HasComponent(type ?? typeof(TComponent)));
 	}
@@ -91,7 +91,7 @@ internal class EntityExtensionsTests
 	public void When_AddComponent_AsInstance_Then_ComponentAdded<TComponent>(Type type)
 		where TComponent : class, IComponent, new()
 	{
-		Entity.Builder().AddComponent(new TComponent(), type);
+		Entity.Build().AddComponent(new TComponent(), type);
 
 		Assert.That(Entity.HasComponent(type ?? typeof(TComponent)));
 	}
@@ -102,7 +102,7 @@ internal class EntityExtensionsTests
 		where TType : class, IComponent
 		where TComponent : class, TType, new()
 	{
-		Entity.Builder().AddComponent<TComponent, TType>();
+		Entity.Build().AddComponent<TComponent, TType>();
 
 		Assert.That(Entity.HasComponent<TType>());
 	}
@@ -113,7 +113,7 @@ internal class EntityExtensionsTests
 		where TType : class, IComponent
 		where TComponent : class, TType, new()
 	{
-		Entity.Builder().AddComponent<TComponent, TType>(new TComponent());
+		Entity.Build().AddComponent<TComponent, TType>(new TComponent());
 
 		Assert.That(Entity.HasComponent<TType>());
 	}

@@ -198,6 +198,10 @@ public sealed class AtlasEntity : IEntity
 	}
 	#endregion
 
+	#region Builder
+	public IEntityBuilder Build() => new AtlasEntityBuilder(this);
+	#endregion
+
 	#region Names
 	public string GlobalName
 	{
