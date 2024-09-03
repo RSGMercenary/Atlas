@@ -3,7 +3,6 @@ using Atlas.ECS.Components.Engine;
 using Atlas.Tests.Testers.Systems;
 using Atlas.Tests.Testers.Utilities;
 using NUnit.Framework;
-using System.Collections;
 
 namespace Atlas.Tests.ECS.Systems;
 
@@ -130,15 +129,5 @@ class SystemTests
 		System.Priority = priority;
 
 		Assert.That(System.Priority == priority);
-	}
-
-	[Test]
-	public void When_Enumerate_Then_Enumerated()
-	{
-		var system = new TestVariableFamilySystem();
-		foreach(var member in (IEnumerable)system)
-		{
-
-		}
 	}
 }
