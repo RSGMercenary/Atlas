@@ -1,5 +1,7 @@
 ﻿using Atlas.Core.Extensions;
+using Atlas.Tests.Testers.Utilities;
 using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,5 +46,27 @@ class CollectionExtensionsTests
 		Assert.That(value == items.Last());
 		Assert.That(!values.Contains(value));
 		Assert.That(values.Last() != value);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_Swap_Then_Swapped()
+	{
+		var random = new Random();
+		var count = random.Next(2, 21);
+		var index1 = random.Next(0, count);
+		var index2 = random.NextExclude(count, index1);
+		var list = new List<int>();
+
+		for(var i = 0; i < count; ++i)
+			list.Add(random.Next(0, 21));
+
+		var value1 = list[index1];
+		var value2 = list[index2];
+
+		list.Swap(index1, index2);
+
+		Assert.That(value1 == list[index2]);
+		Assert.That(value2 == list[index1]);
 	}
 }
