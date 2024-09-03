@@ -184,6 +184,22 @@ internal class EntityManagerTests
 		Assert.That(Engine.Entities.Get(child1.GlobalName) == child1);
 		Assert.That(Engine.Entities.Get(child2.GlobalName) == child2);
 	}
+
+	[Test]
+	public void When_RenameDuplicateGlobalNames_Then_ExceptionExpected([Values(true, false)] bool renameDuplicateGlobalNames)
+	{
+		const string name = "Duplicate";
+
+		var root = new AtlasEntity(true);
+		var child1 = new AtlasEntity(name, name);
+		var child2 = new AtlasEntity(name, name);
+
+		root.AddComponent(Engine);
+		root.AddChild(child1);
+		Engine.Entities.RenameDuplicateGlobalNames = renameDuplicateGlobalNames;
+
+		Assert.That(() => root.AddChild(child2), renameDuplicateGlobalNames ? Throws.Nothing : Throws.Exception);
+	}
 	#endregion
 
 	#region Root
