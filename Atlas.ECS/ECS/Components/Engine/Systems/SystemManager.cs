@@ -38,7 +38,7 @@ internal sealed class SystemManager : ISystemManager
 	private T GenericInvoke<T>(Type type, string name)
 	{
 		if(!typeof(ISystem).IsAssignableFrom(type))
-			throw new ArgumentException($"'{type}' is not assignable to '{typeof(ISystem)}'.");
+			AtlasThrower.NotAssignable(type, typeof(ISystem), nameof(type));
 		return (T)GetType()
 			.GetMethod(name, 1, [])
 			.MakeGenericMethod(type)
@@ -124,7 +124,7 @@ internal sealed class SystemManager : ISystemManager
 	#region Listeners
 	private void TimeStepChanged(ISystem system, TimeStep current, TimeStep previous) => Set(system, current, previous);
 
-	private void PriorityChanged(ISystem system, int currentIndex = -1, int previousIndex = -1) => Set(system, system.TimeStep, system.TimeStep);
+	private void PriorityChanged(ISystem system, int current = -1, int previous = -1) => Set(system, system.TimeStep, system.TimeStep);
 	#endregion
 
 	#region Priority

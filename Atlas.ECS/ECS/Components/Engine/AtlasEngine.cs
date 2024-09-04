@@ -5,7 +5,6 @@ using Atlas.ECS.Components.Engine.Systems;
 using Atlas.ECS.Components.Engine.Updates;
 using Atlas.ECS.Entities;
 using Newtonsoft.Json;
-using System;
 
 namespace Atlas.ECS.Components.Engine;
 
@@ -35,7 +34,7 @@ public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 	protected override void AddingManager(IEntity entity, int index)
 	{
 		if(!entity.IsRoot)
-			throw new InvalidOperationException($"{nameof(IEngine)} can't be added to {nameof(IEntity)} when {nameof(IEntity.IsRoot)} is false.");
+			AtlasThrower.NotRootHasEngine();
 
 		base.AddingManager(entity, index);
 		((EntityManager)Entities).AddEntity(entity);

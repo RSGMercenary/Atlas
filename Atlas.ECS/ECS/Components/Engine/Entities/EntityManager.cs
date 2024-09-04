@@ -26,12 +26,16 @@ internal sealed class EntityManager : IEntityManager
 
 	public IEngine Engine { get; }
 
-	public bool RenameDuplicateGlobalNames { get; set; } = true;
-
 	#region Add / Remove
 	internal void AddEntity(IEntity entity)
 	{
-		AssertGlobalName(entity);
+		if(globalNames.TryGetValue(entity.GlobalName, out var global))
+		{
+			if(global != entity)
+				AtlasThrower.DuplicateName(entity.GlobalName, nameof(IEntity.GlobalName));
+			//Protect against adding an entity that was already added.
+			return;
+		}
 
 		globalNames[entity.GlobalName] = entity;
 		entities.Add(entity);
@@ -49,7 +53,7 @@ internal sealed class EntityManager : IEntityManager
 
 	internal void RemoveEntity(IEntity entity)
 	{
-		//Protect against parents removing a child that never got to be added.
+		//Protect against removing an entity that was already removed.
 		if(!globalNames.TryGetValue(entity.GlobalName, out var global) || global != entity)
 			return;
 
@@ -68,16 +72,6 @@ internal sealed class EntityManager : IEntityManager
 	}
 	#endregion
 
-	private void AssertGlobalName(IEntity entity)
-	{
-		if(globalNames.ContainsKey(entity.GlobalName))
-		{
-			if(!RenameDuplicateGlobalNames)
-				throw new InvalidOperationException($"'{entity.GlobalName}' already exists as a Global Name.");
-			entity.GlobalName = AtlasEntity.UniqueName;
-		}
-	}
-
 	#region Get
 	[JsonProperty]
 	public IReadOnlyLinkList<IEntity> Entities => entities;
@@ -94,11 +88,7 @@ internal sealed class EntityManager : IEntityManager
 	#endregion
 
 	#region Listeners
-	private void ChildAdded(IEntity parent, IEntity child, int index)
-	{
-		if(!globalNames.TryGetValue(child.GlobalName, out var entity) || entity != child)
-			AddEntity(child);
-	}
+	private void ChildAdded(IEntity parent, IEntity child, int index) => AddEntity(child);
 
 	private void RootChanged(IEntity entity, IEntity current, IEntity previous)
 	{

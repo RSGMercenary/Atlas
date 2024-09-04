@@ -12,6 +12,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Atlas.ECS.Entities;
 
@@ -33,27 +34,6 @@ public sealed class AtlasEntity : IEntity
 	/// A random default name used by <see cref="IEntity"/> instances.
 	/// </summary>
 	public static string UniqueName => Guid.NewGuid().ToString("N");
-
-	private static bool IsValidName(string current, string next, bool isRoot, Func<string, bool> check = null)
-	{
-		if(next == RootName && !isRoot)
-			ThrowNameException(current, RootName);
-		if(next != RootName && isRoot)
-			ThrowNameException(RootName, next);
-
-		if(string.IsNullOrWhiteSpace(next))
-			return false;
-		else
-		{
-			if(current == next)
-				return false;
-			if(check.Invoke(next))
-				return false;
-		}
-		return true;
-	}
-
-	private static void ThrowNameException(string current, string next) => throw new ArgumentException($"Can't set the name of {nameof(IEntity)} '{current}' to '{next}'.");
 	#endregion
 
 	#region Pool
@@ -208,7 +188,7 @@ public sealed class AtlasEntity : IEntity
 		get => globalName;
 		set
 		{
-			if(!IsValidName(globalName, value, IsRoot, n => Engine?.Entities.Has(n) ?? false))
+			if(!IsValidName(globalName, value, n => Engine?.Entities.Has(n) ?? false))
 				return;
 			string previous = globalName;
 			globalName = value;
@@ -234,7 +214,7 @@ public sealed class AtlasEntity : IEntity
 		get => localName;
 		set
 		{
-			if(!IsValidName(localName, value, IsRoot, n => Parent?.HasChild(n) ?? false))
+			if(!IsValidName(localName, value, n => Parent?.HasChild(n) ?? false))
 				return;
 			string previous = localName;
 			localName = value;
@@ -245,6 +225,19 @@ public sealed class AtlasEntity : IEntity
 	public void SetNames(string name) => SetNames(name, name);
 
 	public void SetNames(string localName, string globalName) { LocalName = localName; GlobalName = globalName; }
+
+	private bool IsValidName(string current, string next, Func<string, bool> check, [CallerMemberName] string name = null)
+	{
+		if(current == next || string.IsNullOrWhiteSpace(next))
+			return false;
+		if(next == RootName && !IsRoot)
+			AtlasThrower.DuplicateName(current, RootName, name);
+		if(next != RootName && IsRoot)
+			AtlasThrower.DuplicateName(RootName, next, name);
+		if(check.Invoke(next))
+			AtlasThrower.DuplicateName(current, next, name);
+		return true;
+	}
 
 	public override string ToString() => GlobalName;
 	#endregion
@@ -377,8 +370,7 @@ public sealed class AtlasEntity : IEntity
 		{
 			if(child == entity || child.LocalName != entity.LocalName)
 				continue;
-			entity.LocalName = UniqueName;
-			return;
+			AtlasThrower.DuplicateName(entity.LocalName, nameof(LocalName));
 		}
 	}
 	#endregion
