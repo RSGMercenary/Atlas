@@ -22,7 +22,7 @@ public sealed class PoolManager : IPoolManager
 
 	public IPool<T> GetPool<T>(Type type = null) => pools.TryGetValue(type ?? typeof(T), out IPool<T> pool) ? pool : null;
 
-	public bool ContainsPool<T>() => GetPool<T>() != null;
+	public bool HasPool<T>() => GetPool<T>() != null;
 	#endregion
 
 	#region Add

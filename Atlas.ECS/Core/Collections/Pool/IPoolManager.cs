@@ -18,6 +18,8 @@ public interface IPoolManager
 
 	public IPool<T> GetPool<T>(Type type = null);
 
+	public bool HasPool<T>();
+
 	public T Get<T>();
 
 	public bool Put<T>(T value);
