@@ -24,7 +24,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 		if(type == null)
 			type = component.GetType();
 		else if(!type.IsInstanceOfType(component))
-			AtlasThrower.NotAssignable(component.GetType(), type, nameof(type));
+			ECSThrower.NotAssignable(component.GetType(), type, nameof(type));
 		return type;
 	}
 	#endregion

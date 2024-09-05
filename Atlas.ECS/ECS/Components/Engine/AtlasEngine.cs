@@ -34,7 +34,7 @@ public sealed class AtlasEngine : AtlasComponent<IEngine>, IEngine
 	protected override void AddingManager(IEntity entity, int index)
 	{
 		if(!entity.IsRoot)
-			AtlasThrower.NotRootHasEngine();
+			ECSThrower.NotRootHasEngine();
 
 		base.AddingManager(entity, index);
 		((EntityManager)Entities).AddEntity(entity);

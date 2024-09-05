@@ -38,7 +38,7 @@ internal sealed class SystemManager : ISystemManager
 	private T GenericInvoke<T>(Type type, string name)
 	{
 		if(!typeof(ISystem).IsAssignableFrom(type))
-			AtlasThrower.NotAssignable(type, typeof(ISystem), nameof(type));
+			ECSThrower.NotAssignable(type, typeof(ISystem), nameof(type));
 		return (T)GetType()
 			.GetMethod(name, 1, [])
 			.MakeGenericMethod(type)

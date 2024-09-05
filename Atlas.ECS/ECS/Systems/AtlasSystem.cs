@@ -12,7 +12,7 @@ public abstract class AtlasSystem : ISystem
 {
 	#region Static
 	/// <summary>
-	/// The <see cref="Core.Objects.Update.TimeStep"/> value used for all new <see cref="AtlasSystem"/> instances. The default is <see cref="TimeStep.Variable"/>.
+	/// The <see cref="AtlasSystem.TimeStep"/> value used for all new <see cref="AtlasSystem"/> instances. The default is <see cref="TimeStep.Variable"/>.
 	/// </summary>
 	public static TimeStep DefaultTimeStep { get; set; } = TimeStep.Variable;
 

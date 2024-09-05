@@ -4,7 +4,7 @@ using System;
 
 namespace Atlas.ECS;
 
-internal static class AtlasThrower
+internal static class ECSThrower
 {
 	internal static void DuplicateName(string current, string next, string parameter)
 	{

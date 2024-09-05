@@ -231,11 +231,11 @@ public sealed class AtlasEntity : IEntity
 		if(current == next || string.IsNullOrWhiteSpace(next))
 			return false;
 		if(next == RootName && !IsRoot)
-			AtlasThrower.DuplicateName(current, RootName, name);
+			ECSThrower.DuplicateName(current, RootName, name);
 		if(next != RootName && IsRoot)
-			AtlasThrower.DuplicateName(RootName, next, name);
+			ECSThrower.DuplicateName(RootName, next, name);
 		if(check.Invoke(next))
-			AtlasThrower.DuplicateName(current, next, name);
+			ECSThrower.DuplicateName(current, next, name);
 		return true;
 	}
 
@@ -370,7 +370,7 @@ public sealed class AtlasEntity : IEntity
 		{
 			if(child == entity || child.LocalName != entity.LocalName)
 				continue;
-			AtlasThrower.DuplicateName(entity.LocalName, nameof(LocalName));
+			ECSThrower.DuplicateName(entity.LocalName, nameof(LocalName));
 		}
 	}
 	#endregion

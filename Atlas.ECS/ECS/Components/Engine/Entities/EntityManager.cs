@@ -32,7 +32,7 @@ internal sealed class EntityManager : IEntityManager
 		if(globalNames.TryGetValue(entity.GlobalName, out var global))
 		{
 			if(global != entity)
-				AtlasThrower.DuplicateName(entity.GlobalName, nameof(IEntity.GlobalName));
+				ECSThrower.DuplicateName(entity.GlobalName, nameof(IEntity.GlobalName));
 			//Protect against adding an entity that was already added.
 			return;
 		}
