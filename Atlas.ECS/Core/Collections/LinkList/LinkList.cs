@@ -1,4 +1,6 @@
 ﻿using Atlas.Core.Collections.Pool;
+using Atlas.Core.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace Atlas.Core.Collections.LinkList;
@@ -18,6 +20,146 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 		PoolManager.Instance.RemovePool<LinkListNode<T>>();
 		PoolManager.Instance.RemovePool<LinkListData<T>>();
 	}
+
+	#region Sort
+	#region Insertion
+	public void InsertionSort(Func<T, T, int> compare)
+	{
+		if(first == last)
+		{
+			return;
+		}
+		var remains = first.next;
+		for(var node = remains; node != null; node = remains)
+		{
+			remains = node.next;
+			LinkListNode<T> other;
+			for(other = node.previous; other != null; other = other.previous)
+			{
+				if(compare(node.data.value, other.data.value) >= 0)
+				{
+					// move node to after other
+					if(node != other.next)
+					{
+						// remove from place
+						if(last == node)
+						{
+							last = node.previous;
+						}
+						node.previous.next = node.next;
+						if(node.next != null)
+						{
+							node.next.previous = node.previous;
+						}
+						// insert after other
+						node.next = other.next;
+						node.previous = other;
+						node.next.previous = node;
+						other.next = node;
+					}
+					break; // exit the inner for loop
+				}
+			}
+			if(other == null) // the node belongs at the start of the list
+			{
+				// remove from place
+				if(last == node)
+				{
+					last = node.previous;
+				}
+				node.previous.next = node.next;
+				if(node.next != null)
+				{
+					node.next.previous = node.previous;
+				}
+				// insert at head
+				node.next = first;
+				first.previous = node;
+				node.previous = null;
+				first = node;
+			}
+		}
+	}
+	#endregion
+
+	#region Merge
+	public void MergeSort(Func<T, T, int> compare)
+	{
+		if(first == last)
+			return;
+
+		var lists = new List<LinkListNode<T>>();
+		// disassemble the list
+		var start = first;
+		LinkListNode<T> end;
+		while(start != null)
+		{
+			end = start;
+			while(end.next != null && compare(end.data.value, end.next.data.value) <= 0)
+				end = end.next;
+
+			var next = end.next;
+			start.previous = end.next = null;
+			lists.Add(start);
+			start = next;
+		}
+
+		// reassemble it in order
+		while(lists.Count > 1)
+			lists.Add(Merge(lists.Shift(), lists.Shift(), compare));
+
+		// find the tail
+		last = first = lists[0];
+
+		while(last.next != null)
+			last = last.next;
+	}
+
+	private LinkListNode<T> Merge(LinkListNode<T> head1, LinkListNode<T> head2, Func<T, T, int> compare)
+	{
+		LinkListNode<T> node;
+		LinkListNode<T> head;
+		if(compare(head1.data.value, head2.data.value) <= 0)
+		{
+			head = node = head1;
+			head1 = head1.next;
+		}
+		else
+		{
+			head = node = head2;
+			head2 = head2.next;
+		}
+		while(head1 != null && head2 != null)
+		{
+			if(compare(head1.data.value, head2.data.value) <= 0)
+			{
+				node.next = head1;
+				head1.previous = node;
+				node = head1;
+				head1 = head1.next;
+			}
+			else
+			{
+				node.next = head2;
+				head2.previous = node;
+				node = head2;
+				head2 = head2.next;
+			}
+		}
+		if(head1 != null)
+		{
+			node.next = head1;
+			head1.previous = node;
+		}
+		else
+		{
+			node.next = head2;
+			head2.previous = node;
+		}
+		return head;
+	}
+	#endregion
+	#endregion
 
 	#region Add
 	public bool Add(T value) => Add(value, count);

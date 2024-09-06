@@ -234,9 +234,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		}
 	}
 
-	public void SortMembers(Action<ILinkList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare)
-	{
-		sorter.Invoke(members, compare);
-	}
+	public void InsertionSort(Func<TFamilyMember, TFamilyMember, int> compare) => members.InsertionSort(compare);
+
+	public void MergeSort(Func<TFamilyMember, TFamilyMember, int> compare) => members.MergeSort(compare);
 	#endregion
 }

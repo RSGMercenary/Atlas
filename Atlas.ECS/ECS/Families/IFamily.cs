@@ -43,7 +43,9 @@ public interface IReadOnlyFamily<TFamilyMember> : IEngineManager<IReadOnlyFamily
 
 	new TFamilyMember GetMember(IEntity entity);
 
-	void SortMembers(Action<ILinkList<TFamilyMember>, Func<TFamilyMember, TFamilyMember, int>> sorter, Func<TFamilyMember, TFamilyMember, int> compare);
+	void InsertionSort(Func<TFamilyMember, TFamilyMember, int> compare);
+
+	void MergeSort(Func<TFamilyMember, TFamilyMember, int> compare);
 }
 
 public interface IFamily<TFamilyMember> : IReadOnlyFamily<TFamilyMember>, IFamily
