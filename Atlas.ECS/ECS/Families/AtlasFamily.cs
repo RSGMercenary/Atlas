@@ -215,9 +215,9 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 			return;
 		manager.IsUpdatingChanged -= UpdateMembers;
 		while(removed.Count > 0)
-			RemoveMember(removed.Pop());
+			RemoveMember(removed.RemoveLast());
 		while(added.Count > 0)
-			AddMember(added.Pop());
+			AddMember(added.RemoveLast());
 		if(Engine == null)
 			Dispose();
 	}

@@ -5,7 +5,6 @@ using Atlas.Tests.Testers.Components;
 using Atlas.Tests.Testers.Families;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Atlas.Tests.ECS.Families;
@@ -121,15 +120,32 @@ class FamilyTests
 	#endregion
 
 	[Test]
-	public void When_SortMembers_Then_MembersSorted([Values(0, 1, 2, 3, 4, 5)] int index)
+	public void When_InsertionSort_Then_MembersSorted()
 	{
-		var sorters = new List<Action<IList<TestFamilyMember>, Func<TestFamilyMember, TestFamilyMember, int>>>
-		{
-			AtlasFamilySorter.Bubble, AtlasFamilySorter.Heap, AtlasFamilySorter.Insertion,
-			AtlasFamilySorter.Merge, AtlasFamilySorter.Selection, AtlasFamilySorter.Quick,
-		};
+		var count = 200;
 
-		for(int i = 0; i < 200; ++i)
+		AddEntities(count);
+
+		Family.InsertionSort((m1, m2) => string.Compare(m1.Entity.GlobalName, m2.Entity.GlobalName));
+
+		AssertAlphabetical(count);
+	}
+
+	[Test]
+	public void When_MergeSort_Then_MembersSorted()
+	{
+		var count = 200;
+
+		AddEntities(count);
+
+		Family.MergeSort((m1, m2) => string.Compare(m1.Entity.GlobalName, m2.Entity.GlobalName));
+
+		AssertAlphabetical(count);
+	}
+
+	private void AddEntities(int count)
+	{
+		for(int i = 0; i < count; ++i)
 		{
 			var entity = new AtlasEntity();
 			var component = new TestComponent();
@@ -138,23 +154,26 @@ class FamilyTests
 
 			Family.AddEntity(entity);
 		}
-
-		throw new NotImplementedException();
-		//Family.SortMembers(sorters[index], (m1, m2) => string.Compare(m1.Entity.GlobalName, m2.Entity.GlobalName));
-
-		//Assert.That(IsAlphabetical(Family.Members));
 	}
 
-	private static bool IsAlphabetical(IReadOnlyList<TestFamilyMember> members)
+	private void AssertAlphabetical(int count)
 	{
-		for(int i = 0; i < members.Count - 1; ++i)
+		var members = Family.Members;
+		var alphabetical = true;
+		for(var node = members.First; node.Next != null; node = node.Next)
 		{
-			var name1 = members[i].Entity.GlobalName;
-			var name2 = members[i + 1].Entity.GlobalName;
+			var name1 = node.Value.Entity.GlobalName;
+			var name2 = node.Next.Value.Entity.GlobalName;
+			--count;
 
 			if(name1.CompareTo(name2) > 0)
-				return false;
+			{
+				alphabetical = false;
+				break;
+			}
 		}
-		return true;
+
+		Assert.That(alphabetical);
+		Assert.That(--count == 0);
 	}
 }

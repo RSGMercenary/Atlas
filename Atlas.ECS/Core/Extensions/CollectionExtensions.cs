@@ -22,11 +22,17 @@ public static class CollectionExtensions
 	#endregion
 
 	#region Lists
-	public static T Pop<T>(this IList<T> list)
+	public static T RemoveFirst<T>(this IList<T> list)
 	{
-		var index = list.Count - 1;
-		var value = list[index];
-		list.RemoveAt(index);
+		var value = list[0];
+		list.RemoveAt(0);
+		return value;
+	}
+
+	public static T RemoveLast<T>(this IList<T> list)
+	{
+		var value = list[list.Count - 1];
+		list.RemoveAt(list.Count - 1);
 		return value;
 	}
 

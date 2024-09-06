@@ -40,7 +40,7 @@ class CollectionExtensionsTests
 	public void When_Pop_Then_ValuesExpected(params float[] items)
 	{
 		var values = new List<float>(items);
-		var value = values.Pop();
+		var value = values.RemoveLast();
 
 		Assert.That(values.Count() == items.Length - 1);
 		Assert.That(value == items.Last());

@@ -106,7 +106,7 @@ public class LinkList<T> : ReadOnlyLinkList<T>, ILinkList<T>
 
 		// reassemble it in order
 		while(lists.Count > 1)
-			lists.Add(Merge(lists.Shift(), lists.Shift(), compare));
+			lists.Add(Merge(lists.RemoveFirst(), lists.RemoveFirst(), compare));
 
 		// find the tail
 		last = first = lists[0];
