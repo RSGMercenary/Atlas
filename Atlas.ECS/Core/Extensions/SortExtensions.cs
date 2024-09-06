@@ -1,16 +1,15 @@
-﻿using Atlas.Core.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
-namespace Atlas.ECS.Families;
+namespace Atlas.Core.Extensions;
 
 /// <summary>
 /// Sorting algorithms found at http://www.codecodex.com/wiki.
 /// </summary>
-public static class AtlasFamilySorter
+public static class SortExtensions
 {
 	#region Bubble
-	public static void Bubble<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Bubble<T>(this IList<T> list, Func<T, T, int> compare)
 	{
 		for(var i = list.Count - 1; i > 0; --i)
 		{
@@ -25,7 +24,7 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Insertion
-	public static void Insertion<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Insertion<T>(this IList<T> list, Func<T, T, int> compare)
 	{
 		var count = list.Count;
 		for(var i = 1; i < count; ++i)
@@ -46,12 +45,12 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Quick
-	public static void Quick<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Quick<T>(this IList<T> list, Func<T, T, int> compare)
 	{
-		Quick(list, 0, list.Count - 1, compare);
+		list.Quick(0, list.Count - 1, compare);
 	}
 
-	private static void Quick<T>(IList<T> list, int left, int right, Func<T, T, int> compare)
+	private static void Quick<T>(this IList<T> list, int left, int right, Func<T, T, int> compare)
 	{
 		var leftHold = left;
 		var rightHold = right;
@@ -78,14 +77,14 @@ public static class AtlasFamilySorter
 		list.Swap(pivot, right);
 		pivot = right;
 		if(pivot > leftHold)
-			Quick(list, leftHold, pivot, compare);
+			list.Quick(leftHold, pivot, compare);
 		if(rightHold > pivot + 1)
-			Quick(list, pivot + 1, rightHold, compare);
+			list.Quick(pivot + 1, rightHold, compare);
 	}
 	#endregion
 
 	#region Selection
-	public static void Selection<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Selection<T>(this IList<T> list, Func<T, T, int> compare)
 	{
 		for(var i = 0; i < list.Count - 1; ++i)
 		{
@@ -102,7 +101,7 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Heap
-	public static void Heap<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Heap<T>(this IList<T> list, Func<T, T, int> compare)
 	{
 		var count = list.Count;
 
@@ -137,14 +136,14 @@ public static class AtlasFamilySorter
 	#endregion
 
 	#region Merge
-	public static void Merge<T>(IList<T> list, Func<T, T, int> compare)
+	public static void Merge<T>(this IList<T> list, Func<T, T, int> compare)
 	{
-		var copy = MergeCopy(list, compare);
+		var copy = list.MergeCopy(compare);
 		for(var i = 0; i < list.Count; ++i)
 			list[i] = copy[i];
 	}
 
-	private static IList<T> MergeCopy<T>(IList<T> list, Func<T, T, int> compare)
+	private static IList<T> MergeCopy<T>(this IList<T> list, Func<T, T, int> compare)
 	{
 		if(list.Count <= 1)
 			return list;
@@ -160,7 +159,7 @@ public static class AtlasFamilySorter
 		for(var i = mid; i < list.Count; ++i)
 			right.Add(list[i]);
 
-		return Merge(MergeCopy(left, compare), MergeCopy(right, compare), compare);
+		return Merge(left.MergeCopy(compare), right.MergeCopy(compare), compare);
 	}
 
 	private static IList<T> Merge<T>(IList<T> left, IList<T> right, Func<T, T, int> compare)
