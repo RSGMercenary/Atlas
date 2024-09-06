@@ -20,7 +20,7 @@ public interface IAutoDisposer : IDisposable
 /// <para><see cref="IAutoDisposer{T}"/> instances have <see cref="IDisposable.Dispose"/> called when no longer managed.</para>
 /// </summary>
 /// <typeparam name="T">A generic <see cref="Type"/> that is a <see cref="ISleep{T}"/>.</typeparam>
-public interface IAutoDisposer<out T> : IAutoDisposer where T : IAutoDisposer<T>
+public interface IAutoDisposer<out T> : IAutoDisposer where T : IAutoDisposer
 {
 	/// <summary>
 	/// The <see langword="event"/> invoked when <see cref="IAutoDisposer.AutoDispose"/> has changed.

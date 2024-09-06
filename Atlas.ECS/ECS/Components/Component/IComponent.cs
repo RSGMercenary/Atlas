@@ -162,7 +162,7 @@ public interface IComponent : IEnumerable<IEntity>, IAutoDisposer, IDisposable, 
 	#endregion
 }
 
-public interface IComponent<out T> : IComponent, IAutoDisposer<T> where T : IComponent<T>
+public interface IComponent<out T> : IComponent, IAutoDisposer<T> where T : IComponent
 {
 	#region Events
 	/// <summary>

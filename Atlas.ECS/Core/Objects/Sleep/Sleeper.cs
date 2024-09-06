@@ -3,8 +3,8 @@ using System.Diagnostics;
 
 namespace Atlas.Core.Objects.Sleep;
 
-internal class Sleeper<T> : ISleeper<T>, IDisposable
-	where T : class, ISleeper<T>
+internal sealed class Sleeper<T> : ISleeper<T>, IDisposable
+	where T : class, ISleeper
 {
 	#region Events
 	public event Action<T, int, int> SleepingChanged;

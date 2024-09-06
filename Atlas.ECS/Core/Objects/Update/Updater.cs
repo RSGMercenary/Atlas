@@ -2,8 +2,8 @@
 
 namespace Atlas.Core.Objects.Update;
 
-internal class Updater<T> : IUpdater<T>, IDisposable
-	where T : class, IUpdater<T>
+internal sealed class Updater<T> : IUpdater<T>, IDisposable
+	where T : class, IUpdater
 {
 	#region Events
 	public event Action<T, bool> IsUpdatingChanged;
@@ -24,14 +24,14 @@ internal class Updater<T> : IUpdater<T>, IDisposable
 	#endregion
 
 	#region Fields
-	private readonly T instance;
+	private readonly T Instance;
 	private bool isUpdating = false;
 	private TimeStep timeStep = TimeStep.None;
 	#endregion
 
 	public Updater(T instance)
 	{
-		this.instance = instance;
+		Instance = instance;
 	}
 
 	public void Dispose()
@@ -51,7 +51,7 @@ internal class Updater<T> : IUpdater<T>, IDisposable
 			if(isUpdating == value)
 				return;
 			isUpdating = value;
-			IsUpdatingChanged?.Invoke(instance, value);
+			IsUpdatingChanged?.Invoke(Instance, value);
 		}
 	}
 
@@ -70,7 +70,7 @@ internal class Updater<T> : IUpdater<T>, IDisposable
 				return;
 			var previous = timeStep;
 			timeStep = value;
-			TimeStepChanged?.Invoke(instance, value, previous);
+			TimeStepChanged?.Invoke(Instance, value, previous);
 		}
 	}
 }

@@ -32,7 +32,7 @@ public interface ISleeper
 /// An <see langword="interface"/> providing <see cref="Sleeping"/> and <see cref="IsSleeping"/> properties for sleep instances.
 /// </summary>
 /// <typeparam name="T">A generic <see cref="Type"/> that is a <see cref="ISleeper{T}"/>.</typeparam>
-public interface ISleeper<out T> : ISleeper where T : ISleeper<T>
+public interface ISleeper<out T> : ISleeper where T : ISleeper
 {
 	/// <summary>
 	/// The <see langword="event"/> invoked when <see cref="Sleeping"/> has changed.

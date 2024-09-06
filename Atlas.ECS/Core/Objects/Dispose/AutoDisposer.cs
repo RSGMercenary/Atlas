@@ -2,8 +2,8 @@
 
 namespace Atlas.Core.Objects.AutoDispose;
 
-internal class AutoDisposer<T> : IAutoDisposer<T>
-	where T : class, IAutoDisposer<T>
+internal sealed class AutoDisposer<T> : IAutoDisposer<T>, IDisposable
+	where T : class, IAutoDisposer
 {
 	#region Events
 	public event Action<T, bool> AutoDisposeChanged;

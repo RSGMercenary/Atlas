@@ -11,7 +11,7 @@ using System.Collections.Generic;
 namespace Atlas.ECS.Components.Component;
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
+public abstract class AtlasComponent : AtlasComponent<IComponent>
 {
 	#region Static
 	/// <summary>
@@ -32,7 +32,7 @@ public abstract class AtlasComponent : AtlasComponent<AtlasComponent>
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasComponent<T> : IComponent<T>
-	where T : class, IComponent<T>
+	where T : class, IComponent
 {
 	#region Events
 	public event Action<T, bool> AutoDisposeChanged
