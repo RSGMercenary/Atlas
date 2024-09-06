@@ -54,7 +54,7 @@ class EntityTests
 	}
 
 	[Test]
-	public void When_AddChildren_With_SameLocalName_Then_LocalNameChanged()
+	public void When_AddChildren_With_SameLocalName_Then_ThrowsException()
 	{
 		const string localName = "Child";
 
@@ -66,10 +66,9 @@ class EntityTests
 		parent.AddChild(child2);
 
 		child1.LocalName = localName;
-		child2.LocalName = localName;
+		;
 
-		Assert.That(child1.LocalName == localName);
-		Assert.That(child2.LocalName != localName);
+		Assert.That(() => child2.LocalName = localName, Throws.Exception);
 	}
 	#endregion
 

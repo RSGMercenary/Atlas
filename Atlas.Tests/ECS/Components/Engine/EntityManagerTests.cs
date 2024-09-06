@@ -125,19 +125,7 @@ internal class EntityManagerTests
 		root.AddChild(child1);
 		root.AddChild(child2);
 
-		root.AddComponent<IEngine>(Engine);
-
-		var child2Name = child2.GlobalName;
-
-		Assert.That(child1.GlobalName == child1Name);
-		Assert.That(child2.GlobalName != child1Name);
-		Assert.That(Engine.Entities.Has(child1));
-		Assert.That(Engine.Entities.Has(child2));
-		Assert.That(Engine.Entities.Has(child1Name));
-		Assert.That(Engine.Entities.Has(child2Name));
-		Assert.That(Engine.Entities.Get(child1Name) == child1);
-		Assert.That(Engine.Entities.Get(child2Name) == child2);
-		Assert.That(Engine.Entities.Entities.Count == 3);
+		Assert.That(() => root.AddComponent<IEngine>(Engine), Throws.Exception);
 	}
 
 	[Test]
@@ -161,7 +149,7 @@ internal class EntityManagerTests
 	}
 
 	[Test]
-	public void When_AddChild_With_SameGlobalName_Then_HasRenamedEntity()
+	public void When_AddChild_With_SameGlobalName_Then_ThrowsException()
 	{
 		const string name = "Child";
 
@@ -175,14 +163,8 @@ internal class EntityManagerTests
 		root.AddComponent<IEngine>(Engine);
 
 		child2.GlobalName = name;
-		root.AddChild(child2);
 
-		Assert.That(Engine.Entities.Has(child1.GlobalName));
-		Assert.That(Engine.Entities.Has(child2.GlobalName));
-		Assert.That(Engine.Entities.Has(child1));
-		Assert.That(Engine.Entities.Has(child2));
-		Assert.That(Engine.Entities.Get(child1.GlobalName) == child1);
-		Assert.That(Engine.Entities.Get(child2.GlobalName) == child2);
+		Assert.That(() => root.AddChild(child2), Throws.Exception);
 	}
 	#endregion
 
