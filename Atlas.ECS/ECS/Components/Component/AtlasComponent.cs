@@ -19,6 +19,10 @@ public abstract class AtlasComponent : AtlasComponent<IComponent>
 	/// </summary>
 	public static bool DefaultAutoDispose { get; set; } = true;
 
+	public static IPool<T> AddPool<T>(int maxCount = -1, bool fill = false) where T : IComponent, new() => PoolManager.Instance.AddPool<T>(maxCount, fill);
+
+	public static bool RemovePool<T>() where T : IComponent => PoolManager.Instance.RemovePool<T>();
+
 	internal static Type GetType(IComponent component, Type type = null)
 	{
 		if(type == null)

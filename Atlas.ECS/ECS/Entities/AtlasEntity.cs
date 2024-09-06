@@ -25,6 +25,10 @@ public sealed class AtlasEntity : IEntity
 	/// </summary>
 	public static bool DefaultAutoDispose { get; set; } = true;
 
+	public static IPool<AtlasEntity> AddPool(int maxCount = -1, bool fill = false) => PoolManager.Instance.AddPool<AtlasEntity>(maxCount, fill);
+
+	public static bool RemovePool() => PoolManager.Instance.RemovePool<AtlasEntity>();
+
 	/// <summary>
 	/// A constant name used by the <see cref="Root"/> instance.
 	/// </summary>
