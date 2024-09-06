@@ -6,5 +6,5 @@ public interface IFamilySystem<TFamilyMember> : ISystem where TFamilyMember : cl
 {
 	IReadOnlyFamily<TFamilyMember> Family { get; }
 
-	bool UpdateSleepingEntities { get; }
+	bool IgnoreSleep { get; }
 }

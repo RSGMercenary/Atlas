@@ -147,7 +147,7 @@ class SerializationTests
 
 		system.Priority = Random.Next(int.MinValue, int.MaxValue);
 		system.Sleep(Random.NextBool());
-		system.UpdateSleepingEntities = Random.NextBool();
+		system.IgnoreSleep = Random.NextBool();
 		system.IsUpdating = phases[Random.Next(phases.Length)];
 		system.TimeStep = timeSteps[Random.Next(timeSteps.Length)];
 

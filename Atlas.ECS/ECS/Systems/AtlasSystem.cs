@@ -19,7 +19,7 @@ public abstract class AtlasSystem : ISystem
 	/// <summary>
 	/// The <see cref="AtlasFamilySystem"/>.UpdateSleepingEntities value used for all new <see cref="AtlasFamilySystem"/> instances. The default is <see langword="false"/>.
 	/// </summary>
-	public static bool DefaultUpdateSleepingEntities { get; set; } = false;
+	public static bool DefaultIgnoreSleep { get; set; } = false;
 	#endregion
 
 	#region Events

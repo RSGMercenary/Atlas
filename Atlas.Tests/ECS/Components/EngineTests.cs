@@ -36,7 +36,7 @@ class EngineTests
 			root.Sleep(entitySleeping);
 
 		var system = engine.Systems.Add<TestVariableFamilySystem>();
-		system.UpdateSleepingEntities = systemSleeping;
+		system.IgnoreSleep = systemSleeping;
 
 		engine.Updates.Update(0.125f);
 

@@ -45,10 +45,10 @@ class TestFixedFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestFixedFam
 			Engine.Systems.Remove<TestFixedFamilySystem>();
 	}
 
-	public new bool UpdateSleepingEntities
+	public new bool IgnoreSleep
 	{
-		get => base.UpdateSleepingEntities;
-		set => base.UpdateSleepingEntities = value;
+		get => base.IgnoreSleep;
+		set => base.IgnoreSleep = value;
 	}
 
 	public new TimeStep TimeStep

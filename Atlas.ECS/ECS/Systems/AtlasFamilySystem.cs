@@ -14,14 +14,14 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 
 	[JsonProperty]
-	public bool UpdateSleepingEntities { get; protected set; } = DefaultUpdateSleepingEntities;
+	public bool IgnoreSleep { get; protected set; } = DefaultIgnoreSleep;
 
 	protected override void SystemUpdate(float deltaTime)
 	{
-		var updateSleepingEntities = UpdateSleepingEntities;
+		var ignoreSleep = IgnoreSleep;
 		foreach(var member in Family)
 		{
-			if(updateSleepingEntities || !member.Entity.IsSleeping)
+			if(ignoreSleep || !member.Entity.IsSleeping)
 				MemberUpdate(deltaTime, member);
 		}
 	}

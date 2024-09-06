@@ -45,10 +45,10 @@ class TestVariableFamilySystem : AtlasFamilySystem<TestFamilyMember>, ITestVaria
 			Engine.Systems.Remove<TestVariableFamilySystem>();
 	}
 
-	public new bool UpdateSleepingEntities
+	public new bool IgnoreSleep
 	{
-		get => base.UpdateSleepingEntities;
-		set => base.UpdateSleepingEntities = value;
+		get => base.IgnoreSleep;
+		set => base.IgnoreSleep = value;
 	}
 
 	public new TimeStep TimeStep
