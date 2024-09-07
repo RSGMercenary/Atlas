@@ -1,15 +1,28 @@
-﻿using Atlas.Core.Objects.Builder;
-using Atlas.ECS.Components.Component;
+﻿using Atlas.ECS.Components.Component;
 using System;
 
 namespace Atlas.ECS.Entities;
 
-public class AtlasEntityBuilder : Builder<IEntityBuilder, IEntity>, IEntityBuilder
+public class AtlasEntityBuilder : IEntityBuilder
 {
-	public AtlasEntityBuilder() { }
-	public AtlasEntityBuilder(IEntity entity) : base(entity) { }
+	private IEntity Instance { get; set; }
 
-	protected override IEntity NewInstance() => AtlasEntity.Get();
+	public AtlasEntityBuilder() { }
+
+	public AtlasEntityBuilder(IEntity entity) => Instance = entity;
+
+	public IEntityBuilder Start()
+	{
+		Instance ??= AtlasEntity.Get();
+		return this;
+	}
+
+	public IEntity Finish()
+	{
+		var instance = Instance;
+		Instance = null;
+		return instance;
+	}
 
 	#region Names
 	public IEntityBuilder SetNames(string name)

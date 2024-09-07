@@ -1,11 +1,14 @@
-﻿using Atlas.Core.Objects.Builder;
-using Atlas.ECS.Components.Component;
+﻿using Atlas.ECS.Components.Component;
 using System;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntityBuilder : IBuilder<IEntityBuilder, IEntity>
+public interface IEntityBuilder
 {
+	IEntityBuilder Start();
+
+	IEntity Finish();
+
 	#region Names
 	IEntityBuilder SetNames(string name);
 
