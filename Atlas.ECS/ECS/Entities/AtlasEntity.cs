@@ -21,7 +21,7 @@ public sealed class AtlasEntity : IEntity
 {
 	#region Static
 	/// <summary>
-	/// The default <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasEntity"/> instances. The default is <see langword="true"/>.
+	/// The <see cref="AutoDispose"/> value used for all new <see cref="AtlasEntity"/> instances. The default is <see langword="true"/>.
 	/// </summary>
 	public static bool DefaultAutoDispose { get; set; } = true;
 

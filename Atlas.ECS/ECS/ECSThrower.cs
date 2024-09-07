@@ -16,9 +16,9 @@ internal static class ECSThrower
 		throw new ArgumentException($"Can't set '{current}'. The name is already in use.", parameter);
 	}
 
-	internal static void NotAssignable(Type type1, Type type2, string parameter)
+	internal static void NotAssignable(Type from, Type to, string parameter)
 	{
-		throw new ArgumentException($"'{type1}' is not assignable to '{type2}'.", parameter);
+		throw new ArgumentException($"'{from}' is not assignable to '{to}'.", parameter);
 	}
 
 	internal static void NotRootHasEngine()

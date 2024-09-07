@@ -15,7 +15,7 @@ public abstract class AtlasComponent : AtlasComponent<IComponent>
 {
 	#region Static
 	/// <summary>
-	/// The default <see cref="IAutoDisposer.AutoDispose"/> value used for all new <see cref="AtlasComponent"/> instances. The default is <see langword="true"/>.
+	/// The <see cref="AutoDispose"/> value used for all new <see cref="AtlasComponent"/> instances. The default is <see langword="true"/>.
 	/// </summary>
 	public static bool DefaultAutoDispose { get; set; } = true;
 
@@ -30,6 +30,13 @@ public abstract class AtlasComponent : AtlasComponent<IComponent>
 		else if(!type.IsInstanceOfType(component))
 			ECSThrower.NotAssignable(component.GetType(), type, nameof(type));
 		return type;
+	}
+
+	public sealed override bool AutoDispose
+	{
+		//Overriding to allow AtlasComponent.DefaultAutoDispose to reference the class corectly in docs.
+		get => base.AutoDispose;
+		set => base.AutoDispose = value;
 	}
 	#endregion
 }
@@ -112,7 +119,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 
 	#region AutoDispose
 	[JsonProperty(Order = int.MinValue + 1)]
-	public bool AutoDispose
+	public virtual bool AutoDispose
 	{
 		get => AutoDisposer.AutoDispose;
 		set => AutoDisposer.AutoDispose = value;

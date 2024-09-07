@@ -111,7 +111,6 @@ public abstract class AtlasSystem : ISystem
 		DeltaIntervalTime = 0;
 
 		TotalIntervalTime = 0;
-
 	}
 	#endregion
 
