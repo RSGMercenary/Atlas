@@ -9,7 +9,7 @@ public abstract class AtlasEntityConstructor<T> : AtlasComponent<T>, IEntityCons
 	#region Events
 	public event Action<T, Construction, Construction> ConstructionChanged;
 
-	event Action<IEntityConstructor, Construction, Construction> IEntityConstructor.ConstructionStateChanged
+	event Action<IEntityConstructor, Construction, Construction> IEntityConstructor.ConstructionChanged
 	{
 		add => ConstructionChanged += value;
 		remove => ConstructionChanged -= value;
