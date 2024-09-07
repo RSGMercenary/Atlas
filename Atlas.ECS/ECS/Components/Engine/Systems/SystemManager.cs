@@ -30,10 +30,10 @@ internal sealed class SystemManager : ISystemManager
 
 	public IEngine Engine { get; }
 
-	#region Create
-	public ISystemCreator Creator { get; set; }
+	#region Construct
+	public ISystemConstructor Constructor { get; set; }
 
-	private TSystem CreateSystem<TSystem>() where TSystem : class, ISystem => Creator != null ? Creator.Create<TSystem>() : SystemGetter.GetSystem<TSystem>();
+	private TSystem CreateSystem<TSystem>() where TSystem : class, ISystem => Constructor != null ? Constructor.Construct<TSystem>() : SystemGetter.GetSystem<TSystem>();
 
 	private T GenericInvoke<T>(Type type, string name)
 	{

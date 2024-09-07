@@ -49,11 +49,11 @@ internal sealed class FamilyManager : IFamilyManager
 			family.RemoveEntity(entity);
 	}
 
-	#region Create
-	public IFamilyCreator Creator { get; set; }
+	#region Construct
+	public IFamilyConstructor Constructor { get; set; }
 
 	private IFamily<TFamilyMember> CreateFamily<TFamilyMember>()
-		where TFamilyMember : class, IFamilyMember, new() => Creator != null ? Creator.Create<TFamilyMember>() : new AtlasFamily<TFamilyMember>();
+		where TFamilyMember : class, IFamilyMember, new() => Constructor != null ? Constructor.Construct<TFamilyMember>() : new AtlasFamily<TFamilyMember>();
 	#endregion
 
 	#region Add

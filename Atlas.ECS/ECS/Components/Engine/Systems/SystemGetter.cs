@@ -25,18 +25,18 @@ public static class SystemGetter
 	#endregion
 
 	#region Systems
-	public static IEnumerable<T> GetSystems<T>() where T : ISystem => GetSystemTypes<T>().Select(CreateSystem<T>);
+	public static IEnumerable<T> GetSystems<T>() where T : ISystem => GetSystemTypes<T>().Select(ConstructSystem<T>);
 
-	public static IEnumerable<ISystem> GetSystems(Type type) => GetSystemTypes(type).Select(CreateSystem<ISystem>);
+	public static IEnumerable<ISystem> GetSystems(Type type) => GetSystemTypes(type).Select(ConstructSystem<ISystem>);
 	#endregion
 
 	#region System
 	public static T GetSystem<T>() where T : ISystem => (T)GetSystem(typeof(T));
 
-	public static ISystem GetSystem(Type type) => CreateSystem<ISystem>(GetSystemTypes(type).Single());
+	public static ISystem GetSystem(Type type) => ConstructSystem<ISystem>(GetSystemTypes(type).Single());
 	#endregion
 
-	#region Create
-	private static T CreateSystem<T>(Type type) where T : ISystem => (T)Activator.CreateInstance(type);
+	#region Construct
+	private static T ConstructSystem<T>(Type type) where T : ISystem => (T)Activator.CreateInstance(type);
 	#endregion
 }

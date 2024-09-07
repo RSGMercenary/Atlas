@@ -32,7 +32,7 @@ public interface IFamilyManager : IReadOnlyEngineManager
 	/// </summary>
 	IReadOnlyDictionary<Type, IReadOnlyFamily> Types { get; }
 
-	IFamilyCreator Creator { get; set; }
+	IFamilyConstructor Constructor { get; set; }
 
 	/// <summary>
 	/// Adds an <see cref="IFamily"/> with the given <see cref="IFamilyMember"/> <see cref="Type"/> to the <see cref="IFamilyManager"/>.

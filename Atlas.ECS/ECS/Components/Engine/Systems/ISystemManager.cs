@@ -38,7 +38,7 @@ public interface ISystemManager : IReadOnlyEngineManager
 	/// </summary>
 	IReadOnlyDictionary<Type, ISystem> Types { get; }
 
-	ISystemCreator Creator { get; set; }
+	ISystemConstructor Constructor { get; set; }
 
 	/// <summary>
 	/// Adds an <see cref="ISystem"/> with the given <see cref="Type"/> to the <see cref="ISystemManager"/>.

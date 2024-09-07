@@ -8,13 +8,18 @@ using System.Linq;
 
 namespace Atlas.ECS.Components.SystemRunner;
 
-public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
+public sealed class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 {
+	#region Events
 	public event Action<ISystemRunner, Type> Added;
 	public event Action<ISystemRunner, Type> Removed;
+	#endregion
 
+	#region Fields
 	private readonly HashSet<Type> types = new();
+	#endregion
 
+	#region Construct / Dispose
 	public AtlasSystemRunner() { }
 
 	public AtlasSystemRunner(params Type[] types) : this(types as IEnumerable<Type>) { }
@@ -30,6 +35,7 @@ public class AtlasSystemRunner : AtlasComponent<ISystemRunner>, ISystemRunner
 		RemoveAll();
 		base.Disposing();
 	}
+	#endregion
 
 	#region Engine/Systems
 	protected override void AddingManager(IEntity entity, int index)

@@ -35,8 +35,7 @@ public abstract class AtlasComponent : AtlasComponent<IComponent>
 }
 
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-public abstract class AtlasComponent<T> : IComponent<T>
-	where T : class, IComponent
+public abstract class AtlasComponent<T> : IComponent<T> where T : class, IComponent
 {
 	#region Events
 	public event Action<T, bool> AutoDisposeChanged

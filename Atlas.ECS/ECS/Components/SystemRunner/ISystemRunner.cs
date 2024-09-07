@@ -21,10 +21,7 @@ public interface ISystemRunner : IComponent<ISystemRunner>
 	/// </summary>
 	event Action<ISystemRunner, Type> Removed;
 
-	bool Has(Type type);
-
-	bool Has<TSystem>()
-		where TSystem : class, ISystem;
+	IReadOnlySet<Type> Types { get; }
 
 	bool Add(Type type);
 
@@ -38,5 +35,8 @@ public interface ISystemRunner : IComponent<ISystemRunner>
 
 	bool RemoveAll();
 
-	IReadOnlySet<Type> Types { get; }
+	bool Has(Type type);
+
+	bool Has<TSystem>()
+		where TSystem : class, ISystem;
 }
