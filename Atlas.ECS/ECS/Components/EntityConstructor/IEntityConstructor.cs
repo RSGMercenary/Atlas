@@ -5,7 +5,7 @@ namespace Atlas.ECS.Components.EntityConstructor;
 
 public interface IEntityConstructor : IComponent
 {
-	event Action<IEntityConstructor, Construction, Construction> ConstructionStateChanged;
+	event Action<IEntityConstructor, Construction, Construction> ConstructionChanged;
 
 	/// <summary>
 	/// The current state of the build process. This can be
