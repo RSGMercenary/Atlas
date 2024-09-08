@@ -19,7 +19,10 @@ public abstract class AtlasEntityConstructor<T> : AtlasComponent<T>, IEntityCons
 	private Construction construction = Construction.Deconstructed;
 	private bool autoRemove = true;
 
-	protected AtlasEntityConstructor() { }
+	protected AtlasEntityConstructor(bool autoRemove = true)
+	{
+		AutoRemove = autoRemove;
+	}
 
 	protected override void AddingManager(IEntity entity, int index)
 	{
