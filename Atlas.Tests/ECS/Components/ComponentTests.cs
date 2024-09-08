@@ -10,7 +10,7 @@ using System.Linq;
 namespace Atlas.Tests.ECS.Components;
 
 [TestFixture]
-class ComponentTests
+internal class ComponentTests
 {
 	#region Add
 	[Test]
