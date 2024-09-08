@@ -41,20 +41,30 @@ class EntityTests
 		Assert.That(() => entity.LocalName = name, Throws.Exception);
 	}
 
+	[TestCase("GlobalName")]
+	[TestCase("GlobalNameButLonger")]
+	public void When_GlobalName_Then_LocalNameExpected(string globalName)
+	{
+		var entity = new AtlasEntity("GlobalName");
+
+		entity.GlobalName = globalName;
+
+		Assert.That(entity.GlobalName == globalName);
+	}
+
 	[TestCase("LocalName")]
 	[TestCase("LocalNameButLonger")]
 	public void When_LocalName_Then_LocalNameExpected(string localName)
 	{
-		var parent = new AtlasEntity();
-		var child = new AtlasEntity("LocalName");
+		var entity = new AtlasEntity(null, "LocalName");
 
-		child.LocalName = localName;
+		entity.LocalName = localName;
 
-		Assert.That(child.LocalName == localName);
+		Assert.That(entity.LocalName == localName);
 	}
 
 	[Test]
-	public void When_AddChildren_With_SameLocalName_Then_ThrowsException()
+	public void When_LocalName_With_SameLocalName_Then_ThrowsException()
 	{
 		const string localName = "Child";
 
@@ -66,9 +76,22 @@ class EntityTests
 		parent.AddChild(child2);
 
 		child1.LocalName = localName;
-		;
 
 		Assert.That(() => child2.LocalName = localName, Throws.Exception);
+	}
+
+	[Test]
+	public void When_AddChild_With_SameLocalName_Then_ThrowsException()
+	{
+		const string localName = "Child";
+
+		var parent = new AtlasEntity();
+		var child1 = new AtlasEntity(null, localName);
+		var child2 = new AtlasEntity(null, localName);
+
+		parent.AddChild(child1);
+
+		Assert.That(() => parent.AddChild(child2), Throws.Exception);
 	}
 	#endregion
 

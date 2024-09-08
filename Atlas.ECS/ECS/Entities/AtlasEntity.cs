@@ -43,7 +43,7 @@ public sealed class AtlasEntity : IEntity
 	#region Pool
 	public static AtlasEntity Get() => PoolManager.Instance.Get<AtlasEntity>();
 
-	public static AtlasEntity Get(string localName = null, string globalName = null) { var entity = Get(); entity.SetNames(localName, globalName); return entity; }
+	public static AtlasEntity Get(string globalName = null, string localName = null) { var entity = Get(); entity.SetNames(globalName, localName); return entity; }
 
 	public static AtlasEntity GetRoot() { var root = Get(); root.IsRoot = true; return root; }
 	#endregion
@@ -154,7 +154,9 @@ public sealed class AtlasEntity : IEntity
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
 
-	public AtlasEntity(string localName = null, string globalName = null) : this() { SetNames(localName, globalName); }
+	public AtlasEntity(string name) : this() => SetNames(name);
+
+	public AtlasEntity(string globalName, string localName) : this() => SetNames(globalName, localName);
 
 	public void Dispose()
 	{
@@ -228,7 +230,7 @@ public sealed class AtlasEntity : IEntity
 
 	public void SetNames(string name) => SetNames(name, name);
 
-	public void SetNames(string localName, string globalName) { LocalName = localName; GlobalName = globalName; }
+	public void SetNames(string globalName, string localName) { GlobalName = globalName; LocalName = localName; }
 
 	private bool IsValidName(string current, string next, Func<string, bool> check, [CallerMemberName] string name = null)
 	{
