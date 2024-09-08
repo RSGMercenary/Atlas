@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace Atlas.ECS.Entities;
 
-public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDisposer<IEntity>, IDisposable, ISerialize
+public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleeper<IEntity>, IAutoDisposer<IEntity>, ISerialize
 {
 	#region Events
 	event Action<IEntity, IComponent, Type> ComponentAdded;
@@ -86,10 +86,10 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleepe
 
 	IReadOnlyDictionary<Type, IComponent> Components { get; }
 
-	TType GetAncestorComponent<TType>(int depth, bool self)
+	TType GetAncestorComponent<TType>(int depth = -1, bool self = false)
 		where TType : class, IComponent;
 
-	IEnumerable<TType> GetDescendantComponents<TType>(int depth)
+	IEnumerable<TType> GetDescendantComponents<TType>(int depth, bool self = false)
 		where TType : class, IComponent;
 	#endregion
 

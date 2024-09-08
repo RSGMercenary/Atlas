@@ -446,10 +446,10 @@ public sealed class AtlasEntity : IEntity
 				return component;
 			ancestor = ancestor.Parent;
 		}
-		return default;
+		return null;
 	}
 
-	public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth = -1)
+	public IEnumerable<TKeyValue> GetDescendantComponents<TKeyValue>(int depth = -1, bool self = false)
 		where TKeyValue : class, IComponent
 	{
 		foreach(var child in Children)
