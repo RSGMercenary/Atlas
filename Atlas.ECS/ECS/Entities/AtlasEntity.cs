@@ -131,10 +131,10 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Fields
-	private readonly Dictionary<Type, IComponent> components = new();
 	private string globalName = UniqueName;
 	private string localName = UniqueName;
 	private int selfSleeping = 0;
+	private readonly Dictionary<Type, IComponent> components = new();
 	private readonly EngineManager<IEntity> EngineManager;
 	private readonly AutoDisposer<IEntity> AutoDisposer;
 	private readonly Hierarchy<IEntity> Hierarchy;
