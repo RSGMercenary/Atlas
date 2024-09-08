@@ -5,6 +5,7 @@ using Atlas.Tests.Attributes;
 using Atlas.Tests.Testers.Components;
 using NUnit.Framework;
 using System;
+using System.Linq;
 
 namespace Atlas.Tests.ECS.Components;
 
@@ -260,6 +261,56 @@ class ComponentTests
 	}
 	#endregion
 
+	#region Get
+	[Test]
+	[Repeat(20)]
+	public void When_GetDescendantComponents_Then_ComponentsFound([Values(false, true)] bool self)
+	{
+		var random = new Random();
+		var entity = new AtlasEntity();
+		var count = 0;
+
+		entity.AddComponent<TestComponent>();
+		AddChildren(entity, random, 5, ref count);
+
+		var components = entity.GetDescendantComponents<TestComponent>(-1, self).ToList();
+		Assert.That(components.Count == count);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_GetAncestorComponent_Then_ComponentFound([Values(false, true)] bool self, [Values(false, true)] bool add)
+	{
+		var random = new Random();
+		var entity = new AtlasEntity();
+		var count = 0;
+
+		entity.AddComponent<TestComponent>();
+		AddChildren(entity, random, 5, ref count);
+
+		IEntity descendant = entity;
+		while(descendant.Children.Count > 0)
+			descendant = descendant.Children[random.Next(descendant.Children.Count)];
+
+		var component = descendant.GetAncestorComponent<TestComponent>(-1, self);
+		Assert.That(component != null);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_GetAncestorComponent_Then_ComponentNotFound()
+	{
+		var parent = new AtlasEntity();
+		var child = new AtlasEntity();
+
+		parent.AddChild(child);
+
+		var component = child.GetAncestorComponent<TestComponent>();
+
+		Assert.That(component == null);
+	}
+	#endregion
+
 	#region Engine
 	[TestCase(true)]
 	[TestCase(false)]
@@ -288,4 +339,17 @@ class ComponentTests
 		Assert.That(component.TestDispose == isAutoDisposable);
 	}
 	#endregion
+
+	private void AddChildren(IEntity entity, Random random, int depth, ref int count)
+	{
+		if(depth <= 0)
+		{
+			++count;
+			entity.AddComponent<TestComponent>();
+			return;
+		}
+
+		for(int i = random.Next(1, 6); i > 0; --i)
+			AddChildren(entity.AddChild(new AtlasEntity()), random, --depth, ref count);
+	}
 }
