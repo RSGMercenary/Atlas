@@ -21,15 +21,6 @@ public sealed class AtlasEntity : IEntity
 {
 	#region Static
 	/// <summary>
-	/// The <see cref="AutoDispose"/> value used for all new <see cref="AtlasEntity"/> instances. The default is <see langword="true"/>.
-	/// </summary>
-	public static bool DefaultAutoDispose { get; set; } = true;
-
-	public static IPool<AtlasEntity> AddPool(int maxCount = -1, bool fill = false) => PoolManager.Instance.AddPool<AtlasEntity>(maxCount, fill);
-
-	public static bool RemovePool() => PoolManager.Instance.RemovePool<AtlasEntity>();
-
-	/// <summary>
 	/// A constant name used by the <see cref="Root"/> instance.
 	/// </summary>
 	public static readonly string RootName = "Root";
@@ -149,7 +140,7 @@ public sealed class AtlasEntity : IEntity
 		Hierarchy = new Hierarchy<IEntity>(this);
 		Sleeper = new Sleeper<IEntity>(this);
 
-		AutoDispose = DefaultAutoDispose;
+		AutoDispose = AtlasECS.EntityAutoDispose;
 	}
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
@@ -165,7 +156,7 @@ public sealed class AtlasEntity : IEntity
 		AutoDisposer.Dispose();
 		Sleeper.Dispose();
 
-		AutoDispose = DefaultAutoDispose;
+		AutoDispose = AtlasECS.EntityAutoDispose;
 
 		ComponentAdded = null;
 		ComponentRemoved = null;

@@ -14,15 +14,6 @@ namespace Atlas.ECS.Components.Component;
 public abstract class AtlasComponent : AtlasComponent<IComponent>
 {
 	#region Static
-	/// <summary>
-	/// The <see cref="AutoDispose"/> value used for all new <see cref="AtlasComponent"/> instances. The default is <see langword="true"/>.
-	/// </summary>
-	public static bool DefaultAutoDispose { get; set; } = true;
-
-	public static IPool<T> AddPool<T>(int maxCount = -1, bool fill = false) where T : IComponent, new() => PoolManager.Instance.AddPool<T>(maxCount, fill);
-
-	public static bool RemovePool<T>() where T : IComponent => PoolManager.Instance.RemovePool<T>();
-
 	internal static Type GetType(IComponent component, Type type = null)
 	{
 		if(type == null)
@@ -30,13 +21,6 @@ public abstract class AtlasComponent : AtlasComponent<IComponent>
 		else if(!type.IsInstanceOfType(component))
 			ECSThrower.NotAssignable(component.GetType(), type, nameof(type));
 		return type;
-	}
-
-	public sealed override bool AutoDispose
-	{
-		//Overriding to allow AtlasComponent.DefaultAutoDispose to reference the class corectly in docs.
-		get => base.AutoDispose;
-		set => base.AutoDispose = value;
 	}
 	#endregion
 }
@@ -95,7 +79,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 		IsShareable = isShareable;
 		AutoDisposer = new(this as T, () => managers.Count <= 0);
 
-		AutoDispose = AtlasComponent.DefaultAutoDispose;
+		AutoDispose = AtlasECS.ComponentAutoDispose;
 	}
 
 	public void Dispose()
@@ -108,7 +92,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 		RemoveManagers();
 		AutoDisposer.Dispose();
 
-		AutoDispose = AtlasComponent.DefaultAutoDispose;
+		AutoDispose = AtlasECS.ComponentAutoDispose;
 
 		PoolManager.Instance.Put(this);
 	}

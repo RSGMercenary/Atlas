@@ -14,7 +14,7 @@ public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySys
 	public IReadOnlyFamily<TFamilyMember> Family { get; private set; }
 
 	[JsonProperty]
-	public bool IgnoreSleep { get; protected set; } = DefaultIgnoreSleep;
+	public bool IgnoreSleep { get; protected set; } = AtlasECS.IgnoreSleep;
 
 	protected override void SystemUpdate(float deltaTime)
 	{

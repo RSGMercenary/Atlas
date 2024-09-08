@@ -17,11 +17,14 @@ public abstract class AtlasEntityConstructor<T> : AtlasComponent<T>, IEntityCons
 	#endregion
 
 	private Construction construction = Construction.Deconstructed;
-	private bool autoRemove = true;
+	private bool autoRemove = AtlasECS.AutoRemove;
 
-	protected AtlasEntityConstructor(bool autoRemove = true)
+	protected AtlasEntityConstructor() { }
+
+	protected override void Disposing()
 	{
-		AutoRemove = autoRemove;
+		AutoRemove = AtlasECS.AutoRemove;
+		base.Disposing();
 	}
 
 	protected override void AddingManager(IEntity entity, int index)

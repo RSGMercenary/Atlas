@@ -4,9 +4,9 @@ namespace Atlas.Tests.Testers.Components;
 
 internal class TestEntityContructor : AtlasEntityConstructor<IEntityConstructor>
 {
-	internal TestEntityContructor(bool autoRemove = true) : base(autoRemove)
+	internal TestEntityContructor(bool autoRemove = true)
 	{
-
+		AutoRemove = autoRemove;
 	}
 
 	protected override void Construct()
