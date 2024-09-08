@@ -581,10 +581,6 @@ public sealed class AtlasEntity : IEntity
 	}
 	#endregion
 
-	#region Set
-	public IEntity SetRelative(string hierarchy, int index) => SetParent(GetRelative(hierarchy), index);
-	#endregion
-
 	#region Has
 	public bool HasChild(string localName) => GetChild(localName) != null;
 	#endregion

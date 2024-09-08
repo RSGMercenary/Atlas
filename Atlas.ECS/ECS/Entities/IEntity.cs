@@ -56,8 +56,6 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleepe
 	/// <returns></returns>
 	IEntity GetRelative(string hierarchy);
 
-	IEntity SetRelative(string hierarchy, int index);
-
 	IEntity GetChild(string localName);
 
 	IEntity RemoveChild(string localName);
