@@ -81,6 +81,7 @@ class EntityTests
 
 		entity.Sleep(isSleeping);
 
+		Assert.That(entity.Sleeping == (isSleeping ? 1 : -1));
 		Assert.That(entity.IsSleeping == isSleeping);
 	}
 
@@ -92,6 +93,7 @@ class EntityTests
 
 		entity.SelfSleep(isSelfSleeping);
 
+		Assert.That(entity.SelfSleeping == (isSelfSleeping ? 1 : -1));
 		Assert.That(entity.IsSelfSleeping == isSelfSleeping);
 	}
 
