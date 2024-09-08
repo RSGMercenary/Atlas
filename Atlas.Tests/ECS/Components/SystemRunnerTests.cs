@@ -85,6 +85,7 @@ class SystemRunnerTests
 
 	[TestCase(null)]
 	[TestCase(typeof(IComponent))]
+	[TestCase(typeof(ISystem))]
 	public void When_RemoveSystem_Then_NoSystemRemoved(Type type)
 	{
 		var component = new AtlasSystemRunner();
