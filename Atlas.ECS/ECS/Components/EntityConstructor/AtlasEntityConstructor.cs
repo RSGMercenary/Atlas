@@ -4,6 +4,8 @@ using System;
 
 namespace Atlas.ECS.Components.EntityConstructor;
 
+internal class AtlasEntityConstructor { }
+
 public abstract class AtlasEntityConstructor<T> : AtlasComponent<T>, IEntityConstructor<T> where T : class, IEntityConstructor
 {
 	#region Events
