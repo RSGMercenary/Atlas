@@ -8,7 +8,7 @@ internal class LinkListData<T>
 	public int iterators = 0;
 	public T value;
 
-	public LinkListData() { }
+	internal LinkListData() { }
 
 	public void Dispose()
 	{
