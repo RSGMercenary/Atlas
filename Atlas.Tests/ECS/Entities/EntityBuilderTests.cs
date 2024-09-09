@@ -33,7 +33,7 @@ internal class EntityBuilderTests
 		var parent = new AtlasEntity();
 		var child = new AtlasEntity();
 
-		var builder = Entity.Build()
+		var builder = new AtlasEntityBuilder().Start()
 			.GlobalName(globalName)
 			.LocalName(localName)
 			.Sleep(sleep)
@@ -47,16 +47,83 @@ internal class EntityBuilderTests
 		if(addComponent)
 			builder.AddComponent<TestComponent>();
 
-		builder.Finish();
+		var entity = builder.Finish();
 
-		Assert.That(Entity.GlobalName == globalName);
-		Assert.That(Entity.LocalName == localName);
-		Assert.That(Entity.IsSleeping == sleep);
-		Assert.That(Entity.IsSelfSleeping == selfSleep);
-		Assert.That(Entity.AutoDispose == autoDispose);
-		Assert.That(Entity.Parent == parent == setParent);
-		Assert.That(Entity.HasChild(child) == addChild);
-		Assert.That(Entity.HasComponent<TestComponent>() == addComponent);
+		Assert.That(entity.GlobalName == globalName);
+		Assert.That(entity.LocalName == localName);
+		Assert.That(entity.IsSleeping == sleep);
+		Assert.That(entity.IsSelfSleeping == selfSleep);
+		Assert.That(entity.AutoDispose == autoDispose);
+		Assert.That(entity.Parent == parent == setParent);
+		Assert.That(entity.HasChild(child) == addChild);
+		Assert.That(entity.HasComponent<TestComponent>() == addComponent);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_SetParent_Then_ParentSet()
+	{
+		var parent = new AtlasEntity();
+		var index = new Random().Next(0, 11);
+
+		for(var i = 0; i < 10; ++i)
+			parent.AddChild(new AtlasEntity());
+
+		Entity.Build().SetParent(parent, index);
+
+		Assert.That(parent[index] == Entity);
+		Assert.That(Entity.ParentIndex == index);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_AddChild_Then_ChildAdded()
+	{
+		var child = new AtlasEntity();
+		var index = new Random().Next(0, 11);
+
+		for(var i = 0; i < 10; ++i)
+			Entity.AddChild(new AtlasEntity());
+
+		Entity.Build().AddChild(child, index);
+
+		Assert.That(Entity.HasChild(child));
+		Assert.That(child.ParentIndex == index);
+		Assert.That(child.Parent == Entity);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_RemoveChild_AsChild_Then_ChildRemoved()
+	{
+		var child = new AtlasEntity();
+		var index = new Random().Next(0, 11);
+
+		for(var i = 0; i < 10; ++i)
+			Entity.AddChild(new AtlasEntity());
+
+		Entity.Build().AddChild(child, index).RemoveChild(child);
+
+		Assert.That(!Entity.HasChild(child));
+		Assert.That(child.ParentIndex == -1);
+		Assert.That(child.Parent == null);
+	}
+
+	[Test]
+	[Repeat(20)]
+	public void When_RemoveChild_AsIndex_Then_ChildRemoved()
+	{
+		var child = new AtlasEntity();
+		var index = new Random().Next(0, 11);
+
+		for(var i = 0; i < 10; ++i)
+			Entity.AddChild(new AtlasEntity());
+
+		Entity.Build().AddChild(child, index).RemoveChild(index);
+
+		Assert.That(!Entity.HasChild(child));
+		Assert.That(child.ParentIndex == -1);
+		Assert.That(child.Parent == null);
 	}
 
 	[Test]
