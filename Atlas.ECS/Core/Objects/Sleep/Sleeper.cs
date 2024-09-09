@@ -58,7 +58,7 @@ internal sealed class Sleeper<T> : ISleeper<T>, IDisposable
 
 	private void Assert()
 	{
-		if(sleeping < 0 && Debugger.IsAttached)
+		if(sleeping < 0)
 		{
 			Trace.WriteLine($"{nameof(Sleep)}(false) was called more than {nameof(Sleep)}(true). {nameof(Sleeping)} should be >= 0, but was < 0.", TraceLevel.Warning.ToString());
 			Trace.Write(new StackTrace(1));
