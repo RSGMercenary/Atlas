@@ -13,7 +13,9 @@ public static class AtlasECS
 {
 	#region Entities
 	/// <summary>
-	/// The default <see langword="true"/> value of <see cref="IEntity.AutoDispose"/> for all new <see cref="AtlasEntity"/> instances.
+	/// The <see cref="AtlasEntity.AutoDispose"/> value
+	/// for all new <see cref="AtlasEntity"/> instances.
+	/// <para>The default value is <see langword="true"/>.</para>
 	/// </summary>
 	public static bool EntityAutoDispose { get; set; } = true;
 
@@ -34,18 +36,23 @@ public static class AtlasECS
 	/// <summary>
 	/// Removes an <see cref="AtlasEntity"/> <see cref="IPool"/> reference.
 	/// </summary>
-	/// <returns><see langword="true"/> if all <see cref="IPool"/> references are removed. Otherwise <see langword="false"/>.</returns>
+	/// <returns><see langword="true"/> if all <see cref="IPool"/> references are removed.
+	/// Otherwise <see langword="false"/>.</returns>
 	public static bool RemoveEntityPool() => PoolManager.Instance.RemovePool<AtlasEntity>();
 	#endregion
 
 	#region Components
 	/// <summary>
-	/// The default <see langword="true"/> value of <see cref="IComponent.AutoDispose"/> for all new <see cref="AtlasComponent"/> instances.
+	/// The <see cref="AtlasComponent{T}.AutoDispose"/> value
+	/// for all new <see cref="AtlasComponent{T}"/> instances.
+	/// <para>The default value is <see langword="true"/>.</para>
 	/// </summary>
 	public static bool ComponentAutoDispose { get; set; } = true;
 
 	/// <summary>
-	/// The default <see langword="true"/> value of <see cref="AtlasEntityConstructor"/>.AutoRemove for all new <see cref="AtlasEntityConstructor"/> instances.
+	/// The <see cref="AtlasEntityConstructor{T}.AutoRemove"/> value
+	/// for all new <see cref="AtlasEntityConstructor{T}"/> instances.
+	/// <para>The default value is <see langword="true"/>.</para>
 	/// </summary>
 	public static bool AutoRemove { get; set; } = true;
 
@@ -60,24 +67,29 @@ public static class AtlasECS
 	/// </summary>
 	/// <param name="maxCount">The max instances in the pool.</param>
 	/// <param name="fill">Determines if the pool starts filled.</param>
-	/// <returns>The <see cref="AtlasComponent"/> pool.</returns>
+	/// <returns>The <see cref="AtlasComponent"/> <see cref="IPool"/>.</returns>
 	public static IPool<T> AddComponentPool<T>(int maxCount = -1, bool fill = false) where T : IComponent, new() => PoolManager.Instance.AddPool<T>(maxCount, fill);
 
 	/// <summary>
 	/// Removes an <see cref="AtlasComponent"/> <see cref="IPool"/> reference.
 	/// </summary>
-	/// <returns><see langword="true"/> if all <see cref="IPool"/> references are removed. Otherwise <see langword="false"/>.</returns>
+	/// <returns><see langword="true"/> if all <see cref="IPool"/> references are removed.
+	/// Otherwise <see langword="false"/>.</returns>
 	public static bool RemoveComponentPool<T>() where T : IComponent => PoolManager.Instance.RemovePool<T>();
 	#endregion
 
 	#region Systems
 	/// <summary>
-	/// The default <see cref="TimeStep.Variable"/> value of <see cref="AtlasSystem.TimeStep"/> for all new <see cref="AtlasSystem"/> instances.
+	/// The <see cref="AtlasSystem.TimeStep"/> value
+	/// for all new <see cref="AtlasSystem"/> instances.
+	/// <para>The default value is <see cref="TimeStep.Variable"/>.</para>
 	/// </summary>
 	public static TimeStep TimeStep { get; set; } = TimeStep.Variable;
 
 	/// <summary>
-	/// The default <see langword="false"/> value of <see cref="AtlasFamilySystem"/>.UpdateSleepingEntities for all new <see cref="AtlasFamilySystem"/> instances.
+	/// The <see cref="AtlasFamilySystem{TFamilyMember}.IgnoreSleep"/> value
+	/// for all new <see cref="AtlasFamilySystem{TFamilyMember}"/> instances.
+	/// <para>The default value is <see langword="false"/>.</para>
 	/// </summary>
 	public static bool IgnoreSleep { get; set; } = false;
 	#endregion

@@ -4,8 +4,6 @@ using Newtonsoft.Json;
 
 namespace Atlas.ECS.Systems;
 
-internal class AtlasFamilySystem { }
-
 [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
 public abstract class AtlasFamilySystem<TFamilyMember> : AtlasSystem, IFamilySystem<TFamilyMember>
 		where TFamilyMember : class, IFamilyMember, new()
