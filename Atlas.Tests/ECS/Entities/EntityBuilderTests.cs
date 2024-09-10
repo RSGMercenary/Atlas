@@ -141,13 +141,42 @@ internal class EntityBuilderTests
 		Assert.That(Entity.HasComponent<AtlasEngine>());
 	}
 
+	#region Components
+	#region Add
+	[TestCase<TestComponent, ITestComponent>]
+	[TestCase<TestComponent, TestComponent>]
+	public void When_AddComponent_AsNew_Then_ComponentAdded<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType, new()
+	{
+		Entity.Build()
+			.AddComponent<TComponent, TType>();
+
+		Assert.That(Entity.HasComponent<TType>());
+		Assert.That(Entity.Components.Count == 1);
+	}
+
+	[TestCase<TestComponent, ITestComponent>]
+	[TestCase<TestComponent, TestComponent>]
+	public void When_AddComponent_AsInstance_Then_ComponentAdded<TComponent, TType>()
+		where TType : class, IComponent
+		where TComponent : class, TType, new()
+	{
+		Entity.Build()
+			.AddComponent<TType>(new TComponent());
+
+		Assert.That(Entity.HasComponent<TType>());
+		Assert.That(Entity.Components.Count == 1);
+	}
+
 	[TestCase<TestComponent>(null)]
 	[TestCase<TestComponent>(typeof(TestComponent))]
 	[TestCase<TestComponent>(typeof(ITestComponent))]
 	public void When_AddComponent_AsNew_Then_ComponentAdded<TComponent>(Type type)
 		where TComponent : class, IComponent, new()
 	{
-		Entity.Build().AddComponent<TComponent>(type);
+		Entity.Build()
+			.AddComponent<TComponent>(type);
 
 		Assert.That(Entity.HasComponent(type ?? typeof(TComponent)));
 	}
@@ -162,26 +191,62 @@ internal class EntityBuilderTests
 
 		Assert.That(Entity.HasComponent(type ?? typeof(TComponent)));
 	}
+	#endregion
 
+	#region Remove
 	[TestCase<TestComponent, ITestComponent>]
 	[TestCase<TestComponent, TestComponent>]
-	public void When_AddComponent_AsNew_Then_ComponentAdded<TComponent, TType>()
+	public void When_RemoveComponent_Then_ComponentRemoved<TComponent, TType>()
 		where TType : class, IComponent
 		where TComponent : class, TType, new()
 	{
-		Entity.Build().AddComponent<TComponent, TType>();
+		Entity.Build()
+			.AddComponent<TComponent, TType>()
+			.RemoveComponent<TType>();
 
-		Assert.That(Entity.HasComponent<TType>());
+		Assert.That(!Entity.HasComponent<TType>());
+		Assert.That(Entity.Components.Count == 0);
 	}
 
 	[TestCase<TestComponent, ITestComponent>]
 	[TestCase<TestComponent, TestComponent>]
-	public void When_AddComponent_AsInstance_Then_ComponentAdded<TComponent, TType>()
+	public void When_RemoveComponents_Then_ComponentsRemoved<TComponent, TType>()
 		where TType : class, IComponent
 		where TComponent : class, TType, new()
 	{
-		Entity.Build().AddComponent<TComponent, TType>(new TComponent());
+		Entity.Build()
+			.AddComponent<TComponent, TType>()
+			.RemoveComponents();
 
-		Assert.That(Entity.HasComponent<TType>());
+		Assert.That(!Entity.HasComponent<TType>());
+		Assert.That(Entity.Components.Count == 0);
 	}
+
+	[TestCase<TestComponent>(typeof(TestComponent))]
+	[TestCase<TestComponent>(typeof(ITestComponent))]
+	public void When_RemoveComponent_Then_ComponentRemoved<TComponent>(Type type)
+		where TComponent : class, IComponent, new()
+	{
+		Entity.Build()
+			.AddComponent<TComponent>(type)
+			.RemoveComponent(type);
+
+		Assert.That(!Entity.HasComponent(type));
+		Assert.That(Entity.Components.Count == 0);
+	}
+
+	[Test]
+	public void When_RemoveComponent_Then_ComponentRemoved()
+	{
+		var component = new TestComponent();
+
+		Entity.Build()
+			.AddComponent(component)
+			.RemoveComponent(component);
+
+		Assert.That(!Entity.HasComponent(typeof(TestComponent)));
+		Assert.That(Entity.Components.Count == 0);
+	}
+	#endregion
+	#endregion
 }

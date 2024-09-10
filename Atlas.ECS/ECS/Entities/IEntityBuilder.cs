@@ -23,14 +23,6 @@ public interface IEntityBuilder
 	IEntityBuilder AddComponent<TComponent, TType>()
 		where TType : class, IComponent
 		where TComponent : class, TType, new();
-
-	IEntityBuilder AddComponent<TComponent, TType>(TComponent component, int index)
-		where TType : class, IComponent
-		where TComponent : class, TType;
-
-	IEntityBuilder AddComponent<TComponent, TType>(TComponent component)
-		where TType : class, IComponent
-		where TComponent : class, TType;
 	#endregion
 
 	#region Type
@@ -46,14 +38,13 @@ public interface IEntityBuilder
 	#endregion
 
 	#region Remove
-	IEntityBuilder RemoveComponent<TComponent, TType>()
-		where TType : class, IComponent
-		where TComponent : class, TType;
-
-	IEntityBuilder RemoveComponent<TComponent>(Type type = null)
+	IEntityBuilder RemoveComponent<TComponent>()
 		where TComponent : class, IComponent;
 
-	IEntityBuilder RemoveComponent(IComponent component);
+	IEntityBuilder RemoveComponent(Type type);
+
+	IEntityBuilder RemoveComponent<TComponent>(TComponent component)
+		where TComponent : class, IComponent;
 
 	IEntityBuilder RemoveComponents();
 	#endregion

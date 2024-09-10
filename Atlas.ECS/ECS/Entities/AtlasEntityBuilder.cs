@@ -55,22 +55,6 @@ public class AtlasEntityBuilder : IEntityBuilder
 		Instance.AddComponent<TComponent, TType>();
 		return this;
 	}
-
-	public IEntityBuilder AddComponent<TComponent, TType>(TComponent component)
-		where TType : class, IComponent
-		where TComponent : class, TType
-	{
-		Instance.AddComponent<TComponent, TType>(component);
-		return this;
-	}
-
-	public IEntityBuilder AddComponent<TComponent, TType>(TComponent component, int index)
-		where TType : class, IComponent
-		where TComponent : class, TType
-	{
-		Instance.AddComponent<TComponent, TType>(component, index);
-		return this;
-	}
 	#endregion
 
 	#region Component
@@ -98,22 +82,21 @@ public class AtlasEntityBuilder : IEntityBuilder
 	#endregion
 
 	#region Remove
-	public IEntityBuilder RemoveComponent<TComponent, TType>()
+	public IEntityBuilder RemoveComponent<TType>()
 		where TType : class, IComponent
-		where TComponent : class, TType
 	{
-		Instance.RemoveComponent<TComponent, TType>();
+		Instance.RemoveComponent<TType>();
 		return this;
 	}
 
-	public IEntityBuilder RemoveComponent<TComponent>(Type type = null)
+	public IEntityBuilder RemoveComponent(Type type)
+	{
+		Instance.RemoveComponent(type);
+		return this;
+	}
+
+	public IEntityBuilder RemoveComponent<TComponent>(TComponent component)
 		where TComponent : class, IComponent
-	{
-		Instance.RemoveComponent<TComponent>(type);
-		return this;
-	}
-
-	public IEntityBuilder RemoveComponent(IComponent component)
 	{
 		Instance.RemoveComponent(component);
 		return this;
