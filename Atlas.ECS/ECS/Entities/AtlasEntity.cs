@@ -26,15 +26,19 @@ public sealed class AtlasEntity : IEntity
 	public static readonly string RootName = "Root";
 
 	/// <summary>
-	/// A random default name used by <see cref="IEntity"/> instances.
+	/// A unique name used by new <see cref="IEntity"/> instances.
 	/// </summary>
-	public static string UniqueName => Guid.NewGuid().ToString("N");
+	public static string UniqueName => $"Entity {Guid.NewGuid().ToString().ToUpper()}";
 	#endregion
 
 	#region Pool
 	public static AtlasEntity Get() => PoolManager.Instance.Get<AtlasEntity>();
 
-	public static AtlasEntity Get(string globalName = null, string localName = null) { var entity = Get(); entity.SetNames(globalName, localName); return entity; }
+	public static AtlasEntity Get(string globalName, string localName) { var entity = Get(); entity.SetNames(globalName, localName); return entity; }
+
+	public static AtlasEntity GetGlobal(string globalName) { var entity = Get(); entity.GlobalName = globalName; return entity; }
+
+	public static AtlasEntity GetLocal(string localName) { var entity = Get(); entity.LocalName = localName; return entity; }
 
 	public static AtlasEntity GetRoot() { var root = Get(); root.IsRoot = true; return root; }
 	#endregion
@@ -122,8 +126,8 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Fields
-	private string globalName = UniqueName;
-	private string localName = UniqueName;
+	private string globalName;
+	private string localName;
 	private int selfSleeping = 0;
 	private readonly Dictionary<Type, IComponent> components = new();
 	private readonly EngineManager<IEntity> EngineManager;
@@ -141,6 +145,7 @@ public sealed class AtlasEntity : IEntity
 		Sleeper = new Sleeper<IEntity>(this);
 
 		AutoDispose = AtlasECS.EntityAutoDispose;
+		SetNames(UniqueName);
 	}
 
 	public AtlasEntity(bool isRoot) : this() => IsRoot = isRoot;
@@ -163,10 +168,8 @@ public sealed class AtlasEntity : IEntity
 		RemoveComponents();
 
 		GlobalNameChanged = null;
-		GlobalName = UniqueName;
-
 		LocalNameChanged = null;
-		LocalName = UniqueName;
+		SetNames(UniqueName);
 
 		SelfSleepingChanged = null;
 		SelfSleeping = 0;
@@ -187,7 +190,7 @@ public sealed class AtlasEntity : IEntity
 		{
 			if(!IsValidName(globalName, value, n => Engine?.Entities.Has(n) ?? false))
 				return;
-			string previous = globalName;
+			var previous = globalName;
 			globalName = value;
 			GlobalNameChanged?.Invoke(this, value, previous);
 		}
@@ -213,7 +216,7 @@ public sealed class AtlasEntity : IEntity
 		{
 			if(!IsValidName(localName, value, n => Parent?.HasChild(n) ?? false))
 				return;
-			string previous = localName;
+			var previous = localName;
 			localName = value;
 			LocalNameChanged?.Invoke(this, value, previous);
 		}
@@ -223,7 +226,7 @@ public sealed class AtlasEntity : IEntity
 
 	public void SetNames(string globalName, string localName) { GlobalName = globalName; LocalName = localName; }
 
-	private bool IsValidName(string current, string next, Func<string, bool> check, [CallerMemberName] string name = null)
+	private bool IsValidName(string current, string next, Func<string, bool> condition, [CallerMemberName] string name = null)
 	{
 		if(current == next || string.IsNullOrWhiteSpace(next))
 			return false;
@@ -231,7 +234,7 @@ public sealed class AtlasEntity : IEntity
 			ECSThrower.DuplicateName(current, RootName, name);
 		if(next != RootName && IsRoot)
 			ECSThrower.DuplicateName(RootName, next, name);
-		if(check.Invoke(next))
+		if(condition.Invoke(next))
 			ECSThrower.DuplicateName(current, next, name);
 		return true;
 	}

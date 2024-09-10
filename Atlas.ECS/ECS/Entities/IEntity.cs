@@ -3,6 +3,7 @@ using Atlas.Core.Objects.AutoDispose;
 using Atlas.Core.Objects.Sleep;
 using Atlas.ECS.Components.Component;
 using Atlas.ECS.Components.Engine;
+using Atlas.ECS.Components.Engine.Entities;
 using Atlas.ECS.Serialization;
 using System;
 using System.Collections.Generic;
@@ -19,33 +20,39 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleepe
 	event Action<IEntity, int, int> SelfSleepingChanged;
 	#endregion
 
-	#region Entities
+	#region Dispose
 	/// <summary>
 	/// Determines if <see cref="IDisposable.Dispose"/> is automatically called when <see cref="IEntity"/>.Parent == <see langword="null"/>.
 	/// </summary>
 	new bool AutoDispose { get; set; }
+	#endregion
 
+	#region Names
 	/// <summary>
-	/// This <see cref="IEntity"/>'s global name. This name is unique to its Engine.
-	/// If this Entity is added to an Engine, and this global name already
-	/// exists, then this Entity's global name will be changed.
+	/// The unique <see cref="GlobalName"/> used with the <see cref="IEntityManager"/>.
 	/// </summary>
 	string GlobalName { get; set; }
 
 	/// <summary>
-	/// This <see cref="IEntity"/>'s local name. This name is unique to its Parent.
-	/// If this Entity is added to a parent, and this local name already
-	/// exists, then this Entity's local name will be changed.
+	/// The unique <see cref="LocalName"/> used with the <see cref="IEntity"/>.Parent.
 	/// </summary>
 	string LocalName { get; set; }
 
-	IEntity AddChild(string globalName, string localName);
-	IEntity AddChild(string globalName, string localName, int index);
-	IEntity AddChild(string globalName);
-	IEntity AddChild(string globalName, int index);
+	/// <summary>
+	/// Sets <see cref="GlobalName"/> and <see cref="LocalName"/> to the given name.
+	/// </summary>
+	/// <param name="name">The global and local name.</param>
+	void SetNames(string name);
 
-	bool HasChild(string localName);
+	/// <summary>
+	/// Sets <see cref="GlobalName"/> and <see cref="LocalName"/> to the given names.
+	/// </summary>
+	/// <param name="globalName">The global name.</param>
+	/// <param name="localName">The local name.</param>
+	void SetNames(string globalName, string localName);
+	#endregion
 
+	#region Hierarchy
 	/// <summary>
 	/// Returns the <see cref="IEntity"/> in the given <paramref name="hierarchy"/>, starting
 	/// with this <see cref="IEntity"/> and traversing parents and/or children until the right
@@ -57,6 +64,8 @@ public interface IEntity : IEngineManager<IEntity>, IHierarchy<IEntity>, ISleepe
 	IEntity GetRelative(string hierarchy);
 
 	IEntity GetChild(string localName);
+
+	bool HasChild(string localName);
 
 	IEntity RemoveChild(string localName);
 	#endregion
