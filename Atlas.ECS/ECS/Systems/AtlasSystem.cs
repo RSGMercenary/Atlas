@@ -71,7 +71,8 @@ public abstract class AtlasSystem : ISystem
 	#region Construct / Dispose
 	protected AtlasSystem()
 	{
-		EngineManager = new(this, EngineChanging);
+		EngineManager = new(this);
+		EngineManager.EngineChanged += EngineChanging;
 		Updater = new(this);
 		Sleeper = new(this);
 
@@ -109,7 +110,7 @@ public abstract class AtlasSystem : ISystem
 		set => EngineManager.Engine = value;
 	}
 
-	private void EngineChanging(IEngine current, IEngine previous)
+	private void EngineChanging(ISystem system, IEngine current, IEngine previous)
 	{
 		if(previous != null)
 		{

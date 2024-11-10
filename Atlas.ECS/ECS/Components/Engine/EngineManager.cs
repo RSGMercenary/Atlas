@@ -8,14 +8,11 @@ public class EngineManager<T> : IEngineManager<T>, IDisposable where T : IEngine
 {
 	public event Action<T, IEngine, IEngine> EngineChanged;
 
-	private IEngine engine;
-	private readonly T Instance;
-	private readonly Action<IEngine, IEngine> Changed;
+	private T Instance { get; }
 
-	public EngineManager(T instance, Action<IEngine, IEngine> changed = null)
+	public EngineManager(T instance)
 	{
 		Instance = instance;
-		Changed = changed;
 	}
 
 	public void Dispose()
@@ -23,18 +20,16 @@ public class EngineManager<T> : IEngineManager<T>, IDisposable where T : IEngine
 		EngineChanged = null;
 	}
 
-
 	public IEngine Engine
 	{
-		get => engine;
+		get => field;
 		set
 		{
-			if(!(value != null && engine == null && HasEngineManager(value)) &&
-				!(value == null && engine != null && !HasEngineManager(engine)))
+			if(!(value != null && field == null && HasEngineManager(value)) &&
+				!(value == null && field != null && !HasEngineManager(field)))
 				return;
-			var previous = engine;
-			engine = value;
-			Changed?.Invoke(value, previous);
+			var previous = field;
+			field = value;
 			EngineChanged?.Invoke(Instance, value, previous);
 		}
 	}

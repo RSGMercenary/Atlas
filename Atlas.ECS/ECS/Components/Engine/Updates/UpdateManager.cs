@@ -40,14 +40,13 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	#endregion
 
 	#region Fields
-	//Updates
 	private readonly Updater<IUpdateManager> Updater;
 	#endregion
 
 	internal UpdateManager(IEngine engine)
 	{
 		DeltaFixedTime = 1f / 60f;
-		MaxVariableTime = 0.25f;
+		MaxVariableTime = 1f / 4f;
 		Engine = engine;
 		Updater = new(this);
 	}
@@ -69,28 +68,11 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	public float TotalFixedTime
-	{
-		get;
-		private set
-		{
-			if(field == value)
-				return;
-			field = value;
-		}
-	}
+	public float TotalFixedTime { get; private set; }
 
-	public int FixedLag
-	{
-		get;
-		private set;
-	}
+	public int FixedLag { get; private set; }
 
-	public int FixedUpdates
-	{
-		get;
-		private set;
-	}
+	public int FixedUpdates { get; private set; }
 	#endregion
 
 	#region Variable Time
@@ -107,16 +89,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	public float TotalVariableTime
-	{
-		get;
-		private set
-		{
-			if(field == value)
-				return;
-			field = value;
-		}
-	}
+	public float TotalVariableTime { get; private set; }
 
 	[JsonProperty]
 	public float MaxVariableTime
@@ -132,11 +105,7 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 	}
 
-	public float VariableInterpolation
-	{
-		get;
-		private set;
-	}
+	public float VariableInterpolation { get; private set; }
 	#endregion
 
 	#region State

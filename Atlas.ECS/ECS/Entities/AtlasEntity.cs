@@ -126,9 +126,6 @@ public sealed class AtlasEntity : IEntity
 	#endregion
 
 	#region Fields
-	private string globalName;
-	private string localName;
-	private int selfSleeping = 0;
 	private readonly Dictionary<Type, IComponent> components = new();
 	private readonly EngineManager<IEntity> EngineManager;
 	private readonly AutoDisposer<IEntity> AutoDisposer;
@@ -185,13 +182,13 @@ public sealed class AtlasEntity : IEntity
 	#region Names
 	public string GlobalName
 	{
-		get => globalName;
+		get;
 		set
 		{
-			if(!IsValidName(globalName, value, n => Engine?.Entities.Has(n) ?? false))
+			if(!IsValidName(field, value, n => Engine?.Entities.Has(n) ?? false))
 				return;
-			var previous = globalName;
-			globalName = value;
+			var previous = field;
+			field = value;
 			GlobalNameChanged?.Invoke(this, value, previous);
 		}
 	}
@@ -211,13 +208,13 @@ public sealed class AtlasEntity : IEntity
 	[JsonProperty(Order = int.MinValue + 1)]
 	public string LocalName
 	{
-		get => localName;
+		get;
 		set
 		{
-			if(!IsValidName(localName, value, n => Parent?.HasChild(n) ?? false))
+			if(!IsValidName(field, value, n => Parent?.HasChild(n) ?? false))
 				return;
-			var previous = localName;
-			localName = value;
+			var previous = field;
+			field = value;
 			LocalNameChanged?.Invoke(this, value, previous);
 		}
 	}
@@ -594,13 +591,13 @@ public sealed class AtlasEntity : IEntity
 	#region Self Sleep
 	public int SelfSleeping
 	{
-		get => selfSleeping;
+		get;
 		private set
 		{
-			if(selfSleeping == value)
+			if(field == value)
 				return;
-			int previous = selfSleeping;
-			selfSleeping = value;
+			int previous = field;
+			field = value;
 			SelfSleepingChanged?.Invoke(this, value, previous);
 			if(Parent == null)
 				return;
@@ -619,7 +616,7 @@ public sealed class AtlasEntity : IEntity
 		}
 	}
 
-	public bool IsSelfSleeping => selfSleeping > 0;
+	public bool IsSelfSleeping => SelfSleeping > 0;
 
 	public void SelfSleep(bool selfSleep)
 	{

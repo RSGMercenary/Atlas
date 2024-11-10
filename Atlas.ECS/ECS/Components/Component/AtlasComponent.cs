@@ -216,7 +216,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 
 	/// <summary>
 	/// Called when an Entity has been added to this Component.
-	/// This is called after the add has occured and before any
+	/// This is called after the add has occurred and before any
 	/// Signals are dispatched.
 	/// </summary>
 	/// <param name="entity">The Entity that has been added.</param>
@@ -254,7 +254,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 
 	/// <summary>
 	/// Called when an Entity has been removed from this Component.
-	/// This is called after the remove has occured and before any
+	/// This is called after the remove has occurred and before any
 	/// Signals are dispatched.
 	/// </summary>
 	/// <param name="entity">The Entity that has been removed.</param>

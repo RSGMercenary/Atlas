@@ -61,7 +61,8 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 	#region Construct / Dispose
 	public AtlasFamily()
 	{
-		EngineManager = new(this, EngineChanging);
+		EngineManager = new(this);
+		EngineManager.EngineChanged += EngineChanging;
 
 		var type = typeof(TFamilyMember);
 		var flags = BindingFlags.NonPublic | BindingFlags.Instance;
@@ -95,7 +96,7 @@ public class AtlasFamily<TFamilyMember> : IFamily<TFamilyMember>
 		set => EngineManager.Engine = value;
 	}
 
-	private void EngineChanging(IEngine current, IEngine previous)
+	private void EngineChanging(IReadOnlyFamily family, IEngine current, IEngine previous)
 	{
 		if(current == null)
 			Dispose();
