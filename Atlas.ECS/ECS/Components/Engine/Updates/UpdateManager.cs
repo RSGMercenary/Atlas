@@ -42,23 +42,12 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	#region Fields
 	//Updates
 	private readonly Updater<IUpdateManager> Updater;
-	private ISystem updateSystem;
-
-	//Fixed Time
-	private float deltaFixedTime = 1f / 60f;
-	private float totalFixedTime = 0;
-	private int fixedUpdates = 0;
-	private int fixedLag = 0;
-
-	//Variable Time
-	private float deltaVariableTime = 0;
-	private float totalVariableTime = 0;
-	private float maxVariableTime = 0.25f;
-	private float variableInterpolation = 0;
 	#endregion
 
 	internal UpdateManager(IEngine engine)
 	{
+		DeltaFixedTime = 1f / 60f;
+		MaxVariableTime = 0.25f;
 		Engine = engine;
 		Updater = new(this);
 	}
@@ -69,84 +58,84 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	[JsonProperty]
 	public float DeltaFixedTime
 	{
-		get => deltaFixedTime;
+		get;
 		set
 		{
-			if(deltaFixedTime == value)
+			if(field == value)
 				return;
-			var previous = deltaFixedTime;
-			deltaFixedTime = value;
+			var previous = field;
+			field = value;
 			DeltaFixedTimeChanged?.Invoke(this, value, previous);
 		}
 	}
 
 	public float TotalFixedTime
 	{
-		get => totalFixedTime;
+		get;
 		private set
 		{
-			if(totalFixedTime == value)
+			if(field == value)
 				return;
-			totalFixedTime = value;
+			field = value;
 		}
 	}
 
 	public int FixedLag
 	{
-		get => fixedLag;
-		private set => fixedLag = value;
+		get;
+		private set;
 	}
 
 	public int FixedUpdates
 	{
-		get => fixedUpdates;
-		private set => fixedUpdates = value;
+		get;
+		private set;
 	}
 	#endregion
 
 	#region Variable Time
 	public float DeltaVariableTime
 	{
-		get => deltaVariableTime;
+		get;
 		private set
 		{
 			//Cap delta time to avoid the "spiral of death".
-			value = float.Min(value, maxVariableTime);
-			if(deltaVariableTime == value)
+			value = float.Min(value, MaxVariableTime);
+			if(field == value)
 				return;
-			deltaVariableTime = value;
+			field = value;
 		}
 	}
 
 	public float TotalVariableTime
 	{
-		get => totalVariableTime;
+		get;
 		private set
 		{
-			if(totalVariableTime == value)
+			if(field == value)
 				return;
-			totalVariableTime = value;
+			field = value;
 		}
 	}
 
 	[JsonProperty]
 	public float MaxVariableTime
 	{
-		get => maxVariableTime;
+		get;
 		set
 		{
-			if(maxVariableTime == value)
+			if(field == value)
 				return;
-			var previous = maxVariableTime;
-			maxVariableTime = value;
+			var previous = field;
+			field = value;
 			MaxVariableTimeChanged?.Invoke(this, value, previous);
 		}
 	}
 
 	public float VariableInterpolation
 	{
-		get => variableInterpolation;
-		private set => variableInterpolation = value;
+		get;
+		private set;
 	}
 	#endregion
 
@@ -165,14 +154,14 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 
 	public ISystem UpdateSystem
 	{
-		get => updateSystem;
+		get;
 		private set
 		{
-			if(updateSystem == value)
+			if(field == value)
 				return;
 			//If an event were to ever be put here, do it before the set.
 			//Prevents System.Update() from being mis-called.
-			updateSystem = value;
+			field = value;
 		}
 	}
 	#endregion
@@ -201,11 +190,11 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 		}
 
 		//Variable-time updates
-		TotalVariableTime += deltaVariableTime;
+		TotalVariableTime += DeltaVariableTime;
 		CalculateVariableInterpolation(deltaFixedTime);
 		TimeStep = TimeStep.Variable;
 
-		UpdateSystems(Engine.Systems.VariableSystems, deltaVariableTime);
+		UpdateSystems(Engine.Systems.VariableSystems, DeltaVariableTime);
 
 		TimeStep = TimeStep.None;
 		IsUpdating = false;
@@ -213,11 +202,11 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 
 	private void CalculateFixedUpdates(float deltaFixedTime)
 	{
-		if(deltaVariableTime <= 0)
+		if(DeltaVariableTime <= 0)
 			return;
 		var fixedUpdates = 0;
 		var totalFixedTime = TotalFixedTime;
-		while(totalFixedTime + deltaFixedTime <= totalVariableTime + deltaVariableTime)
+		while(totalFixedTime + deltaFixedTime <= TotalVariableTime + DeltaVariableTime)
 		{
 			totalFixedTime += deltaFixedTime;
 			++fixedUpdates;
@@ -228,8 +217,8 @@ internal sealed class UpdateManager : IUpdateManager, IUpdate<float>
 	private void CalculateFixedLag()
 	{
 		//Calculate when fixed-time and variable-time updates weren't 1:1.
-		var fixedLag = FixedLag + int.Max(0, fixedUpdates - 1);
-		if(fixedUpdates == 1 && fixedLag > 0)
+		var fixedLag = FixedLag + int.Max(0, FixedUpdates - 1);
+		if(FixedUpdates == 1 && fixedLag > 0)
 			--fixedLag;
 		FixedLag = fixedLag;
 	}
