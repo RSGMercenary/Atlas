@@ -60,9 +60,6 @@ public abstract class AtlasSystem : ISystem
 	#endregion
 
 	#region Fields
-	private int priority = 0;
-	private float totalIntervalTime = 0;
-	private float deltaIntervalTime = 0;
 	private readonly EngineManager<ISystem> EngineManager;
 	private readonly Updater<ISystem> Updater;
 	private readonly Sleeper<ISystem> Sleeper;
@@ -156,12 +153,12 @@ public abstract class AtlasSystem : ISystem
 
 	private float GetDeltaTime(float deltaTime)
 	{
-		if(deltaIntervalTime > 0)
+		if(DeltaIntervalTime > 0)
 		{
-			if(GetEngineTime() - totalIntervalTime < deltaIntervalTime)
+			if(GetEngineTime() - TotalIntervalTime < DeltaIntervalTime)
 				return 0;
-			TotalIntervalTime += deltaIntervalTime;
-			return deltaIntervalTime;
+			TotalIntervalTime += DeltaIntervalTime;
+			return DeltaIntervalTime;
 		}
 		return deltaTime;
 	}
@@ -190,13 +187,13 @@ public abstract class AtlasSystem : ISystem
 	[JsonProperty]
 	public int Priority
 	{
-		get => priority;
+		get;
 		set
 		{
-			if(priority == value)
+			if(field == value)
 				return;
-			int previous = priority;
-			priority = value;
+			int previous = field;
+			field = value;
 			PriorityChanged?.Invoke(this, value, previous);
 		}
 	}
@@ -213,13 +210,13 @@ public abstract class AtlasSystem : ISystem
 	#region Interval Time
 	public float DeltaIntervalTime
 	{
-		get => deltaIntervalTime;
+		get;
 		protected set
 		{
-			if(deltaIntervalTime == value)
+			if(field == value)
 				return;
-			var previous = deltaIntervalTime;
-			deltaIntervalTime = value;
+			var previous = field;
+			field = value;
 			IntervalChanged?.Invoke(this, value, previous);
 			if(Engine != null)
 				SyncTotalIntervalTime();
@@ -228,12 +225,12 @@ public abstract class AtlasSystem : ISystem
 
 	public float TotalIntervalTime
 	{
-		get => totalIntervalTime;
+		get;
 		private set
 		{
-			if(totalIntervalTime == value)
+			if(field == value)
 				return;
-			totalIntervalTime = value;
+			field = value;
 		}
 	}
 
@@ -242,11 +239,11 @@ public abstract class AtlasSystem : ISystem
 	/// </summary>
 	private void SyncTotalIntervalTime()
 	{
-		if(deltaIntervalTime <= 0)
+		if(DeltaIntervalTime <= 0)
 			return;
 		float totalIntervalTime = 0;
-		while(totalIntervalTime + deltaIntervalTime <= GetEngineTime())
-			totalIntervalTime += deltaIntervalTime;
+		while(totalIntervalTime + DeltaIntervalTime <= GetEngineTime())
+			totalIntervalTime += DeltaIntervalTime;
 		TotalIntervalTime = totalIntervalTime;
 	}
 
