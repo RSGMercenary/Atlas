@@ -6,7 +6,6 @@ namespace Atlas.Core.Collections.Pool;
 public class Pool<T> : IPool<T>
 {
 	private readonly Stack<T> stack = new();
-	private int maxCount = -1;
 	private readonly Func<T> constructor;
 
 	public Pool(Func<T> constructor = null, int maxCount = -1, bool fill = false)
@@ -33,15 +32,15 @@ public class Pool<T> : IPool<T>
 
 	public int MaxCount
 	{
-		get => maxCount;
+		get => field;
 		set
 		{
-			if(maxCount == value)
+			if(field == value)
 				return;
-			maxCount = value;
-			if(maxCount < 0)
+			field = value;
+			if(field < 0)
 				return;
-			while(stack.Count > maxCount)
+			while(stack.Count > field)
 				Dispose(stack.Pop());
 		}
 	}
@@ -54,7 +53,7 @@ public class Pool<T> : IPool<T>
 	{
 		if(value?.GetType() != typeof(T))
 			throw new ArgumentException($"An instance of {value?.GetType()} does not equal {typeof(T)}.");
-		if(maxCount >= 0 && stack.Count >= maxCount)
+		if(MaxCount >= 0 && stack.Count >= MaxCount)
 			return false;
 		stack.Push(value);
 		return true;
@@ -62,11 +61,11 @@ public class Pool<T> : IPool<T>
 
 	public bool Fill()
 	{
-		if(maxCount <= 0)
+		if(MaxCount <= 0)
 			return false;
-		if(stack.Count >= maxCount)
+		if(stack.Count >= MaxCount)
 			return false;
-		while(stack.Count < maxCount)
+		while(stack.Count < MaxCount)
 			Put(constructor.Invoke());
 		return true;
 	}

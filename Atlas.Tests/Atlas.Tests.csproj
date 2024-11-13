@@ -6,6 +6,7 @@
 		<Nullable>disable</Nullable>
 		<OutputType>Exe</OutputType>
 		<GenerateProgramFile>false</GenerateProgramFile>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 
 	<ItemGroup>

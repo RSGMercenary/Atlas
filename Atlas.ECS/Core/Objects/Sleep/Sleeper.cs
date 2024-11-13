@@ -18,7 +18,6 @@ internal sealed class Sleeper<T> : ISleeper<T>, IDisposable
 
 	#region Fields
 	private readonly T Instance;
-	private int sleeping = 0;
 	#endregion
 
 	public Sleeper(T instance)
@@ -29,24 +28,24 @@ internal sealed class Sleeper<T> : ISleeper<T>, IDisposable
 	public void Dispose()
 	{
 		SleepingChanged = null;
-		sleeping = 0;
+		Sleeping = 0;
 	}
 
 	public int Sleeping
 	{
-		get => sleeping;
+		get => field;
 		private set
 		{
-			if(sleeping == value)
+			if(field == value)
 				return;
-			var previous = sleeping;
-			sleeping = value;
+			var previous = field;
+			field = value;
 			Assert();
 			SleepingChanged?.Invoke(Instance, value, previous);
 		}
 	}
 
-	public bool IsSleeping => sleeping > 0;
+	public bool IsSleeping => Sleeping > 0;
 
 	public void Sleep(bool sleep)
 	{
@@ -58,7 +57,7 @@ internal sealed class Sleeper<T> : ISleeper<T>, IDisposable
 
 	private void Assert()
 	{
-		if(sleeping < 0)
+		if(Sleeping < 0)
 		{
 			Trace.WriteLine($"{nameof(Sleep)}(false) was called more than {nameof(Sleep)}(true). {nameof(Sleeping)} should be >= 0, but was < 0.", TraceLevel.Warning.ToString());
 			Trace.Write(new StackTrace(1));

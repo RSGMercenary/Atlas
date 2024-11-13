@@ -12,22 +12,21 @@ public sealed class UpdateRunner<T> : IUpdateRunner where T : INumber<T>
 	public event Action<IUpdateRunner, bool> IsRunningChanged;
 
 	private readonly Stopwatch timer = new();
-	private readonly IUpdate<T> instance;
-	private bool isRunning = false;
+	private readonly IUpdate<T> Instance;
 
 	public UpdateRunner(IUpdate<T> instance)
 	{
-		this.instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<T>)} instance is null.");
+		Instance = instance ?? throw new NullReferenceException($"{nameof(IUpdate<T>)} instance is null.");
 	}
 
 	public bool IsRunning
 	{
-		get => isRunning;
+		get => field;
 		set
 		{
-			if(isRunning == value)
+			if(field == value)
 				return;
-			isRunning = value;
+			field = value;
 			IsRunningChanged?.Invoke(this, value);
 			//Only run again when the last Update()/timer is done.
 			//If the UpdateRunner is turned off and on during an Update()
@@ -36,10 +35,10 @@ public sealed class UpdateRunner<T> : IUpdateRunner where T : INumber<T>
 			{
 				timer.Restart();
 				var previousTime = T.Zero;
-				while(isRunning)
+				while(field)
 				{
 					var currentTime = T.CreateChecked(timer.Elapsed.TotalSeconds);
-					instance.Update(currentTime - previousTime);
+					Instance.Update(currentTime - previousTime);
 					previousTime = currentTime;
 				}
 				timer.Stop();

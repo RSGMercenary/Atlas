@@ -25,7 +25,6 @@ internal sealed class Updater<T> : IUpdater<T>, IDisposable
 
 	#region Fields
 	private readonly T Instance;
-	private bool isUpdating = false;
 	private TimeStep timeStep = TimeStep.None;
 	#endregion
 
@@ -37,7 +36,7 @@ internal sealed class Updater<T> : IUpdater<T>, IDisposable
 	public void Dispose()
 	{
 		IsUpdatingChanged = null;
-		isUpdating = false;
+		IsUpdating = false;
 
 		TimeStepChanged = null;
 		timeStep = TimeStep.None;
@@ -45,19 +44,19 @@ internal sealed class Updater<T> : IUpdater<T>, IDisposable
 
 	public bool IsUpdating
 	{
-		get => isUpdating;
+		get => field;
 		set
 		{
-			if(isUpdating == value)
+			if(field == value)
 				return;
-			isUpdating = value;
+			field = value;
 			IsUpdatingChanged?.Invoke(Instance, value);
 		}
 	}
 
 	public void Assert()
 	{
-		if(isUpdating)
+		if(IsUpdating)
 			throw new InvalidOperationException("Update is already running, and can't be run again.");
 	}
 

@@ -1,6 +1,7 @@
 ﻿using Atlas.Core.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Atlas.Core.Collections.Pool;
 
@@ -10,9 +11,10 @@ public sealed class PoolManager : IPoolManager
 
 	public event Action<IPoolManager, IPool> PoolAdded;
 	public event Action<IPoolManager, IPool> PoolRemoved;
-
 	private readonly Dictionary<Type, uint> references = new();
 	private readonly Dictionary<Type, IPool> pools = new();
+	private readonly Lock Lock = new();
+
 
 	private PoolManager() { } // PoolManager can only have one instance.
 
@@ -30,32 +32,39 @@ public sealed class PoolManager : IPoolManager
 
 	public IPool<T> AddPool<T>(Func<T> constructor = null, int maxCount = -1, bool fill = false)
 	{
-		var type = typeof(T);
-		if(!pools.TryGetValue(type, out IPool<T> pool))
+		lock(Lock)
 		{
-			pool = new Pool<T>(constructor, maxCount, fill);
-			pools.Add(type, pool);
-			references.Add(type, 0);
-			PoolAdded?.Invoke(this, pool);
+			var type = typeof(T);
+			if(!pools.TryGetValue(type, out IPool<T> pool))
+			{
+				pool = new Pool<T>(constructor, maxCount, fill);
+				pools.Add(type, pool);
+				references.Add(type, 0);
+				PoolAdded?.Invoke(this, pool);
+			}
+			++references[type];
+			return pool;
 		}
-		++references[type];
-		return pool;
+
 	}
 	#endregion
 
 	#region Remove
 	public bool RemovePool<T>()
 	{
-		var type = typeof(T);
-		if(!pools.TryGetValue(type, out IPool<T> pool))
-			return false;
-		if(--references[type] > 0)
-			return false;
-		pool.Dispose();
-		pools.Remove(type);
-		references.Remove(type);
-		PoolRemoved?.Invoke(this, pool);
-		return true;
+		lock(Lock)
+		{
+			var type = typeof(T);
+			if(!pools.TryGetValue(type, out IPool<T> pool))
+				return false;
+			if(--references[type] > 0)
+				return false;
+			pool.Dispose();
+			pools.Remove(type);
+			references.Remove(type);
+			PoolRemoved?.Invoke(this, pool);
+			return true;
+		}
 	}
 	#endregion
 	#endregion

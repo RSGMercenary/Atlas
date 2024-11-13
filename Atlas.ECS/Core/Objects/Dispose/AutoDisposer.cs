@@ -18,7 +18,6 @@ internal sealed class AutoDisposer<T> : IAutoDisposer<T>, IDisposable
 	#region Fields
 	private readonly T Instance;
 	private readonly Func<bool> Condition;
-	private bool autoDispose = true;
 	#endregion
 
 	public AutoDisposer(T instance, Func<bool> condition)
@@ -35,20 +34,20 @@ internal sealed class AutoDisposer<T> : IAutoDisposer<T>, IDisposable
 
 	public bool AutoDispose
 	{
-		get => autoDispose;
+		get => field;
 		set
 		{
-			if(autoDispose == value)
+			if(field == value)
 				return;
-			var previous = autoDispose;
-			autoDispose = value;
+			var previous = field;
+			field = value;
 			AutoDisposeChanged?.Invoke(Instance, value);
 		}
 	}
 
 	public bool TryAutoDispose()
 	{
-		if(autoDispose && Condition())
+		if(AutoDispose && Condition())
 		{
 			Instance.Dispose();
 			return true;
