@@ -77,7 +77,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 	protected AtlasComponent(bool isShareable)
 	{
 		IsShareable = isShareable;
-		AutoDisposer = new(this as T, () => managers.Count <= 0);
+		AutoDisposer = new(this as T, () => managers.Count <= 0 && !IsSwapping);
 
 		AutoDispose = AtlasECS.ComponentAutoDispose;
 	}
@@ -100,6 +100,7 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 
 	[JsonProperty(Order = int.MinValue)]
 	public bool IsShareable { get; private set; } = false;
+	private bool IsSwapping { get; set; } = false;
 
 	#region AutoDispose
 	[JsonProperty(Order = int.MinValue + 1)]
@@ -182,8 +183,13 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 			if(!HasManager(entity))
 			{
 				index ??= managers.Count;
-				if(SwapNonShareable())
+				if(!IsShareable)
+				{
+					IsSwapping = true;
+					RemoveManagers();
+					IsSwapping = false;
 					index = 0;
+				}
 
 				managers.Add(entity, index.Value);
 				AddingManager(entity, index.Value);
@@ -200,18 +206,6 @@ public abstract class AtlasComponent<T> : IComponent<T> where T : class, ICompon
 			entity.AddComponent(this, type, index);
 		}
 		return entity;
-	}
-
-	private bool SwapNonShareable()
-	{
-		if(Manager == null)
-			return false;
-
-		var isAutoDisposable = AutoDispose;
-		AutoDispose = false;
-		RemoveManagers();
-		AutoDispose = isAutoDisposable;
-		return true;
 	}
 
 	/// <summary>

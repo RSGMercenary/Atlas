@@ -337,6 +337,7 @@ class ManagerTests
 		component.AddManager(new AtlasEntity());
 
 		Assert.That(component.Managers.Count == count);
+		Assert.That(component.TestDispose == false);
 	}
 
 	[TestCase(true)]
