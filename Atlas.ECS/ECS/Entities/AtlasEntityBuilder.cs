@@ -3,8 +3,14 @@ using System;
 
 namespace Atlas.ECS.Entities;
 
+public static class AtlasEntityBuilderExtensions
+{
+	public static AtlasEntityBuilder Build(this IEntity entity) => new(entity);
+}
+
 public class AtlasEntityBuilder : IEntityBuilder
 {
+
 	private IEntity Instance { get; set; }
 
 	public AtlasEntityBuilder() { }
